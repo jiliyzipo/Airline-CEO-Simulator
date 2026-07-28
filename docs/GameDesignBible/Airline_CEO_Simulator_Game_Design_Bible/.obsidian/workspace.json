@@ -1,0 +1,214 @@
+{
+  "main": {
+    "id": "ca37fecb0e9c888a",
+    "type": "split",
+    "children": [
+      {
+        "id": "92911d17d6812a3c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7d6ab88e47131c89",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Airline_CEO_Simulator_Game_Design_Bible_v0.1.2.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Airline_CEO_Simulator_Game_Design_Bible_v0.1.2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "90c31e61cc8c93fa",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d3ff93eca1528c7b",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "Airline CEO Simulator - Game Design Document v 0.1.2.canvas",
+                "viewState": {
+                  "x": -610.7645019878172,
+                  "y": -457.01933598375615,
+                  "zoom": 0.5
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Airline CEO Simulator - Game Design Document v 0.1.2"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "8ea7a1706ed8a772",
+    "type": "split",
+    "children": [
+      {
+        "id": "cf996261b79174c9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "588d785061c34fe5",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "12cb0d0966de067b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "3f9469a06d934862",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 215.5
+  },
+  "right": {
+    "id": "4f68fa16fe88075b",
+    "type": "split",
+    "children": [
+      {
+        "id": "3edc668aaf78ef6c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b662c405d7f6167a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Airline CEO Simulator - Game Design Document v 0.1.2.canvas",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Airline CEO Simulator - Game Design Document v 0.1.2 的反向链接列表"
+            }
+          },
+          {
+            "id": "68549b6641149d68",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Airline CEO Simulator - Game Design Document v 0.1.2.canvas",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Airline CEO Simulator - Game Design Document v 0.1.2 的出链列表"
+            }
+          },
+          {
+            "id": "19444b7153996cef",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "1b04413ca0817718",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "c29465e800b9b569",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Airline CEO Simulator - Game Design Document v 0.1.2.canvas",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Airline CEO Simulator - Game Design Document v 0.1.2 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "d3ff93eca1528c7b",
+  "lastOpenFiles": [
+    "Airline_CEO_Simulator_Game_Design_Bible_v0.1.2.pdf",
+    "Airline CEO Simulator - Game Design Document v 0.1.2.canvas",
+    "未命名.md",
+    "Game_Design_Bible_v0.1.0.md"
+  ]
+}
