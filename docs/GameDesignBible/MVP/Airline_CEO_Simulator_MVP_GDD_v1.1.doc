@@ -1,0 +1,879 @@
+
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Airline CEO Simulator MVP GDD v1.1</title>
+                <style>
+                body { font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif; background:#fff; color:#1e2b3c; line-height:1.6; padding:2rem; max-width:1100px; margin:0 auto; }
+                h1 { font-size:2.2rem; font-weight:700; color:#0b1a2a; }
+                h1 small { font-weight:400; font-size:1.1rem; color:#4a5a6e; display:block; margin-top:0.2rem; }
+                h2 { font-size:1.7rem; font-weight:600; margin-top:2.2rem; border-bottom:2px solid #eef2f6; padding-bottom:0.3rem; color:#0b1a2a; }
+                h3 { font-size:1.25rem; font-weight:600; margin-top:1.8rem; color:#142433; }
+                h4 { font-size:1.05rem; font-weight:600; margin-top:1.4rem; color:#1e3347; }
+                h5 { font-size:0.95rem; font-weight:600; margin-top:1rem; color:#26445e; }
+                table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.9rem; }
+                th { background:#f0f4f9; font-weight:600; text-align:left; padding:0.5rem 0.7rem; border:1px solid #d6dee6; }
+                td { padding:0.4rem 0.7rem; border:1px solid #d6dee6; vertical-align:top; }
+                .callout { background:#f5f8fb; border-left:4px solid #2f6b9e; padding:0.6rem 1rem; margin:0.8rem 0; border-radius:0 4px 4px 0; }
+                .callout.goal { border-left-color:#2a7d5c; background:#edf6f1; }
+                .callout code { background:#eef2f6; padding:0.1rem 0.3rem; border-radius:3px; font-family:monospace; }
+                .pillar-grid { display:flex; flex-wrap:wrap; gap:1rem; margin:1rem 0; }
+                .pillar-card { background:#f7fafd; border:1px solid #e6ecf2; border-radius:8px; padding:0.8rem 1rem; flex:1 1 180px; }
+                .pillar-card h5 { margin-top:0; }
+                .flow { background:#f7fafd; border:1px solid #e6ecf2; border-radius:8px; padding:1rem 1.4rem; font-size:0.95rem; line-height:1.8; margin:1rem 0; }
+                .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; }
+                .dot.green { background:#2a9d6e; }
+                .dot.yellow { background:#e8b84b; }
+                .dot.red { background:#cc4a4a; }
+                .dot.black { background:#1e2b3c; }
+                .tag { display:inline-block; font-size:0.7rem; font-weight:600; padding:0.1rem 0.6rem; border-radius:12px; background:#e6ecf2; color:#1e3347; }
+                .footnote { font-size:0.85rem; color:#4d637a; margin-top:0.2rem; }
+                .text-muted { color:#4d637a; }
+                .text-small { font-size:0.85rem; }
+                ul, ol { padding-left:1.6rem; }
+                li { margin:0.15rem 0; }
+                hr { border:none; border-top:1px solid #e6ecf2; margin:2rem 0; }
+                .doc-meta { display:flex; flex-wrap:wrap; gap:0.3rem 1.2rem; margin:0.5rem 0 1.5rem; padding:0.5rem 0; border-bottom:1px solid #eaeef2; color:#3d5066; font-size:0.9rem; }
+                .doc-meta span { background:#f2f5f8; padding:0.1rem 0.7rem; border-radius:20px; }
+                .cross-list { list-style:none; padding-left:0; }
+                .cross-list li { padding-left:1.6rem; position:relative; }
+                .cross-list li::before { content:"✕"; position:absolute; left:0; color:#b14a4a; font-weight:600; }
+                .check-list { list-style:none; padding-left:0; }
+                .check-list li { padding-left:1.6rem; position:relative; }
+                .check-list li::before { content:"▹"; position:absolute; left:0; color:#2f6b9e; font-weight:600; }
+                code { background:#f0f4f9; padding:0.1rem 0.4rem; border-radius:4px; font-size:0.85em; font-family:monospace; color:#1f4a7a; }
+                .table-wrap { overflow-x:auto; margin:1rem 0; }
+                .flex { display:flex; flex-wrap:wrap; gap:0.3rem 0.6rem; align-items:center; }
+                .gap-1 { gap:0.5rem; }
+                .mt-1 { margin-top:0.8rem; }
+                .mb-1 { margin-bottom:0.8rem; }
+            </style>
+                </head>
+                <body>
+                    
+
+        <!-- download bar -->
+        
+
+        <!-- ==================== TITLE ==================== -->
+        <h1>《Airline CEO Simulator》MVP版 GDD v1.1
+            <small>首版开发指导文件 · 预计开发周期 18–24 个月 · 团队规模 15–25 人</small>
+        </h1>
+        <div class="doc-meta">
+            <span>📌 核心体验：在董事会的年度考核压力下，通过七大部门的协同运营让公司活下去</span>
+            <span>🎯 MVP边界：完整跑通 1~10 财年核心循环 · 7部门独立运作</span>
+        </div>
+
+        <!-- ==================== CHAPTER 1 ==================== -->
+        <h2>第1章 · 设计愿景与MVP边界声明</h2>
+
+        <h3>1.1 核心体验一句话</h3>
+        <div class="callout goal">
+            <strong>“你是一家航空公司的CEO。董事会每年给你定目标，七大部门听你指挥，但现金跑道永远不够长。你的任务：在退休前不被解雇，也不让公司破产。”</strong>
+        </div>
+
+        <h3>1.2 MVP三大支柱（不可削减）</h3>
+        <div class="pillar-grid">
+            <div class="pillar-card">
+                <h5>① 年度考核压力</h5>
+                <p><em>“每年年底都要交卷”</em></p>
+                <p class="text-small text-muted">董事会生成目标 → 财年结算 → 续聘/解雇</p>
+            </div>
+            <div class="pillar-card">
+                <h5>② 现金流生死线</h5>
+                <p><em>“账上钱还能撑几个月”</em></p>
+                <p class="text-small text-muted">现金跑道仪表盘 + 燃油对冲 + 破产保护</p>
+            </div>
+            <div class="pillar-card">
+                <h5>③ 七部门协同运营</h5>
+                <p><em>“每个部门都有用，也都有坑”</em></p>
+                <p class="text-small text-muted">7部门独立KPI + 跨部门联动 + 21人候选池</p>
+            </div>
+        </div>
+
+        <h3>1.3 首版明确不做（[EXT] 标记 = 扩展内容）</h3>
+        <ul class="cross-list">
+            <li>实时外部数据API接入（油价/汇率/天气）→ 改用<strong>游戏内经济引擎模拟</strong></li>
+            <li>23种董事会化学反应 → 首版只保留<strong>8种核心组合</strong></li>
+            <li>碳配额管理（EU ETS/CORSIA）→ 简化为<strong>“环保投入”单一指标</strong></li>
+            <li>联盟深度博弈/时刻槽交易 → 保留<strong>基础代码共享</strong></li>
+            <li>二手飞机交易市场 → 仅保留<strong>新飞机采购</strong></li>
+            <li>移动端适配 → 首版<strong>仅PC（Steam）</strong></li>
+            <li>完整Mod SDK → 仅开放<strong>JSON数据修改</strong></li>
+            <li>云存档/排行榜 → 纯本地存档</li>
+        </ul>
+
+        <!-- ==================== CHAPTER 2 ==================== -->
+        <h2>第2章 · 核心循环</h2>
+
+        <div class="flow">
+            🛫 游戏开始<br>
+            │<br>
+            ▼<br>
+            ① 开局创建（第3章）—— 10~15分钟<br>
+            &nbsp;&nbsp;&nbsp;· CEO档案 + 航司注册 + 难度选择<br>
+            │<br>
+            ▼<br>
+            ② 新手见习期（前3个财年）—— 约2小时现实时间<br>
+            &nbsp;&nbsp;&nbsp;· 第1财年：解锁 OPS + MKT + FIN（核心三角）<br>
+            &nbsp;&nbsp;&nbsp;· 第2财年：解锁 MNT + HR（支撑体系）<br>
+            &nbsp;&nbsp;&nbsp;· 第3财年：解锁 SAF + STG（战略纵深）<br>
+            &nbsp;&nbsp;&nbsp;· 幕僚贴身引导 + 失误保护<br>
+            │<br>
+            ▼<br>
+            ③ 组建董事会 &amp; 生成目标（第5~8章精简版）<br>
+            &nbsp;&nbsp;&nbsp;· 从12人池抽取8席（含玩家）<br>
+            &nbsp;&nbsp;&nbsp;· 匹配8种化学反应 → 生成3~4项目标<br>
+            │<br>
+            ▼<br>
+            ④ 财年运营（核心沙盒）<br>
+            &nbsp;&nbsp;&nbsp;· 7部门自动运行，玩家手动干预关键决策<br>
+            &nbsp;&nbsp;&nbsp;· 经济引擎驱动外部波动<br>
+            &nbsp;&nbsp;&nbsp;· 事件引擎注入不确定性<br>
+            │<br>
+            ▼<br>
+            ⑤ 财年结算 &amp; 换届投票<br>
+            &nbsp;&nbsp;&nbsp;· 完成率 ≥ 60% → 续聘（保留或重组董事会）<br>
+            &nbsp;&nbsp;&nbsp;· 完成率 &lt; 60% → 解雇 → Game Over<br>
+            │<br>
+            ▼<br>
+            ⑥ 循环 ③~⑤ 直至触发终局（第4章）
+        </div>
+        <p class="footnote"><strong>年度节奏：</strong>每财年4季度，每季度现实时间约 <strong>10~15分钟</strong>（1倍速下），完整财年约 <strong>40~60分钟</strong>。</p>
+
+        <!-- ==================== CHAPTER 3 ==================== -->
+        <h2>第3章 · 开局创建（精简版）</h2>
+
+        <h3>3.1 CEO个人档案</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>字段</th><th>类型</th><th>游戏内影响</th></tr></thead>
+                <tbody>
+                    <tr><td>姓名</td><td>文本输入</td><td>无</td></tr>
+                    <tr><td>国籍</td><td>下拉（20国）</td><td>影响初始航线网络推荐</td></tr>
+                    <tr><td>教育背景</td><td>单选（4项）</td><td>开局属性加成（如“金融”→初始融资成本-5%）</td></tr>
+                    <tr><td>从业经历</td><td>单选（4项）</td><td>解锁1个专属开局顾问建议</td></tr>
+                    <tr><td>个人特质</td><td>选择 <strong>1项</strong></td><td>永久Buff（如“谈判专家”→航权获取评分+10%）</td></tr>
+                    <tr><td>头像</td><td>预设12张</td><td>无</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>3.2 私人幕僚团队（固定4人）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>角色</th><th>职责</th><th>升级方式</th></tr></thead>
+                <tbody>
+                    <tr><td>行政助理</td><td>提醒 deadlines、界面引导</td><td>自动随游戏进度解锁</td></tr>
+                    <tr><td>财务顾问</td><td>解读现金跑道、预警危机</td><td>完成3次正确财务决策后升级</td></tr>
+                    <tr><td>战略顾问</td><td>董事会关系解读、目标建议</td><td>完成2次董事会换届后升级</td></tr>
+                    <tr><td>公关顾问</td><td>品牌事件、事故公关建议</td><td>经历1次品牌危机后升级</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="footnote"><strong>MVP简化：</strong>幕僚只有“基础建议”和“高级建议”两档，通过游戏进度自动解锁。</p>
+
+        <h3>3.3 航空公司注册</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>字段</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>中英文名称</td><td>自定义</td></tr>
+                    <tr><td>IATA代码</td><td>2位字母，唯一性校验</td></tr>
+                    <tr><td>总部所在地</td><td>全球 <strong>30个</strong> 枢纽机场</td></tr>
+                    <tr><td>公司性质</td><td>仅保留 <strong>国有 / 民营 / 低成本</strong> 三种</td></tr>
+                    <tr><td>初始运营模式</td><td>与性质绑定：国有→全服务，民营→全服务/支线，低成本→固定模式</td></tr>
+                    <tr><td>初始资金</td><td>简单 $500M / 普通 $300M / 困难 $150M</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>3.4 难度参数</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>维度</th><th>简单</th><th>普通</th><th>困难</th></tr></thead>
+                <tbody>
+                    <tr><td>目标数值阈值</td><td>−20%</td><td>100%</td><td>+15%</td></tr>
+                    <tr><td>续聘线</td><td>≥50%</td><td>≥60%</td><td>≥75%</td></tr>
+                    <tr><td>初始现金</td><td>$500M</td><td>$300M</td><td>$150M</td></tr>
+                    <tr><td>失误保护</td><td>3次</td><td>1次</td><td>0次</td></tr>
+                    <tr><td>AI侵略性</td><td>低</td><td>中</td><td>高</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 4 ==================== -->
+        <h2>第4章 · 游戏终局</h2>
+
+        <h3>4.1 胜利条件：光荣退休</h3>
+        <ul>
+            <li>CEO年龄达到 <strong>65岁</strong> 或累计任职满 <strong>15个财年</strong></li>
+            <li>当前财年续聘成功</li>
+            <li>公司未处于破产保护</li>
+        </ul>
+        <p><strong>遗产评分（S/A/B/C）</strong></p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>维度</th><th>权重</th><th>计算方式</th></tr></thead>
+                <tbody>
+                    <tr><td>公司市值</td><td>40%</td><td>累计市值 / 行业基准</td></tr>
+                    <tr><td>安全记录</td><td>30%</td><td>总飞行小时 / 事故率</td></tr>
+                    <tr><td>航线覆盖率</td><td>20%</td><td>覆盖国家数 / 30国上限</td></tr>
+                    <tr><td>董事会满意度</td><td>10%</td><td>最终平均满意度</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>4.2 失败条件</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>类型</th><th>触发条件</th><th>可挽回？</th></tr></thead>
+                <tbody>
+                    <tr><td>破产清算</td><td>现金归零且融资失败</td><td>❌</td></tr>
+                    <tr><td>罢免</td><td>连续 <strong>2次</strong> 换届不达标</td><td>❌</td></tr>
+                    <tr><td>监管接管</td><td>安全评级连续3年D级</td><td>⚠️ 巨额投资可挽回</td></tr>
+                    <tr><td>敌意收购</td><td>大股东满意度&lt;20% + 股价低迷</td><td>⚠️ 提前增持可防范</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 5 ==================== -->
+        <h2>第5章 · 董事会系统（MVP精简版）</h2>
+
+        <h3>5.1 席位构成（8人 + 玩家）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>席位类型</th><th>数量</th><th>角色池</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>执行董事（CEO除外）</td><td>1人</td><td>B/G/O</td><td>代表管理层</td></tr>
+                    <tr><td>非执行董事</td><td>2人</td><td>A/P/I/J/K</td><td>国资/机构投资</td></tr>
+                    <tr><td>独立非执行董事</td><td>2人</td><td>D/E/H/N</td><td>独立监督</td></tr>
+                    <tr><td>战略合作方董事</td><td>2人</td><td>C/L/M/Q</td><td>合作伙伴</td></tr>
+                    <tr><td>职工代表董事</td><td>1人</td><td>F（固定）</td><td>固定席位</td></tr>
+                    <tr><td>玩家（CEO）</td><td>1人</td><td>—</td><td>固定</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>5.2 董事候选池（12人，原17人）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>派系</th><th>席位</th><th>核心主张</th><th>策略标签</th></tr></thead>
+                <tbody>
+                    <tr><td>A</td><td>埃里克·索尔伯格</td><td>国家资本</td><td>非执行</td><td>反对高杠杆，支持国家形象航线</td><td>求稳</td></tr>
+                    <tr><td>B</td><td>陈慧玲</td><td>机构投资</td><td>执行</td><td>削减成本，推动二手租赁</td><td>成本屠夫</td></tr>
+                    <tr><td>C</td><td>卡洛斯·费尔南德斯</td><td>战略合作</td><td>非执行</td><td>采购新机型，反对老旧货机</td><td>技术迷</td></tr>
+                    <tr><td>D</td><td>娜奥米·坦纳</td><td>独立</td><td>独立</td><td>强制购买碳信用</td><td>环保派</td></tr>
+                    <tr><td>E</td><td>伊万·索科洛夫</td><td>独立</td><td>独立</td><td>老旧机型必须淘汰</td><td>安全守门员</td></tr>
+                    <tr><td>F</td><td>玛丽亚·桑托斯</td><td>独立/职工</td><td>职工</td><td>反对裁员降薪</td><td>工会代表</td></tr>
+                    <tr><td>G</td><td>乔纳森·布莱克</td><td>机构投资</td><td>执行</td><td>连续亏损即推动罢免</td><td>资本秃鹫</td></tr>
+                    <tr><td>H</td><td>伊莎贝拉·罗西</td><td>独立</td><td>独立</td><td>提高两舱标准</td><td>服务体验官</td></tr>
+                    <tr><td>I</td><td>阿米特·辛格</td><td>国家资本</td><td>非执行</td><td>购买国产支线客机换政策</td><td>政策翻译官</td></tr>
+                    <tr><td>J</td><td>金秀贤</td><td>机构投资</td><td>非执行</td><td>股息支付率≥35%</td><td>分红强迫症</td></tr>
+                    <tr><td>K</td><td>马库斯·温特</td><td>机构投资</td><td>非执行</td><td>支持售后回租</td><td>资产配置师</td></tr>
+                    <tr><td>L</td><td>穆罕默德·拉希德</td><td>战略合作</td><td>非执行</td><td>最大化腹舱货运</td><td>货运逻辑脑</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>5.3 化学反应系统（8种，原23种）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>编号</th><th>主题</th><th>参与角色</th><th>类型</th><th>对应目标</th></tr></thead>
+                <tbody>
+                    <tr><td>B-01</td><td>北极航线</td><td>A</td><td>地缘</td><td>T-01：开辟1条北极航线，客座率≥70%</td></tr>
+                    <tr><td>B-02</td><td>亚太扩张</td><td>B,J,O,I</td><td>地缘</td><td>T-04：亚洲航线占比≥40%，毛利率≥20%</td></tr>
+                    <tr><td>B-03</td><td>成本vs服务</td><td>B vs H</td><td>冲突</td><td>T-16：成本降幅≤3%，高端满意度降幅≤2%</td></tr>
+                    <tr><td>B-04</td><td>买新vs租旧</td><td>C vs K</td><td>冲突</td><td>T-17：新机采购占40%~60%，融资成本增幅≤5%</td></tr>
+                    <tr><td>B-05</td><td>扩张vs收缩</td><td>A,P,I vs G,O</td><td>冲突</td><td>T-18：新开/停飞比1.2~1.8</td></tr>
+                    <tr><td>B-06</td><td>劳工vs资本</td><td>F vs G,B</td><td>冲突</td><td>T-20：成本节省≥60%，员工满意度降幅≤10%</td></tr>
+                    <tr><td>B-07</td><td>安全+技术</td><td>E,C,K</td><td>职能</td><td>T-07：保持安全评级≥B级，零重大事故</td></tr>
+                    <tr><td>B-08</td><td>机构投资收割</td><td>B,G,J,K</td><td>派系</td><td>T-13：股息率≥35%，EPS年增≥10%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="footnote"><strong>匹配规则简化：</strong>冲突类组合优先触发；其余按参与人数排序；同一角色最多参与2个非冲突组合；最终保留3~4个目标（保底：盈利+客座率）。</p>
+
+        <h3>5.4 CEO目标清单（8项）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>编号</th><th>类型</th><th>目标描述</th><th>难度</th></tr></thead>
+                <tbody>
+                    <tr><td>T-01</td><td>长期</td><td>任期内开辟1条北极航线，连续4季度客座率≥70%</td><td>中</td></tr>
+                    <tr><td>T-04</td><td>长期</td><td>亚洲航线占比≥40%，毛利率≥20%</td><td>中</td></tr>
+                    <tr><td>T-07</td><td>持续</td><td>保持安全评级≥B级，零重大事故</td><td>高</td></tr>
+                    <tr><td>T-13</td><td>持续</td><td>股息率≥35%，EPS年增≥10%</td><td>高</td></tr>
+                    <tr><td>T-16</td><td>事件</td><td>服务成本vs两舱预算冲突折中</td><td>中</td></tr>
+                    <tr><td>T-17</td><td>事件</td><td>新机采购vs售后回租折中</td><td>中</td></tr>
+                    <tr><td>T-18</td><td>持续</td><td>新开/停飞比1.2~1.8，网络年增8%~15%</td><td>中高</td></tr>
+                    <tr><td>T-20</td><td>事件</td><td>裁员降薪议案，零罢工</td><td>高</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="footnote"><strong>保底目标（无化学反应时）：</strong>① 净利润 &gt; 0；② 客座率 ≥ 行业基准</p>
+
+        <!-- ==================== CHAPTER 6 ==================== -->
+        <h2>第6章 · 管理团队系统（7部门 × 3人）</h2>
+
+        <h3>6.1 部门架构与解锁节奏</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>批次</th><th>解锁时间（现实）</th><th>解锁部门</th><th>核心定位</th><th>教学重点</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>第一批</strong></td><td>第1财年（0~15分钟）</td><td><strong>OPS</strong>（运营部）<br><strong>MKT</strong>（市场销售部）<br><strong>FIN</strong>（财务部）</td><td>营收铁三角</td><td>开航线、定票价、看现金</td></tr>
+                    <tr><td><strong>第二批</strong></td><td>第2财年（15~60分钟）</td><td><strong>MNT</strong>（机务工程部）<br><strong>HR</strong>（人力资源部）</td><td>支撑体系</td><td>修飞机、招飞行员、防罢工</td></tr>
+                    <tr><td><strong>第三批</strong></td><td>第3财年（60~120分钟）</td><td><strong>SAF</strong>（安全质量部）<br><strong>STG</strong>（战略发展部）</td><td>战略纵深</td><td>安全评级、航权争夺、长期规划</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="footnote"><strong>见习期保护：</strong>第1~3财年共计3次“时间回溯”机会（简单模式3次，普通1次，困难0次）。</p>
+
+        <h3>6.2 部门效率与KPI</h3>
+        <p><strong>效率公式（简化）：</strong></p>
+        <div class="callout">
+            <code>效率 = 0.7 + 0.3 × (核心能力匹配度×0.5 + 忠诚度×0.3 + 性格适配×0.2)</code><br>
+            范围：<strong>0.7 ~ 1.3</strong>
+        </div>
+
+        <p><strong>各部门KPI（MVP版）：</strong></p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>部门</th><th>KPI 1</th><th>KPI 2</th><th>KPI 3</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>OPS</strong></td><td>准点率 ≥ 85%</td><td>航班完成率 ≥ 95%</td><td>单班运营成本 ≤ 基准</td></tr>
+                    <tr><td><strong>MNT</strong></td><td>机队可用率 ≥ 95%</td><td>维修成本 ≤ 预算</td><td>机械延误率 ≤ 2%</td></tr>
+                    <tr><td><strong>MKT</strong></td><td>客座率 ≥ 行业基准</td><td>RASK同比提升</td><td>品牌净值 ≥ 60</td></tr>
+                    <tr><td><strong>FIN</strong></td><td>净利润率 ≥ X%</td><td>负债率 ≤ Y%</td><td>现金跑道 ≥ 3个月</td></tr>
+                    <tr><td><strong>HR</strong></td><td>员工满意度 ≥ 75</td><td>关键岗位空缺率 ≤ 5%</td><td>罢工次数 = 0</td></tr>
+                    <tr><td><strong>SAF</strong></td><td>安全评级 ≥ B级</td><td>审计通过率 100%</td><td>零重大事故</td></tr>
+                    <tr><td><strong>STG</strong></td><td>新开航线 ≥ N条</td><td>航权获取成功率 ≥ 50%</td><td>战略一致性评分 ≥ 80</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>6.3 候选池（21人，每部门3人）</h3>
+
+        <h4>OPS · 运营部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>OPS-01</td><td>马格努斯·林德格伦</td><td>54</td><td>瑞典</td><td>稳健 / 数据驱动</td><td>授权型</td><td>极地航线运营 · 高纬度气象 · 北欧空域协调</td><td>机构系</td><td>290万</td></tr>
+                    <tr><td>OPS-02</td><td>科菲·门萨</td><td>49</td><td>加纳</td><td>激进 / 开拓</td><td>变革型</td><td>非洲内陆网络 · 跨洲中转优化 · 政府协调</td><td>国资系</td><td>220万</td></tr>
+                    <tr><td>OPS-03</td><td>莱拉·纳赛尔</td><td>41</td><td>阿曼</td><td>冷静 / 数据流</td><td>授权型</td><td>中东高端保障 · 机组排班优化 · 准点率提升</td><td>战略系</td><td>200万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>MNT · 机务工程部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>MNT-01</td><td>吕克·杜布瓦</td><td>54</td><td>比利时</td><td>稳健 / 细节控</td><td>授权型</td><td>空客波音维修 · 适航法规 · 部件老化管理</td><td>独立系</td><td>270万</td></tr>
+                    <tr><td>MNT-02</td><td>帕特里夏·帕拉西奥斯</td><td>52</td><td>秘鲁</td><td>稳健 / 务实</td><td>共识型</td><td>高海拔维修 · 机体结构检测 · 安第斯适配</td><td>国资系</td><td>260万</td></tr>
+                    <tr><td>MNT-03</td><td>范氏梅</td><td>38</td><td>越南</td><td>激进 / 进取</td><td>变革型</td><td>窄体机高利用率 · 快速周转检查 · 防腐蚀</td><td>独立系</td><td>180万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>MKT · 市场销售部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>MKT-01</td><td>英格丽德·哈根</td><td>48</td><td>丹麦</td><td>数据驱动 / 冷静</td><td>授权型</td><td>收益管理 · 假日客流预测 · 北欧细分</td><td>机构系</td><td>290万</td></tr>
+                    <tr><td>MKT-02</td><td>努尔·法蒂玛</td><td>39</td><td>巴基斯坦</td><td>稳健 / 务实</td><td>共识型</td><td>中亚转机客流 · 朝圣客流 · 动态定价</td><td>国资系</td><td>190万</td></tr>
+                    <tr><td>MKT-03</td><td>艾哈迈德·拉扎</td><td>40</td><td>伊拉克</td><td>激进 / 数据流</td><td>变革型</td><td>中东新生代市场 · 数字营销 · 品牌重建</td><td>独立系</td><td>180万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>FIN · 财务部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>FIN-01</td><td>延斯·莫滕森</td><td>55</td><td>芬兰</td><td>稳健 / 数据流</td><td>授权型</td><td>税务规划 · 长期借贷 · 成本分摊</td><td>机构系</td><td>320万</td></tr>
+                    <tr><td>FIN-02</td><td>拉吉夫·维克拉马辛格</td><td>41</td><td>孟加拉国</td><td>激进 / 进取</td><td>变革型</td><td>LCC成本模型 · 营运现金流 · 融资租赁</td><td>独立系</td><td>200万</td></tr>
+                    <tr><td>FIN-03</td><td>季米塔尔·格奥尔基耶夫</td><td>50</td><td>北马其顿</td><td>务实 / 冷静</td><td>授权型</td><td>成本控制 · 补贴申请 · 预算微调</td><td>劳工系</td><td>250万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>HR · 人力资源部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>HR-01</td><td>伊丽莎白·林德</td><td>47</td><td>爱沙尼亚</td><td>稳健 / 数据流</td><td>授权型</td><td>数字化HR · 跨国薪酬 · 远程团队</td><td>独立系</td><td>220万</td></tr>
+                    <tr><td>HR-02</td><td>穆罕默德·巴希尔</td><td>50</td><td>阿富汗</td><td>激进 / 稳健</td><td>集权型</td><td>冲突地区劳动法 · 外派安全 · 心理支持</td><td>劳工系</td><td>270万</td></tr>
+                    <tr><td>HR-03</td><td>塔玛拉·季瓦泽</td><td>44</td><td>阿塞拜疆</td><td>稳健 / 保守</td><td>共识型</td><td>区域劳动合规 · 高加索人才 · 外派家属</td><td>国资系</td><td>250万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>SAF · 安全质量部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>SAF-01</td><td>拉尔斯·彼得森</td><td>56</td><td>冰岛</td><td>稳健 / 细节控</td><td>集权型</td><td>火山灰/极寒标准 · 应急救援 · 国际审计</td><td>机构系</td><td>300万</td></tr>
+                    <tr><td>SAF-02</td><td>卡洛斯·格里哈尔瓦</td><td>52</td><td>巴拉圭</td><td>数据驱动 / 保守</td><td>共识型</td><td>南美内陆安全 · 鸟击防范 · 安全文化</td><td>国资系</td><td>260万</td></tr>
+                    <tr><td>SAF-03</td><td>玛丽亚姆·德巴什</td><td>41</td><td>亚美尼亚</td><td>冷静 / 细节控</td><td>授权型</td><td>人为因素分析 · 安全数据挖掘 · 停机坪安全</td><td>独立系</td><td>200万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>STG · 战略发展部（3人）</h4>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>ID</th><th>姓名</th><th>年龄</th><th>国籍</th><th>性格特质</th><th>管理风格</th><th>核心能力</th><th>派系</th><th>薪酬</th></tr></thead>
+                <tbody>
+                    <tr><td>STG-01</td><td>迭戈·贝莱斯</td><td>53</td><td>乌拉圭</td><td>稳健 / 务实</td><td>授权型</td><td>南美一体化航权 · 区域联盟 · 马尔维纳斯航路</td><td>独立系</td><td>280万</td></tr>
+                    <tr><td>STG-02</td><td>费萨尔·阿勒萨尼</td><td>47</td><td>卡塔尔</td><td>激进 / 人脉型</td><td>变革型</td><td>中东枢纽竞争 · 全球联盟 · 大额并购</td><td>机构系</td><td>350万</td></tr>
+                    <tr><td>STG-03</td><td>明道加斯·扬考斯卡斯</td><td>54</td><td>立陶宛</td><td>数据驱动 / 稳健</td><td>共识型</td><td>波罗的海整合 · 北欧桥梁 · 科技创新</td><td>机构系</td><td>290万</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>6.4 任命与更换机制</h3>
+        <ul>
+            <li><strong>任命流程：</strong>部门空缺 → 展示 <strong>2名</strong> 候选人（从该部门3人池中随机抽取2人）→ 选择任命 → 确认薪酬</li>
+            <li><strong>更换成本：</strong>遣散费 = 剩余任期薪酬 × 0.5</li>
+            <li><strong>忠诚度规则：</strong>
+                <ul>
+                    <li>薪酬高于要求10% → +5忠诚</li>
+                    <li>薪酬低于要求10% → −10忠诚</li>
+                    <li>连续2年未完成KPI → −15忠诚</li>
+                    <li>忠诚度 &lt; 30 → 触发离职事件</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>6.5 管理团队化学反应（MVP保留3种）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>编号</th><th>组合</th><th>效果</th><th>触发条件</th></tr></thead>
+                <tbody>
+                    <tr><td>M-01</td><td>OPS + MNT + SAF</td><td>安全运行效率 +12%</td><td>三部门效率均 ≥ 1.0</td></tr>
+                    <tr><td>M-02</td><td>MKT + FIN</td><td>收入实现效率 +10%</td><td>两部门效率均 ≥ 1.0</td></tr>
+                    <tr><td>M-03</td><td>MKT + STG + OPS</td><td>新市场开拓速度 +12%</td><td>三部门效率均 ≥ 1.0</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 7 ==================== -->
+        <h2>第7章 · 运营层核心机制（7部门独立运作）</h2>
+
+        <h3>7.1 运营部（OPS）</h3>
+        <p><strong>核心职责：</strong>航班环构建、准点率、日常运行控制</p>
+        <p><strong>核心交互：航班环构建</strong></p>
+        <ul>
+            <li><strong>界面：</strong>甘特图 + 网络图混合视图</li>
+            <li><strong>操作：</strong>拖拽连接航班，系统实时校验时间/空间/维护约束</li>
+            <li><strong>AI辅助：</strong>“高利用率/高缓冲”两种自动生成方案</li>
+            <li><strong>MVP简化：</strong>取消手动逐航班微调，只保留“选择AI方案 + 关键节点调整”</li>
+        </ul>
+        <p><strong>关键指标：</strong>准点率(OTP)、航班完成率、单班运营成本</p>
+        <p><strong>CEO管理职责：</strong></p>
+        <ul>
+            <li>每季度选择运营基调（准点优先/成本优先/平衡）</li>
+            <li>审批季节性航班计划变更</li>
+            <li>在台风/AOG等危机中选择策略</li>
+        </ul>
+
+        <h3>7.2 机务工程部（MNT）</h3>
+        <p><strong>核心职责：</strong>维修排程、AOG应急、机队可用率</p>
+        <p><strong>核心交互：维修甘特图</strong></p>
+        <ul>
+            <li>与OPS航班环联动，显示维修窗口</li>
+            <li>玩家决策：预防性维修投入比例（低/中/高）</li>
+        </ul>
+        <p><strong>AOG应急（核心危机事件）：</strong></p>
+        <ul>
+            <li>飞机故障停场 → 弹出事件窗口</li>
+            <li>选项：① 快速修补（2小时恢复，成本高）② 彻底修复（8小时，成本低但取消多）③ 调机（成本最高，无延误）</li>
+        </ul>
+        <p><strong>关键指标：</strong>机队可用率、维修成本/飞行小时、机械延误率</p>
+
+        <h3>7.3 市场销售部（MKT）</h3>
+        <p><strong>核心职责：</strong>定价、航线盈利评估、品牌管理</p>
+        <p><strong>核心交互：动态定价 + 航线评估看板</strong></p>
+        <ul>
+            <li>每航线设置经济舱/两舱基础票价，系统根据需求自动浮动（±20%）</li>
+            <li><strong>三灯评估系统：</strong>
+                <ul>
+                    <li><span class="dot green"></span> 绿灯：预估盈利 ≥ $5M/年</li>
+                    <li><span class="dot yellow"></span> 黄灯：预估盈利 −$5M ~ +$5M</li>
+                    <li><span class="dot red"></span> 红灯：预估亏损 &gt; $5M/年</li>
+                </ul>
+            </li>
+        </ul>
+        <p><strong>MVP简化：</strong>取消渠道分销博弈、FFP深度运营，保留基础定价和促销开关</p>
+        <p><strong>关键指标：</strong>客座率、RASK、品牌净值（0~100）</p>
+
+        <h3>7.4 财务部（FIN）</h3>
+        <p><strong>核心职责：</strong>现金流、燃油对冲、融资、破产预警</p>
+        <p><strong>现金跑道仪表盘（主界面常驻）：</strong></p>
+        <div class="callout">
+            <code>现金跑道（月）= 当前现金储备 / 未来6个月平均月度现金流出</code>
+        </div>
+        <ul>
+            <li><span class="dot green"></span> 绿色：≥ 6个月</li>
+            <li><span class="dot yellow"></span> 黄色：3~6个月（每月董事会满意度−3）</li>
+            <li><span class="dot red"></span> 红色：&lt; 3个月（解锁紧急融资，每月满意度−8）</li>
+            <li><span class="dot black"></span> 黑色：0个月 → 破产倒计时7天</li>
+        </ul>
+        <p><strong>燃油对冲（MVP唯一对冲品种）：</strong></p>
+        <ul>
+            <li>选择对冲比例（0%~50%）与期限（3/6/12月）</li>
+            <li>游戏内油价由经济引擎驱动</li>
+            <li>盈亏在财年末结算</li>
+        </ul>
+        <p><strong>紧急融资窗口（红色预警时解锁）：</strong></p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>方式</th><th>可获得现金</th><th>代价</th><th>成功率</th></tr></thead>
+                <tbody>
+                    <tr><td>银行贷款</td><td>3~6个月现金</td><td>利息+负债率↑</td><td>信用评级≥BBB时80%</td></tr>
+                    <tr><td>股东增资</td><td>6~12个月现金</td><td>股权稀释</td><td>需董事会≥4票赞成</td></tr>
+                    <tr><td>出售飞机</td><td>市值的60%~80%</td><td>运力↓</td><td>即时</td></tr>
+                    <tr><td>过桥贷款</td><td>1~3个月现金</td><td>利息20%+</td><td>100%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>破产保护（Chapter 11）：</strong></p>
+        <ul>
+            <li>倒计时7天内可申请</li>
+            <li>强制砍掉 <strong>50%</strong> 亏损航线</li>
+            <li>2年内盈利即可恢复，期间董事会考核暂停</li>
+        </ul>
+
+        <h3>7.5 人力资源部（HR）</h3>
+        <p><strong>核心职责：</strong>招聘、员工满意度、罢工预防</p>
+        <p><strong>核心交互：人力缺口地图 + 工会谈判</strong></p>
+        <ul>
+            <li>根据机队扩张计划自动预测飞行员/机务缺口</li>
+            <li>招聘策略：提高薪酬 / 扩大渠道 / 降低标准（各有利弊）</li>
+        </ul>
+        <p><strong>罢工事件：</strong></p>
+        <ul>
+            <li>触发：员工满意度&lt;50 且 提出降薪/裁员</li>
+            <li>倒计时：30天</li>
+            <li>选项：让步（成本↑）/ 强硬（满意度暴跌）/ 谈判（小游戏）</li>
+        </ul>
+        <p><strong>关键指标：</strong>员工满意度、关键岗位空缺率、罢工风险指数</p>
+
+        <h3>7.6 安全质量部（SAF）</h3>
+        <p><strong>核心职责：</strong>安全评级、事故调查、合规</p>
+        <p><strong>MVP简化机制：</strong></p>
+        <ul>
+            <li><strong>安全评级：</strong>A/B/C/D 四级，由事故记录、机龄、维护预算、审计结果综合决定</li>
+            <li><strong>事故调查：</strong>发生一般事故时选择调查深度
+                <ul>
+                    <li>快速调查：成本低，可能遗漏根因</li>
+                    <li>标准调查：均衡</li>
+                    <li>深度调查：成本高，彻底根除隐患</li>
+                </ul>
+            </li>
+            <li><strong>安全文化取向：</strong>惩罚文化（表面违规少，隐患积累）vs 鼓励报告文化（违规记录多，但能预防大事故）</li>
+        </ul>
+        <p><strong>关键指标：</strong>安全评级、审计通过率、重大事故次数</p>
+
+        <h3>7.7 战略发展部（STG）</h3>
+        <p><strong>核心职责：</strong>新航线评估、航权申请、长期规划</p>
+        <p><strong>MVP保留功能：</strong></p>
+        <ul>
+            <li><strong>新航线评估：</strong>RPM简化模型
+                <div class="callout"><code>评分 = (预估客流 × 季节性系数) × 票价弹性 − 航段成本 − 竞对压迫系数</code></div>
+            </li>
+            <li><strong>航权申请：</strong>提交方案后系统评分，与AI竞对竞争</li>
+            <li><strong>代码共享：</strong>与AI航司简单合作（客座率+5%）</li>
+        </ul>
+        <p><strong>MVP删除：</strong>时刻槽交易、联盟深度博弈、并购整合、战略豁免</p>
+        <p><strong>关键指标：</strong>新开航线数、航权获取成功率、战略一致性评分</p>
+
+        <!-- ==================== CHAPTER 8 ==================== -->
+        <h2>第8章 · 跨部门联动（MVP核心链路）</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>联动关系</th><th>触发场景</th><th>玩家感知</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>OPS ↔ MNT</strong></td><td>维修窗口与航班环冲突</td><td>“飞机该修了但没窗口，得取消航班”</td></tr>
+                    <tr><td><strong>OPS ↔ HR</strong></td><td>飞行员短缺导致航班取消</td><td>“机长不够，这条线飞不起来”</td></tr>
+                    <tr><td><strong>MKT ↔ FIN</strong></td><td>促销需预算审批</td><td>“市场部想打折，财务部说没钱”</td></tr>
+                    <tr><td><strong>STG ↔ OPS</strong></td><td>新开航线需排班支持</td><td>“战略部拿了航权，运营部说排不进去”</td></tr>
+                    <tr><td><strong>SAF ↔ OPS</strong></td><td>安全事件导致航线停飞</td><td>“安全评级下降，这条危险航线被局方盯上了”</td></tr>
+                    <tr><td><strong>FIN ↔ 所有部门</strong></td><td>预算分配</td><td>“超支触发董事会问责”</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="footnote"><strong>MVP设计要点：</strong>联动不通过复杂公式隐藏计算，而是通过<strong>事件弹窗 + 因果链提示</strong>直接告诉玩家：“因为A部门做了X，所以B部门受到了Y影响。”</p>
+
+        <!-- ==================== CHAPTER 9 ==================== -->
+        <h2>第9章 · 外部生态（MVP精简版）</h2>
+
+        <h3>9.1 宏观经济引擎（三阶段）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>阶段</th><th>GDP增速</th><th>需求影响</th><th>油价趋势</th><th>本币汇率</th></tr></thead>
+                <tbody>
+                    <tr><td>繁荣期</td><td>&gt;3%</td><td>+20%</td><td>震荡上涨</td><td>升值</td></tr>
+                    <tr><td>衰退期</td><td>&lt;0%</td><td>−20%</td><td>暴跌</td><td>贬值</td></tr>
+                    <tr><td>复苏期</td><td>1~3%</td><td>+10%</td><td>低位</td><td>企稳</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>9.2 AI竞争对手（3~5家）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>AI类型</th><th>数量</th><th>核心策略</th><th>对玩家威胁</th></tr></thead>
+                <tbody>
+                    <tr><td>全服务巨头</td><td>1~2家</td><td>跟随定价，争夺国际航线</td><td>两舱客源竞争</td></tr>
+                    <tr><td>低成本杀手</td><td>1~2家</td><td>永远比玩家低10%</td><td>短途航线利润压榨</td></tr>
+                    <tr><td>区域支线王</td><td>1家</td><td>垄断二三线</td><td>补贴资源竞争</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>AI状态机（3态）：</strong></p>
+        <ul>
+            <li><strong>稳态：</strong>维持运力，跟随定价</li>
+            <li><strong>进攻：</strong>现金&gt;18月时，针对玩家Top3盈利航线降价10%</li>
+            <li><strong>防御：</strong>现金&lt;6月时，停飞亏损航线，可能求合作</li>
+        </ul>
+
+        <h3>9.3 随机事件引擎（MVP：20个事件）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>分类</th><th>数量</th><th>示例</th></tr></thead>
+                <tbody>
+                    <tr><td>自然灾害</td><td>5</td><td>台风关闭枢纽、暴雪延误、火山灰</td></tr>
+                    <tr><td>市场突变</td><td>5</td><td>油价暴涨/暴跌、汇率闪崩、竞对倾销</td></tr>
+                    <tr><td>内部危机</td><td>5</td><td>飞行员罢工、核心高管跳槽、AOG连锁</td></tr>
+                    <tr><td>政策变化</td><td>5</td><td>航权开放、碳税加征、宵禁延长</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 10 ==================== -->
+        <h2>第10章 · 玩家体验与渐进式解锁</h2>
+
+        <h3>10.1 三阶段解锁详解</h3>
+
+        <h4>第一阶段：第1财年（0~15分钟）—— 营收铁三角</h4>
+        <p><strong>解锁部门：</strong>OPS（运营部）+ MKT（市场销售部）+ FIN（财务部）</p>
+        <p><strong>教学目标：</strong>让玩家在15分钟内建立“开航线→卖票→看现金”的核心认知闭环。</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>现实时间</th><th>游戏内时间</th><th>强制教学内容</th><th>幕僚引导</th></tr></thead>
+                <tbody>
+                    <tr><td>0~5分钟</td><td>第1季度</td><td><strong>OPS基础：</strong>使用AI方案生成第一条航线，理解航班环</td><td>行政助理强制引导</td></tr>
+                    <tr><td>5~10分钟</td><td>第2季度</td><td><strong>MKT基础：</strong>为航线设定经济舱票价，观察客座率变化</td><td>战略顾问弹窗提示</td></tr>
+                    <tr><td>10~15分钟</td><td>第3~4季度</td><td><strong>FIN基础：</strong>查看现金跑道仪表盘，理解“生存底线”</td><td>财务顾问红色预警演示</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>阶段保护机制：</strong></p>
+        <ul>
+            <li>现金跑道&lt;2个月时<strong>不触发破产</strong>，改为财务顾问强制教学：“如果现在是真的游戏，你已经死了。”</li>
+            <li>1次时间回溯机会（重大失误后回退到季度初）</li>
+        </ul>
+
+        <h4>第二阶段：第2财年（15~60分钟）—— 支撑体系</h4>
+        <p><strong>解锁部门：</strong>MNT（机务工程部）+ HR（人力资源部）</p>
+        <p><strong>教学目标：</strong>让玩家理解“飞机会坏”和“人会不够”，运营不是一劳永逸。</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>现实时间</th><th>游戏内时间</th><th>强制教学内容</th><th>事件设计</th></tr></thead>
+                <tbody>
+                    <tr><td>15~25分钟</td><td>第5季度</td><td><strong>MNT解锁：</strong>介绍维修甘特图，预防性维修预算设定</td><td>触发首架飞机的A检提醒</td></tr>
+                    <tr><td>25~35分钟</td><td>第6~7季度</td><td><strong>AOG危机：</strong>飞机突发故障，选择修复方案</td><td>强制触发1次AOG事件</td></tr>
+                    <tr><td>35~45分钟</td><td>第8季度</td><td><strong>HR解锁：</strong>查看人力缺口地图，执行首次招聘</td><td>机队扩张导致飞行员缺口</td></tr>
+                    <tr><td>45~60分钟</td><td>第2年末</td><td><strong>年终考核：</strong>首次完整董事会目标结算</td><td>首次续聘投票</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>阶段保护机制：</strong></p>
+        <ul>
+            <li>AOG事件有“建议选项”高亮（最优解提示）</li>
+            <li>招聘失败时HR顾问提供“紧急外包”兜底方案</li>
+            <li>第2财年末续聘线降低10%（普通模式只需≥50%）</li>
+        </ul>
+
+        <h4>第三阶段：第3财年（60~120分钟）—— 战略纵深</h4>
+        <p><strong>解锁部门：</strong>SAF（安全质量部）+ STG（战略发展部）</p>
+        <p><strong>教学目标：</strong>引入长期视角，让玩家理解“今天省的钱可能变成明天的灾难”和“战略投资短期亏损但长期值钱”。</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>现实时间</th><th>游戏内时间</th><th>强制教学内容</th><th>事件设计</th></tr></thead>
+                <tbody>
+                    <tr><td>60~75分钟</td><td>第9季度</td><td><strong>SAF解锁：</strong>安全评级解读，首次内部审计</td><td>触发1次轻微事故征候</td></tr>
+                    <tr><td>75~90分钟</td><td>第10~11季度</td><td><strong>事故调查：</strong>选择调查深度，体验不同后果</td><td>强制触发1次一般事故</td></tr>
+                    <tr><td>90~105分钟</td><td>第12季度</td><td><strong>STG解锁：</strong>新航线评估看板，首次航权申请</td><td>系统推荐1条高评分新航线</td></tr>
+                    <tr><td>105~120分钟</td><td>第3年末</td><td><strong>完整考核：</strong>7部门全部参与年终结算</td><td>正式难度续聘投票</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>阶段结束标志：</strong></p>
+        <ul>
+            <li>弹出“见习期结业证书”</li>
+            <li>解锁全部7部门完整操作权限</li>
+            <li>幕僚从“强制教学”转为“智能提示”</li>
+            <li>失误保护次数清零（进入硬核模式）</li>
+        </ul>
+
+        <h3>10.2 术语词典（MVP内置30个核心术语）</h3>
+        <p>所有专业术语（RASK、AOG、OTP、WACC、CASM等）带下划线悬停提示。</p>
+
+        <h3>10.3 智能提示系统（4种核心场景）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>触发条件</th><th>幕僚建议示例</th></tr></thead>
+                <tbody>
+                    <tr><td>现金跑道&lt;4个月</td><td>“账上现金只够撑4个月，建议削减航线或申请贷款”</td></tr>
+                    <tr><td>准点率连续3月&lt;70%</td><td>“OPS效率在崩溃，是否需要CEO权限干预排班？”</td></tr>
+                    <tr><td>员工满意度&lt;50</td><td>“工会不满在积累，下季度可能触发罢工倒计时”</td></tr>
+                    <tr><td>安全评级&lt;C级</td><td>“安全评级危险，任何事故都可能导致局方停飞”</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>10.4 游戏速度（保留4档）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>速度</th><th>允许操作</th><th>事件处理</th></tr></thead>
+                <tbody>
+                    <tr><td>1×</td><td>全部</td><td>实时推送</td></tr>
+                    <tr><td>2×</td><td>全部</td><td>推送间隔缩短</td></tr>
+                    <tr><td>4×</td><td>全部（建议暂停操作）</td><td>仅警告级事件暂停</td></tr>
+                    <tr><td>8×</td><td><strong>仅暂停+紧急事件响应</strong></td><td>仅红色危机强制暂停</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 11 ==================== -->
+        <h2>第11章 · 技术规范（MVP精简版）</h2>
+
+        <h3>11.1 技术选型</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>层级</th><th>选型</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>引擎</td><td>Unity 2022.3 LTS</td><td>跨平台，生态成熟</td></tr>
+                    <tr><td>语言</td><td>C#</td><td>原生支持</td></tr>
+                    <tr><td>架构</td><td>MVVM</td><td>UI与逻辑分离</td></tr>
+                    <tr><td>数据库</td><td>SQLite（本地）</td><td>离线游玩，存档本地</td></tr>
+                    <tr><td>网络</td><td>无实时联机</td><td>MVP为纯单机</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>11.2 性能目标</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>指标</th><th>目标</th></tr></thead>
+                <tbody>
+                    <tr><td>帧率</td><td>PC稳定≥60 FPS</td></tr>
+                    <tr><td>加载时间</td><td>首次启动≤15秒，读档≤3秒</td></tr>
+                    <tr><td>同时在线航班</td><td>≥500架次/天（游戏内）</td></tr>
+                    <tr><td>存档大小</td><td>≤10MB</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>11.3 经济锚点（MVP基准）</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>项目</th><th>定价（USD）</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>A320neo</td><td>$1.1亿</td><td>基准窄体机</td></tr>
+                    <tr><td>B787-9</td><td>$2.5亿</td><td>基准宽体机</td></tr>
+                    <tr><td>燃油/吨</td><td>$700</td><td>游戏内基准，随经济周期波动±30%</td></tr>
+                    <tr><td>机长年薪</td><td>$20万</td><td>固定成本</td></tr>
+                    <tr><td>起降费（枢纽）</td><td>$2,000/次</td><td>固定成本</td></tr>
+                    <tr><td>国内短途经济舱</td><td>$100</td><td>票价基准</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>11.4 难度曲线（前10财年）</h3>
+        <div class="callout">
+            <code>年度系数 = 1 + (0.12 × 财年号) / (1 + 0.04 × 财年号)</code>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>财年</th><th>系数</th><th>续聘线（普通）</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td>1.00</td><td>60%（见习期保护）</td></tr>
+                    <tr><td>3</td><td>1.08</td><td>60%</td></tr>
+                    <tr><td>5</td><td>1.14</td><td>70%</td></tr>
+                    <tr><td>8</td><td>1.20</td><td>75%</td></tr>
+                    <tr><td>10</td><td>1.22</td><td>80%</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== CHAPTER 12 ==================== -->
+        <h2>第12章 · 发布路线图</h2>
+
+        <h3>12.1 分阶段内容规划</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>阶段</th><th>时间</th><th>内容</th><th>定价</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>MVP（EA发布）</strong></td><td>第18~24个月</td><td>本文档全部内容（7部门+21人+8化学反应+20事件）</td><td>$19.99 / ¥128</td></tr>
+                    <tr><td><strong>免费更新#1</strong></td><td>EA后3个月</td><td>+4种化学反应 + 每部门+2名候选人（+14人）+ 10个新事件</td><td>免费</td></tr>
+                    <tr><td><strong>免费更新#2</strong></td><td>EA后6个月</td><td>碳配额管理系统（简化版）、真实数据API接入（可选）</td><td>免费</td></tr>
+                    <tr><td><strong>DLC#1《货运帝国》</strong></td><td>正式版后12个月</td><td>纯货机运营、货运枢纽、腹舱深度管理、MNT货机维护</td><td>$9.99 / ¥58</td></tr>
+                    <tr><td><strong>DLC#2《联盟战争》</strong></td><td>正式版后24个月</td><td>三大联盟深度博弈、时刻槽交易、反垄断机制</td><td>$14.99 / ¥78</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>12.2 存档继承</h3>
+        <ul>
+            <li>MVP存档可继承至正式版</li>
+            <li>[EXT]内容解锁后，旧存档自动获得新系统</li>
+        </ul>
+
+        <!-- ==================== APPENDIX ==================== -->
+        <h2>附录：MVP vs 完整版对照表</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>系统</th><th>MVP（首版）</th><th>完整版（3~5年愿景）</th></tr></thead>
+                <tbody>
+                    <tr><td>董事会化学反应</td><td>8种</td><td>23种</td></tr>
+                    <tr><td>董事候选池</td><td>12人</td><td>17人</td></tr>
+                    <tr><td>管理候选池</td><td>21人（7部门×3）</td><td>70人（7部门×10）</td></tr>
+                    <tr><td>部门数量</td><td>7个独立部门</td><td>7个独立部门（保持一致）</td></tr>
+                    <tr><td>目标数量</td><td>8项</td><td>23项</td></tr>
+                    <tr><td>管理化学反应</td><td>3种</td><td>7种</td></tr>
+                    <tr><td>事件数量</td><td>20个</td><td>120~150个</td></tr>
+                    <tr><td>机场/枢纽</td><td>30个</td><td>100+个</td></tr>
+                    <tr><td>经济周期</td><td>3阶段</td><td>4阶段（含萧条黑天鹅）</td></tr>
+                    <tr><td>数据接入</td><td>游戏内引擎</td><td>真实油价/汇率/天气API</td></tr>
+                    <tr><td>碳管理</td><td>无（仅环保投入指标）</td><td>EU ETS + CORSIA完整系统</td></tr>
+                    <tr><td>联盟/时刻槽</td><td>基础代码共享</td><td>深度博弈+交易</td></tr>
+                    <tr><td>平台</td><td>PC（Steam）</td><td>PC + 移动端</td></tr>
+                    <tr><td>Mod支持</td><td>JSON数据修改</td><td>完整SDK+Lua脚本</td></tr>
+                    <tr><td>联机</td><td>纯单机</td><td>云存档+排行榜</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <div class="callout goal" style="border-left-color:#1e2b3c;background:#f5f8fb;">
+            <strong>文档结束语：</strong><br>
+            这份MVP版GDD在保留<strong>7部门独立运作</strong>的核心体验下，将候选池压缩至<strong>21人</strong>，并通过<strong>三阶段渐进解锁</strong>确保玩家在前2小时内逐步建立认知。第1财年的“营收铁三角”（OPS+MKT+FIN）确保玩家15分钟内理解核心循环；第2财年的MNT+HR增加运营复杂度；第3财年的SAF+STG引入长期战略视角。如果玩家能撑过第3财年的完整考核，他们就已经成为了这款游戏的“核心用户”。
+        </div>
+
+        <p style="margin-top:2rem;font-size:0.85rem;color:#4d637a;text-align:center;border-top:1px solid #e6ecf2;padding-top:1.2rem;">
+            Airline CEO Simulator · MVP GDD v1.1 &nbsp;·&nbsp; 本文档仅供内部开发使用
+        </p>
+
+    
+                </body>
+                </html>
+            
