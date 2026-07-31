@@ -20,6 +20,11 @@ namespace AirlineCEO.AI
 
         public bool IsBusy { get; private set; }
 
+        /// <summary>最近一次顾问回复（供「执行建议」二次确认）。</summary>
+        public AdvisorResponse LastAdvice { get; private set; }
+
+        public event Action<AdvisorResponse> OnAdviceReceived;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -84,7 +89,7 @@ namespace AirlineCEO.AI
             {
                 var local = BuildFallback(playerInput, "未配置 API Key，已用本地话术");
                 EnsureRpmInMessage(local, rpm);
-                onComplete?.Invoke(local);
+                DeliverAdvice(local, onComplete);
                 IsBusy = false;
                 yield break;
             }
@@ -108,7 +113,7 @@ namespace AirlineCEO.AI
                     string reason = string.IsNullOrEmpty(req.error) ? $"HTTP {req.responseCode}" : req.error;
                     var local = BuildFallback(playerInput, $"API 失败（{reason}），已用本地话术");
                     EnsureRpmInMessage(local, rpm);
-                    onComplete?.Invoke(local);
+                    DeliverAdvice(local, onComplete);
                     IsBusy = false;
                     yield break;
                 }
@@ -118,17 +123,38 @@ namespace AirlineCEO.AI
                 {
                     var local = BuildFallback(playerInput, $"解析失败（{parseError}），已用本地话术");
                     EnsureRpmInMessage(local, rpm);
-                    onComplete?.Invoke(local);
+                    DeliverAdvice(local, onComplete);
                     IsBusy = false;
                     yield break;
                 }
 
                 EnsureRpmInMessage(parsed, rpm);
                 parsed.fromFallback = false;
-                onComplete?.Invoke(parsed);
+                DeliverAdvice(parsed, onComplete);
             }
 
             IsBusy = false;
+        }
+
+        private void DeliverAdvice(AdvisorResponse advice, Action<AdvisorResponse> onComplete)
+        {
+            if (advice != null)
+            {
+                if (advice.data == null)
+                    advice.data = new AdvisorDataPayload();
+
+                // 默认补齐北京-伦敦，便于 open_route 执行
+                if (string.IsNullOrWhiteSpace(advice.data.origin))
+                    advice.data.origin = "北京";
+                if (string.IsNullOrWhiteSpace(advice.data.destination))
+                    advice.data.destination = "伦敦";
+                if (Mathf.Approximately(advice.data.profit, 0f) && GameDataSnapshot.PekLhrRpm.dailyProfit != 0f)
+                    advice.data.profit = GameDataSnapshot.PekLhrRpm.dailyProfit;
+            }
+
+            LastAdvice = advice;
+            OnAdviceReceived?.Invoke(advice);
+            onComplete?.Invoke(advice);
         }
 
         private static string BuildRequestJson(string model, string systemPrompt, string userPrompt)

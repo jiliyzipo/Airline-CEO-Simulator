@@ -19,7 +19,7 @@ namespace AirlineCEO.AI
             float burn = gs != null ? gs.monthlyBurnRate : 80f;
             float runway = CashRunnelCalculator.GetRunwayMonths(cash, burn);
 
-            if (ContainsAny(text, "北京", "伦敦", "航线", "rpm", "RPM", "分析", "划算"))
+            if (ContainsAny(text, "北京", "伦敦", "航线", "rpm", "RPM", "分析", "划算", "开通"))
             {
                 var rpm = RPMCalculator.Calculate(new RPMCalculator.RPMInput
                 {
@@ -29,6 +29,8 @@ namespace AirlineCEO.AI
                     demandMultiplier = 1.2f,
                     brandEquity = 55f
                 });
+                // 注意：本地话术也会被 BuildFallback 包成 AdvisorResponse；
+                // suggestedAction 在 GuessAction 里设为 open_route。
                 return "战略顾问：北京飞伦敦大概每天能赚 "
                        + $"{rpm.dailyProfit:F1} 万美元，{GameDataSnapshot.ToPlainRating(rpm.rating)}。"
                        + "不过对手航班已经很多，开通的话要盯紧抢客情况。"

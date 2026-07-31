@@ -73,7 +73,7 @@ namespace AirlineCEO.Systems
             PlayerPrefs.SetInt(KeyFirstFlight, gs.firstFlightCompleted ? 1 : 0);
             PlayerPrefs.Save();
 
-            float runway = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.monthlyBurnRate);
+            float runway = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
             LastStatus = $"已存档 F5 · 现金 {gs.cash:F0} · {gs.DateLabel} · {CashRunnelCalculator.FormatPlayerLabel(runway)}";
             Debug.Log($"[SaveManager] {LastStatus}");
             gs.NotifyChanged();

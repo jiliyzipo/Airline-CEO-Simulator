@@ -1,10 +1,12 @@
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
 using AirlineCEO.AI;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using TMPro;
 using UnityEngine.UI;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.UI;
@@ -13,42 +15,57 @@ using UnityEngine.InputSystem.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// 第 6 章 MVP：运行时搭建 UGUI「首航体验」界面，并绑定逻辑。
-    /// 挂到场景空物体即可 Play。
+    /// Phase 3～4：深色航空驾驶舱 HUD + TMP 中文字体。
     /// </summary>
     public class MVPBootstrap : MonoBehaviour
     {
-        private const float FirstFlightReward = 15f; // 万美元
+        private const float FirstFlightReward = 15f;
         private const float FirstFlightSeconds = 5f;
 
-        private Font _font;
-        private Text _dateText;
-        private Text _cashText;
-        private Text _runwayText;
-        private Image _runwayFill;
-        private Text _statusText;
-        private Text _popupText;
+        private TextMeshProUGUI _dateText;
+        private TextMeshProUGUI _companyText;
+        private CashMeter _cashMeter;
+        private TextMeshProUGUI _statusText;
+        private TextMeshProUGUI _popupText;
         private GameObject _popupRoot;
         private GameObject _progressRoot;
         private Image _progressFill;
-        private Text _progressLabel;
+        private TextMeshProUGUI _progressLabel;
         private GameObject _settleRoot;
-        private Text _settleText;
+        private TextMeshProUGUI _settleText;
         private Button _firstFlightBtn;
-        private InputField _originInput;
-        private InputField _destInput;
-        private Text _rpmResultText;
+        private TMP_InputField _originInput;
+        private TMP_InputField _destInput;
+        private TextMeshProUGUI _rpmResultText;
         private Image _rpmLight;
-        private InputField _chatInput;
-        private Text _chatOutput;
+        private TMP_InputField _chatInput;
+        private TextMeshProUGUI _chatOutput;
+        private Button _executeAdviceBtn;
+        private TextMeshProUGUI _executeHintText;
+        private TextMeshProUGUI _opsHintText;
+        private Transform _routeCardsRoot;
+        private readonly List<GameObject> _routeCardInstances = new List<GameObject>();
+        private AdvisorResponse _pendingAdvice;
         private bool _flightInProgress;
+        private bool _quarterInProgress;
+        private Button _advanceQuarterBtn;
+        private TextMeshProUGUI _hourglassText;
+
+        private GameObject _panelOps;
+        private GameObject _panelMarket;
+        private GameObject _panelFinance;
+        private GameObject _panelAi;
+        private readonly List<Button> _navButtons = new List<Button>();
+        private readonly List<Image> _navImages = new List<Image>();
+        private int _activeNav;
 
         private void Awake()
         {
             EnsureCoreSystems();
             EnsureEventSystem();
-            _font = ResolveFont();
+            ChineseFontProvider.WarmupSampleChinese();
             BuildUI();
+            ShowNavPanel(1); // 默认「市场」= RPM
             RefreshHud();
 
             if (GameState.Instance != null)
@@ -86,11 +103,23 @@ namespace AirlineCEO.UI
                 var go = new GameObject("AIChatManager");
                 go.AddComponent<AIChatManager>();
             }
+
+            if (ActionExecutor.Instance == null)
+            {
+                var go = new GameObject("ActionExecutor");
+                go.AddComponent<ActionExecutor>();
+            }
+
+            if (TimeManager.Instance == null)
+            {
+                var go = new GameObject("TimeManager");
+                go.AddComponent<TimeManager>();
+            }
         }
 
         private static void EnsureEventSystem()
         {
-            if (Object.FindObjectOfType<EventSystem>() != null) return;
+            if (Object.FindFirstObjectByType<EventSystem>() != null) return;
             var es = new GameObject("EventSystem");
             es.AddComponent<EventSystem>();
 #if ENABLE_INPUT_SYSTEM
@@ -100,17 +129,9 @@ namespace AirlineCEO.UI
 #endif
         }
 
-        private static Font ResolveFont()
-        {
-            var font = Font.CreateDynamicFontFromOSFont(
-                new[] { "Microsoft YaHei UI", "Microsoft YaHei", "SimHei", "Arial Unicode MS", "Arial" },
-                24);
-            return font != null ? font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        }
-
         private void BuildUI()
         {
-            var canvasGo = new GameObject("MVP_Canvas");
+            var canvasGo = new GameObject("Cockpit_Canvas");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 10;
@@ -120,181 +141,341 @@ namespace AirlineCEO.UI
             scaler.matchWidthOrHeight = 0.5f;
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            // 背景
-            CreatePanel(canvasGo.transform, "Background",
-                AnchorFill(), new Color(0.08f, 0.12f, 0.18f, 1f));
+            UIFactory.Panel(canvasGo.transform, "Background", UIFactory.Fill, UITheme.Bg, rounded: false);
+
+            // 轻微网格氛围
+            var grid = UIFactory.Panel(canvasGo.transform, "GridHint",
+                new UIFactory.Anchor(new Vector2(0.12f, 0.05f), new Vector2(1f, 0.9f), Vector2.zero, Vector2.zero),
+                new Color(0.1f, 0.2f, 0.35f, 0.18f), rounded: false);
+            grid.GetComponent<Image>().raycastTarget = false;
 
             BuildTopBar(canvasGo.transform);
-            BuildMapArea(canvasGo.transform);
-            BuildRpmPanel(canvasGo.transform);
-            BuildChatPanel(canvasGo.transform);
-            BuildDevButtons(canvasGo.transform);
+            BuildLeftNav(canvasGo.transform);
+            BuildCenterPanels(canvasGo.transform);
+            BuildChatBubble(canvasGo.transform);
             BuildPopup(canvasGo.transform);
             BuildProgress(canvasGo.transform);
             BuildSettle(canvasGo.transform);
+
+            _hourglassText = UIFactory.Label(canvasGo.transform, "HourglassText", "", 22, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.35f, 0.48f), new Vector2(0.72f, 0.58f), Vector2.zero, Vector2.zero),
+                UITheme.Warning);
+            _hourglassText.gameObject.SetActive(false);
         }
 
         private void BuildTopBar(Transform parent)
         {
-            var bar = CreatePanel(parent, "TopBar",
-                new AnchorData(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -90), new Vector2(0, 0)),
-                new Color(0.12f, 0.18f, 0.28f, 0.95f));
+            // 深蓝渐变：上下两层
+            var bar = UIFactory.Panel(parent, "TopBar",
+                new UIFactory.Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -UITheme.TopBarHeight), Vector2.zero),
+                UITheme.TopBarBottom, rounded: false);
+            UIFactory.Panel(bar.transform, "TopGradient",
+                new UIFactory.Anchor(new Vector2(0, 0.45f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
+                UITheme.TopBarTop, rounded: false);
+            UIFactory.AddBorder(bar, UITheme.Border, new Vector2(0f, -1.5f));
 
-            _dateText = CreateText(bar.transform, "DateText", "第 1 年 Q1", 28,
-                TextAnchor.MiddleLeft, new AnchorData(new Vector2(0, 0), new Vector2(0.28f, 1), Vector2.zero, Vector2.zero),
-                new Color(0.9f, 0.95f, 1f));
+            // 左：公司
+            _companyText = UIFactory.Label(bar.transform, "Company",
+                ChineseFontProvider.CompanyPlanePrefix + " 天际航空 · CEO", 22, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.015f, 0), new Vector2(0.28f, 1), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
 
-            _cashText = CreateText(bar.transform, "CashText", "现金：500 万", 28,
-                TextAnchor.MiddleCenter, new AnchorData(new Vector2(0.28f, 0), new Vector2(0.55f, 1), Vector2.zero, Vector2.zero),
-                new Color(0.6f, 1f, 0.7f));
+            // 中：日期
+            _dateText = UIFactory.Label(bar.transform, "DateText", "第 1 年 Q1", 24, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.28f, 0.15f), new Vector2(0.48f, 0.85f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
 
-            // 跑道油量表
-            var runwayLabel = CreateText(bar.transform, "RunwayLabel", "现金跑道", 16,
-                TextAnchor.MiddleLeft, new AnchorData(new Vector2(0.55f, 0.55f), new Vector2(0.68f, 1), Vector2.zero, Vector2.zero),
-                Color.white);
+            _advanceQuarterBtn = UIFactory.Button(bar.transform, "AdvanceQuarterButton", "执行季度运营",
+                new UIFactory.Anchor(new Vector2(0.485f, 0.22f), new Vector2(0.62f, 0.78f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, OnAdvanceQuarterClicked, 15);
 
-            var track = CreatePanel(bar.transform, "RunwayTrack",
-                new AnchorData(new Vector2(0.58f, 0.2f), new Vector2(0.88f, 0.5f), Vector2.zero, Vector2.zero),
-                new Color(0.2f, 0.25f, 0.3f, 1f));
-            _runwayFill = CreatePanel(track.transform, "RunwayFill",
-                new AnchorData(new Vector2(0, 0), new Vector2(0.5f, 1), Vector2.zero, Vector2.zero),
-                new Color(0.3f, 0.85f, 0.4f, 1f)).GetComponent<Image>();
-            _runwayFill.type = Image.Type.Filled;
-            _runwayFill.fillMethod = Image.FillMethod.Horizontal;
-            _runwayFill.fillAmount = 0.5f;
+            // 右：现金油量表
+            var meterPrefab = Resources.Load<GameObject>("UI/CashMeter");
+            if (meterPrefab != null)
+            {
+                var go = Object.Instantiate(meterPrefab, bar.transform);
+                go.name = "CashMeter";
+                var rt = go.GetComponent<RectTransform>();
+                UIFactory.ApplyAnchor(rt, new UIFactory.Anchor(new Vector2(0.63f, 0.08f), new Vector2(0.99f, 0.92f), Vector2.zero, Vector2.zero));
+                _cashMeter = go.GetComponent<CashMeter>();
+            }
+            if (_cashMeter == null)
+            {
+                _cashMeter = CashMeter.BuildRuntime(bar.transform,
+                    new UIFactory.Anchor(new Vector2(0.63f, 0.08f), new Vector2(0.99f, 0.92f), Vector2.zero, Vector2.zero));
+            }
 
-            _runwayText = CreateText(bar.transform, "RunwayText", "流动性还可以撑 — 个月", 15,
-                TextAnchor.MiddleLeft, new AnchorData(new Vector2(0.68f, 0), new Vector2(0.98f, 0.55f), Vector2.zero, Vector2.zero),
-                Color.white);
-
-            _statusText = CreateText(bar.transform, "StatusText", "F5 存档 · F9 读档", 16,
-                TextAnchor.MiddleRight, new AnchorData(new Vector2(0.72f, 0.55f), new Vector2(0.98f, 0.95f), Vector2.zero, Vector2.zero),
-                new Color(0.7f, 0.75f, 0.8f));
+            _statusText = UIFactory.Label(bar.transform, "StatusText", "F5 存档 · F9 读档", 11, TextAlignmentOptions.BottomLeft,
+                new UIFactory.Anchor(new Vector2(0.015f, 0.02f), new Vector2(0.28f, 0.28f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
         }
 
-        private void BuildMapArea(Transform parent)
+        private void BuildLeftNav(Transform parent)
         {
-            var map = CreatePanel(parent, "MapArea",
-                new AnchorData(new Vector2(0.05f, 0.22f), new Vector2(0.58f, 0.88f), Vector2.zero, Vector2.zero),
-                new Color(0.15f, 0.22f, 0.30f, 0.9f));
+            var nav = UIFactory.Panel(parent, "LeftNav",
+                new UIFactory.Anchor(new Vector2(0, 0), new Vector2(0, 1),
+                    new Vector2(12, 16), new Vector2(UITheme.LeftNavWidth, -UITheme.TopBarHeight - 8)),
+                UITheme.Glass);
+            UIFactory.AddBorder(nav, UITheme.Border, new Vector2(1.2f, -1.2f));
 
-            CreateText(map.transform, "MapTitle", "航线地图（占位）", 26,
-                TextAnchor.UpperCenter, new AnchorData(new Vector2(0, 0.85f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
-                new Color(0.75f, 0.85f, 0.95f));
+            UIFactory.Label(nav.transform, "NavTitle", "驾驶舱", 14, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.08f, 0.92f), new Vector2(0.92f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
 
-            CreateText(map.transform, "MapHint", "首航体验：完成第一班飞行，入账 15 万美元", 20,
-                TextAnchor.MiddleCenter, new AnchorData(new Vector2(0.1f, 0.55f), new Vector2(0.9f, 0.75f), Vector2.zero, Vector2.zero),
-                new Color(0.65f, 0.7f, 0.75f));
-
-            _firstFlightBtn = CreateButton(map.transform, "FirstFlightButton", "确认首航",
-                new AnchorData(new Vector2(0.3f, 0.25f), new Vector2(0.7f, 0.42f), Vector2.zero, Vector2.zero),
-                new Color(0.15f, 0.55f, 0.85f, 1f), OnFirstFlightClicked);
-        }
-
-        private void BuildRpmPanel(Transform parent)
-        {
-            var panel = CreatePanel(parent, "RpmPanel",
-                new AnchorData(new Vector2(0.62f, 0.38f), new Vector2(0.97f, 0.88f), Vector2.zero, Vector2.zero),
-                new Color(0.14f, 0.18f, 0.24f, 0.95f));
-
-            CreateText(panel.transform, "RpmTitle", "RPM 航线分析", 24,
-                TextAnchor.UpperLeft, new AnchorData(new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.98f), Vector2.zero, Vector2.zero),
-                Color.white);
-
-            CreateText(panel.transform, "OriginLabel", "出发", 18,
-                TextAnchor.MiddleLeft, new AnchorData(new Vector2(0.05f, 0.72f), new Vector2(0.25f, 0.84f), Vector2.zero, Vector2.zero),
-                new Color(0.8f, 0.8f, 0.8f));
-            _originInput = CreateInput(panel.transform, "OriginInput", "北京",
-                new AnchorData(new Vector2(0.28f, 0.72f), new Vector2(0.95f, 0.84f), Vector2.zero, Vector2.zero));
-
-            CreateText(panel.transform, "DestLabel", "到达", 18,
-                TextAnchor.MiddleLeft, new AnchorData(new Vector2(0.05f, 0.56f), new Vector2(0.25f, 0.68f), Vector2.zero, Vector2.zero),
-                new Color(0.8f, 0.8f, 0.8f));
-            _destInput = CreateInput(panel.transform, "DestInput", "伦敦",
-                new AnchorData(new Vector2(0.28f, 0.56f), new Vector2(0.95f, 0.68f), Vector2.zero, Vector2.zero));
-
-            CreateButton(panel.transform, "AnalyzeButton", "分析",
-                new AnchorData(new Vector2(0.2f, 0.38f), new Vector2(0.55f, 0.5f), Vector2.zero, Vector2.zero),
-                new Color(0.2f, 0.45f, 0.35f, 1f), OnAnalyzeRpm);
-
-            _rpmLight = CreatePanel(panel.transform, "RpmLight",
-                new AnchorData(new Vector2(0.65f, 0.38f), new Vector2(0.85f, 0.5f), Vector2.zero, Vector2.zero),
-                Color.gray).GetComponent<Image>();
-
-            _rpmResultText = CreateText(panel.transform, "RpmResult", "点击分析查看绿/黄/红灯", 18,
-                TextAnchor.UpperLeft, new AnchorData(new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.34f), Vector2.zero, Vector2.zero),
-                new Color(0.85f, 0.9f, 0.95f));
-            _rpmResultText.alignment = TextAnchor.UpperLeft;
-        }
-
-        private void BuildChatPanel(Transform parent)
-        {
-            var panel = CreatePanel(parent, "ChatPanel",
-                new AnchorData(new Vector2(0.62f, 0.05f), new Vector2(0.97f, 0.35f), Vector2.zero, Vector2.zero),
-                new Color(0.12f, 0.16f, 0.22f, 0.95f));
-
-            CreateText(panel.transform, "ChatTitle", "Neural Command（DeepSeek / 本地容灾）", 18,
-                TextAnchor.UpperLeft, new AnchorData(new Vector2(0.04f, 0.82f), new Vector2(0.96f, 0.98f), Vector2.zero, Vector2.zero),
-                Color.white);
-
-            _chatOutput = CreateText(panel.transform, "ChatOutput",
-                "战略顾问：输入指令后发送。已配置 Key 走 DeepSeek；否则自动本地话术。", 16,
-                TextAnchor.UpperLeft, new AnchorData(new Vector2(0.04f, 0.35f), new Vector2(0.96f, 0.8f), Vector2.zero, Vector2.zero),
-                new Color(0.8f, 0.88f, 0.8f));
-            _chatOutput.alignment = TextAnchor.UpperLeft;
-
-            _chatInput = CreateInput(panel.transform, "ChatInput", "输入指令…",
-                new AnchorData(new Vector2(0.04f, 0.08f), new Vector2(0.68f, 0.28f), Vector2.zero, Vector2.zero));
-
-            CreateButton(panel.transform, "SendButton", "发送",
-                new AnchorData(new Vector2(0.72f, 0.08f), new Vector2(0.96f, 0.28f), Vector2.zero, Vector2.zero),
-                new Color(0.25f, 0.4f, 0.55f, 1f), OnChatSend);
-        }
-
-        private void BuildDevButtons(Transform parent)
-        {
-            string[] labels = { "机队", "董事会", "融资", "市场" };
-            float x0 = 0.05f;
-            float w = 0.12f;
+            string[] labels = { "运营", "市场", "财务", "AI 顾问" };
+            float top = 0.88f;
+            float h = 0.1f;
+            float gap = 0.025f;
             for (int i = 0; i < labels.Length; i++)
             {
-                float x = x0 + i * (w + 0.02f);
-                string name = labels[i];
-                CreateButton(parent, $"Dev_{name}", name,
-                    new AnchorData(new Vector2(x, 0.08f), new Vector2(x + w, 0.16f), Vector2.zero, Vector2.zero),
-                    new Color(0.25f, 0.28f, 0.32f, 1f),
-                    () => ShowPopup($"「{name}」开发中"));
+                int index = i;
+                float yMax = top - i * (h + gap);
+                float yMin = yMax - h;
+                var btn = UIFactory.Button(nav.transform, $"Nav_{labels[i]}", labels[i],
+                    new UIFactory.Anchor(new Vector2(0.1f, yMin), new Vector2(0.9f, yMax), Vector2.zero, Vector2.zero),
+                    UITheme.NavIdle, () => ShowNavPanel(index), 17);
+                _navButtons.Add(btn);
+                _navImages.Add(btn.GetComponent<Image>());
+            }
+        }
+
+        private void BuildCenterPanels(Transform parent)
+        {
+            var center = UIFactory.Panel(parent, "CenterHost",
+                new UIFactory.Anchor(new Vector2(0, 0), new Vector2(1, 1),
+                    new Vector2(UITheme.LeftNavWidth + 28, 20), new Vector2(-28, -UITheme.TopBarHeight - 12)),
+                new Color(0, 0, 0, 0), rounded: false);
+            center.GetComponent<Image>().raycastTarget = false;
+
+            _panelOps = BuildOpsPanel(center.transform);
+            _panelMarket = BuildMarketPanel(center.transform);
+            _panelFinance = BuildFinancePanel(center.transform);
+            _panelAi = BuildAiHelpPanel(center.transform);
+        }
+
+        private GameObject BuildOpsPanel(Transform parent)
+        {
+            var panel = UIFactory.Panel(parent, "Panel_Ops", UIFactory.Fill, UITheme.Panel);
+            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
+
+            UIFactory.Label(panel.transform, "Title", "运营中心 · 航线与首航", 22, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+
+            _opsHintText = UIFactory.Label(panel.transform, "Hint", "完成第一班飞行，入账 15 万美元", 15, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.82f), new Vector2(0.7f, 0.9f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            _firstFlightBtn = UIFactory.Button(panel.transform, "FirstFlightButton", "确认首航",
+                new UIFactory.Anchor(new Vector2(0.72f, 0.84f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, OnFirstFlightClicked, 18);
+
+            UIFactory.Label(panel.transform, "RoutesTitle", "已开通航线", 16, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.74f), new Vector2(0.5f, 0.82f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            var listHost = UIFactory.Panel(panel.transform, "RouteList",
+                new UIFactory.Anchor(new Vector2(0.03f, 0.04f), new Vector2(0.97f, 0.74f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep);
+            var vlg = listHost.AddComponent<VerticalLayoutGroup>();
+            vlg.padding = new RectOffset(12, 12, 12, 12);
+            vlg.spacing = 10;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlHeight = false;
+            vlg.childControlWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.childForceExpandWidth = true;
+            _routeCardsRoot = listHost.transform;
+
+            return panel;
+        }
+
+        private GameObject BuildMarketPanel(Transform parent)
+        {
+            var panel = UIFactory.Panel(parent, "Panel_Market", UIFactory.Fill, UITheme.Panel);
+            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
+
+            UIFactory.Label(panel.transform, "Title", "市场 · RPM 航线分析", 22, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+
+            UIFactory.Label(panel.transform, "Sub", "输入出发/到达城市，评估综合得分与日利润", 14, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.84f), new Vector2(0.7f, 0.9f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            UIFactory.Label(panel.transform, "OriginLabel", "出发", 16, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.05f, 0.7f), new Vector2(0.18f, 0.8f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+            _originInput = UIFactory.Input(panel.transform, "OriginInput", "北京",
+                new UIFactory.Anchor(new Vector2(0.2f, 0.7f), new Vector2(0.55f, 0.8f), Vector2.zero, Vector2.zero));
+
+            UIFactory.Label(panel.transform, "DestLabel", "到达", 16, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.05f, 0.56f), new Vector2(0.18f, 0.66f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+            _destInput = UIFactory.Input(panel.transform, "DestInput", "伦敦",
+                new UIFactory.Anchor(new Vector2(0.2f, 0.56f), new Vector2(0.55f, 0.66f), Vector2.zero, Vector2.zero));
+
+            UIFactory.Button(panel.transform, "AnalyzeButton", "分析航线",
+                new UIFactory.Anchor(new Vector2(0.6f, 0.7f), new Vector2(0.82f, 0.8f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, OnAnalyzeRpm, 16);
+
+            _rpmLight = UIFactory.Panel(panel.transform, "RpmLight",
+                new UIFactory.Anchor(new Vector2(0.85f, 0.7f), new Vector2(0.94f, 0.8f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted).GetComponent<Image>();
+
+            var resultBox = UIFactory.Panel(panel.transform, "ResultBox",
+                new UIFactory.Anchor(new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.5f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep);
+            _rpmResultText = UIFactory.Label(resultBox.transform, "RpmResult",
+                "点击「分析航线」查看综合评定与红绿灯", 17,
+                TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextPrimary);
+            var rt = _rpmResultText.GetComponent<RectTransform>();
+            rt.offsetMin = new Vector2(16, 12);
+            rt.offsetMax = new Vector2(-16, -12);
+
+            return panel;
+        }
+
+        private GameObject BuildFinancePanel(Transform parent)
+        {
+            var panel = UIFactory.Panel(parent, "Panel_Finance", UIFactory.Fill, UITheme.Panel);
+            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
+
+            UIFactory.Label(panel.transform, "Title", "财务 · 季度心跳", 22, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.88f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+
+            UIFactory.Label(panel.transform, "Body",
+                "点击顶部「执行季度运营」结算本季收入与支出。\n现金跑道油量表会随现金变化移动指针。\n跑道不足 3 个月时，财务顾问会自动警告。",
+                16, TextAlignmentOptions.TopLeft,
+                new UIFactory.Anchor(new Vector2(0.05f, 0.35f), new Vector2(0.95f, 0.85f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            UIFactory.Button(panel.transform, "FinanceAdvance", "立即推进本季度",
+                new UIFactory.Anchor(new Vector2(0.3f, 0.12f), new Vector2(0.7f, 0.26f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, OnAdvanceQuarterClicked, 18);
+
+            return panel;
+        }
+
+        private GameObject BuildAiHelpPanel(Transform parent)
+        {
+            var panel = UIFactory.Panel(parent, "Panel_AI", UIFactory.Fill, UITheme.Panel);
+            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
+
+            UIFactory.Label(panel.transform, "Title", "AI 顾问 · 使用说明", 22, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.03f, 0.88f), new Vector2(0.8f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+
+            UIFactory.Label(panel.transform, "Body",
+                "右下角悬浮气泡即 Neural Command。\n\n" +
+                "· 输入「分析航线」获取开通建议\n" +
+                "· 出现「执行建议」后需手动确认才会改现金\n" +
+                "· API 超时自动切本地容灾，不影响试玩\n\n" +
+                "字体验收：马格努斯·林德格伦 · 北京 → 伦敦",
+                16, TextAlignmentOptions.TopLeft,
+                new UIFactory.Anchor(new Vector2(0.05f, 0.2f), new Vector2(0.95f, 0.85f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            return panel;
+        }
+
+        private void BuildChatBubble(Transform parent)
+        {
+            ChatBubble bubble = null;
+            var prefab = Resources.Load<GameObject>("UI/ChatBubble");
+            GameObject panel;
+            if (prefab != null)
+            {
+                panel = Object.Instantiate(prefab, parent);
+                panel.name = "ChatBubble";
+                UIFactory.ApplyAnchor(panel.GetComponent<RectTransform>(),
+                    new UIFactory.Anchor(new Vector2(0.62f, 0.03f), new Vector2(0.985f, 0.36f), Vector2.zero, Vector2.zero));
+                bubble = panel.GetComponent<ChatBubble>();
+            }
+            else
+            {
+                bubble = ChatBubble.BuildRuntime(parent,
+                    new UIFactory.Anchor(new Vector2(0.62f, 0.03f), new Vector2(0.985f, 0.36f), Vector2.zero, Vector2.zero));
+                panel = bubble.gameObject;
+            }
+
+            if (bubble != null && bubble.BodyText != null)
+                _chatOutput = bubble.BodyText;
+            else
+            {
+                _chatOutput = UIFactory.Label(panel.transform, "ChatOutput",
+                    "战略顾问：输入「分析航线」后，可点「执行建议」真正开通。", 14,
+                    TextAlignmentOptions.TopLeft,
+                    new UIFactory.Anchor(new Vector2(0.04f, 0.36f), new Vector2(0.96f, 0.86f), Vector2.zero, Vector2.zero),
+                    new Color(0.82f, 0.9f, 0.86f));
+            }
+
+            _executeAdviceBtn = UIFactory.Button(panel.transform, "ExecuteAdviceButton", "执行建议",
+                new UIFactory.Anchor(new Vector2(0.04f, 0.22f), new Vector2(0.42f, 0.34f), Vector2.zero, Vector2.zero),
+                UITheme.Success, OnExecuteAdvice, 14);
+            _executeAdviceBtn.gameObject.SetActive(false);
+
+            _executeHintText = UIFactory.Label(panel.transform, "ExecuteHint", "", 12, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.44f, 0.22f), new Vector2(0.96f, 0.34f), Vector2.zero, Vector2.zero),
+                UITheme.Warning);
+
+            _chatInput = UIFactory.Input(panel.transform, "ChatInput", "输入指令…",
+                new UIFactory.Anchor(new Vector2(0.04f, 0.04f), new Vector2(0.68f, 0.18f), Vector2.zero, Vector2.zero));
+
+            UIFactory.Button(panel.transform, "SendButton", "发送",
+                new UIFactory.Anchor(new Vector2(0.72f, 0.04f), new Vector2(0.96f, 0.18f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, OnChatSend, 15);
+        }
+
+        private void ShowNavPanel(int index)
+        {
+            _activeNav = index;
+            if (_panelOps != null) _panelOps.SetActive(index == 0);
+            if (_panelMarket != null) _panelMarket.SetActive(index == 1);
+            if (_panelFinance != null) _panelFinance.SetActive(index == 2);
+            if (_panelAi != null) _panelAi.SetActive(index == 3);
+
+            for (int i = 0; i < _navImages.Count; i++)
+            {
+                if (_navImages[i] == null) continue;
+                _navImages[i].color = i == index ? UITheme.NavActive : UITheme.NavIdle;
+                var hover = _navImages[i].GetComponent<UIHoverBrighten>();
+                if (hover != null) hover.RefreshBase();
             }
         }
 
         private void BuildPopup(Transform parent)
         {
-            _popupRoot = CreatePanel(parent, "Popup",
-                new AnchorData(new Vector2(0.3f, 0.4f), new Vector2(0.7f, 0.6f), Vector2.zero, Vector2.zero),
-                new Color(0.1f, 0.1f, 0.12f, 0.96f)).gameObject;
-            _popupText = CreateText(_popupRoot.transform, "PopupText", "开发中", 28,
-                TextAnchor.MiddleCenter, AnchorFill(), Color.white);
-            CreateButton(_popupRoot.transform, "PopupClose", "关闭",
-                new AnchorData(new Vector2(0.35f, 0.1f), new Vector2(0.65f, 0.32f), Vector2.zero, Vector2.zero),
-                new Color(0.4f, 0.4f, 0.45f, 1f), () => _popupRoot.SetActive(false));
+            _popupRoot = UIFactory.Panel(parent, "Popup",
+                new UIFactory.Anchor(new Vector2(0.28f, 0.35f), new Vector2(0.72f, 0.68f), Vector2.zero, Vector2.zero),
+                new Color(0.05f, 0.1f, 0.18f, 0.97f)).gameObject;
+            UIFactory.AddBorder(_popupRoot, UITheme.Accent, new Vector2(2f, -2f));
+            _popupText = UIFactory.Label(_popupRoot.transform, "PopupText", "开发中", 22, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.92f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary);
+            UIFactory.Button(_popupRoot.transform, "PopupClose", "关闭",
+                new UIFactory.Anchor(new Vector2(0.35f, 0.08f), new Vector2(0.65f, 0.26f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep, () => _popupRoot.SetActive(false), 16);
             _popupRoot.SetActive(false);
         }
 
         private void BuildProgress(Transform parent)
         {
-            _progressRoot = CreatePanel(parent, "FlightProgress",
-                new AnchorData(new Vector2(0.25f, 0.42f), new Vector2(0.55f, 0.58f), Vector2.zero, Vector2.zero),
-                new Color(0.08f, 0.1f, 0.14f, 0.95f)).gameObject;
+            _progressRoot = UIFactory.Panel(parent, "FlightProgress",
+                new UIFactory.Anchor(new Vector2(0.3f, 0.42f), new Vector2(0.7f, 0.58f), Vector2.zero, Vector2.zero),
+                new Color(0.05f, 0.1f, 0.16f, 0.96f)).gameObject;
+            UIFactory.AddBorder(_progressRoot, UITheme.Accent, new Vector2(1.5f, -1.5f));
 
-            _progressLabel = CreateText(_progressRoot.transform, "ProgressLabel", "起飞中…", 22,
-                TextAnchor.UpperCenter, new AnchorData(new Vector2(0, 0.6f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
-                Color.white);
+            _progressLabel = UIFactory.Label(_progressRoot.transform, "ProgressLabel", "起飞中…", 20, TextAlignmentOptions.Top,
+                new UIFactory.Anchor(new Vector2(0, 0.55f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary);
 
-            var track = CreatePanel(_progressRoot.transform, "Track",
-                new AnchorData(new Vector2(0.1f, 0.25f), new Vector2(0.9f, 0.45f), Vector2.zero, Vector2.zero),
-                new Color(0.2f, 0.25f, 0.3f));
-            _progressFill = CreatePanel(track.transform, "Fill",
-                AnchorFill(), new Color(0.2f, 0.7f, 1f)).GetComponent<Image>();
+            var track = UIFactory.Panel(_progressRoot.transform, "Track",
+                new UIFactory.Anchor(new Vector2(0.1f, 0.22f), new Vector2(0.9f, 0.45f), Vector2.zero, Vector2.zero),
+                new Color(0.06f, 0.1f, 0.16f));
+            _progressFill = UIFactory.Panel(track.transform, "Fill", UIFactory.Fill, UITheme.Accent).GetComponent<Image>();
+            _progressFill.sprite = UIFactory.RoundedSprite;
             _progressFill.type = Image.Type.Filled;
             _progressFill.fillMethod = Image.FillMethod.Horizontal;
             _progressFill.fillAmount = 0f;
@@ -304,17 +485,18 @@ namespace AirlineCEO.UI
 
         private void BuildSettle(Transform parent)
         {
-            _settleRoot = CreatePanel(parent, "SettlePopup",
-                new AnchorData(new Vector2(0.28f, 0.35f), new Vector2(0.58f, 0.65f), Vector2.zero, Vector2.zero),
-                new Color(0.1f, 0.15f, 0.12f, 0.97f)).gameObject;
+            _settleRoot = UIFactory.Panel(parent, "SettlePopup",
+                new UIFactory.Anchor(new Vector2(0.3f, 0.35f), new Vector2(0.7f, 0.68f), Vector2.zero, Vector2.zero),
+                new Color(0.05f, 0.14f, 0.12f, 0.97f)).gameObject;
+            UIFactory.AddBorder(_settleRoot, UITheme.Success, new Vector2(2f, -2f));
 
-            _settleText = CreateText(_settleRoot.transform, "SettleText", "首航成功！赚了 15 万", 26,
-                TextAnchor.MiddleCenter, new AnchorData(new Vector2(0.05f, 0.35f), new Vector2(0.95f, 0.9f), Vector2.zero, Vector2.zero),
-                new Color(0.7f, 1f, 0.75f));
+            _settleText = UIFactory.Label(_settleRoot.transform, "SettleText", "首航成功！赚了 15 万", 24, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.92f), Vector2.zero, Vector2.zero),
+                UITheme.Success);
 
-            CreateButton(_settleRoot.transform, "SettleClose", "确认",
-                new AnchorData(new Vector2(0.3f, 0.1f), new Vector2(0.7f, 0.28f), Vector2.zero, Vector2.zero),
-                new Color(0.2f, 0.55f, 0.35f, 1f), () => _settleRoot.SetActive(false));
+            UIFactory.Button(_settleRoot.transform, "SettleClose", "确认",
+                new UIFactory.Anchor(new Vector2(0.32f, 0.08f), new Vector2(0.68f, 0.26f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, () => _settleRoot.SetActive(false), 16);
 
             _settleRoot.SetActive(false);
         }
@@ -325,32 +507,21 @@ namespace AirlineCEO.UI
             if (gs == null) return;
 
             if (_dateText != null) _dateText.text = gs.DateLabel;
-            if (_cashText != null) _cashText.text = $"现金：{gs.cash:F0} 万美元";
 
-            float months = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.monthlyBurnRate);
-            string warn = CashRunnelCalculator.GetRunwayWarning(months);
-            if (_runwayText != null)
-                _runwayText.text = $"流动性还可以撑 {months:F1} 个月 · {CashRunnelCalculator.FormatWarningPlain(months)}";
+            float months = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
+            if (_cashMeter != null)
+                _cashMeter.SetImmediate(gs.cash, months, gs.monthlyRevenue);
 
-            if (_runwayFill != null)
-            {
-                // 6 个月满格
-                _runwayFill.fillAmount = Mathf.Clamp01(months / 6f);
-                _runwayFill.color = warn switch
-                {
-                    "红" => new Color(0.9f, 0.25f, 0.25f),
-                    "黄" => new Color(0.95f, 0.75f, 0.2f),
-                    _ => new Color(0.3f, 0.85f, 0.4f)
-                };
-            }
+            RebuildRouteCards(gs);
 
             if (_firstFlightBtn != null)
             {
-                var label = _firstFlightBtn.GetComponentInChildren<Text>();
+                var label = _firstFlightBtn.GetComponentInChildren<TextMeshProUGUI>();
                 if (gs.firstFlightCompleted)
                 {
                     _firstFlightBtn.interactable = false;
                     if (label != null) label.text = "首航已完成";
+                    if (_opsHintText != null) _opsHintText.text = "首航已完成，继续开通航线与季度运营";
                 }
             }
 
@@ -358,11 +529,182 @@ namespace AirlineCEO.UI
                 _statusText.text = SaveManager.Instance.LastStatus;
         }
 
+        private void RebuildRouteCards(GameState gs)
+        {
+            if (_routeCardsRoot == null) return;
+
+            for (int i = 0; i < _routeCardInstances.Count; i++)
+            {
+                if (_routeCardInstances[i] != null)
+                    Destroy(_routeCardInstances[i]);
+            }
+            _routeCardInstances.Clear();
+
+            if (gs.activeRoutes.Count == 0)
+            {
+                var empty = UIFactory.Label(_routeCardsRoot, "Empty", "暂无航线 — 可在「市场」分析后，用 AI 执行开通", 15, TextAlignmentOptions.Center,
+                    new UIFactory.Anchor(new Vector2(0, 0.7f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
+                    UITheme.TextMuted);
+                empty.gameObject.AddComponent<LayoutElement>().preferredHeight = 48;
+                _routeCardInstances.Add(empty.gameObject);
+                return;
+            }
+
+            var cardPrefab = Resources.Load<GameObject>("UI/RouteCard");
+            for (int i = 0; i < gs.activeRoutes.Count; i++)
+            {
+                RouteCard card;
+                if (cardPrefab != null)
+                {
+                    var go = Object.Instantiate(cardPrefab, _routeCardsRoot);
+                    go.name = "RouteCard_" + i;
+                    var le = go.GetComponent<LayoutElement>();
+                    if (le == null) le = go.AddComponent<LayoutElement>();
+                    le.preferredHeight = 72;
+                    le.flexibleWidth = 1;
+                    card = go.GetComponent<RouteCard>();
+                    _routeCardInstances.Add(go);
+                }
+                else
+                {
+                    card = RouteCard.BuildRuntime(_routeCardsRoot);
+                    var le = card.gameObject.GetComponent<LayoutElement>();
+                    if (le == null) le = card.gameObject.AddComponent<LayoutElement>();
+                    le.preferredHeight = 72;
+                    le.flexibleWidth = 1;
+                    _routeCardInstances.Add(card.gameObject);
+                }
+
+                if (card != null)
+                    card.Bind(gs.activeRoutes[i]);
+            }
+        }
+
         private void OnFirstFlightClicked()
         {
             var gs = GameState.Instance;
             if (gs == null || gs.firstFlightCompleted || _flightInProgress) return;
             StartCoroutine(FirstFlightRoutine());
+        }
+
+        private void OnAdvanceQuarterClicked()
+        {
+            if (_quarterInProgress || _flightInProgress) return;
+            if (TimeManager.Instance == null)
+            {
+                ShowPopup("TimeManager 未就绪");
+                return;
+            }
+
+            StartCoroutine(AdvanceQuarterRoutine());
+        }
+
+        private IEnumerator AdvanceQuarterRoutine()
+        {
+            _quarterInProgress = true;
+            if (_advanceQuarterBtn != null)
+                _advanceQuarterBtn.interactable = false;
+
+            var gs = GameState.Instance;
+            float cashBefore = gs != null ? gs.cash : 0f;
+            string dateBefore = gs != null ? gs.DateLabel : "";
+
+            if (_hourglassText != null)
+            {
+                _hourglassText.gameObject.SetActive(true);
+                _hourglassText.text = "⏳ 季度运营结算中…";
+            }
+
+            if (_progressRoot != null)
+            {
+                _progressRoot.SetActive(true);
+                _progressFill.fillAmount = 0f;
+                _progressLabel.text = "沙漏转动…";
+            }
+
+            float duration = 1.6f;
+            float t = 0f;
+            string[] sand = { "⏳", "⌛", "⏳", "⌛" };
+            int frame = 0;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float p = Mathf.Clamp01(t / duration);
+                if (_progressFill != null) _progressFill.fillAmount = p;
+                if (_hourglassText != null)
+                    _hourglassText.text = $"{sand[frame % sand.Length]} 结算中 {Mathf.RoundToInt(p * 100)}%";
+                if (_progressLabel != null)
+                    _progressLabel.text = $"季度推进… {Mathf.CeilToInt(duration - t)}s";
+                if (Mathf.FloorToInt(t * 6f) != frame)
+                    frame = Mathf.FloorToInt(t * 6f);
+                yield return null;
+            }
+
+            var result = TimeManager.Instance.AdvanceQuarter();
+
+            if (gs != null && _cashMeter != null)
+            {
+                float months = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
+                _cashMeter.AnimateTo(gs.cash, months, gs.monthlyRevenue, 0.75f);
+                yield return new WaitForSeconds(0.75f);
+            }
+
+            if (_progressRoot != null) _progressRoot.SetActive(false);
+            if (_hourglassText != null) _hourglassText.gameObject.SetActive(false);
+
+            RefreshHud();
+
+            if (result != null && result.success)
+            {
+                string tip =
+                    $"{dateBefore} → {gs.DateLabel}\n" +
+                    $"收入 {result.quarterIncome:F0} − 支出 {result.quarterExpense:F0} = " +
+                    $"{(result.netChange >= 0 ? "+" : "")}{result.netChange:F0} 万\n" +
+                    $"现金 {cashBefore:F0} → {result.cashAfter:F0} 万";
+                if (!string.IsNullOrEmpty(result.eventText))
+                    tip += "\n" + result.eventText;
+
+                if (result.isBankruptWarning)
+                    ShowErrorPopup("破产警告\n" + tip + "\n现金已为负，请尽快融资或削减成本！");
+                else
+                    ShowPopup("季度运营完成\n" + tip);
+
+                if (result.needsFinanceWarning && !string.IsNullOrEmpty(result.financeWarning))
+                    PushFinanceWarningToChat(result.financeWarning);
+            }
+            else
+            {
+                ShowErrorPopup(result != null ? result.message : "季度推进失败");
+            }
+
+            if (_advanceQuarterBtn != null)
+                _advanceQuarterBtn.interactable = true;
+            _quarterInProgress = false;
+        }
+
+        private void PushFinanceWarningToChat(string warning)
+        {
+            if (_chatOutput == null) return;
+            string existing = _chatOutput.text ?? "";
+            _chatOutput.text = existing + "\n\n" + warning;
+            HideExecuteAdvice();
+
+            _pendingAdvice = new AdvisorResponse
+            {
+                advisor = "财务顾问",
+                emotion = "谨慎",
+                message = warning,
+                suggestedAction = "delay",
+                data = new AdvisorDataPayload { profit = 0f, risk = "high" },
+                fromFallback = true
+            };
+            if (_executeAdviceBtn != null)
+                _executeAdviceBtn.gameObject.SetActive(true);
+            if (_executeHintText != null)
+            {
+                _executeHintText.color = UITheme.Danger;
+                _executeHintText.text = "建议：暂缓扩张（满意度+2）";
+            }
         }
 
         private IEnumerator FirstFlightRoutine()
@@ -385,13 +727,31 @@ namespace AirlineCEO.UI
             _progressRoot.SetActive(false);
 
             var gs = GameState.Instance;
+            float cashBefore = gs.cash;
             gs.firstFlightCompleted = true;
             gs.AddCash(FirstFlightReward);
+
+            if (_cashMeter != null)
+            {
+                float monthsBefore = CashRunnelCalculator.GetRunwayMonths(cashBefore, gs.EffectiveMonthlyBurn);
+                float monthsAfter = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
+                _cashMeter.SetImmediate(cashBefore, monthsBefore, gs.monthlyRevenue);
+                _cashMeter.AnimateTo(gs.cash, monthsAfter, gs.monthlyRevenue, 0.55f);
+            }
 
             _settleText.text = $"首航成功！\n本班结算赚了 {FirstFlightReward:F0} 万美元\n当前现金：{gs.cash:F0} 万";
             _settleRoot.SetActive(true);
             _flightInProgress = false;
-            RefreshHud();
+
+            if (_dateText != null) _dateText.text = gs.DateLabel;
+            RebuildRouteCards(gs);
+            if (_firstFlightBtn != null)
+            {
+                _firstFlightBtn.interactable = false;
+                var label = _firstFlightBtn.GetComponentInChildren<TextMeshProUGUI>();
+                if (label != null) label.text = "首航已完成";
+            }
+            if (_opsHintText != null) _opsHintText.text = "首航已完成，继续开通航线与季度运营";
         }
 
         private void OnAnalyzeRpm()
@@ -399,7 +759,6 @@ namespace AirlineCEO.UI
             string origin = _originInput != null ? _originInput.text.Trim() : "";
             string dest = _destInput != null ? _destInput.text.Trim() : "";
 
-            // MVP：识别北京-伦敦；其他城市给占位提示但仍可算一条默认长线
             bool isPekLhr =
                 (origin.Contains("北京") || origin.ToUpperInvariant().Contains("PEK")) &&
                 (dest.Contains("伦敦") || dest.ToUpperInvariant().Contains("LHR") || dest.ToUpperInvariant().Contains("LON"));
@@ -407,7 +766,7 @@ namespace AirlineCEO.UI
             var input = new RPMCalculator.RPMInput
             {
                 distance = isPekLhr ? 8150f : 4500f,
-                fuelPricePerTon = 850f,
+                fuelPricePerTon = GameState.Instance != null ? GameState.Instance.fuelPricePerTon : 850f,
                 competitorSupply = isPekLhr ? 0.65f : 0.4f,
                 demandMultiplier = 1.2f,
                 brandEquity = 55f
@@ -416,16 +775,16 @@ namespace AirlineCEO.UI
             var output = RPMCalculator.Calculate(input);
             _rpmResultText.text =
                 $"{origin} → {dest}\n" +
-                $"评分 {output.score}（{output.rating}）\n" +
+                $"综合评定 {output.score} 分（{output.rating}）\n" +
                 $"日收入 {output.dailyRevenue:F2} / 成本 {output.dailyCost:F2}\n" +
                 $"日利润 {output.dailyProfit:F2} 万美元" +
                 (isPekLhr ? "" : "\n（非预设 OD，使用简化参数）");
 
             _rpmLight.color = output.rating switch
             {
-                "绿" => new Color(0.25f, 0.85f, 0.35f),
-                "黄" => new Color(0.95f, 0.8f, 0.2f),
-                _ => new Color(0.9f, 0.25f, 0.25f)
+                "绿" => UITheme.Success,
+                "黄" => UITheme.Warning,
+                _ => UITheme.Danger
             };
         }
 
@@ -433,6 +792,8 @@ namespace AirlineCEO.UI
         {
             string msg = _chatInput != null ? _chatInput.text : "";
             if (_chatInput != null) _chatInput.text = "";
+
+            HideExecuteAdvice();
 
             if (AIChatManager.Instance == null)
             {
@@ -454,103 +815,118 @@ namespace AirlineCEO.UI
                 if (response.fromFallback && !string.IsNullOrEmpty(response.errorHint))
                     text += $"\n（{response.errorHint}）";
                 _chatOutput.text = text;
-
-                // 可选：根据 suggestedAction 做轻量反馈
-                var action = SuggestedActionParser.Parse(response.suggestedAction);
-                if (action == SuggestedAction.OpenRoute && _rpmResultText != null)
-                {
-                    // 不强制改 RPM 面板，仅在聊天中已含数值
-                }
+                ShowExecuteAdviceIfNeeded(response);
             });
         }
 
-        private void ShowPopup(string message)
+        private void ShowExecuteAdviceIfNeeded(AdvisorResponse response)
         {
+            _pendingAdvice = response;
+            var action = SuggestedActionParser.Parse(response.suggestedAction);
+            bool show = action == SuggestedAction.OpenRoute
+                        || action == SuggestedAction.Delay
+                        || action == SuggestedAction.Reject
+                        || action == SuggestedAction.CheckCash;
+
+            if (_executeAdviceBtn != null)
+                _executeAdviceBtn.gameObject.SetActive(show);
+
+            if (_executeHintText != null)
+            {
+                if (!show)
+                {
+                    _executeHintText.text = "";
+                    return;
+                }
+
+                _executeHintText.color = UITheme.Warning;
+                switch (action)
+                {
+                    case SuggestedAction.OpenRoute:
+                        string o = response.data?.origin ?? "北京";
+                        string d = response.data?.destination ?? "伦敦";
+                        _executeHintText.text = $"将开通 {o}-{d}（启动费 300 万）";
+                        break;
+                    case SuggestedAction.Delay:
+                    case SuggestedAction.Reject:
+                        _executeHintText.text = "将记录暂缓，满意度 +2";
+                        break;
+                    case SuggestedAction.CheckCash:
+                        _executeHintText.text = "查看现金与航线收入";
+                        break;
+                    default:
+                        _executeHintText.text = "";
+                        break;
+                }
+            }
+        }
+
+        private void HideExecuteAdvice()
+        {
+            _pendingAdvice = null;
+            if (_executeAdviceBtn != null)
+                _executeAdviceBtn.gameObject.SetActive(false);
+            if (_executeHintText != null)
+                _executeHintText.text = "";
+        }
+
+        private void OnExecuteAdvice()
+        {
+            var advice = _pendingAdvice ?? AIChatManager.Instance?.LastAdvice;
+            if (advice == null)
+            {
+                ShowPopup("暂无建议可执行");
+                return;
+            }
+
+            if (ActionExecutor.Instance == null)
+            {
+                ShowPopup("ActionExecutor 未就绪");
+                return;
+            }
+
+            var result = ActionExecutor.Instance.Execute(advice);
+            if (result == null)
+                return;
+
+            if (result.success)
+            {
+                if (_executeHintText != null)
+                {
+                    _executeHintText.color = UITheme.Success;
+                    _executeHintText.text = "已执行";
+                }
+                if (_chatOutput != null)
+                    _chatOutput.text = (_chatOutput.text ?? "") + $"\n\n✅ {result.message}";
+                var action = SuggestedActionParser.Parse(advice.suggestedAction);
+                if (action == SuggestedAction.OpenRoute)
+                    HideExecuteAdvice();
+                RefreshHud();
+            }
+            else
+            {
+                if (_executeHintText != null)
+                {
+                    _executeHintText.color = UITheme.Danger;
+                    _executeHintText.text = result.message;
+                }
+                ShowErrorPopup(result.message);
+            }
+        }
+
+        private void ShowErrorPopup(string message)
+        {
+            _popupText.color = UITheme.Danger;
             _popupText.text = message;
             _popupRoot.SetActive(true);
         }
 
-        // ---------- UI helpers ----------
-
-        private struct AnchorData
+        private void ShowPopup(string message)
         {
-            public Vector2 anchorMin, anchorMax, offsetMin, offsetMax;
-            public AnchorData(Vector2 min, Vector2 max, Vector2 offMin, Vector2 offMax)
-            {
-                anchorMin = min; anchorMax = max; offsetMin = offMin; offsetMax = offMax;
-            }
-        }
-
-        private static AnchorData AnchorFill() =>
-            new AnchorData(Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-        private GameObject CreatePanel(Transform parent, string name, AnchorData a, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(parent, false);
-            ApplyAnchor(go.GetComponent<RectTransform>(), a);
-            var img = go.GetComponent<Image>();
-            img.color = color;
-            img.raycastTarget = true;
-            return go;
-        }
-
-        private Text CreateText(Transform parent, string name, string content, int size,
-            TextAnchor align, AnchorData a, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-            go.transform.SetParent(parent, false);
-            ApplyAnchor(go.GetComponent<RectTransform>(), a);
-            var text = go.GetComponent<Text>();
-            text.font = _font;
-            text.text = content;
-            text.fontSize = size;
-            text.color = color;
-            text.alignment = align;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            text.raycastTarget = false;
-            return text;
-        }
-
-        private InputField CreateInput(Transform parent, string name, string placeholder, AnchorData a)
-        {
-            var go = CreatePanel(parent, name, a, new Color(0.18f, 0.22f, 0.28f, 1f));
-            var text = CreateText(go.transform, "Text", "", 18, TextAnchor.MiddleLeft,
-                new AnchorData(new Vector2(0.04f, 0), new Vector2(0.96f, 1), Vector2.zero, Vector2.zero), Color.white);
-            text.supportRichText = false;
-            var ph = CreateText(go.transform, "Placeholder", placeholder, 18, TextAnchor.MiddleLeft,
-                new AnchorData(new Vector2(0.04f, 0), new Vector2(0.96f, 1), Vector2.zero, Vector2.zero),
-                new Color(1, 1, 1, 0.35f));
-
-            var input = go.AddComponent<InputField>();
-            input.textComponent = text;
-            input.placeholder = ph;
-            input.text = placeholder.Contains("…") ? "" : placeholder;
-            return input;
-        }
-
-        private Button CreateButton(Transform parent, string name, string label, AnchorData a,
-            Color color, UnityEngine.Events.UnityAction onClick)
-        {
-            var go = CreatePanel(parent, name, a, color);
-            CreateText(go.transform, "Label", label, 22, TextAnchor.MiddleCenter, AnchorFill(), Color.white);
-            var btn = go.AddComponent<Button>();
-            var colors = btn.colors;
-            colors.highlightedColor = color * 1.15f;
-            colors.pressedColor = color * 0.85f;
-            btn.colors = colors;
-            btn.onClick.AddListener(onClick);
-            return btn;
-        }
-
-        private static void ApplyAnchor(RectTransform rt, AnchorData a)
-        {
-            rt.anchorMin = a.anchorMin;
-            rt.anchorMax = a.anchorMax;
-            rt.offsetMin = a.offsetMin;
-            rt.offsetMax = a.offsetMax;
-            rt.localScale = Vector3.one;
+            if (_popupText != null)
+                _popupText.color = UITheme.TextPrimary;
+            _popupText.text = message;
+            _popupRoot.SetActive(true);
         }
     }
 }

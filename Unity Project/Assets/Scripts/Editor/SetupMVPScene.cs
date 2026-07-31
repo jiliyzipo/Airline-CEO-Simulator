@@ -14,17 +14,20 @@ namespace AirlineCEO.EditorTools
         [MenuItem("AirlineCEO/Setup MVP Scene Objects")]
         public static void Setup()
         {
+            GenerateChineseTMPFont.EnsureExists();
             EnsureConfigAsset();
             Ensure<GameState>("GameState");
             Ensure<SaveManager>("SaveManager");
             Ensure<DataBase>("DataBase");
+            Ensure<ActionExecutor>("ActionExecutor");
+            Ensure<TimeManager>("TimeManager");
             EnsureAIChatManager();
             Ensure<MVPBootstrap>("MVPBootstrap");
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorUtility.DisplayDialog(
                 "MVP 场景就绪",
-                "已添加核心组件。\n配置 Key：AirlineCEO → Set DeepSeek API Key",
+                "已添加核心组件，并确保中文 TMP 字体。\n配置 Key：AirlineCEO → Set DeepSeek API Key\n字体：AirlineCEO → Generate Chinese TMP Font Asset",
                 "确定");
         }
 
@@ -54,7 +57,7 @@ namespace AirlineCEO.EditorTools
 
         private static void EnsureAIChatManager()
         {
-            var existing = Object.FindObjectOfType<AIChatManager>();
+            var existing = Object.FindFirstObjectByType<AIChatManager>();
             var cfg = AssetDatabase.LoadAssetAtPath<DeepSeekConfig>("Assets/Resources/DeepSeekConfig.asset");
             if (existing != null)
             {
@@ -82,7 +85,7 @@ namespace AirlineCEO.EditorTools
 
         private static void Ensure<T>(string name) where T : Component
         {
-            var existing = Object.FindObjectOfType<T>();
+            var existing = Object.FindFirstObjectByType<T>();
             if (existing != null) return;
             var go = new GameObject(name);
             go.AddComponent<T>();

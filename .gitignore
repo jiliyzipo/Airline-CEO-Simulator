@@ -1,0 +1,25 @@
+# Git
+.DS_Store
+Thumbs.db
+
+# Unity generated
+Unity Project/Library/
+Unity Project/Temp/
+Unity Project/Obj/
+Unity Project/Build/
+Unity Project/Builds/
+Unity Project/Logs/
+Unity Project/UserSettings/
+Unity Project/.vs/
+Unity Project/*.csproj
+Unity Project/*.sln
+Unity Project/*.user
+Unity Project/*.userprefs
+
+# Microsoft fonts — do not redistribute (local TMP symbol fallback only)
+**/SegoeUISymbol.ttf
+**/SegoeUISymbol.ttf.meta
+
+# Office lock files
+**/~$*.docx
+**/~$*.doc

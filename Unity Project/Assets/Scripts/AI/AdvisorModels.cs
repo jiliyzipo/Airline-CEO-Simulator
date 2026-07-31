@@ -30,6 +30,8 @@ namespace AirlineCEO.AI
     {
         public float profit;
         public string risk = "medium";
+        public string origin;       // 可选：建议航线起点
+        public string destination;  // 可选：建议航线终点
     }
 
     /// <summary>玩家指令枚举（任务书：把文字转换成固定指令）。</summary>

@@ -4,7 +4,7 @@
 **适用对象：** 独立开发者（无编程基础，依赖 AI 编程）  
 **核心目标：** 将 GDD v1.3 的策划案转化为 Unity C# 可执行代码的精确指令。  
 **工程根目录：** `Unity Project/`  
-**现行版本：** 请以 **v1.2** 为准（v1.0 / v1.1 仅作历史存档）
+**现行版本：** 请以 **v1.3** 为准（本文件 v1.2 仅作历史存档）
 
 ---
 
@@ -14,7 +14,8 @@
 | :--- | :--- |
 | v1.0 | 初版施工图（伪代码为主） |
 | v1.1 | RPM 完整实现；第 1～6 章落地；DeepSeek 接入 |
-| **v1.2** | **玩家文案通俗化**：现金跑道/流动性表述；顾问大白话；强制「综合评定 XX 分」；同步工程现状与菜单 |
+| **v1.2** | 玩家文案通俗化；综合评定；**Phase 1：ActionExecutor + 执行建议按钮** |
+| v1.3 | 第 7 章完整整合 Phase 1～4（详见 `Airline_CEO_Dev_Task_v1.3.md`） |
 
 ---
 
@@ -300,19 +301,93 @@ DataBase.Instance.GetBoardMemberIds(); // 给 ChemistryMatcher
 
 ---
 
-## 第 7 章：给 Cursor 的提示词模板
+## 第 7 章：后续工程路线图
+
+> 第 1～6 章已落地。按「先里后外、先功能后美观」分 Phase 推进。
+
+### 给 Cursor 的提示词模板（历史步骤）
 
 | 步骤 | 状态 | 说明 |
 | :--- | :---: | :--- |
-| 1～7 骨架/数据/逻辑/库/UI/存档/DeepSeek | ✅ | 勿重复生成；以工程与 **v1.2** 为准 |
-| **后续建议** | ⬜ | 扩展 `suggestedAction` 真正改游戏状态；打磨 UI；补中文 TMP 字体等 |
+| 1～7 骨架/数据/逻辑/库/UI/存档/DeepSeek | ✅ | 勿重复生成 |
+| **Phase 1 suggestedAction 落地** | ✅ | 见下方 7.1 |
 
-示例后续指令：  
-*“请按技术任务书 v1.2，让 suggestedAction=open_route 时自动高亮 RPM 面板，并写入一条操作日志。”*
+### 7.1 Phase 1：让 AI「说话算话」✅
+
+**目标：** 点击「执行建议」后，现金 / 航线列表 / 满意度发生真实变化（不自动执行，需二次确认）。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Systems/ActionExecutor.cs` | 执行 open_route / delay / reject / check_cash |
+| `Data/RouteData.cs` | 航线记录 |
+| `Systems/GameState.cs` | `activeRoutes`、`monthlyRevenue`、`EffectiveMonthlyBurn` |
+| `UI/MVPBootstrap.cs` | 「执行建议」按钮 + 红字失败提示 |
+| `AI/AIChatManager.cs` | `LastAdvice` / `OnAdviceReceived` |
+
+**规则摘要：**
+- `open_route`：现金 ≥ 300 万 → 扣 300 万启动费 → `activeRoutes` 新增（默认北京-伦敦，日利润取 `data.profit`）→ HUD 立即刷新  
+- 现金不足 → 红字「现金不足，无法执行…」  
+- `delay` / `reject`：决策日志 + 满意度 +2  
+- `first_flight`：提示用中央首航按钮  
+
+**验收：** 聊天「分析航线」→ 点「执行建议」→ 现金 −300，地图区出现已开通航线，顶部现金立刻变化。
+
+### 7.2 Phase 2：建立「财年心跳」✅
+
+**目标：** 每季度推进一次，自动结算收入/烧钱，可触发油价事件；现金吃紧时财务顾问自动警告。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Systems/TimeManager.cs` | `AdvanceQuarter()`、`OnYearEnd()`、油价随机事件 |
+| `GameState.fuelPricePerTon` | 油价可被事件改动 |
+| `UI/MVPBootstrap.cs` | 「执行季度运营」按钮、沙漏动画、现金跳动、破产弹窗 |
+
+**结算：** 季度收入 = `monthlyRevenue × 3`；支出 = `monthlyBurnRate × 3`；现金 += 收入 − 支出；Q1→Q2→…→Q4→下一年。  
+**破产：** 现金 &lt; 0 → 红字破产警告。  
+**AI：** 跑道 &lt; 3 月 → 聊天区自动推送财务顾问警告，并可点「执行建议」暂缓扩张。
+
+**验收：** 点「执行季度运营」→ 现金增减 → 日期 Q1 变 Q2。
+
+### 7.3 Phase 3：UI 打磨（航空驾驶舱）✅
+
+**目标：** 深色航空主题 HUD，仪表盘风格，清晰视觉层级（GDD 33.6）。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `UI/UITheme.cs` | 主背景 `#0B1A33`、强调 `#1A5CFF` 等配色 |
+| `UI/UIFactory.cs` | 圆角面板/按钮、悬停提亮 |
+| `UI/CashMeter.cs` | 横向油量表 + 指针，现金变化时动画 |
+| `UI/RouteCard.cs` | 已开通航线卡片 |
+| `UI/ChatBubble.cs` | 右下角 AI 气泡外观 |
+| `UI/MVPBootstrap.cs` | 顶栏 / 左侧导航 / 中央多面板 / 聊天气泡 |
+| `Editor/CreateUIPrefabs.cs` | 菜单生成 Prefab → `Resources/UI/` |
+
+**布局：** 顶栏（公司 · 日期 · 季度按钮 · 现金油量表）→ 左侧（运营 / 市场 / 财务 / AI 顾问）→ 中央默认 RPM → 右下 Neural Command。
+
+**菜单：** `AirlineCEO → Create UI Prefabs (Phase 3)`（可选；无 Prefab 时运行时自动搭建）。
+
+**验收：** 启动为深空蓝驾驶舱；现金变化时油量表填充与指针移动。
+
+### 7.4 Phase 4：中文字体与本地化（TMP）✅
+
+**目标：** TextMeshPro 完美显示中文（姓名、城市、顾问回复），无方框 □。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Assets/Fonts/NotoSansSC-Regular.otf` | 思源黑体 / Noto Sans SC（OFL） |
+| `UI/ChineseFontProvider.cs` | 加载 SDF / 动态回退 |
+| `UI/UIFactory.cs` | 全面改用 `TextMeshProUGUI` / `TMP_InputField` |
+| `Editor/GenerateChineseTMPFont.cs` | 菜单生成 `Resources/Fonts/NotoSansSC-SDF` |
+
+**菜单：** `AirlineCEO → Generate Chinese TMP Font Asset`（Setup MVP 时也会自动尝试生成）
+
+**动态文案：** `GameDataSnapshot.FormatRpmFootnote()` 等中文注脚经 TMP 渲染。
+
+**验收：** 「马格努斯·林德格伦」「北京/伦敦」、顾问中文回复均清晰无缺字。左侧点「AI 顾问」可见字体验收样例行。
 
 ---
 
-## 附录 A：玩家文案规范（v1.2 新增）
+## 附录 A：玩家文案规范（v1.2）
 
 | 场景 | 推荐说法 | 避免 |
 | :--- | :--- | :--- |
@@ -332,9 +407,13 @@ DataBase.Instance.GetBoardMemberIds(); // 给 ChemistryMatcher
 | 核心 UI | 4h | 首航 + 流动性条 | ✅ |
 | AI 接口 | 3h | DeepSeek + 容灾 | ✅ |
 | 文案打磨 | 1h | 通俗化 + 综合评定 | ✅ v1.2 |
-| 体验打磨 | — | suggestedAction 落地、UI 美化 | ⬜ 可选 |
+| 体验打磨 | — | suggestedAction 落地（Phase 1） | ✅ |
+| 财年心跳 | — | 季度推进 / 结算 / 事件（Phase 2） | ✅ |
+| 驾驶舱 UI | — | 深色主题 / 油量表 / Prefab（Phase 3） | ✅ |
+| 中文 TMP | — | NotoSansSC + 全局 TMP（Phase 4） | ✅ |
+| Phase 5+ | — | 董事会 UI / 美术精修 | ⬜ |
 
 ---
 
 **最后建议：**  
-以 **`Airline_CEO_Dev_Task_v1.2.md`** 为现行施工图。第 1～6 章已在工程落地；顾问必须**好懂 + 带综合评定分数**。遇报错把 Console 红字原文发给 Cursor / Kimi。
+以 **v1.2** 为现行施工图。Phase 1～4 已可验收。字体请先跑 **Generate Chinese TMP Font Asset**，再 Play。遇报错把 Console 红字发给 Cursor / Kimi。
