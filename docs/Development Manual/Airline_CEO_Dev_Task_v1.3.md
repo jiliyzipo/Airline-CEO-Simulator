@@ -1,10 +1,12 @@
 # ✈️ Airline CEO Simulator · 技术任务书 v1.3
 **（面向 Cursor + DeepSeek API 的 AI 编码实施蓝图）**
 
+> ⚠️ **历史存档。** 现行施工图请改用 **[`Airline_CEO_Dev_Task_v1.4.md`](./Airline_CEO_Dev_Task_v1.4.md)**（第 8～9 章含 Phase 7 安全与航权）。
+
 **适用对象：** 独立开发者（无编程基础，依赖 AI 编程）  
 **核心目标：** 将 GDD 策划案转化为 Unity C# 可执行代码的精确指令。  
 **工程根目录：** `Unity Project/`  
-**现行版本：** 请以 **v1.3** 为准（v1.0～v1.2 仅作历史存档）
+**文档状态：** v1.3 已归档；请以 **v1.4** 为准
 
 ---
 
@@ -15,7 +17,8 @@
 | v1.0 | 初版施工图（伪代码为主） |
 | v1.1 | RPM 完整实现；第 1～6 章落地；DeepSeek 接入 |
 | v1.2 | 玩家文案通俗化；综合评定；Phase 1：ActionExecutor |
-| **v1.3** | **第 7 章完整整合**：Phase 1～4 已验收（执行建议、财年心跳、驾驶舱 UI、中文 TMP） |
+| **v1.3** | **第 7 章**：体验扩展 Phase 1～6（续聘投票）；Phase 7 草稿曾写入 7.7，正式版见 v1.4 第 9 章 |
+| v1.4 | 第 8～9 章：清档/Debug；Phase 7 安全事件与航权（已验收） |
 
 ---
 
@@ -31,7 +34,7 @@
 | 第 4 章 | DataBase 硬编码名单 | ✅ 完成并 Play 验证 | `Assets/Scripts/Data/DataBase.cs` |
 | 第 5 章 | DeepSeek / AIChatManager（通俗话术 + 综合评定） | ✅ 完成 | `Assets/Scripts/AI/` |
 | 第 6 章 | MVP 首航 UI + 存档 | ✅ 完成 | `Assets/Scripts/UI/MVPBootstrap.cs` 等 |
-| **第 7 章** | **体验扩展 Phase 1～4** | ✅ **完成** | 见本章 |
+| **第 7 章** | **体验扩展 Phase 1～7** | ✅ **完成** | 见本章 |
 | 辅助 | 批量建 SO / 逻辑自测 / Setup MVP / 字体 / Prefab | ✅ 完成 | `Assets/Scripts/Editor/` |
 
 **Unity 顶部菜单（AirlineCEO）：**
@@ -253,9 +256,9 @@ DataBase.Instance.GetBoardMemberIds(); // 给 ChemistryMatcher
 
 ---
 
-## 第 7 章：体验扩展路线图（Phase 1～4）✅
+## 第 7 章：体验扩展路线图（Phase 1～6）✅
 
-> **v1.3 核心章节。** 第 1～6 章骨架已稳；本章记录已验收的玩法与表现层扩展。  
+> **v1.3 核心章节。** 第 1～6 章骨架已稳；本章记录已验收的玩法与表现层扩展（至 Phase 6 续聘投票）。  
 > 原则：先里后外、先功能后美观；AI 建议须玩家点「执行建议」才改状态。
 
 ### 7.0 Phase 总览
@@ -266,7 +269,9 @@ DataBase.Instance.GetBoardMemberIds(); // 给 ChemistryMatcher
 | 2 | 财年心跳 | ✅ | 每季结算收入/支出，推进 Q1→Q2 |
 | 3 | 航空驾驶舱 UI | ✅ | 深空蓝 HUD + 现金油量表 |
 | 4 | 中文 TMP | ✅ | NotoSansSC，无方框；✈ 符号 Fallback |
-| 5+ | 董事会 / 美术精修 | ⬜ | 待开工 |
+| 5 | 董事会目标生成器 | ✅ | 年度考核清单 + Q4 结算弹窗 |
+| 6 | 续聘投票 / 见习保护 | ✅ | VoteUI + YearEndEvaluator |
+| 7+ | 融资 / 化学反应面板 / 美术 | ⬜ | 待开工 |
 
 ---
 
@@ -385,13 +390,78 @@ Noto Sans SC **不含** U+2708。运行时用本机拷贝的 `SegoeUISymbol.ttf`
 
 ---
 
-### 7.5 Phase 5+（下一阶段 · 未开工）⬜
+### 7.5 Phase 5：董事会目标生成器 ✅
 
-候选方向（可按优先级排期）：
-1. **董事会 UI**：12 名董事满意度、派系、目标标签可视化  
-2. **化学反应面板**：展示 ChemistryMatcher 触发条目  
-3. **融资 / 机队** 从「开发中」变为可交互  
-4. 美术精修、音效（GDD 33.7～33.8）  
+**目标：** 第 1 财年下达 3～4 项年度考核目标；董事会页可追踪进度；Q4 结束后弹出年度结算（完成率）。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Data/BoardTarget.cs` | 目标数据（净利润 / 客座率 / 安全 / 航线扩张） |
+| `Logic/TargetGenerator.cs` | ChemistryMatcher + 保底目标，生成 3～4 项 |
+| `Systems/BoardManager.cs` | 12 董事满意度；Q1 生成目标；年末考核 |
+| `UI/BoardTargetUI.cs` | 左侧「董事会」页：清单 + 红/黄/绿进度条 |
+| `Systems/TimeManager.cs` | `OnYearEnd` 调用考核；累计 `yearNetProfit` |
+| `Systems/GameState.cs` | `currentTargets`、客座率/安全指数等 |
+
+**规则摘要：**
+- 开局（第 1 年 Q1）生成目标，写入 `GameState.currentTargets`
+- 保底：净利润 ≥ 50 万、客座率 ≥ 75%（不足时补安全 / 扩张）
+- 进入 **Q2** 时弹窗「董事会发来年度目标清单」（强化 30～60 分钟节点感）
+- 完成率 = 已完成数 / 总数；≥60% 视为续聘达标线
+
+**验收：**
+1. 第 1 年 Q1，左侧「董事会」可见 3～4 项目标，如「净利润 ≥ 50 万（当前 X 万）」
+2. Q4 结束后弹出「年度结算」，显示完成率（如 67%）
+
+### 7.6 Phase 6：年度结算与续聘投票 ✅
+
+**目标：** 财年末按完成率续聘投票；见习期（第 1～3 年）未达标再给一年；第 4 年起未达标解雇 Game Over。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Logic/YearEndEvaluator.cs` | 完成率、续聘线（普通 60%）、投票结果 |
+| `UI/VoteUI.cs` | 续聘成功 / 见习保护 / 解雇弹窗 |
+| `Systems/TimeManager.cs` | `OnYearEnd` 调用 Evaluator，再重置目标或结束 |
+| `Systems/SaveManager.cs` | 存难度、目标 JSON、gameOver 等 |
+| `Systems/GameState.cs` | `difficulty`、`gameOver`、见习保护计数 |
+
+**规则：**
+| 条件 | 结果 |
+| :--- | :--- |
+| 完成率 ≥ 续聘线（普通 60%） | **续聘成功** → 重置目标，进入下一财年 |
+| 未达标 且 结束年 ≤ 3 | **见习保护**：文案「董事会决定再给一年机会」→ 继续下一财年 |
+| 未达标 且 结束年 ≥ 4 | **董事会解雇** → Game Over，停止季度推进 |
+
+**验收：**
+1. 完成率 ≥ 60% → VoteUI「续聘成功」，进入新年  
+2. 第 1～3 年未达标 →「再给一年机会（见习保护）」  
+3. 第 4 年起未达标 →「董事会解雇」并结束  
+
+### 7.7 Phase 7：安全事件与航权系统 ✅
+
+**对应：** MVP GDD 7.6（SAF）/ 7.7（STG）· `docs/GameDesignBible/MVP/Phase 7.docx`
+
+| 文件 | 职责 |
+| :--- | :--- |
+| `Data/SafetyTypes.cs` | `SafetyRating` A/B/C/D、事件日志结构 |
+| `Systems/SafetyEventManager.cs` | 每季 **10%** 概率触发轻度/中度事件，降低 `safetyRating` |
+| `UI/SafetyUI.cs` | 左侧「安全」面板：评级 + 事件日志 |
+| `Systems/RouteRightManager.cs` | 长航线航权审批：通过率 = **70% − 竞对占比 × 30%** |
+| `Systems/ActionExecutor.cs` | 开通前调用航权；失败提示「航权被拒，暂无法开通」 |
+| `Systems/TimeManager.cs` | 季度结算时掷安全事件，写入 `eventText` |
+| `Systems/GameState.cs` | `safetyRating`（初始 **B**）、`safetyEventLog` |
+
+**航权公式（北京-伦敦竞对约 65%）：**  
+`passRate = clamp01(0.70 − 0.65 × 0.30) ≈ 50.5%`；安全评级 C/D 再 −10%。
+
+**验收：**
+1. 开局左侧「安全」显示评级 **B**；推进多个季度后可能降至 **C**（结算弹窗/事件日志可见）
+2. AI「执行建议」开通北京-伦敦：有一定概率失败并提示 **「航权被拒，暂无法开通」**（现金不扣）
+3. 清档用 **AirlineCEO → 清档 Clear Save**（含 `ACEO_Safety*`）
+
+### 7.8 Phase 8+（下一阶段 · 未开工）⬜
+
+候选：化学反应可视化、融资/机队可交互、美术精修、事故调查深度选项。
 
 ---
 
@@ -419,19 +489,22 @@ Noto Sans SC **不含** U+2708。运行时用本机拷贝的 `SegoeUISymbol.ttf`
 | Phase 2 | TimeManager / 季度结算 | ✅ |
 | Phase 3 | 驾驶舱 HUD / CashMeter | ✅ |
 | Phase 4 | NotoSansSC TMP / 符号 Fallback | ✅ |
-| Phase 5+ | 董事会 UI / 美术 | ⬜ |
+| Phase 5 | 董事会目标 / 年度结算 | ✅ |
+| Phase 6 | 续聘投票 / 见习保护 / GameOver | ✅ |
+| Phase 7 | 安全事件 / 航权审批 / 安全面板 | ✅ |
+| Phase 8+ | 化学反应面板 / 融资机队 / 美术 | ⬜ |
 
 ---
 
 ## 附录 C：给 Cursor 的续作提示词模板
 
 ```text
-请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.3.md 第 7.5 节开工。
-不要重复实现 Phase 1～4。工程根目录是 Unity Project/。
+请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.3.md 第 7.8 节开工。
+不要重复实现 Phase 1～7。工程根目录是 Unity Project/。
 完成后更新任务书附录 B 状态，并说明验收步骤。
 ```
 
 ---
 
 **最后建议：**  
-以 **v1.3** 为现行施工图。Phase 1～4 均已 Play 验收。新机器请先：`Generate Chinese TMP Font Asset` → `Setup MVP Scene Objects` → Play。遇报错把 Console 红字发给 Cursor / Kimi。
+v1.3 已归档。请改用 **v1.4**。遇报错把 Console 红字发给 Cursor / Kimi。
