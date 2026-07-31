@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32b1357d3b6d2b145a7d235009f309f5, type: 3}
+  m_Name: FIN-03
+  m_EditorClassIdentifier: Assembly-CSharp::AirlineCEO.Data.ExecutiveData
+  id: FIN-03
+  fullName: "\u62C9\u5409\u592B\xB7\u7EF4\u514B\u62C9\u9A6C\u8F9B\u683C"
+  age: 41
+  nationality: "\u5B5F\u52A0\u62C9\u56FD"
+  traits:
+  - "\u6FC0\u8FDB"
+  - "\u8FDB\u53D6"
+  baseSalary: 200
+  loyalty: 66
+  efficiencyBonus: 0.95
+  department: FIN

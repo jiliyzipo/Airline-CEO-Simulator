@@ -1,0 +1,51 @@
+# DeepSeek / secrets — never commit
+**/deepseek_key.txt
+**/DeepSeekConfig.local.asset
+*.pem
+.env
+.env.*
+
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+Recordings/
+
+# IDE / OS
+.vs/
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Word lock files
+~$*
+
+# Crash / addressables
+sysinfo.txt
+crashlytics-build.properties
+**/Assets/AddressableAssetsData/*/*.bin*
+
+# Asset meta should be kept; ignore only junk
+*.apk
+*.aab
+*.unitypackage

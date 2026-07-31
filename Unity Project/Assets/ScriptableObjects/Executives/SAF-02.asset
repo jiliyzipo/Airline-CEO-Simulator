@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32b1357d3b6d2b145a7d235009f309f5, type: 3}
+  m_Name: SAF-02
+  m_EditorClassIdentifier: Assembly-CSharp::AirlineCEO.Data.ExecutiveData
+  id: SAF-02
+  fullName: "\u8BA9-\u76AE\u57C3\u5C14\xB7\u52D2\u52A0\u5C14"
+  age: 48
+  nationality: "\u6BDB\u91CC\u6C42\u65AF"
+  traits:
+  - "\u4EBA\u8109\u578B"
+  - "\u51B7\u9759"
+  baseSalary: 240
+  loyalty: 78
+  efficiencyBonus: 1.05
+  department: SAF

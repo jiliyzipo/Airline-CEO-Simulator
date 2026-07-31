@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32b1357d3b6d2b145a7d235009f309f5, type: 3}
+  m_Name: HR-03
+  m_EditorClassIdentifier: Assembly-CSharp::AirlineCEO.Data.ExecutiveData
+  id: HR-03
+  fullName: "\u7A46\u7F55\u9ED8\u5FB7\xB7\u5DF4\u5E0C\u5C14"
+  age: 50
+  nationality: "\u963F\u5BCC\u6C57"
+  traits:
+  - "\u6FC0\u8FDB"
+  - "\u7A33\u5065"
+  baseSalary: 270
+  loyalty: 77
+  efficiencyBonus: 1
+  department: HR

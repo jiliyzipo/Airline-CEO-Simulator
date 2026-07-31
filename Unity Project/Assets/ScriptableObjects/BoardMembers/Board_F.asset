@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7064724d736c2d944b7e35943ba9d2ff, type: 3}
+  m_Name: Board_F
+  m_EditorClassIdentifier: Assembly-CSharp::AirlineCEO.Data.BoardMemberData
+  id: F
+  fullName: "\u739B\u4E3D\u4E9A\xB7\u6851\u6258\u65AF"
+  faction: "\u72EC\u7ACB"
+  seatType: "\u804C\u5DE5\u8463\u4E8B"
+  satisfaction: 50
+  targetTag: "T-\u5DE5\u4F1A\u4EE3\u8868"

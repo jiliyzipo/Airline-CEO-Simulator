@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32b1357d3b6d2b145a7d235009f309f5, type: 3}
+  m_Name: OPS-01
+  m_EditorClassIdentifier: Assembly-CSharp::AirlineCEO.Data.ExecutiveData
+  id: OPS-01
+  fullName: "\u9A6C\u683C\u52AA\u65AF\xB7\u6797\u5FB7\u683C\u4F26"
+  age: 54
+  nationality: "\u745E\u5178"
+  traits:
+  - "\u7A33\u5065"
+  - "\u6570\u636E\u9A71\u52A8"
+  baseSalary: 290
+  loyalty: 80
+  efficiencyBonus: 1.1
+  department: OPS
