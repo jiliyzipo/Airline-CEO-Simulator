@@ -1,10 +1,12 @@
 # ✈️ Airline CEO Simulator · 技术任务书 v1.4
 **（面向 Cursor + DeepSeek API 的 AI 编码实施蓝图）**
 
+> ⚠️ **历史存档。** 现行施工图请改用 **[`Airline_CEO_Dev_Task_v1.5.md`](./Airline_CEO_Dev_Task_v1.5.md)**（扩张提案已 Play 验收）。
+
 **适用对象：** 独立开发者（无编程基础，依赖 AI 编程）  
 **核心目标：** 将 GDD 策划案转化为 Unity C# 可执行代码的精确指令。  
 **工程根目录：** `Unity Project/`  
-**现行版本：** 请以 **v1.4** 为准（v1.0～v1.3 仅作历史存档）  
+**文档状态：** v1.4 已归档；请以 **v1.5** 为准  
 **章节对齐：** 与 [`Airline_CEO_Dev_Roadmap_v1.4.md`](../GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.4.md) **一～四** 同序同名
 
 ---
@@ -17,7 +19,8 @@
 | v1.1 | RPM 完整实现；数据/逻辑/AI/首航落地 |
 | v1.2 | 玩家文案通俗化；综合评定；Phase 1：ActionExecutor |
 | v1.3 | 体验扩展 Phase 1～6（续聘投票） |
-| **v1.4** | Phase 7 安全与航权；**章节顺序对齐路线图一～四** |
+| **v1.4** | Phase 7 / AOG / 章节对齐；AOG 验收；**扩张提案实现与验收记入后归档至 v1.5** |
+| v1.5 | 扩张提案 Play 验收打勾；现行施工图 |
 
 ---
 
@@ -42,9 +45,9 @@
 | 玩家体验节点 | 对应 GDD 章节 | 核心功能 | 完成状态 | 任务书施工节 |
 | :--- | :--- | :--- | :---: | :--- |
 | 0～15分钟（首航体验） | 第3章（首航任务）<br>第7.1～7.4（OPS/MKT/FIN） | 首航任务、现金跑道、基础定价、RPM评估 | ✅ 完成 | §2.1～2.4、§2.7～2.8 |
-| 15～30分钟（危机应对） | 第7.2（AOG危机） | 脚本化 AOG 危机（故障处置） | ⬜ 规划中 | §2.12（Phase 8+ 候选） |
+| 15～30分钟（危机应对） | 第7.2（AOG危机） | 脚本化 AOG 危机（故障处置） | ✅ 已验收 | §2.12 |
 | 30～60分钟（首次考核） | 第5章（董事会目标）<br>第4章（年度结算） | 董事会目标生成、进度追踪、年度结算与续聘投票 | ✅ 完成（Phase 5～6） | §2.9～2.10 |
-| 60～120分钟（战略纵深） | 第7.6（SAF）<br>第7.7（STG） | 安全事件、航权审批、扩张提案 | ✅ 完成（Phase 7）<br>⬜ 扩张提案待细化 | §2.11 |
+| 60～120分钟（战略纵深） | 第7.6（SAF）<br>第7.7（STG） | 安全事件、航权审批、扩张提案 | ✅ 完成（Phase 7 + 扩张提案） | §2.11、§2.13 |
 
 ---
 
@@ -65,7 +68,9 @@
 | Phase 5 | 董事会目标生成器 | BoardManager, TargetGenerator, BoardTargetUI | ✅ | 2.9 |
 | Phase 6 | 年度结算与续聘投票 | YearEndEvaluator, VoteUI, 见习保护 | ✅ | 2.10 |
 | Phase 7 | 安全事件与航权系统 | SafetyEventManager, RouteRightManager, SafetyUI | ✅ | 2.11 |
-| Phase 8+ | 化学反应可视化 / 融资机队 / 美术精修 / AOG | 待定 | ⬜ | 2.12 |
+| **AOG 危机** | **脚本化 AOG（GDD 7.2）** | **AOGManager, AOGUI** | **✅ 已验收** | **2.12** |
+| **扩张提案** | **战略性扩张提案（GDD 7.7）** | **ExpansionProposalManager, ExpansionProposalUI** | **✅ 已验收** | **2.13** |
+| Phase 8+ | 化学反应可视化 / 融资机队 / 美术精修 | 待定 | ⬜ | 2.14 |
 
 **工程骨架（五文件夹）：**
 
@@ -482,16 +487,65 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | `MVPBootstrap.cs` | 左导航「安全」 |
 | `SetupMVPScene.cs` | Ensure 两 Manager |
 
-**扩张提案（GDD 7.7）：** ⬜ 待细化（见 Phase 8+）
+**扩张提案（GDD 7.7）：** ✅ 见 §2.13
 
 ---
 
-### 2.12 Phase 8+（下一阶段 · 未开工）⬜
+### 2.12 脚本化 AOG 危机（GDD 7.2）✅ 已验收
+
+对应玩家节点 **15～30 分钟**。首航完成后，第 1 财年 **Q2** 开始检查；若未触发则 **Q3** 强制触发；生命周期仅一次。
+
+> **Play 验收（2026-08-01）：** Q2 触发弹窗 → 选择调机（选项 1）→ `hasAOGTriggered=true`、`timeScale=1`、自动存档；危机不再重复出现。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Systems/GameState.cs` | `hasAOGTriggered`、`aogChoice`、`aogAdvisorConsulted`、`onTimePercent` |
+| `Systems/AOGManager.cs` | `ShouldTriggerAOG` / `TriggerAOG` / `OnAOGChoiceMade`；`Time.timeScale=0` |
+| `UI/AOGUI.cs` | 遮罩 + 三按钮；选项 3 顾问说明后只留 1/2 |
+| `Systems/TimeManager.cs` | 推进后 `pendingAOG`；Bootstrap 结算动画结束后 `TriggerAOG` |
+| `Systems/SaveManager.cs` | `ACEO_HasAOGTriggered` / `ACEO_AOGChoice` 等 |
+| `UI/MVPBootstrap.cs` | 创建 AOGUI 并注入 AOGManager |
+
+| 选项 | 成本 | 效果 | 按钮色 |
+| :---: | :--- | :--- | :--- |
+| 1 调机备援 | −20 万 | 准点，满意度不变 | 橙 |
+| 2 延误维修 | −15 万 | 准点率↓，满意度 −3 | 黄 |
+| 3 呼叫顾问 | 0 | 说明后必须再选 1 或 2 | 蓝 |
+
+**验收标准：** 首航 → 推进至 Q2（或 Q3）→ 弹出 AOG → 三选一生效；F5/F9 保留触发标志。调试：`AirlineCEO → Debug → Force AOG Crisis`。  
+**验收结果：** ✅ 已打勾（2026-08-01）
+
+---
+
+### 2.13 战略性扩张提案（GDD 7.7）✅ 已验收
+
+对应玩家节点 **60～120 分钟**。第 **4** 财年 **Q1** 触发（错过则 **Q2** 强制）；暂缓最多 **3** 次（下年 Q1 再弹）。
+
+> **Play 验收（2026-08-01）：** Y4Q1 暂缓 → Y5Q1 再弹 → 拒绝终结。详见 v1.5。
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `Systems/GameState.cs` | `hasExpansionProposalTriggered`、`expansionProposalDelayCount`、`expansionAccepted` / `Rejected`、`greatRouteUnlocked` |
+| `Systems/ExpansionProposalManager.cs` | 触发 / 接受扣 500 万开通北京→纽约 / 暂缓 / 拒绝 |
+| `UI/ExpansionProposalUI.cs` | 蓝金机遇弹窗 + 三列数据卡 + 绿/黄/红按钮 |
+| `Systems/TimeManager.cs` | `pendingExpansionProposal` |
+| `Systems/SaveManager.cs` | `ACEO_HasExpansionProposalTriggered` 等 |
+| `UI/MVPBootstrap.cs` | 挂载 UI 与 Manager |
+
+| 选项 | 效果 |
+| :---: | :--- |
+| 1 接受 | −500 万，开通北京→纽约（日利 8.5），满意度 +10，解锁「伟大航路」 |
+| 2 暂缓 | 不扣钱，满意度 −3，下年 Q1 再弹（≤3 次） |
+| 3 拒绝 | 不扣钱，满意度 −8，不再提案 |
+
+**验收结果：** ✅ 已打勾（2026-08-01）——完整施工说明以 **v1.5** 为准。
+
+---
+
+### 2.14 Phase 8+（下一阶段 · 未开工）⬜
 
 | 候选 | 对应路线图 / GDD | 状态 |
 | :--- | :--- | :---: |
-| 脚本化 AOG 危机 | 15～30 分钟 · GDD 7.2 | ⬜ |
-| 战略性扩张提案 | 60～120 分钟 · GDD 7.7 | ⬜ |
 | 部门管理 / 任命 | GDD 第6章 | ⬜ |
 | 燃油对冲 / 融资 | GDD 7.4 | ⬜ |
 | 化学反应可视化 | ChemistryMatcher UI | ⬜ |
@@ -500,7 +554,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 
 ---
 
-### 2.13 编辑器工具与清档 ✅
+### 2.15 编辑器工具与清档 ✅
 
 > 辅助节（非路线图阶段表行项）。避免 `Edit → Clear All PlayerPrefs` 误删 API Key。
 
@@ -533,10 +587,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | 年度结算与续聘（第4章） | YearEndEvaluator + VoteUI | Phase 6 | ✅ | 2.10 |
 | 安全评级与事件（第7.6节） | SafetyEventManager + SafetyUI | Phase 7 | ✅ | 2.11 |
 | 航权审批（第7.7节） | RouteRightManager | Phase 7 | ✅ | 2.11 |
-| 脚本化 AOG 危机（第7.2节） | （规划中） | Phase 8+ | ⬜ | 2.12 |
-| 战略性扩张提案（第7.7节） | （规划中） | Phase 8+ | ⬜ | 2.12 |
-| 部门管理 / 任命（第6章） | （规划中） | Phase 8+ | ⬜ | 2.12 |
-| 燃油对冲 / 融资（第7.4节） | （规划中） | Phase 8+ | ⬜ | 2.12 |
+| 脚本化 AOG 危机（第7.2节） | AOGManager + AOGUI | AOG | ✅ 已验收 | 2.12 |
+| 战略性扩张提案（第7.7节） | ExpansionProposalManager + UI | 扩张提案 | ✅ 已验收 | 2.13 |
+| 部门管理 / 任命（第6章） | （规划中） | Phase 8+ | ⬜ | 2.14 |
+| 燃油对冲 / 融资（第7.4节） | （规划中） | Phase 8+ | ⬜ | 2.14 |
 
 ---
 
@@ -545,10 +599,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 > 对应路线图 **「四」**。
 
 - **0～15分钟**：首航 + 现金跑道 + RPM 查询 ✅（§2.1～2.4、§2.7～2.8）
-- **15～30分钟**：AOG 危机（待实现） ⬜（§2.12）
+- **15～30分钟**：AOG 危机 ✅ 已验收（§2.12 · 2026-08-01）
 - **30～60分钟**：董事会目标 + 年度结算 ✅（§2.9～2.10）
-- **60～120分钟**：安全事件 + 航权审批 ✅；扩张提案待细化 ⬜（§2.11～2.12）
-- **120分钟以后**：部门管理、融资、化学反应等（Phase 8+） ⬜（§2.12）
+- **60～120分钟**：安全事件 + 航权审批 + 扩张提案 ✅ 已验收（§2.11、§2.13 · 2026-08-01）
+- **120分钟以后**：部门管理、融资、化学反应等（Phase 8+） ⬜（§2.14）
 
 ---
 
@@ -566,11 +620,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 ## 附录 B：给 Cursor 的续作提示词模板
 
 ```text
-请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.4.md 第 2.12 节（Phase 8+）开工，
-并对照 docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.4.md。
-优先建议：15～30 分钟「脚本化 AOG 危机」（GDD 7.2）。
-不要重复实现第 2.1～2.11 节已完成内容。工程根目录是 Unity Project/。
-完成后同步更新路线图与本任务书第 1 / 3 / 4 章状态，并说明验收步骤。
+请改用 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.14 节开工。
 ```
 
 ---
@@ -584,9 +634,11 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - `Create UI Prefabs (Phase 3)` / `Generate Chinese TMP Font Asset`
 - `清档 Clear Save`
 - `Debug/Force Mild|Moderate Safety Event`
+- `Debug/Force AOG Crisis`
+- `Debug/Force Expansion Proposal`
 - `Debug/移除北京-伦敦航线（复测航权）`
 
 ---
 
 **最后建议：**  
-以 **v1.4** 为现行施工图；章节顺序以路线图 **一～四** 为准。遇报错把 Console 红字发给 Cursor / Kimi。
+v1.4 已归档。请改用 **v1.5**。遇报错把 Console 红字发给 Cursor / Kimi。
