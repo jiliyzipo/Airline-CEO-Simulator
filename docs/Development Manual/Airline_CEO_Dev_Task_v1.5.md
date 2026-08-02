@@ -18,7 +18,7 @@
 | v1.2 | 玩家文案通俗化；综合评定；Phase 1：ActionExecutor |
 | v1.3 | 体验扩展 Phase 1～6（续聘投票） |
 | v1.4 | Phase 7 / AOG / 章节对齐路线图；AOG Play 验收 |
-| **v1.5** | **战略性扩张提案（§2.13）Play 验收 ✅**；AOG+扩张均已打勾；现行施工图 |
+| **v1.5** | Phase 8～9 已验收；**对冲锁价方式扩展（固定/区间/期权）Play 验收 ✅（2026-08-02）**；现行施工图 |
 
 ---
 
@@ -27,7 +27,7 @@
 | 任务书 | 路线图 | 内容 |
 | :--- | :--- | :--- |
 | **第 1 章** | 一、MVP 开发总览 | 按玩家体验时间线 / GDD 核心循环 |
-| **第 2 章** | 二、技术实现阶段清单 | 数据层 → … → Phase 7 → Phase 8+（施工细节） |
+| **第 2 章** | 二、技术实现阶段清单 | 数据层 → … → Phase 8 → Phase 8+（施工细节） |
 | **第 3 章** | 三、详细功能对照 | GDD 功能点 ↔ Phase ↔ 状态 |
 | **第 4 章** | 四、里程碑概览 | 0～120 分钟节点摘要 |
 | 附录 A～C | — | 文案规范 / Cursor 提示词 / 菜单与 Play |
@@ -46,6 +46,7 @@
 | 15～30分钟（危机应对） | 第7.2（AOG危机） | 脚本化 AOG 危机（故障处置） | ✅ 已验收 | §2.12 |
 | 30～60分钟（首次考核） | 第5章（董事会目标）<br>第4章（年度结算） | 董事会目标生成、进度追踪、年度结算与续聘投票 | ✅ 完成（Phase 5～6） | §2.9～2.10 |
 | 60～120分钟（战略纵深） | 第7.6（SAF）<br>第7.7（STG） | 安全事件、航权审批、扩张提案 | ✅ 完成（Phase 7 + 扩张提案） | §2.11、§2.13 |
+| 120分钟以后（人事 / 财务） | 第6章 + 第7.4节 | 部门任命；燃油对冲与紧急融资 | ✅ 已验收（Phase 8～9） | §2.14、§2.15 |
 
 ---
 
@@ -68,7 +69,9 @@
 | Phase 7 | 安全事件与航权系统 | SafetyEventManager, RouteRightManager, SafetyUI | ✅ | 2.11 |
 | **AOG 危机** | **脚本化 AOG（GDD 7.2）** | **AOGManager, AOGUI** | **✅ 已验收** | **2.12** |
 | **扩张提案** | **战略性扩张提案（GDD 7.7）** | **ExpansionProposalManager, ExpansionProposalUI** | **✅ 已验收** | **2.13** |
-| Phase 8+ | 化学反应可视化 / 融资机队 / 美术精修 | 待定 | ⬜ | 2.14 |
+| **Phase 8** | **部门管理 / 任命（GDD 第6章）** | **DepartmentManager, HRUI** | **✅ 已验收** | **2.14** |
+| **Phase 9** | **燃油对冲与融资（GDD 7.4）** | **HedgeManager, LoanManager, FinancePanelUI** | **✅ 已验收** | **2.15** |
+| Phase 8+ | 机队 / 美术精修 等 | 待定 | ⬜ | 2.16 |
 
 **工程骨架（五文件夹）：**
 
@@ -76,8 +79,8 @@
 | :--- | :--- | :--- | :--- |
 | `Data/` | `AirlineCEO.Data` | 数据模型 + DataBase + RouteData + SafetyTypes | ✅ |
 | `Logic/` | `AirlineCEO.Logic` | RPM / 现金跑道 / 化学反应 / Target / YearEnd | ✅ |
-| `Systems/` | `AirlineCEO.Systems` | GameState、SaveManager、ActionExecutor、TimeManager、BoardManager、Safety / RouteRight / AOG / ExpansionProposal | ✅ |
-| `UI/` | `AirlineCEO.UI` | 驾驶舱 HUD、TMP、SafetyUI、VoteUI、AOGUI、ExpansionProposalUI 等 | ✅ |
+| `Systems/` | `AirlineCEO.Systems` | GameState、SaveManager、ActionExecutor、TimeManager、BoardManager、Safety / RouteRight / AOG / ExpansionProposal / DepartmentManager | ✅ |
+| `UI/` | `AirlineCEO.UI` | 驾驶舱 HUD、TMP、SafetyUI、VoteUI、AOGUI、ExpansionProposalUI、HRUI、FloatingPanelChrome（AI 圆标）等 | ✅ |
 | `AI/` | `AirlineCEO.AI` | DeepSeek + 本地话术 | ✅ |
 
 建议资产目录：`Assets/ScriptableObjects/{Aircraft,Executives,BoardMembers}/`  
@@ -541,19 +544,57 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 
 ---
 
-### 2.14 Phase 8+（下一阶段 · 未开工）⬜
+### 2.14 Phase 8 · 部门管理 / 任命 ✅ 已验收
+
+> 对应 GDD 第 6 章。左侧导航「👤 人事」；数据来自 `DataBase.Instance.Executives`（21 人）。
+
+| 子项 | 说明 | 文件 |
+| :--- | :--- | :--- |
+| 8.1 任命 | 7 部门空缺 → 2 名随机候选人 → 确认任命 | `HRUI.cs`, `DepartmentManager.cs` |
+| 8.2 效率 | `0.7 + 0.3×(eff×0.5 + loyalty/100×0.3 + 文化适配×0.2)`，夹紧 0.7～1.3 | `DepartmentManager.cs` |
+| 8.3 忠诚度 | 年终 KPI/薪酬调整；&lt;30 离职弹窗 | 同上 + `TimeManager` |
+| 8.4 化学反应 | M-01 / M-02 / M-05 后台生效，**不向玩家展示配方** | `DepartmentManager` |
+| 8.5 KPI | 季末达标 → 下季效率 +5% | `OnQuarterEndEvaluateKpi` |
+| 8.6 更换 | 遣散费 = 年薪×(剩余季/4)×0.5；移出候选池 | `Dismiss` |
+| 存档 | `ACEO_DeptHeads` JSON | `SaveManager.cs` |
+| UX | 顾问默认圆形可拖 AI 图标，点击展开/收拢；人事行距适中 | `FloatingPanelChrome.cs`, `HRUI.cs` |
+
+**验收步骤（Play）：** 清档 → Setup → 人事任命/更换 → 效率与忠诚条 → F5/F9 恢复 → 圆形 AI 图标拖动与展开。  
+**验收结果：** ✅ 已打勾（2026-08-01）
+
+---
+
+### 2.15 Phase 9 · 燃油对冲与融资 ✅ 已验收
+
+> 对应 GDD 第 7.4 节。财务导航面板：左栏对冲、右栏紧急融资。
+
+| 子项 | 说明 | 文件 |
+| :--- | :--- | :--- |
+| 9.1 对冲 | 比例 + 期限 + **锁价方式**（固定价 / 区间价 / 看涨期权） | `HedgeManager.cs` |
+| 9.2 结算 | 按 lockType：固定 / 区间破界 / 期权行权；美元÷10000→万美元 | `TimeManager` |
+| 9.3 融资 | 跑道 &lt; 3 月解锁：银行 / 过桥 / 股东增资 | `LoanManager.cs` |
+| 9.4 还款 | 季扣 3 个月月供；不足违约满意度 −10 | 同上 |
+| UI | `FinancePanelUI` 双栏 + 锁价方式三选一 | `UI/FinancePanelUI.cs` |
+| 存档 | `ACEO_HedgeContracts`（含 lockType/区间/权利金）等 | `SaveManager` |
+
+**验收步骤：** 三种锁价建仓 → 油价冲高/下跌调试 → 推进季度看结算 → `Force Cash Crisis` 融资 → F5/F9。  
+**验收结果：**  
+- ✅ 2026-08-01：基础对冲与紧急融资（建仓、危机融资、信用回升、融资区收起）  
+- ✅ 2026-08-02：**锁价方式扩展** — 固定价 / 区间价 / 看涨期权建仓与权利金扣除、UI 三选一、Console 验证通过
+
+---
+
+### 2.16 Phase 8+（后续）⬜
 
 | 候选 | 对应路线图 / GDD | 状态 |
 | :--- | :--- | :---: |
-| 部门管理 / 任命 | GDD 第6章 | ⬜ |
-| 燃油对冲 / 融资 | GDD 7.4 | ⬜ |
-| 化学反应可视化 | ChemistryMatcher UI | ⬜ |
+| 化学反应可视化精修 | ChemistryMatcher UI | ⬜ |
 | 机队可交互 / 美术精修 | — | ⬜ |
 | 事故调查深度选项 | SAF 快速/标准/深度 | ⬜ |
 
 ---
 
-### 2.15 编辑器工具与清档 ✅
+### 2.17 编辑器工具与清档 ✅
 
 > 辅助节（非路线图阶段表行项）。避免 `Edit → Clear All PlayerPrefs` 误删 API Key。
 
@@ -561,8 +602,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | :--- | :--- | :--- |
 | `AirlineCEO/清档 Clear Save` | `Editor/ClearGameSaveMenu.cs` | 只删 `ACEO_*`，**保留** API Key |
 | `Debug/Force Mild|Moderate Safety Event` | `Editor/Phase7DebugMenu.cs` | Play 中强制安全事件 |
-| `Debug/移除北京-伦敦航线（复测航权）` | 同上 | 复测航权被拒 |
-| `Setup MVP Scene Objects` | `Editor/SetupMVPScene.cs` | 含 Safety / RouteRight |
+| `Debug/HR Force Resign OPS` | `Editor/Phase8DebugMenu.cs` | Play 中强制运营部离职 |
+| `Debug/Force Cash Crisis` | `Editor/Phase9DebugMenu.cs` | Play 中强制跑道 &lt; 3 月 |
+| `Debug/移除北京-伦敦航线（复测航权）` | Phase7 | 复测航权被拒 |
+| `Setup MVP Scene Objects` | `Editor/SetupMVPScene.cs` | 含 Safety / RouteRight / DepartmentManager |
 | `Set DeepSeek API Key` | `SetupMVPScene.cs` | 本机 Key |
 | `Generate Chinese TMP Font Asset` | `GenerateChineseTMPFont.cs` | 中文 SDF |
 | `Run Logic Self Tests` | `LogicSelfTests.cs` | RPM/跑道自测 |
@@ -588,8 +631,8 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | 航权审批（第7.7节） | RouteRightManager | Phase 7 | ✅ | 2.11 |
 | 脚本化 AOG 危机（第7.2节） | AOGManager + AOGUI | AOG | ✅ 已验收 | 2.12 |
 | 战略性扩张提案（第7.7节） | ExpansionProposalManager + UI | 扩张提案 | ✅ 已验收 | 2.13 |
-| 部门管理 / 任命（第6章） | （规划中） | Phase 8+ | ⬜ | 2.14 |
-| 燃油对冲 / 融资（第7.4节） | （规划中） | Phase 8+ | ⬜ | 2.14 |
+| 部门管理 / 任命（第6章） | DepartmentManager + HRUI | Phase 8 | ✅ 已验收 | 2.14 |
+| 燃油对冲 / 融资（第7.4节） | HedgeManager + LoanManager + FinancePanelUI | Phase 9 | ✅ 已验收 | 2.15 |
 
 ---
 
@@ -601,7 +644,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - **15～30分钟**：AOG 危机 ✅ 已验收（§2.12 · 2026-08-01）
 - **30～60分钟**：董事会目标 + 年度结算 ✅（§2.9～2.10）
 - **60～120分钟**：安全事件 + 航权审批 + 扩张提案 ✅ 已验收（§2.11、§2.13 · 2026-08-01）
-- **120分钟以后**：部门管理、融资、化学反应等（Phase 8+） ⬜（§2.14）
+- **120分钟以后**：部门管理 / 任命 ✅（§2.14）；燃油对冲与融资（含三种锁价方式）✅ 已验收（§2.15 · 2026-08-01 / 08-02）；其余 Phase 8+（§2.16） ⬜
 
 ---
 
@@ -619,11 +662,11 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 ## 附录 B：给 Cursor 的续作提示词模板
 
 ```text
-请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.14 节（Phase 8+）开工，
+请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.16 节（Phase 8+）开工，
 并对照 docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.5.md。
-优先建议：部门任命或融资。
-不要重复实现第 2.1～2.13 节已完成内容（含 AOG / 扩张提案）。工程根目录是 Unity Project/。
-完成后同步更新路线图与本任务书第 1 / 3 / 4 章状态，并说明验收步骤。
+优先建议：机队或美术精修。
+不要重复实现第 2.1～2.15 节已完成内容（含对冲融资）。工程根目录是 Unity Project/。
+完成后同步更新路线图与本任务书状态，并说明验收步骤。
 ```
 
 ---
@@ -639,9 +682,11 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - `Debug/Force Mild|Moderate Safety Event`
 - `Debug/Force AOG Crisis`
 - `Debug/Force Expansion Proposal`
+- `Debug/HR Force Resign OPS` / `Debug/HR Run Year-End Loyalty`
+- `Debug/Force Cash Crisis` / `Debug/Force Fuel Spike +20%`
 - `Debug/移除北京-伦敦航线（复测航权）`
 
 ---
 
 **最后建议：**  
-以 **v1.5** 为现行施工图；章节顺序以路线图 **一～四** 为准。遇报错把 Console 红字发给 Cursor / Kimi。
+以 **v1.5** 为现行施工图（Phase 8～9 已验收）；下一优先见 §2.16。遇报错把 Console 红字发给 Cursor / Kimi。
