@@ -90,10 +90,35 @@ namespace AirlineCEO.Systems
             ResolveRouteEndpoints(advice, out string origin, out string dest);
 
             if (gs.HasRoute(origin, dest))
-                return Fail($"航线 {origin}-{dest} 已经开通，无需重复执行。");
+            {
+                return Ok(
+                    $"航线 {origin}-{dest} 已经开通，无需重复执行。\n" +
+                    "说明：航权审批只在「首次开通」时掷骰；已开通后再点不会出现「航权被拒」。\n" +
+                    "若要复测航权：AirlineCEO → 清档，或 Debug → 移除北京-伦敦航线。");
+            }
 
             if (gs.cash < OpenRouteStartupCost)
                 return Fail($"现金不足，无法执行（开通需 {OpenRouteStartupCost:F0} 万美元，当前 {gs.cash:F0} 万）。");
+
+            // Phase 7：长航线先过航权审批
+            var rightsMgr = RouteRightManager.Instance;
+            if (rightsMgr == null)
+            {
+                var go = new GameObject("RouteRightManager");
+                rightsMgr = go.AddComponent<RouteRightManager>();
+            }
+
+            float share = RouteRightManager.EstimateCompetitorShare(origin, dest);
+            var rights = rightsMgr.TryApprove(origin, dest, share);
+            if (!rights.approved)
+            {
+                gs.AddDecisionLog($"航权审批失败：{origin}-{dest}（通过率约 {rights.passRate * 100f:F0}%）");
+                gs.NotifyChanged();
+                return Fail(
+                    $"{RouteRightManager.DeniedMessage}\n" +
+                    $"（本航线通过率约 {rights.passRate * 100f:F0}%，竞对运力约 {rights.competitorShare * 100f:F0}%）\n" +
+                    "可再次点「执行建议」重新申请航权。现金未扣除。");
+            }
 
             float dailyProfit = advice?.data != null && advice.data.profit != 0f
                 ? advice.data.profit
@@ -121,11 +146,13 @@ namespace AirlineCEO.Systems
                 rating = rating
             };
             gs.activeRoutes.Add(route);
-            gs.AddDecisionLog($"开通航线 {origin}-{dest}，启动资金 -{OpenRouteStartupCost:F0}，日利润 {dailyProfit:F1}");
+            string rightsNote = rights.skipped ? "" : $" 航权已批（通过率约 {rights.passRate * 100f:F0}%）。";
+            gs.AddDecisionLog($"开通航线 {origin}-{dest}，启动资金 -{OpenRouteStartupCost:F0}，日利润 {dailyProfit:F1}。{rights.message}");
             gs.NotifyChanged();
 
             return Ok(
                 $"已开通 {origin}-{dest}：扣除启动资金 {OpenRouteStartupCost:F0} 万美元。" +
+                rightsNote +
                 $"日利润约 {dailyProfit:F1} 万，月收入约 {gs.monthlyRevenue:F0} 万。" +
                 $"当前现金 {gs.cash:F0} 万。");
         }

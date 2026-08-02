@@ -50,6 +50,18 @@ namespace AirlineCEO.Data
             return null;
         }
 
+        public List<ExecutiveData> GetExecutivesByDepartment(string department)
+        {
+            var list = new List<ExecutiveData>();
+            for (int i = 0; i < _executives.Count; i++)
+            {
+                var e = _executives[i];
+                if (e != null && string.Equals(e.department, department, System.StringComparison.OrdinalIgnoreCase))
+                    list.Add(e);
+            }
+            return list;
+        }
+
         public BoardMemberData GetBoardMember(string id)
         {
             for (int i = 0; i < _boardMembers.Count; i++)

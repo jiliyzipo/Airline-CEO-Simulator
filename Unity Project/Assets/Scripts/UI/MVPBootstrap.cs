@@ -53,8 +53,21 @@ namespace AirlineCEO.UI
 
         private GameObject _panelOps;
         private GameObject _panelMarket;
+        private GameObject _panelBoard;
+        private GameObject _panelHr;
+        private GameObject _panelSafety;
         private GameObject _panelFinance;
         private GameObject _panelAi;
+        private BoardTargetUI _boardTargetUi;
+        private HRUI _hrUi;
+        private FinancePanelUI _financeUi;
+        private HedgeTutorialUI _hedgeTutorialUi;
+        private SafetyUI _safetyUi;
+        private VoteUI _voteUi;
+        private AOGUI _aogUi;
+        private ExpansionProposalUI _expansionUi;
+        private FloatingPanelChrome _chatChrome;
+        private QuarterResult _pendingBoardAnnounceResult;
         private readonly List<Button> _navButtons = new List<Button>();
         private readonly List<Image> _navImages = new List<Image>();
         private int _activeNav;
@@ -76,6 +89,12 @@ namespace AirlineCEO.UI
         {
             if (GameState.Instance != null)
                 GameState.Instance.OnStateChanged -= RefreshHud;
+            if (AOGManager.Instance != null)
+                AOGManager.Instance.OnAOGResolved -= OnAOGResolved;
+            if (ExpansionProposalManager.Instance != null)
+                ExpansionProposalManager.Instance.OnProposalResolved -= OnExpansionResolved;
+            if (DepartmentManager.Instance != null)
+                DepartmentManager.Instance.OnResignation -= OnDepartmentResignation;
         }
 
         private void EnsureCoreSystems()
@@ -114,6 +133,54 @@ namespace AirlineCEO.UI
             {
                 var go = new GameObject("TimeManager");
                 go.AddComponent<TimeManager>();
+            }
+
+            if (BoardManager.Instance == null)
+            {
+                var go = new GameObject("BoardManager");
+                go.AddComponent<BoardManager>();
+            }
+
+            if (SafetyEventManager.Instance == null)
+            {
+                var go = new GameObject("SafetyEventManager");
+                go.AddComponent<SafetyEventManager>();
+            }
+
+            if (RouteRightManager.Instance == null)
+            {
+                var go = new GameObject("RouteRightManager");
+                go.AddComponent<RouteRightManager>();
+            }
+
+            if (AOGManager.Instance == null)
+            {
+                var go = new GameObject("AOGManager");
+                go.AddComponent<AOGManager>();
+            }
+
+            if (ExpansionProposalManager.Instance == null)
+            {
+                var go = new GameObject("ExpansionProposalManager");
+                go.AddComponent<ExpansionProposalManager>();
+            }
+
+            if (DepartmentManager.Instance == null)
+            {
+                var go = new GameObject("DepartmentManager");
+                go.AddComponent<DepartmentManager>();
+            }
+
+            if (HedgeManager.Instance == null)
+            {
+                var go = new GameObject("HedgeManager");
+                go.AddComponent<HedgeManager>();
+            }
+
+            if (LoanManager.Instance == null)
+            {
+                var go = new GameObject("LoanManager");
+                go.AddComponent<LoanManager>();
             }
         }
 
@@ -156,6 +223,33 @@ namespace AirlineCEO.UI
             BuildPopup(canvasGo.transform);
             BuildProgress(canvasGo.transform);
             BuildSettle(canvasGo.transform);
+
+            _voteUi = VoteUI.Create(canvasGo.transform);
+            _aogUi = AOGUI.Create(canvasGo.transform);
+            if (AOGManager.Instance != null)
+            {
+                AOGManager.Instance.BindUI(_aogUi);
+                AOGManager.Instance.OnAOGResolved -= OnAOGResolved;
+                AOGManager.Instance.OnAOGResolved += OnAOGResolved;
+            }
+
+            _hedgeTutorialUi = HedgeTutorialUI.Create(canvasGo.transform);
+            if (_financeUi != null)
+                _financeUi.BindTutorial(_hedgeTutorialUi);
+
+            _expansionUi = ExpansionProposalUI.Create(canvasGo.transform);
+            if (ExpansionProposalManager.Instance != null)
+            {
+                ExpansionProposalManager.Instance.BindUI(_expansionUi);
+                ExpansionProposalManager.Instance.OnProposalResolved -= OnExpansionResolved;
+                ExpansionProposalManager.Instance.OnProposalResolved += OnExpansionResolved;
+            }
+
+            if (DepartmentManager.Instance != null)
+            {
+                DepartmentManager.Instance.OnResignation -= OnDepartmentResignation;
+                DepartmentManager.Instance.OnResignation += OnDepartmentResignation;
+            }
 
             _hourglassText = UIFactory.Label(canvasGo.transform, "HourglassText", "", 22, TextAlignmentOptions.Center,
                 new UIFactory.Anchor(new Vector2(0.35f, 0.48f), new Vector2(0.72f, 0.58f), Vector2.zero, Vector2.zero),
@@ -222,10 +316,11 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.08f, 0.92f), new Vector2(0.92f, 0.98f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
-            string[] labels = { "运营", "市场", "财务", "AI 顾问" };
-            float top = 0.88f;
-            float h = 0.1f;
-            float gap = 0.025f;
+            // 0运营 1市场 2董事会 3人事 4安全 5财务 6AI
+            string[] labels = { "运营", "市场", "董事会", "👤 人事", "安全", "财务", "AI 顾问" };
+            float top = 0.90f;
+            float h = 0.062f;
+            float gap = 0.01f;
             for (int i = 0; i < labels.Length; i++)
             {
                 int index = i;
@@ -249,7 +344,14 @@ namespace AirlineCEO.UI
 
             _panelOps = BuildOpsPanel(center.transform);
             _panelMarket = BuildMarketPanel(center.transform);
-            _panelFinance = BuildFinancePanel(center.transform);
+            _boardTargetUi = BoardTargetUI.Build(center.transform);
+            _panelBoard = _boardTargetUi.gameObject;
+            _hrUi = HRUI.Build(center.transform);
+            _panelHr = _hrUi.gameObject;
+            _safetyUi = SafetyUI.Build(center.transform);
+            _panelSafety = _safetyUi.gameObject;
+            _financeUi = FinancePanelUI.Build(center.transform);
+            _panelFinance = _financeUi.gameObject;
             _panelAi = BuildAiHelpPanel(center.transform);
         }
 
@@ -336,28 +438,6 @@ namespace AirlineCEO.UI
             return panel;
         }
 
-        private GameObject BuildFinancePanel(Transform parent)
-        {
-            var panel = UIFactory.Panel(parent, "Panel_Finance", UIFactory.Fill, UITheme.Panel);
-            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
-
-            UIFactory.Label(panel.transform, "Title", "财务 · 季度心跳", 22, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.88f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, FontStyles.Bold);
-
-            UIFactory.Label(panel.transform, "Body",
-                "点击顶部「执行季度运营」结算本季收入与支出。\n现金跑道油量表会随现金变化移动指针。\n跑道不足 3 个月时，财务顾问会自动警告。",
-                16, TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.05f, 0.35f), new Vector2(0.95f, 0.85f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-
-            UIFactory.Button(panel.transform, "FinanceAdvance", "立即推进本季度",
-                new UIFactory.Anchor(new Vector2(0.3f, 0.12f), new Vector2(0.7f, 0.26f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnAdvanceQuarterClicked, 18);
-
-            return panel;
-        }
-
         private GameObject BuildAiHelpPanel(Transform parent)
         {
             var panel = UIFactory.Panel(parent, "Panel_AI", UIFactory.Fill, UITheme.Panel);
@@ -426,15 +506,35 @@ namespace AirlineCEO.UI
             UIFactory.Button(panel.transform, "SendButton", "发送",
                 new UIFactory.Anchor(new Vector2(0.72f, 0.04f), new Vector2(0.96f, 0.18f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, OnChatSend, 15);
+
+            // 默认圆形图标；点击展开/收拢对话，图标可拖动
+            _chatChrome = FloatingPanelChrome.Attach(panel, "Neural Command · 战略顾问");
         }
 
         private void ShowNavPanel(int index)
         {
             _activeNav = index;
+            // 0运营 1市场 2董事会 3人事 4安全 5财务 6AI
             if (_panelOps != null) _panelOps.SetActive(index == 0);
             if (_panelMarket != null) _panelMarket.SetActive(index == 1);
-            if (_panelFinance != null) _panelFinance.SetActive(index == 2);
-            if (_panelAi != null) _panelAi.SetActive(index == 3);
+            if (_panelBoard != null) _panelBoard.SetActive(index == 2);
+            if (_panelHr != null) _panelHr.SetActive(index == 3);
+            if (_panelSafety != null) _panelSafety.SetActive(index == 4);
+            if (_panelFinance != null) _panelFinance.SetActive(index == 5);
+            if (_panelAi != null) _panelAi.SetActive(index == 6);
+
+            // 进人事时收拢为图标，避免挡住列表
+            if (index == 3)
+                _chatChrome?.CollapseIfExpanded();
+
+            if (index == 2 && _boardTargetUi != null)
+                _boardTargetUi.Refresh();
+            if (index == 3 && _hrUi != null)
+                _hrUi.Refresh();
+            if (index == 4 && _safetyUi != null)
+                _safetyUi.Refresh();
+            if (index == 5 && _financeUi != null)
+                _financeUi.OnOpened();
 
             for (int i = 0; i < _navImages.Count; i++)
             {
@@ -527,6 +627,23 @@ namespace AirlineCEO.UI
 
             if (_statusText != null && SaveManager.Instance != null)
                 _statusText.text = SaveManager.Instance.LastStatus;
+
+            if (BoardManager.Instance != null)
+            {
+                if (gs.currentTargets == null || gs.currentTargets.Count == 0)
+                    BoardManager.Instance.EnsureAnnualTargets();
+                else
+                    BoardManager.Instance.RefreshTargetProgress();
+            }
+
+            if (_boardTargetUi != null && _activeNav == 2)
+                _boardTargetUi.Refresh();
+            if (_hrUi != null && _activeNav == 3)
+                _hrUi.Refresh();
+            if (_safetyUi != null && _activeNav == 4)
+                _safetyUi.Refresh();
+            if (_financeUi != null && _activeNav == 5)
+                _financeUi.Refresh();
         }
 
         private void RebuildRouteCards(GameState gs)
@@ -590,6 +707,12 @@ namespace AirlineCEO.UI
         private void OnAdvanceQuarterClicked()
         {
             if (_quarterInProgress || _flightInProgress) return;
+            var gs = GameState.Instance;
+            if (gs != null && gs.gameOver)
+            {
+                ShowErrorPopup("游戏已结束\n" + (gs.gameOverReason ?? "董事会已解雇 CEO。"));
+                return;
+            }
             if (TimeManager.Instance == null)
             {
                 ShowPopup("TimeManager 未就绪");
@@ -664,13 +787,33 @@ namespace AirlineCEO.UI
                 if (!string.IsNullOrEmpty(result.eventText))
                     tip += "\n" + result.eventText;
 
-                if (result.isBankruptWarning)
+                if (result.yearEnded && result.yearEnd != null && result.yearEnd.showSettlementPopup)
+                {
+                    ShowVoteResult(result.yearEnd, tip);
+                }
+                else if (result.isBankruptWarning)
+                {
                     ShowErrorPopup("破产警告\n" + tip + "\n现金已为负，请尽快融资或削减成本！");
+                }
+                else if (result.pendingAOG || result.pendingExpansionProposal)
+                {
+                    // 事件弹窗优先；董事会目标公告延后
+                    _pendingBoardAnnounceResult = result;
+                }
                 else
+                {
                     ShowPopup("季度运营完成\n" + tip);
+                    TryAnnounceBoardTargets(gs, result);
+                }
 
                 if (result.needsFinanceWarning && !string.IsNullOrEmpty(result.financeWarning))
                     PushFinanceWarningToChat(result.financeWarning);
+
+                // 结算动画结束后再弹事件（避免与 WaitForSeconds 冲突）
+                if (result.pendingAOG && AOGManager.Instance != null)
+                    AOGManager.Instance.TriggerAOG();
+                else if (result.pendingExpansionProposal && ExpansionProposalManager.Instance != null)
+                    ExpansionProposalManager.Instance.TriggerProposal();
             }
             else
             {
@@ -680,6 +823,116 @@ namespace AirlineCEO.UI
             if (_advanceQuarterBtn != null)
                 _advanceQuarterBtn.interactable = true;
             _quarterInProgress = false;
+        }
+
+        private void OnAOGResolved(int choice)
+        {
+            RefreshHud();
+            var gs = GameState.Instance;
+            string tip = choice == 1
+                ? "AOG 已处置：调机备援，现金 -20 万，航班准点。"
+                : "AOG 已处置：延误维修，现金 -15 万，满意度与准点率下降。";
+            ShowPopup(tip);
+
+            // 若与进入 Q2 的董事会目标公告叠在一起，危机结束后再播报
+            if (_pendingBoardAnnounceResult != null)
+            {
+                var r = _pendingBoardAnnounceResult;
+                _pendingBoardAnnounceResult = null;
+                TryAnnounceBoardTargets(gs, r);
+            }
+        }
+
+        private void OnDepartmentResignation(string deptCode, string name)
+        {
+            if (_hrUi != null)
+                _hrUi.ShowResignation(deptCode, name);
+            else
+                Debug.Log($"[HR] 离职：{name} @ {deptCode}");
+            RefreshHud();
+        }
+
+        private void OnExpansionResolved(int choice)
+        {
+            RefreshHud();
+            var gs = GameState.Instance;
+            string tip = choice switch
+            {
+                1 => "已接受扩张提案：北京→纽约已开通，解锁「伟大航路」。",
+                2 => "已暂缓扩张提案：下一年 Q1 将再次收到提案。",
+                3 => "已拒绝扩张提案：战略部不再就此航线提案。",
+                _ => "扩张提案已处理。"
+            };
+            if (gs != null && gs.greatRouteUnlocked)
+                tip += "\n成就：伟大航路 ✓";
+            ShowPopup(tip);
+
+            if (_pendingBoardAnnounceResult != null)
+            {
+                var r = _pendingBoardAnnounceResult;
+                _pendingBoardAnnounceResult = null;
+                TryAnnounceBoardTargets(gs, r);
+            }
+        }
+
+        private void ShowVoteResult(YearEndResult yearEnd, string quarterTip)
+        {
+            if (_voteUi != null)
+            {
+                // 把季度财务摘要附在投票正文后
+                if (!string.IsNullOrEmpty(quarterTip))
+                    yearEnd.voteBody = (yearEnd.voteBody ?? "") + "\n\n" + quarterTip;
+
+                _voteUi.Show(yearEnd, () =>
+                {
+                    RefreshHud();
+                    if (yearEnd.gameOver)
+                    {
+                        ShowErrorPopup("Game Over\n" + (yearEnd.voteBody ?? yearEnd.message));
+                        if (_advanceQuarterBtn != null)
+                            _advanceQuarterBtn.interactable = false;
+                    }
+                    else if (_boardTargetUi != null && _activeNav == 2)
+                    {
+                        _boardTargetUi.Refresh();
+                    }
+                });
+                return;
+            }
+
+            // 兜底：无 VoteUI 时用普通弹窗
+            ShowYearEndSettlement(yearEnd, quarterTip);
+        }
+
+        private void ShowYearEndSettlement(YearEndResult yearEnd, string quarterTip)
+        {
+            string body =
+                $"年度结算（第 {yearEnd.finishedYear} 年）· {yearEnd.voteTitle}\n" +
+                $"完成率 {yearEnd.completionRate:F0}%（{yearEnd.targetsCompleted}/{yearEnd.targetsTotal}）\n" +
+                $"{yearEnd.voteBody}\n\n" +
+                quarterTip;
+            if (yearEnd.gameOver)
+                ShowErrorPopup(body);
+            else
+                ShowPopup(body);
+        }
+
+        private void TryAnnounceBoardTargets(GameState gs, QuarterResult result)
+        {
+            if (gs == null || result == null || gs.boardTargetsAnnounced) return;
+            // 进入第 1 年 Q2：董事会「突然」强调年度目标清单
+            if (!(result.toYear == 1 && result.toQuarter == 2)) return;
+            if (gs.currentTargets == null || gs.currentTargets.Count == 0) return;
+
+            gs.boardTargetsAnnounced = true;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("董事会发来年度目标清单：");
+            for (int i = 0; i < gs.currentTargets.Count; i++)
+                sb.AppendLine("· " + gs.currentTargets[i].ProgressLabel);
+            sb.Append("请打开左侧「董事会」查看进度。");
+            ShowPopup(sb.ToString());
+            if (_chatOutput != null)
+                _chatOutput.text = (_chatOutput.text ?? "") + "\n\n" + sb;
         }
 
         private void PushFinanceWarningToChat(string warning)
@@ -730,6 +983,7 @@ namespace AirlineCEO.UI
             float cashBefore = gs.cash;
             gs.firstFlightCompleted = true;
             gs.AddCash(FirstFlightReward);
+            gs.yearNetProfit += FirstFlightReward;
 
             if (_cashMeter != null)
             {
@@ -899,9 +1153,13 @@ namespace AirlineCEO.UI
                 if (_chatOutput != null)
                     _chatOutput.text = (_chatOutput.text ?? "") + $"\n\n✅ {result.message}";
                 var action = SuggestedActionParser.Parse(advice.suggestedAction);
+                // 已开通 / 开通成功：都收起「执行建议」，避免误以为还能再掷航权
                 if (action == SuggestedAction.OpenRoute)
                     HideExecuteAdvice();
                 RefreshHud();
+                // 说明类成功（如已开通提示）用普通弹窗，不用红色报错
+                if (result.message != null && result.message.Contains("已经开通"))
+                    ShowPopup(result.message);
             }
             else
             {
@@ -911,6 +1169,7 @@ namespace AirlineCEO.UI
                     _executeHintText.text = result.message;
                 }
                 ShowErrorPopup(result.message);
+                // 航权被拒：保留「执行建议」，可立刻再点重试
             }
         }
 

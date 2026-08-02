@@ -21,13 +21,21 @@ namespace AirlineCEO.EditorTools
             Ensure<DataBase>("DataBase");
             Ensure<ActionExecutor>("ActionExecutor");
             Ensure<TimeManager>("TimeManager");
+            Ensure<BoardManager>("BoardManager");
+            Ensure<SafetyEventManager>("SafetyEventManager");
+            Ensure<RouteRightManager>("RouteRightManager");
+            Ensure<AOGManager>("AOGManager");
+            Ensure<ExpansionProposalManager>("ExpansionProposalManager");
+            Ensure<DepartmentManager>("DepartmentManager");
+            Ensure<HedgeManager>("HedgeManager");
+            Ensure<LoanManager>("LoanManager");
             EnsureAIChatManager();
             Ensure<MVPBootstrap>("MVPBootstrap");
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorUtility.DisplayDialog(
                 "MVP 场景就绪",
-                "已添加核心组件，并确保中文 TMP 字体。\n配置 Key：AirlineCEO → Set DeepSeek API Key\n字体：AirlineCEO → Generate Chinese TMP Font Asset",
+                "已添加核心组件（含 AOG / 扩张 / Safety / 人事 / 对冲融资）。\n财务顾问引导由 MVPBootstrap 运行时创建。\n配置 Key：AirlineCEO → Set DeepSeek API Key",
                 "确定");
         }
 

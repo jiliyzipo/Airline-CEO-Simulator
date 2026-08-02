@@ -29,7 +29,7 @@ namespace AirlineCEO.UI
             bubble.background = root.GetComponent<Image>();
             bubble.titleText = UIFactory.Label(root.transform, "Title", "Neural Command · 战略顾问", 15,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.96f, 1f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.72f, 1f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary, FontStyles.Bold);
 
             bubble.bodyText = UIFactory.Label(root.transform, "Body",
