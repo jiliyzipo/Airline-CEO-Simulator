@@ -69,6 +69,11 @@ namespace AirlineCEO.Systems
         /// <summary>是否已看过燃油对冲新手引导（财务顾问弹窗）。</summary>
         public bool hasSeenHedgeTutorial;
 
+        [Header("机队（Phase 10）")]
+        public List<Aircraft> fleet = new List<Aircraft>();
+        /// <summary>下一架注册号序号（B-1001 起，值为 1,2,3…）。</summary>
+        public int nextRegistrationNumber = 1;
+
         [Header("战略性扩张提案（GDD 7.7）")]
         /// <summary>提案流程是否已终结（接受或拒绝后为 true；暂缓不置 true）。</summary>
         public bool hasExpansionProposalTriggered;
@@ -95,12 +100,16 @@ namespace AirlineCEO.Systems
             }
         }
 
-        /// <summary>净月烧钱（开销 − 航线月收入，下限 0 便于跑道计算）。</summary>
+        /// <summary>机队月维护费（万美元）。</summary>
+        public float FleetMonthlyMaintenance =>
+            FleetManager.Instance != null ? FleetManager.Instance.CalcMonthlyMaintenance(this) : 0f;
+
+        /// <summary>净月烧钱（开销 + 机队维护 − 航线月收入，下限 0 便于跑道计算）。</summary>
         public float EffectiveMonthlyBurn
         {
             get
             {
-                float net = monthlyBurnRate + Mathf.Max(0f, financeCrisisBurnBonus) - monthlyRevenue;
+                float net = monthlyBurnRate + FleetMonthlyMaintenance + Mathf.Max(0f, financeCrisisBurnBonus) - monthlyRevenue;
                 return net > 0f ? net : 0f;
             }
         }
@@ -133,6 +142,10 @@ namespace AirlineCEO.Systems
                 fuelPriceHistory = new List<float>();
             if (fuelPriceHistory.Count == 0)
                 fuelPriceHistory.Add(fuelPricePerTon);
+            if (fleet == null)
+                fleet = new List<Aircraft>();
+            if (nextRegistrationNumber < 1)
+                nextRegistrationNumber = 1;
             SyncSafetyIndexFromRating();
             yearStartCash = cash;
         }

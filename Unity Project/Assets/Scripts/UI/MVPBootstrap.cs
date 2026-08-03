@@ -57,10 +57,13 @@ namespace AirlineCEO.UI
         private GameObject _panelHr;
         private GameObject _panelSafety;
         private GameObject _panelFinance;
+        private GameObject _panelFleet;
         private GameObject _panelAi;
         private BoardTargetUI _boardTargetUi;
         private HRUI _hrUi;
         private FinancePanelUI _financeUi;
+        private FleetUI _fleetUi;
+        private FleetPurchaseUI _fleetPurchaseUi;
         private HedgeTutorialUI _hedgeTutorialUi;
         private SafetyUI _safetyUi;
         private VoteUI _voteUi;
@@ -182,6 +185,12 @@ namespace AirlineCEO.UI
                 var go = new GameObject("LoanManager");
                 go.AddComponent<LoanManager>();
             }
+
+            if (FleetManager.Instance == null)
+            {
+                var go = new GameObject("FleetManager");
+                go.AddComponent<FleetManager>();
+            }
         }
 
         private static void EnsureEventSystem()
@@ -236,6 +245,10 @@ namespace AirlineCEO.UI
             _hedgeTutorialUi = HedgeTutorialUI.Create(canvasGo.transform);
             if (_financeUi != null)
                 _financeUi.BindTutorial(_hedgeTutorialUi);
+
+            _fleetPurchaseUi = FleetPurchaseUI.Create(canvasGo.transform);
+            if (_fleetUi != null)
+                _fleetUi.BindPurchase(_fleetPurchaseUi);
 
             _expansionUi = ExpansionProposalUI.Create(canvasGo.transform);
             if (ExpansionProposalManager.Instance != null)
@@ -316,11 +329,11 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.08f, 0.92f), new Vector2(0.92f, 0.98f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
-            // 0运营 1市场 2董事会 3人事 4安全 5财务 6AI
-            string[] labels = { "运营", "市场", "董事会", "👤 人事", "安全", "财务", "AI 顾问" };
+            // 0运营 1市场 2董事会 3人事 4安全 5财务 6机队 7AI
+            string[] labels = { "运营", "市场", "董事会", "👤 人事", "安全", "财务", "✈️ 机队", "AI 顾问" };
             float top = 0.90f;
-            float h = 0.062f;
-            float gap = 0.01f;
+            float h = 0.055f;
+            float gap = 0.008f;
             for (int i = 0; i < labels.Length; i++)
             {
                 int index = i;
@@ -352,6 +365,8 @@ namespace AirlineCEO.UI
             _panelSafety = _safetyUi.gameObject;
             _financeUi = FinancePanelUI.Build(center.transform);
             _panelFinance = _financeUi.gameObject;
+            _fleetUi = FleetUI.Build(center.transform);
+            _panelFleet = _fleetUi.gameObject;
             _panelAi = BuildAiHelpPanel(center.transform);
         }
 
@@ -514,14 +529,15 @@ namespace AirlineCEO.UI
         private void ShowNavPanel(int index)
         {
             _activeNav = index;
-            // 0运营 1市场 2董事会 3人事 4安全 5财务 6AI
+            // 0运营 1市场 2董事会 3人事 4安全 5财务 6机队 7AI
             if (_panelOps != null) _panelOps.SetActive(index == 0);
             if (_panelMarket != null) _panelMarket.SetActive(index == 1);
             if (_panelBoard != null) _panelBoard.SetActive(index == 2);
             if (_panelHr != null) _panelHr.SetActive(index == 3);
             if (_panelSafety != null) _panelSafety.SetActive(index == 4);
             if (_panelFinance != null) _panelFinance.SetActive(index == 5);
-            if (_panelAi != null) _panelAi.SetActive(index == 6);
+            if (_panelFleet != null) _panelFleet.SetActive(index == 6);
+            if (_panelAi != null) _panelAi.SetActive(index == 7);
 
             // 进人事时收拢为图标，避免挡住列表
             if (index == 3)
@@ -535,6 +551,8 @@ namespace AirlineCEO.UI
                 _safetyUi.Refresh();
             if (index == 5 && _financeUi != null)
                 _financeUi.OnOpened();
+            if (index == 6 && _fleetUi != null)
+                _fleetUi.Refresh();
 
             for (int i = 0; i < _navImages.Count; i++)
             {
@@ -644,6 +662,8 @@ namespace AirlineCEO.UI
                 _safetyUi.Refresh();
             if (_financeUi != null && _activeNav == 5)
                 _financeUi.Refresh();
+            if (_fleetUi != null && _activeNav == 6)
+                _fleetUi.Refresh();
         }
 
         private void RebuildRouteCards(GameState gs)

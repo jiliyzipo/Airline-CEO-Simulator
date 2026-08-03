@@ -67,9 +67,9 @@ namespace AirlineCEO.Systems
             int fromYear = gs.year;
             int fromQuarter = gs.quarter;
 
-            // 2.1 / 2.2 季度收入与支出
+            // 2.1 / 2.2 季度收入与支出（含机队月维护）
             float quarterIncome = gs.monthlyRevenue * 3f;
-            float quarterExpense = gs.monthlyBurnRate * 3f;
+            float quarterExpense = (gs.monthlyBurnRate + gs.FleetMonthlyMaintenance) * 3f;
             float net = quarterIncome - quarterExpense;
 
             // 2.3 更新现金 + 本财年净利润累计
@@ -173,6 +173,10 @@ namespace AirlineCEO.Systems
                 // Phase 8：财年末忠诚度结算（可能触发离职）
                 if (DepartmentManager.Instance != null)
                     DepartmentManager.Instance.OnYearEndLoyalty();
+
+                // Phase 10：机龄 +1
+                if (FleetManager.Instance != null)
+                    FleetManager.Instance.OnYearEndAgeFleet();
             }
 
             gs.NotifyChanged();

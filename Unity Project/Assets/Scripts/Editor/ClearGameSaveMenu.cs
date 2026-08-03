@@ -27,7 +27,7 @@ namespace AirlineCEO.EditorTools
                 "ACEO_DeptHeads",
                 "ACEO_FuelPrice", "ACEO_HedgeContracts", "ACEO_ActiveLoans",
                 "ACEO_FuelHistoryJson", "ACEO_LoanDefaults",
-                "ACEO_HasSeenHedgeTutorial"
+                "ACEO_HasSeenHedgeTutorial", "ACEO_Fleet"
             };
             for (int i = 0; i < keys.Length; i++)
                 PlayerPrefs.DeleteKey(keys[i]);

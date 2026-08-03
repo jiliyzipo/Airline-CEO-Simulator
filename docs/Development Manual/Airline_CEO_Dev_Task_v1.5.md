@@ -18,7 +18,7 @@
 | v1.2 | 玩家文案通俗化；综合评定；Phase 1：ActionExecutor |
 | v1.3 | 体验扩展 Phase 1～6（续聘投票） |
 | v1.4 | Phase 7 / AOG / 章节对齐路线图；AOG Play 验收 |
-| **v1.5** | Phase 8～9 已验收；锁价方式扩展 ✅；**财务顾问引导 / 对冲新手体验 ✅（2026-08-02）**；现行施工图 |
+| **v1.5** | Phase 8～10 已验收（含对冲引导、**机队管理 Play ✅ 2026-08-03**）；现行施工图 |
 
 ---
 
@@ -46,7 +46,7 @@
 | 15～30分钟（危机应对） | 第7.2（AOG危机） | 脚本化 AOG 危机（故障处置） | ✅ 已验收 | §2.12 |
 | 30～60分钟（首次考核） | 第5章（董事会目标）<br>第4章（年度结算） | 董事会目标生成、进度追踪、年度结算与续聘投票 | ✅ 完成（Phase 5～6） | §2.9～2.10 |
 | 60～120分钟（战略纵深） | 第7.6（SAF）<br>第7.7（STG） | 安全事件、航权审批、扩张提案 | ✅ 完成（Phase 7 + 扩张提案） | §2.11、§2.13 |
-| 120分钟以后（人事 / 财务） | 第6章 + 第7.4节 | 部门任命；燃油对冲与紧急融资；财务顾问新手引导 | ✅ 已验收（Phase 8～9） | §2.14、§2.15 |
+| 120分钟以后（人事 / 财务 / 机队） | 第6章 + 第7.4节 + 第11/16章 | 部门任命；对冲融资；财务顾问引导；机队管理 | ✅ 已验收（Phase 8～10） | §2.14～2.16 |
 
 ---
 
@@ -72,7 +72,8 @@
 | **Phase 8** | **部门管理 / 任命（GDD 第6章）** | **DepartmentManager, HRUI** | **✅ 已验收** | **2.14** |
 | **Phase 9** | **燃油对冲与融资（GDD 7.4）** | **HedgeManager, LoanManager, FinancePanelUI** | **✅ 已验收** | **2.15** |
 | **Phase 9 UX** | **财务顾问引导 / 对冲新手体验** | **HedgeTutorialUI, 预设方案, ACEO_HasSeenHedgeTutorial** | **✅ 已验收** | **2.15.1** |
-| Phase 8+ | 机队 / 美术精修 等 | 待定 | ⬜ | 2.16 |
+| **Phase 10** | **机队管理系统（GDD 11 / 16）** | **FleetManager, FleetUI, FleetPurchaseUI** | **✅ 已验收** | **2.16** |
+| Phase 8+ | 机队精修 / 美术 / 事故调查深度 等 | 待定 | ⬜ | 2.17 |
 
 **工程骨架（五文件夹）：**
 
@@ -603,17 +604,38 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 
 ---
 
-### 2.16 Phase 8+（后续）⬜
+### 2.16 Phase 10 · 机队管理系统 ✅ 已验收
+
+> 对应 GDD 第 11、16 章。左侧「✈️ 机队」：列表 / 购买 / 退役 / 机龄老化；开通航线需适航运力。
+
+| 子项 | 说明 | 文件 |
+| :--- | :--- | :--- |
+| 10.1 列表 | 注册号 / 机型 / 机龄 / 状态色点；概况总数·适航·均龄 | `UI/FleetUI.cs` |
+| 10.2 购买 | 三机型弹窗；扣现金；注册号 B-1004… | `FleetPurchaseUI` / `FleetManager` |
+| 10.3 状态 | 机龄&gt;15→维护中；&gt;20 维护费翻倍 | `FleetManager` |
+| 10.4 老化 | 财年末机龄 +1 | `TimeManager` → `OnYearEndAgeFleet` |
+| 10.5 退役 | 残值 = 购价×max(10%, 100−机龄×3)% | `TryRetireAircraft` |
+| 联动 | 开通航线检查适航数 &gt; 航线数；月维护计入烧钱 | `ActionExecutor` / `GameState` |
+| 存档 | `ACEO_Fleet` | `SaveManager` |
+| 调试 | Grant Cash / Add Random Aircraft / Force Age +1 | `Phase10DebugMenu` |
+
+**初始机队：** B-1001/1002 A320neo，B-1003 B737-800（机龄 0，适航）。  
+**验收步骤：** 清档 → 机队见 3 架 → Debug Grant Cash → 购 B787 → 退役一架看残值 → 推进跨年看机龄 → F5/F9 → 无适航富余时开通航线应提示。  
+**验收结果：** ✅ 已打勾（2026-08-03 Play）：初始 3 架 → Grant Cash → 购入 B787/B737（B-1004/1005）→ B-1001 退役 → 推进至机龄上升（均龄约 1.5）→ 概况/列表状态一致
+
+---
+
+### 2.17 Phase 8+（后续）⬜
 
 | 候选 | 对应路线图 / GDD | 状态 |
 | :--- | :--- | :---: |
 | 化学反应可视化精修 | ChemistryMatcher UI | ⬜ |
-| 机队可交互 / 美术精修 | — | ⬜ |
+| 机队美术精修 | — | ⬜ |
 | 事故调查深度选项 | SAF 快速/标准/深度 | ⬜ |
 
 ---
 
-### 2.17 编辑器工具与清档 ✅
+### 2.18 编辑器工具与清档 ✅
 
 > 辅助节（非路线图阶段表行项）。避免 `Edit → Clear All PlayerPrefs` 误删 API Key。
 
@@ -623,8 +645,9 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | `Debug/Force Mild|Moderate Safety Event` | `Editor/Phase7DebugMenu.cs` | Play 中强制安全事件 |
 | `Debug/HR Force Resign OPS` | `Editor/Phase8DebugMenu.cs` | Play 中强制运营部离职 |
 | `Debug/Force Cash Crisis` | `Editor/Phase9DebugMenu.cs` | Play 中强制跑道 &lt; 3 月 |
+| `Debug/Grant Fleet Cash` / `Add Random Aircraft` / `Force Fleet Age +1` | `Editor/Phase10DebugMenu.cs` | 机队采购与老化调试 |
 | `Debug/移除北京-伦敦航线（复测航权）` | Phase7 | 复测航权被拒 |
-| `Setup MVP Scene Objects` | `Editor/SetupMVPScene.cs` | 含 Safety / RouteRight / DepartmentManager |
+| `Setup MVP Scene Objects` | `Editor/SetupMVPScene.cs` | 含 FleetManager 等 |
 | `Set DeepSeek API Key` | `SetupMVPScene.cs` | 本机 Key |
 | `Generate Chinese TMP Font Asset` | `GenerateChineseTMPFont.cs` | 中文 SDF |
 | `Run Logic Self Tests` | `LogicSelfTests.cs` | RPM/跑道自测 |
@@ -653,6 +676,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | 部门管理 / 任命（第6章） | DepartmentManager + HRUI | Phase 8 | ✅ 已验收 | 2.14 |
 | 燃油对冲 / 融资（第7.4节） | HedgeManager + LoanManager + FinancePanelUI | Phase 9 | ✅ 已验收 | 2.15 |
 | 财务顾问引导 / 对冲新手体验 | HedgeTutorialUI + 三套预设 + 存档标记 | Phase 9 UX | ✅ 已验收 | 2.15.1 |
+| 机队管理（第11 / 16章） | FleetManager + FleetUI + FleetPurchaseUI | Phase 10 | ✅ 已验收 | 2.16 |
 
 ---
 
@@ -664,7 +688,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - **15～30分钟**：AOG 危机 ✅ 已验收（§2.12 · 2026-08-01）
 - **30～60分钟**：董事会目标 + 年度结算 ✅（§2.9～2.10）
 - **60～120分钟**：安全事件 + 航权审批 + 扩张提案 ✅ 已验收（§2.11、§2.13 · 2026-08-01）
-- **120分钟以后**：部门管理 / 任命 ✅（§2.14）；燃油对冲与融资（含锁价方式 + **财务顾问新手引导**）✅ 已验收（§2.15 / §2.15.1 · 2026-08-02）；其余 Phase 8+（§2.16） ⬜
+- **120分钟以后**：部门管理 / 任命 ✅（§2.14）；燃油对冲与融资 + 财务顾问引导 ✅（§2.15 / §2.15.1）；机队管理 ✅ 已验收（§2.16 · 2026-08-03）；其余 Phase 8+（§2.17） ⬜
 
 ---
 
@@ -682,10 +706,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 ## 附录 B：给 Cursor 的续作提示词模板
 
 ```text
-请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.16 节（Phase 8+）开工，
+请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.17 节（Phase 8+）开工，
 并对照 docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.5.md。
-优先建议：机队或美术精修。
-不要重复实现第 2.1～2.15 节已完成内容（含对冲融资与财务顾问引导 §2.15.1）。工程根目录是 Unity Project/。
+优先建议：化学反应可视化或事故调查深度。
+不要重复实现第 2.1～2.16 节已完成内容（含机队管理）。工程根目录是 Unity Project/。
 完成后同步更新路线图与本任务书状态，并说明验收步骤。
 ```
 
@@ -704,9 +728,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - `Debug/Force Expansion Proposal`
 - `Debug/HR Force Resign OPS` / `Debug/HR Run Year-End Loyalty`
 - `Debug/Force Cash Crisis` / `Debug/Force Fuel Spike +20%`
+- `Debug/Grant Fleet Cash +30000` / `Debug/Add Random Aircraft` / `Debug/Force Fleet Age +1 Year`
 - `Debug/移除北京-伦敦航线（复测航权）`
 
 ---
 
 **最后建议：**  
-以 **v1.5** 为现行施工图（Phase 8～9 已验收）；下一优先见 §2.16。遇报错把 Console 红字发给 Cursor / Kimi。
+以 **v1.5** 为现行施工图；Phase 10 机队已验收（§2.16）；下一优先见 §2.17。遇报错把 Console 红字发给 Cursor / Kimi。

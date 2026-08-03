@@ -13,9 +13,11 @@ namespace AirlineCEO.Data
 
         public IReadOnlyList<ExecutiveData> Executives => _executives;
         public IReadOnlyList<BoardMemberData> BoardMembers => _boardMembers;
+        public IReadOnlyList<AircraftCatalogEntry> AircraftTypes => _aircraftTypes;
 
         private readonly List<ExecutiveData> _executives = new List<ExecutiveData>(21);
         private readonly List<BoardMemberData> _boardMembers = new List<BoardMemberData>(12);
+        private readonly List<AircraftCatalogEntry> _aircraftTypes = new List<AircraftCatalogEntry>(3);
 
         private void Awake()
         {
@@ -30,8 +32,9 @@ namespace AirlineCEO.Data
 
             LoadExecutives();
             LoadBoardMembers();
+            LoadAircraftTypes();
 
-            Debug.Log($"[DataBase] 已加载负责人 {_executives.Count} 人，董事 {_boardMembers.Count} 人。");
+            Debug.Log($"[DataBase] 已加载负责人 {_executives.Count} 人，董事 {_boardMembers.Count} 人，机型 {_aircraftTypes.Count} 种。");
         }
 
         private void OnDestroy()
@@ -72,12 +75,39 @@ namespace AirlineCEO.Data
             return null;
         }
 
+        public AircraftCatalogEntry GetAircraftType(string typeId)
+        {
+            for (int i = 0; i < _aircraftTypes.Count; i++)
+            {
+                if (string.Equals(_aircraftTypes[i].typeId, typeId, System.StringComparison.OrdinalIgnoreCase))
+                    return _aircraftTypes[i];
+            }
+            return null;
+        }
+
         public List<string> GetBoardMemberIds()
         {
             var ids = new List<string>(_boardMembers.Count);
             for (int i = 0; i < _boardMembers.Count; i++)
                 ids.Add(_boardMembers[i].id);
             return ids;
+        }
+
+        private void LoadAircraftTypes()
+        {
+            _aircraftTypes.Clear();
+            _aircraftTypes.Add(new AircraftCatalogEntry
+            {
+                typeId = "A320neo", maxPassengers = 180, maxRangeKm = 6300f, priceWan = 11000f
+            });
+            _aircraftTypes.Add(new AircraftCatalogEntry
+            {
+                typeId = "B737-800", maxPassengers = 189, maxRangeKm = 5400f, priceWan = 9600f
+            });
+            _aircraftTypes.Add(new AircraftCatalogEntry
+            {
+                typeId = "B787-9", maxPassengers = 290, maxRangeKm = 14000f, priceWan = 25000f
+            });
         }
 
         private void LoadExecutives()

@@ -100,6 +100,20 @@ namespace AirlineCEO.Systems
             if (gs.cash < OpenRouteStartupCost)
                 return Fail($"现金不足，无法执行（开通需 {OpenRouteStartupCost:F0} 万美元，当前 {gs.cash:F0} 万）。");
 
+            // Phase 10：需有适航飞机多于已开航线数
+            if (FleetManager.Instance == null)
+            {
+                var go = new GameObject("FleetManager");
+                go.AddComponent<FleetManager>();
+            }
+            FleetManager.Instance.EnsureStarterFleet();
+            if (!FleetManager.Instance.HasSpareAircraftForNewRoute(gs))
+            {
+                return Fail(
+                    "机队中无可用飞机，请先购买或维护。\n" +
+                    $"（适航 {FleetManager.Instance.CountAirworthy(gs)} 架，已开航线 {gs.activeRoutes.Count} 条）");
+            }
+
             // Phase 7：长航线先过航权审批
             var rightsMgr = RouteRightManager.Instance;
             if (rightsMgr == null)

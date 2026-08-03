@@ -47,6 +47,7 @@ namespace AirlineCEO.Systems
         private const string KeyFuelHistory = "ACEO_FuelHistoryJson";
         private const string KeyLoanDefaults = "ACEO_LoanDefaults";
         private const string KeyHasSeenHedgeTutorial = "ACEO_HasSeenHedgeTutorial";
+        private const string KeyFleet = "ACEO_Fleet";
 
         [Serializable]
         private class FloatListSave
@@ -170,6 +171,16 @@ namespace AirlineCEO.Systems
             if (LoanManager.Instance != null)
                 PlayerPrefs.SetInt(KeyLoanDefaults, LoanManager.Instance.consecutiveDefaults);
             PlayerPrefs.SetInt(KeyHasSeenHedgeTutorial, gs.hasSeenHedgeTutorial ? 1 : 0);
+            if (FleetManager.Instance != null)
+                PlayerPrefs.SetString(KeyFleet, FleetManager.Instance.ToJson());
+            else
+            {
+                PlayerPrefs.SetString(KeyFleet, JsonUtility.ToJson(new FleetListSave
+                {
+                    items = gs.fleet != null ? gs.fleet.ToArray() : Array.Empty<Aircraft>(),
+                    nextRegistrationNumber = gs.nextRegistrationNumber
+                }));
+            }
 
             PlayerPrefs.Save();
 
@@ -298,6 +309,27 @@ namespace AirlineCEO.Systems
             }
 
             gs.hasSeenHedgeTutorial = PlayerPrefs.GetInt(KeyHasSeenHedgeTutorial, 0) == 1;
+
+            if (FleetManager.Instance != null)
+                FleetManager.Instance.FromJson(PlayerPrefs.GetString(KeyFleet, ""));
+            else
+            {
+                try
+                {
+                    var blob = JsonUtility.FromJson<FleetListSave>(PlayerPrefs.GetString(KeyFleet, ""));
+                    gs.fleet = blob?.items != null
+                        ? new System.Collections.Generic.List<Aircraft>(blob.items)
+                        : new System.Collections.Generic.List<Aircraft>();
+                    gs.nextRegistrationNumber = blob != null && blob.nextRegistrationNumber > 0
+                        ? blob.nextRegistrationNumber
+                        : 1;
+                }
+                catch
+                {
+                    gs.fleet = new System.Collections.Generic.List<Aircraft>();
+                    gs.nextRegistrationNumber = 1;
+                }
+            }
 
             LastStatus = gs.gameOver
                 ? $"已读档 F9 · 游戏已结束 · {gs.DateLabel}"
