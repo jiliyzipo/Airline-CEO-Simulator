@@ -1,0 +1,135 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AirlineCEO.Balance</RootNamespace>
+    <AssemblyName>AirlineCEO.Balance</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <!-- ? Unity ????????????????????? -->
+    <UnityScriptsDir>..\..\Unity Project\Assets\Scripts</UnityScriptsDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ? C#?? UnityEngine ?????????? Link????? -->
+    <Compile Include="$(UnityScriptsDir)\Data\RouteData.cs"
+             Link="Shared\Data\RouteData.cs" />
+    <!-- RouteData ? AirportCatalog ?? C# ????????? balance ?????
+         OpsRotationParams ?? RouteData ????????????????
+         ??? OpsRotationLogic ???????????????
+         CityEconomyCatalog ? AirportCatalog ???????
+         ???OpsRotationLogic ???? Aircraft/GameState???????? -->
+    <Compile Include="$(UnityScriptsDir)\Logic\OpsRotationParams.cs"
+             Link="Shared\Logic\OpsRotationParams.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\FlightScheduleFormat.cs"
+             Link="Shared\Logic\FlightScheduleFormat.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\AirportCatalog.cs"
+             Link="Shared\Data\AirportCatalog.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\CityEconomyCatalog.cs"
+             Link="Shared\Data\CityEconomyCatalog.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\CityEconomyTypes.cs"
+             Link="Shared\Data\CityEconomyTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\EconomyBalanceParams.cs"
+             Link="Shared\Logic\EconomyBalanceParams.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\OpsEconomics.cs"
+             Link="Shared\Logic\OpsEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\LiveClockLogic.cs"
+             Link="Shared\Logic\LiveClockLogic.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\ScheduleSlots.cs"
+             Link="Shared\Logic\ScheduleSlots.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\OpsIrropsLogic.cs"
+             Link="Shared\Logic\OpsIrropsLogic.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\RPMCalculator.cs"
+             Link="Shared\Logic\RPMCalculator.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\CashRunnelCalculator.cs"
+             Link="Shared\Logic\CashRunnelCalculator.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\FinanceEconomics.cs"
+             Link="Shared\Logic\FinanceEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\FleetEconomics.cs"
+             Link="Shared\Logic\FleetEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\MktEconomics.cs"
+             Link="Shared\Logic\MktEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\MktCompetitionEconomics.cs"
+             Link="Shared\Logic\MktCompetitionEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\StrategyEconomics.cs"
+             Link="Shared\Logic\StrategyEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\MktTypes.cs"
+             Link="Shared\Data\MktTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\StrategyTypes.cs"
+             Link="Shared\Data\StrategyTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\HrTypes.cs"
+             Link="Shared\Data\HrTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\SafetyTypes.cs"
+             Link="Shared\Data\SafetyTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\FinanceTypes.cs"
+             Link="Shared\Data\FinanceTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\HrEconomics.cs"
+             Link="Shared\Logic\HrEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\SafetyEconomics.cs"
+             Link="Shared\Logic\SafetyEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\DecisionTypes.cs"
+             Link="Shared\Data\DecisionTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\DecisionEconomics.cs"
+             Link="Shared\Logic\DecisionEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\CargoEconomics.cs"
+             Link="Shared\Logic\CargoEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\CargoTypes.cs"
+             Link="Shared\Data\CargoTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\AirportRegions.cs"
+             Link="Shared\Logic\AirportRegions.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\TaxEconomics.cs"
+             Link="Shared\Logic\TaxEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\PdpEconomics.cs"
+             Link="Shared\Logic\PdpEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\InsuranceEconomics.cs"
+             Link="Shared\Logic\InsuranceEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\FuelProcurementEconomics.cs"
+             Link="Shared\Logic\FuelProcurementEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\CarbonEconomics.cs"
+             Link="Shared\Logic\CarbonEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\AirportCommerceEconomics.cs"
+             Link="Shared\Logic\AirportCommerceEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\NonAeroTypes.cs"
+             Link="Shared\Data\NonAeroTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\IronmanEconomics.cs"
+             Link="Shared\Logic\IronmanEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\GameplayEnums.cs"
+             Link="Shared\Logic\GameplayEnums.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\LegacyScoreCalculator.cs"
+             Link="Shared\Logic\LegacyScoreCalculator.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\BoardEconomics.cs"
+             Link="Shared\Logic\BoardEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\CrossEconomics.cs"
+             Link="Shared\Logic\CrossEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\SaveSlotTypes.cs"
+             Link="Shared\Data\SaveSlotTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\ProgressionGate.cs"
+             Link="Shared\Logic\ProgressionGate.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\MessageTypes.cs"
+             Link="Shared\Data\MessageTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\MessageCenter.cs"
+             Link="Shared\Logic\MessageCenter.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\SmartAlertLogic.cs"
+             Link="Shared\Logic\SmartAlertLogic.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\DynamicFeedTypes.cs"
+             Link="Shared\Data\DynamicFeedTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\EventGenerator.cs"
+             Link="Shared\Logic\EventGenerator.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\MessageMerger.cs"
+             Link="Shared\Logic\MessageMerger.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\L10n.cs"
+             Link="Shared\Logic\L10n.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\Accessibility.cs"
+             Link="Shared\Logic\Accessibility.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\Telemetry.cs"
+             Link="Shared\Logic\Telemetry.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\ModFramework.cs"
+             Link="Shared\Logic\ModFramework.cs" />
+
+    <!-- ?????OpsScheduleLogic.cs / ExternalDataFetcher.cs ?? Aircraft(UnityEngine)
+         ? AirlineCEO.Systems?????????????????????? -->
+  </ItemGroup>
+
+</Project>

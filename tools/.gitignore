@@ -1,0 +1,14 @@
+# tools/ 顶层忽略规则（各子工具另有自己的 .gitignore，规则叠加生效）
+
+# 构建产物
+bin/
+obj/
+
+# 运行日志
+*.log
+
+# 运行时输出目录
+out/
+
+# semcheck 每次运行都会重写，属生成物
+semcheck_report.txt
