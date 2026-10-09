@@ -1,0 +1,14 @@
+### odd-symbol (3)
+412: /// 批准 ≠ 可以飞——这与现实一致：航线经营许可核准后才排班开航。
+936: "建议：批准后下季度办结，入盟费 50 万，机队需 ≥3 架。可点联盟与战略合作 查看等级与收益。\n" +
+937: "正式成员仍需机队 ≥20 架，在愿景页申请升级。"));
+### stray-quote-end (9)
+136: _ => "汇报"
+277: ? $"航线 {m.origin}-{m.dest} 已投入运营"
+381: string role = p == (int)MessagePriority.Emergency ? "紧急快讯"
+382: : p == (int)MessagePriority.Warning ? "预警快讯"
+460: message = $"已批准开通 {o}-{d}。运营部已向{(intl ? "民航局" : "地区管理局")}递交{kind}申请"
+1088: ? $"紧急：停飞缺件 {order.partNo} 请批准采购"
+1659: ? "集体协议即将到期，请拍板谈判姿态"
+1721: : dest == ((int)FinancingKind.Equity).ToString() ? "股东增资"
+1722: : dest == ((int)FinancingKind.Bridge).ToString() ? "高息过桥"

@@ -1,0 +1,4 @@
+samples=264
+uniform: both=204/264 x=213 y=239
+trained: both=224/264 x=232 y=251
+weights=t_left_x=0.73 b_left_x=-0.02 b_x_y=1.17 b_y_right=0.60 b_x_right=-0.11 t_x_y_right=0.15 t_left_x_y=0.13 u_x=0.03 u_y=-0.00 y_prior=0.04 b_x_y_right=-1.16

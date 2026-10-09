@@ -12,3 +12,8 @@ out/
 
 # semcheck 每次运行都会重写，属生成物
 semcheck_report.txt
+
+# tools/balance 的生成型报告（由 --stress / --channels 等运行重写）
+balance/STRESS_BALANCE_REPORT.md
+balance/channel_report.txt
+balance/_ops_whiteboard_pages.txt

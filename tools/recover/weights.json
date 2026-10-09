@@ -1,0 +1,13 @@
+{
+ "t_left_x": 0.73,
+ "b_left_x": -0.02,
+ "b_x_y": 1.17,
+ "b_y_right": 0.6,
+ "b_x_right": -0.11,
+ "t_x_y_right": 0.15,
+ "t_left_x_y": 0.13,
+ "u_x": 0.03,
+ "u_y": 0,
+ "y_prior": 0.04,
+ "b_x_y_right": -1.16
+}

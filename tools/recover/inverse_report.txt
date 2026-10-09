@@ -1,0 +1,2 @@
+inverseMap: charsWithOnePair=23940 charsWithManyPairs=0
+holeFreeLinesChecked=1534 exact=1534 mismatched=0

@@ -1,0 +1,13 @@
+# 本目录是「非 ASCII 被静默替换」事故（见 tools/semcheck/enccheck.js）的取证与恢复现场。
+# 只入库**工具链本体**，一次性中间产物不入库。
+
+# 事故取证时敲出的一次性探测样本（_t1.._t22 / _probe* / _r / _view* / _holes_sample 等）
+_*
+
+# 受损文件的取证副本：正文已在仓库中（Unity Project/Assets/Scripts/Systems/InboxManager.cs），
+# 此份是受损快照，保留在本地即可，不入库以免与真实源码混淆。
+*.corrupted.bak.cs
+
+# 构建产物
+syntaxcheck/bin/
+syntaxcheck/obj/

@@ -1,0 +1,108 @@
+totalHoles=385 linesWithMultiHole=73 asciiByteLost=327 twoByteCharLost=0 otherLead=2
+asciiHist=0x22:137 0x20:128 0x2e:22 0x3f:19 0x3c:16 0x37:1 0x32:1 0x30:1 0x31:1 0x2f:1
+
+L11 srcs=10,11,12 holes=3
+   at=86 lead=0x81 trail=0x37 ("7")
+   at=132 lead=0x80 trail=0x82 ("")
+   at=263 lead=0xe3 trail=0x80 ("")
+L14 srcs=15 holes=4
+   at=65 lead=0xa4 trail=0x20 (" ")
+   at=76 lead=0xba trail=0xa6 ("¦")
+   at=79 lead=0xe2 trail=0x89 ("")
+   at=91 lead=0x89 trail=0xe3 ("ã")
+L17 srcs=18 holes=1
+   at=62 lead=0x82 trail=0x3c ("<")
+L22 srcs=23 holes=1
+   at=80 lead=0x82 trail=0x3c ("<")
+L26 srcs=27 holes=1
+   at=74 lead=0x82 trail=0x3c ("<")
+L34 srcs=35 holes=1
+   at=68 lead=0x82 trail=0x3c ("<")
+L44 srcs=45 holes=1
+   at=19 lead=0x3f trail=0x2e (".")
+L47 srcs=48 holes=1
+   at=86 lead=0x82 trail=0x3c ("<")
+L55 srcs=56 holes=1
+   at=50 lead=0x3f trail=0x20 (" ")
+L56 srcs=57 holes=1
+   at=53 lead=0x3f trail=0x20 (" ")
+L74 srcs=75 holes=1
+   at=89 lead=0x82 trail=0x3c ("<")
+L83 srcs=84 holes=1
+   at=23 lead=0x3f trail=0x2e (".")
+L88 srcs=89 holes=1
+   at=88 lead=0x82 trail=0x3c ("<")
+L98 srcs=99 holes=1
+   at=27 lead=0x3f trail=0x2e (".")
+L113 srcs=114 holes=1
+   at=77 lead=0x8d trail=0x22 ("\"")
+L114 srcs=115 holes=4
+   at=56 lead=0x9a trail=0x20 (" ")
+   at=123 lead=0x87 trail=0x91 ("")
+   at=170 lead=0xe6 trail=0x88 ("")
+   at=221 lead=0xa5 trail=0xe3 ("ã")
+L135 srcs=136 holes=1
+   at=104 lead=0x82 trail=0x3c ("<")
+L141 srcs=142 holes=1
+   at=41 lead=0x82 trail=0x22 ("\"")
+L153 srcs=154 holes=3
+   at=42 lead=0x9a trail=0x20 (" ")
+   at=92 lead=0xb9 trail=0xb4 ("´")
+   at=137 lead=0xe3 trail=0x80 ("")
+L167 srcs=168 holes=3
+   at=78 lead=0x3f trail=0x20 (" ")
+   at=147 lead=0xb4 trail=0x20 (" ")
+   at=162 lead=0x80 trail=0x82 ("")
+L169 srcs=170 holes=2
+   at=104 lead=0xb4 trail=0x20 (" ")
+   at=119 lead=0x80 trail=0x82 ("")
+L172 srcs=173 holes=3
+   at=67 lead=0x3f trail=0x20 (" ")
+   at=81 lead=0x3f trail=0x3f ("?")
+   at=82 lead=0x3f trail=0x20 (" ")
+L174 srcs=175 holes=3
+   at=46 lead=0xb0 trail=0x20 (" ")
+   at=122 lead=0xb9 trail=0xb4 ("´")
+   at=143 lead=0xe3 trail=0x80 ("")
+L177 srcs=178 holes=2
+   at=77 lead=0xb4 trail=0x20 (" ")
+   at=107 lead=0x80 trail=0x82 ("")
+L179 srcs=180 holes=3
+   at=46 lead=0xb7 trail=0x20 (" ")
+   at=99 lead=0xb9 trail=0xb4 ("´")
+   at=135 lead=0xe3 trail=0x80 ("")
+L185 srcs=186 holes=1
+   at=80 lead=0x82 trail=0x22 ("\"")
+L199 srcs=200 holes=1
+   at=60 lead=0x82 trail=0x22 ("\"")
+L203 srcs=204 holes=1
+   at=107 lead=0x82 trail=0x22 ("\"")
+L210 srcs=211 holes=1
+   at=91 lead=0x82 trail=0x22 ("\"")
+L211 srcs=212 holes=1
+   at=95 lead=0x82 trail=0x22 ("\"")
+L220 srcs=221 holes=1
+   at=80 lead=0x82 trail=0x22 ("\"")
+L225 srcs=226 holes=1
+   at=34 lead=0x82 trail=0x22 ("\"")
+L263 srcs=264 holes=1
+   at=46 lead=0xa8 trail=0x22 ("\"")
+L265 srcs=266 holes=1
+   at=39 lead=0x90 trail=0x22 ("\"")
+L268 srcs=269 holes=2
+   at=32 lead=0x3f trail=0x20 (" ")
+   at=77 lead=0xa5 trail=0x22 ("\"")
+L269 srcs=270 holes=1
+   at=74 lead=0x9a trail=0x22 ("\"")
+L270 srcs=271 holes=2
+   at=50 lead=0x3f trail=0x3f ("?")
+   at=51 lead=0x3f trail=0x20 (" ")
+L272 srcs=273 holes=1
+   at=49 lead=0x3f trail=0x20 (" ")
+L286 srcs=287 holes=1
+   at=28 lead=0x3f trail=0x20 (" ")
+L289 srcs=290 holes=4
+   at=32 lead=0x3f trail=0x20 (" ")
+   at=59 lead=0x3f trail=0x20 (" ")
+   at=82 lead=0x88 trail=0x22 ("\"")
+   at=107 lead=0xbb trail=0x93 ("")
