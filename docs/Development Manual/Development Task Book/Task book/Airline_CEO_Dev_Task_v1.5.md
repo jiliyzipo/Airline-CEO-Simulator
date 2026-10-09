@@ -4,8 +4,8 @@
 **适用对象：** 独立开发者（无编程基础，依赖 AI 编程）  
 **核心目标：** 将 GDD 策划案转化为 Unity C# 可执行代码的精确指令。  
 **工程根目录：** `Unity Project/`  
-**现行版本：** 请以 **v1.5** 为准（v1.0～v1.4 仅作历史存档）  
-**章节对齐：** 与 [`Airline_CEO_Dev_Roadmap_v1.5.md`](../GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.5.md) **一～四** 同序同名
+**现行版本：** 请以 **v1.6** 为准（本文件 v1.5 为历史存档）  
+**章节对齐：** 与 [`Airline_CEO_Dev_Roadmap_v1.7.md`](../GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.7.md) 对照；施工请改用 [`Airline_CEO_Dev_Task_v1.6.md`](Airline_CEO_Dev_Task_v1.6.md)
 
 ---
 
@@ -18,7 +18,7 @@
 | v1.2 | 玩家文案通俗化；综合评定；Phase 1：ActionExecutor |
 | v1.3 | 体验扩展 Phase 1～6（续聘投票） |
 | v1.4 | Phase 7 / AOG / 章节对齐路线图；AOG Play 验收 |
-| **v1.5** | Phase 8～10 已验收（含对冲引导、**机队管理 Play ✅ 2026-08-03**）；现行施工图 |
+| **v1.5** | Phase 8～10 已验收（含对冲引导、**机队管理 Play ✅ 2026-08-03**）；Phase 11 初稿；**已被 v1.6 取代为现行施工图** |
 
 ---
 
@@ -73,7 +73,8 @@
 | **Phase 9** | **燃油对冲与融资（GDD 7.4）** | **HedgeManager, LoanManager, FinancePanelUI** | **✅ 已验收** | **2.15** |
 | **Phase 9 UX** | **财务顾问引导 / 对冲新手体验** | **HedgeTutorialUI, 预设方案, ACEO_HasSeenHedgeTutorial** | **✅ 已验收** | **2.15.1** |
 | **Phase 10** | **机队管理系统（GDD 11 / 16）** | **FleetManager, FleetUI, FleetPurchaseUI** | **✅ 已验收** | **2.16** |
-| Phase 8+ | 机队精修 / 美术 / 事故调查深度 等 | 待定 | ⬜ | 2.17 |
+| **Phase 11** | **AI 竞争对手（GDD 9.2）** | **AIManager, CompetitionManager, CompetitionUI** | **🔧 待验收** | **2.17** |
+| Phase 8+ | 机队精修 / 美术 / 事故调查深度 等 | 待定 | ⬜ | 2.18 |
 
 **工程骨架（五文件夹）：**
 
@@ -625,17 +626,34 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 
 ---
 
-### 2.17 Phase 8+（后续）⬜
+### 2.17 Phase 11 · AI 竞争对手系统 🔧 待验收
+
+> 对应 GDD 第 9.2 节。市场面板「竞争态势」：份额条、AI 卡片、代码共享。
+
+| 子项 | 说明 | 文件 |
+| :--- | :--- | :--- |
+| 11.1 数据 | `AIAirline` + 四类型 / 四状态 | `Data/AIAirline.cs` |
+| 11.2 状态机 | 稳态/进攻/防御/垂死；扩张打玩家航线；破产与 2 年复活 | `Systems/AIManager.cs` |
+| 11.3 竞争 | ASK 份额、重叠压力（客座/品牌）、代码共享接受/拒绝/撕毁 | `CompetitionManager.cs` |
+| 11.4 UI | 市场双页签「航线分析 / 竞争态势」 | `UI/CompetitionUI.cs` · `MVPBootstrap` |
+| 存档 | `ACEO_AIAirlines` | `SaveManager` |
+| 调试 | Force Expansion / Dying / Kill / Propose Code Share | `Phase11DebugMenu` |
+
+**验收步骤（Play）：** 清档 → Play → 市场→竞争态势见 4 家 AI 与份额条 → Debug Force AI Expansion → 推进一季看进攻日志 → Force Dying → 再推进破产 → Propose Code Share 接受/撕毁 → F5/F9。  
+**验收结果：** ⬜ 待 Play
+
+### 2.18 Phase 8+（后续）⬜
 
 | 候选 | 对应路线图 / GDD | 状态 |
 | :--- | :--- | :---: |
 | 化学反应可视化精修 | ChemistryMatcher UI | ⬜ |
 | 机队美术精修 | — | ⬜ |
 | 事故调查深度选项 | SAF 快速/标准/深度 | ⬜ |
+| 随机事件 / 宏观 / UI | Phase 12～14 | ⬜ |
 
 ---
 
-### 2.18 编辑器工具与清档 ✅
+### 2.19 编辑器工具与清档 ✅
 
 > 辅助节（非路线图阶段表行项）。避免 `Edit → Clear All PlayerPrefs` 误删 API Key。
 
@@ -646,6 +664,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | `Debug/HR Force Resign OPS` | `Editor/Phase8DebugMenu.cs` | Play 中强制运营部离职 |
 | `Debug/Force Cash Crisis` | `Editor/Phase9DebugMenu.cs` | Play 中强制跑道 &lt; 3 月 |
 | `Debug/Grant Fleet Cash` / `Add Random Aircraft` / `Force Fleet Age +1` | `Editor/Phase10DebugMenu.cs` | 机队采购与老化调试 |
+| `Debug/Force AI Expansion` / `Dying` / `Kill` / `Propose Code Share` | `Editor/Phase11DebugMenu.cs` | AI 竞对调试 |
 | `Debug/移除北京-伦敦航线（复测航权）` | Phase7 | 复测航权被拒 |
 | `Setup MVP Scene Objects` | `Editor/SetupMVPScene.cs` | 含 FleetManager 等 |
 | `Set DeepSeek API Key` | `SetupMVPScene.cs` | 本机 Key |
@@ -677,6 +696,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | 燃油对冲 / 融资（第7.4节） | HedgeManager + LoanManager + FinancePanelUI | Phase 9 | ✅ 已验收 | 2.15 |
 | 财务顾问引导 / 对冲新手体验 | HedgeTutorialUI + 三套预设 + 存档标记 | Phase 9 UX | ✅ 已验收 | 2.15.1 |
 | 机队管理（第11 / 16章） | FleetManager + FleetUI + FleetPurchaseUI | Phase 10 | ✅ 已验收 | 2.16 |
+| AI 竞争对手（第9.2节） | AIManager + CompetitionManager + CompetitionUI | Phase 11 | 🔧 待验收 | 2.17 |
 
 ---
 
@@ -688,7 +708,7 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - **15～30分钟**：AOG 危机 ✅ 已验收（§2.12 · 2026-08-01）
 - **30～60分钟**：董事会目标 + 年度结算 ✅（§2.9～2.10）
 - **60～120分钟**：安全事件 + 航权审批 + 扩张提案 ✅ 已验收（§2.11、§2.13 · 2026-08-01）
-- **120分钟以后**：部门管理 / 任命 ✅（§2.14）；燃油对冲与融资 + 财务顾问引导 ✅（§2.15 / §2.15.1）；机队管理 ✅ 已验收（§2.16 · 2026-08-03）；其余 Phase 8+（§2.17） ⬜
+- **120分钟以后**：部门管理 / 任命 ✅（§2.14）；燃油对冲与融资 + 财务顾问引导 ✅（§2.15 / §2.15.1）；机队管理 ✅ 已验收（§2.16 · 2026-08-03）；AI 竞对 🔧 待验收（§2.17）；其余（§2.18） ⬜
 
 ---
 
@@ -706,10 +726,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 ## 附录 B：给 Cursor 的续作提示词模板
 
 ```text
-请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.17 节（Phase 8+）开工，
-并对照 docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.5.md。
-优先建议：化学反应可视化或事故调查深度。
-不要重复实现第 2.1～2.16 节已完成内容（含机队管理）。工程根目录是 Unity Project/。
+请严格按 docs/Development Manual/Airline_CEO_Dev_Task_v1.5.md 第 2.18 节（后续）或路线图 Phase 12 开工，
+并对照 docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.7.md。
+优先建议：随机事件引擎扩展（Phase 12）。
+不要重复实现第 2.1～2.17 节已完成内容（含机队 / AI 竞对）。工程根目录是 Unity Project/。
 完成后同步更新路线图与本任务书状态，并说明验收步骤。
 ```
 
@@ -729,9 +749,10 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 - `Debug/HR Force Resign OPS` / `Debug/HR Run Year-End Loyalty`
 - `Debug/Force Cash Crisis` / `Debug/Force Fuel Spike +20%`
 - `Debug/Grant Fleet Cash +30000` / `Debug/Add Random Aircraft` / `Debug/Force Fleet Age +1 Year`
+- `Debug/Force AI Expansion` / `Force AI Dying` / `Kill AI Competitor` / `Propose Code Share Now`
 - `Debug/移除北京-伦敦航线（复测航权）`
 
 ---
 
 **最后建议：**  
-以 **v1.5** 为现行施工图；Phase 10 机队已验收（§2.16）；下一优先见 §2.17。遇报错把 Console 红字发给 Cursor / Kimi。
+以 **v1.5** 为现行施工图；Phase 11 AI 竞对已实现待验收（§2.17）；下一优先 Phase 12 / §2.18。遇报错把 Console 红字发给 Cursor / Kimi。
