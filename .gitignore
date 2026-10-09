@@ -23,3 +23,9 @@ Unity Project/*.userprefs
 # Office lock files
 **/~$*.docx
 **/~$*.doc
+
+# 生成型产物：在仓库根运行 tools/balance 时会生成
+/STRESS_BALANCE_REPORT.md
+
+# 仓库根的一次性 scratch 样本（_brace_debug.txt / _mnt_full.txt / _saf_full.txt 等）
+/_*.txt
