@@ -26,14 +26,25 @@ function sha256File(abs) {
 
 /**
  * Identity of the committed content, independent of the commit id: a commit
- * that only adds a collaboration record leaves this unchanged, a commit that
- * touches any tracked byte changes it. The gate uses it to tell a stale
+ * that touches any baseline byte changes it. The gate uses it to tell a stale
  * verification from a current one without re-cloning.
+ *
+ * `excludePrefixes` keeps the collaboration records out of the key. They are
+ * bookkeeping *about* the baseline, not the baseline, and without the exemption
+ * every new delivery/review would invalidate the verification that vouches for
+ * the same source tree — including the verification record's own commit.
  */
-export function gitTreeFingerprint(repoRoot) {
+export function gitTreeFingerprint(repoRoot, { excludePrefixes = [] } = {}) {
+  const excluded = excludePrefixes
+    .map((p) => String(p).replace(/\\/g, '/').replace(/\/+$/, ''))
+    .filter(Boolean);
+  const isExcluded = (p) => {
+    const file = p.replace(/\\/g, '/');
+    return excluded.some((prefix) => file === prefix || file.startsWith(`${prefix}/`));
+  };
   const r = git(repoRoot, ['ls-tree', '-r', '--name-only', '-z', 'HEAD']);
   if (r.error || r.status !== 0) return null;
-  const names = r.stdout.split('\0').filter(Boolean).sort();
+  const names = r.stdout.split('\0').filter(Boolean).filter((n) => !isExcluded(n)).sort();
   const blobs = git(repoRoot, ['ls-tree', '-r', '-z', 'HEAD']);
   if (blobs.error || blobs.status !== 0) return null;
   const byPath = new Map();
@@ -44,6 +55,18 @@ export function gitTreeFingerprint(repoRoot) {
   }
   const rows = names.filter((n) => byPath.has(n)).map((n) => `${n}:${byPath.get(n)}`);
   return { fingerprint: sha256Bytes(Buffer.from(rows.join('\n'), 'utf8')), fileCount: rows.length };
+}
+
+/** The collaboration record roots of one config, as git path prefixes. */
+export function recordPrefixes(cfg) {
+  return [cfg.collaborationRoot, cfg.snapshotRoot || 'out/collab', cfg.localRoot || '.collab-local']
+    .filter(Boolean)
+    .map((p) => String(p).replace(/\\/g, '/'));
+}
+
+/** `gitTreeFingerprint` for a config, with its own record directories excluded. */
+export function treeFingerprintFor(cfg) {
+  return gitTreeFingerprint(cfg._repoRoot, { excludePrefixes: recordPrefixes(cfg) });
 }
 
 /**
@@ -96,7 +119,7 @@ export function verifyCleanCheckout(cfg, args = {}) {
       { head: meta.head, changed: sourceChanges.slice(0, 20) },
     );
   }
-  const tree = gitTreeFingerprint(repoRoot);
+  const tree = gitTreeFingerprint(repoRoot, { excludePrefixes: recordPrefixes(cfg) });
   if (!tree) fail(EXIT.CHECK_FAILED, 'cannot read the committed tree of HEAD');
 
   const ccvId = newId('CCV');
@@ -256,7 +279,7 @@ export function latestCleanCheckoutFor(cfg, treeFingerprint) {
  */
 export function currentCheckoutStatus(cfg) {
   const meta = gitMeta(cfg._repoRoot);
-  const tree = meta.head ? gitTreeFingerprint(cfg._repoRoot) : null;
+  const tree = meta.head ? treeFingerprintFor(cfg) : null;
   const record = tree ? latestCleanCheckoutFor(cfg, tree.fingerprint) : null;
   const sourceChanges = dirtyOutsideRecords(cfg, meta.changes);
   return {

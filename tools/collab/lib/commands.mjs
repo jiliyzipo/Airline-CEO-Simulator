@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { developerAuthorization, reviewerAuthorization } from './authorization.mjs';
-import { gitTreeFingerprint, latestCleanCheckoutFor } from './cleancheckout.mjs';
+import { gitTreeFingerprint, latestCleanCheckoutFor, treeFingerprintFor } from './cleancheckout.mjs';
 import { startWatch } from './watch.mjs';
 import path from 'node:path';
 import os from 'node:os';
@@ -1466,7 +1466,7 @@ export function cmdDeliver(cfg, args) {
       // A delivery may only claim the checkout is reproducible when a passing
       // verification of this exact committed tree exists; never inferred.
       ...(() => {
-        const tree = fingerprints.git.head ? gitTreeFingerprint(cfg._repoRoot) : null;
+        const tree = fingerprints.git.head ? treeFingerprintFor(cfg) : null;
         const record = tree ? latestCleanCheckoutFor(cfg, tree.fingerprint) : null;
         return {
           cleanGitCheckoutVerified: !!record && fingerprints.git.dirty === false,

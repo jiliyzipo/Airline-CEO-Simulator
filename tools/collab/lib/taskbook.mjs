@@ -5,7 +5,7 @@ import { collabDirs, localDirs } from './paths.mjs';
 import { ensureDir, nowIso, readJson, writeFileAtomic, writeJsonAtomic } from './io.mjs';
 import { EXIT, fail } from './exit.mjs';
 import { listDeliveries, listIssues, listReviews } from './state.mjs';
-import { gitTreeFingerprint, latestCleanCheckoutFor } from './cleancheckout.mjs';
+import { gitTreeFingerprint, latestCleanCheckoutFor, treeFingerprintFor } from './cleancheckout.mjs';
 import { gitMeta } from './fingerprint.mjs';
 
 const sha = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
@@ -375,7 +375,7 @@ function finishTaskGate(cfg, task, taskId, parts, { mapping, clause = null, unch
     // delivery-only rule made this check impossible to pass by construction.
     const declared = latestDelivery?.git?.cleanGitCheckoutVerified === true;
     const head = latestDelivery?.git?.head || gitMeta(cfg._repoRoot).head || null;
-    const tree = head ? gitTreeFingerprint(cfg._repoRoot) : null;
+    const tree = head ? treeFingerprintFor(cfg) : null;
     const record = tree ? latestCleanCheckoutFor(cfg, tree.fingerprint) : null;
     const ok = declared || !!record;
     parts.push({

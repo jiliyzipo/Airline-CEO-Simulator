@@ -148,11 +148,33 @@ await test('CCV07', 'a later commit invalidates the record instead of vouching f
 
   fs.appendFileSync(path.join(root, 'src/b.cs'), 'class C { }\n');
   commit(root, 'change source');
-  const tree = ccv.gitTreeFingerprint(root);
+  const tree = ccv.treeFingerprintFor(cfg);
   assert.equal(ccv.latestCleanCheckoutFor(cfg, tree.fingerprint), null);
   assert.equal(ccv.currentCheckoutStatus(cfg).verified, false);
   // The old record still exists: staleness is reported, history is not rewritten.
   assert.equal(ccv.listCleanCheckouts(cfg).filter((r) => r.ccvId === result.ccvId).length, 1);
+});
+
+await test('CCV07B', 'a commit that only appends collaboration records keeps the record valid', () => {
+  const { root, cfg } = repoFixture();
+  ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
+  const before = ccv.currentCheckoutStatus(cfg).verified;
+  assert.equal(before, true);
+
+  // Recording the result, a delivery, a review: all bookkeeping about the same
+  // baseline. None of it may invalidate the verification it documents.
+  fs.mkdirSync(path.join(root, 'docs/collaboration/verifications'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'docs/collaboration/verifications/CCV-x.json'), '{}\n');
+  fs.mkdirSync(path.join(root, 'docs/collaboration/deliveries'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'docs/collaboration/deliveries/DEL-x.json'), '{}\n');
+  commit(root, 'append collaboration records');
+
+  const after = ccv.currentCheckoutStatus(cfg);
+  assert.equal(after.verified, true, JSON.stringify(after));
+  // But a source change still invalidates it.
+  fs.appendFileSync(path.join(root, 'src/b.cs'), 'class D { }\n');
+  commit(root, 'change source');
+  assert.equal(ccv.currentCheckoutStatus(cfg).verified, false);
 });
 
 await test('CCV08', 'evidence files are bound by hash and require a statement', () => {
