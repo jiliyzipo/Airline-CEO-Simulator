@@ -51,6 +51,22 @@ CCV 只声明"每个跟踪文件都被逐字节重建"。Unity 导入、编译�
 
 依赖这一点，验证记录本身可以进版本库，成为可复查的证据，而不是只躺在某台机器的磁盘上。
 
+## 顺带修掉的文档阶段缺陷
+
+在提交验证记录后跑收口时暴露：只改文档的阶段，快照里**一个被交付的文档都没有**。原因是 `IMPLEMENTATION_ROOTS`／`VERIFICATION_ROOTS` 只覆盖代码与工具，而自动建阶段任务时没有声明 `snapshotRoots`，于是：
+
+- 交付快照缺文档，评审者看不到"本阶段改了什么"；
+- `smoke` 预检要求快照内有 `docs/collaboration/PROTOCOL.md`，而导出根本没复制它 → 预检必失败，`stage close` 对任何纯文档阶段都是死路。
+
+修法（`stage.mjs`）：
+
+- 新增 `scopeFromChanges()`：按改动路径推导快照范围，目录取两段（`docs/handoff`、`Unity Project/Assets`），仓库根下的散文件按单文件钉住。
+- 自动创建的任务显式声明 `snapshotRoots = 默认根 ∪ 改动范围 ∪ 该 profile 需要的支撑根`，`snapshotFiles` 补上 profile 直接读取的文件（`smoke` → `docs/collaboration/PROTOCOL.md`）。
+- `--roots` 仍然**精确**：调用者钉死范围时不自动加宽，避免交付与声明意图不一致。
+- 新增 T15：真实 `smoke` profile 下，纯文档阶段能通过预检，且交付快照确实含该文档。旧行为在这条用例下会失败。
+
+完整回归：**143 / 143**。
+
 ## 测试
 
 `tools/collab/tests/cleancheckout.test.mjs`，9 项，已并入 `run-all.mjs`：

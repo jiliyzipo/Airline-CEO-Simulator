@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const source = path.resolve(
@@ -229,8 +230,64 @@ await test('T14', '--roots narrows the delivery snapshot to the declared scope',
   );
 });
 
-/* --- independent-review regressions: SA01..SA05 --------------------------- */
+await test('T15', 'a docs-only stage delivers its docs and can run its own profile', () => {
+  const dir = path.join(root, String(++serial));
+  fs.cpSync(source, path.join(dir, 'tools/collab'), { recursive: true });
+  const base = JSON.parse(fs.readFileSync(path.join(source, 'config.example.json'), 'utf8'));
+  const cfg = {
+    ...base,
+    _repoRoot: dir,
+    projectId: 'stage-fixture',
+    taskBook: { tasks: {}, completionTasks: [] },
+    // The real smoke profile reads the CLI and the protocol file; using it here
+    // is what proves the snapshot actually contains what the profile reads.
+    profiles: { smoke: base.profiles.smoke },
+  };
+  put(dir, 'tools/collab/config.json', cfg);
+  put(dir, 'docs/collaboration/PROTOCOL.md', '# fixture protocol');
+  put(dir, 'docs/handoff/base.md', '# base');
+  cmd.cmdInit(cfg);
 
+  const git = (argv) => spawnSync('git', argv, { cwd: dir, encoding: 'utf8', windowsHide: true });
+  assert.equal(git(['init', '-q', '-b', 'main']).status, 0);
+  git(['config', 'user.name', 'fixture']);
+  git(['config', 'user.email', 'fixture@example.invalid']);
+  assert.equal(git(['add', '-A']).status, 0);
+  assert.equal(git(['commit', '-q', '-m', 'init']).status, 0);
+
+  put(dir, 'docs/handoff/new-note.md', '# new note');
+  const dry = stage.cmdStageClose(cfg, { 'dry-run': true });
+  assert.equal(dry.dryRun, true);
+  assert.equal(dry.profile, 'smoke');
+  assert.ok(
+    dry.wouldCreateTask.snapshotRoots.includes('docs/handoff'),
+    JSON.stringify(dry.wouldCreateTask.snapshotRoots),
+  );
+  assert.ok(
+    dry.wouldCreateTask.snapshotRoots.includes('tools/collab'),
+    'the profile support root must be declared',
+  );
+  const covered = (file) =>
+    (dry.wouldCreateTask.snapshotFiles || []).includes(file) ||
+    dry.wouldCreateTask.snapshotRoots.some((r) => file === r || file.startsWith(`${r}/`));
+  assert.ok(
+    covered('docs/collaboration/PROTOCOL.md'),
+    'the file the profile reads must be in the declared scope',
+  );
+
+  // And the real run must pass preflight: previously the snapshot held no docs
+  // at all, so the smoke check failed on a file the export never copied.
+  const out = stage.cmdStageClose(cfg, {});
+  assert.equal(out.exitCode, 0);
+  const task = state.loadTask(cfg, out.taskId);
+  assert.ok(task.snapshotRoots.includes('docs/handoff'));
+  const delivery = io.readJson(path.join(dir, `docs/collaboration/deliveries/${out.deliveryId}.json`));
+  const paths = delivery.snapshotManifest.entries.map((e) => String(e.path).replace(/\\/g, '/'));
+  assert.ok(paths.includes('docs/handoff/new-note.md'), 'the delivered document is in the snapshot');
+  assert.equal(out.preflight?.ok, true);
+});
+
+/* --- independent-review regressions: SA01..SA05 --------------------------- */
 await test('SA03', 'an acceptance criterion without a machine mapping is never written as passed', () => {
   const f = fixture();
   const task = state.loadTask(f.cfg, 'C-DEMO');

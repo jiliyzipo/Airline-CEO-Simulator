@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018132407-f0b6ef",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 252,
+  "at": "2026-10-18T13:24:07.615Z",
+  "actor": "cursor",
+  "action": "stage-close",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261018132401-c5d111",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "stage-close profile=smoke preflight=fail",
+  "data": {
+    "profile": "smoke",
+    "handoffFile": "out/collab/handoff/DEL-20261018132401-c5d111.md"
+  }
+}

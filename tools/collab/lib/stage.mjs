@@ -37,12 +37,17 @@ import {
   writeJsonAtomic,
 } from './io.mjs';
 import {
+  IMPLEMENTATION_ROOTS,
+  VERIFICATION_ROOTS,
   collectEntries,
+  dedupeRoots,
   gitMeta,
   isArtifactDirName,
   isGeneratedFileName,
   snapshotRootsFor,
 } from './fingerprint.mjs';
+
+const dedupePaths = dedupeRoots;
 import { resolveTaskRoots } from './roots.mjs';
 import {
   generateSummaries,
@@ -195,6 +200,44 @@ function summaryByArea(changed) {
 /* ------------------------------------------------------------------ */
 
 const PROFILE_ORDER = ['unity-editmode', 'compile', 'slot', 'collab', 'smoke'];
+
+/**
+ * What the deciding profile itself reads. A snapshot that omits these cannot
+ * run its own check, so an auto-created stage declares them explicitly instead
+ * of hoping the default roots happen to cover them.
+ *
+ * `smoke` reads the CLI and the collaboration protocol; a docs-only stage has
+ * neither in its changed set, so it must ask for them.
+ */
+const PROFILE_SUPPORT_ROOTS = {
+  smoke: ['tools/collab'],
+};
+const PROFILE_SUPPORT_FILES = {
+  smoke: ['docs/collaboration/PROTOCOL.md'],
+};
+
+/**
+ * Snapshot scope implied by the changed files.
+ *
+ * Without this, a docs-only stage got the code roots and a snapshot that did
+ * not contain a single delivered document: the delivery claimed a change the
+ * reviewer could not see, and the smoke preflight failed on a file the export
+ * never copied. Directories are taken two segments deep ('Unity Project/Assets',
+ * 'docs/handoff'), root-level files are pinned by path because their directory
+ * is the whole repository.
+ */
+export function scopeFromChanges(changed) {
+  const roots = new Set();
+  const files = new Set();
+  for (const row of changed) {
+    const p = norm(row.path);
+    if (!p) continue;
+    const segments = p.split('/').filter(Boolean);
+    if (segments.length <= 1) files.add(p);
+    else roots.add(segments.slice(0, 2).join('/'));
+  }
+  return { roots: [...roots].sort(), files: [...files].sort() };
+}
 
 /**
  * Pick the single deciding profile for the stage.
@@ -833,6 +876,24 @@ export function cmdStageClose(cfg, args = {}) {
   if (!task) {
     const taskId = args.task || nextStageTaskId(cfg, areaNames);
     const pick = selectProfile(cfg, diff.changed, { profile: args.profile, unity: args.unity });
+    // Declare what this stage actually delivers plus what its profile reads.
+    // Keeping the default roots and adding the changed scope means a code stage
+    // behaves exactly as before while a docs stage stops exporting an empty set.
+    const derived = scopeFromChanges(diff.changed);
+    // `--roots` stays exact: the caller pinned the scope, and silently widening
+    // it would make the delivery disagree with the declared intent.
+    const snapshotRoots = requestedRoots
+      ? requestedRoots
+      : dedupePaths([
+          ...IMPLEMENTATION_ROOTS,
+          ...VERIFICATION_ROOTS,
+          ...derived.roots,
+          ...(PROFILE_SUPPORT_ROOTS[pick.profile] || []),
+        ]);
+    const snapshotFiles = dedupePaths([
+      ...derived.files,
+      ...(requestedRoots ? [] : PROFILE_SUPPORT_FILES[pick.profile] || []),
+    ]).filter((f) => !snapshotRoots.some((r) => f === r || f.startsWith(`${r}/`)));
     const definition = {
       taskId,
       title: args.title || `阶段 ${taskId}：${areaNames.slice(0, 3).join('/') || '改动'}`,
@@ -844,7 +905,8 @@ export function cmdStageClose(cfg, args = {}) {
       acceptanceCriteria: acceptanceCriteriaFor(pick.profile, taskId),
       dependencies: [],
       sourceTaskBook: 'stage:auto',
-      ...(requestedRoots ? { snapshotRoots: requestedRoots } : {}),
+      snapshotRoots,
+      ...(snapshotFiles.length > 0 ? { snapshotFiles } : {}),
     };
     if (args['dry-run']) {
       return {
