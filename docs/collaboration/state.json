@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 253,
-  "updatedAt": "2026-10-18T13:24:25.743Z",
+  "revision": 255,
+  "updatedAt": "2026-10-18T13:35:08.638Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -70,9 +70,9 @@
     "S02-Collab": {
       "title": "阶段 S02-Collab：Collab",
       "devStatus": "ready_for_review",
-      "reviewStatus": "passed",
+      "reviewStatus": "queued",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "current",
       "taskBookStatus": null,
       "updatedAt": "2026-10-18T13:03:21.389Z"
     },
@@ -81,12 +81,12 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "queued",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-18T13:23:57.199Z"
     }
   },
-  "lastDeliveryId": "DEL-20261018132401-c5d111",
+  "lastDeliveryId": "DEL-20261018133503-848c0c",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

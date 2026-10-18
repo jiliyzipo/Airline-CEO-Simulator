@@ -126,6 +126,23 @@ await test('CCV05', 'collaboration output written by the tool does not block the
   assert.equal(result.ok, true);
 });
 
+await test('CCV05B', 'a tracked record rewritten by the tool is counted, not judged', () => {
+  const { root, cfg } = repoFixture();
+  const recordPath = path.join(root, 'docs/collaboration/PROTOCOL.md');
+  fs.writeFileSync(recordPath, '# protocol v1\n');
+  commit(root, 'add protocol');
+  const first = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
+  assert.equal(first.ok, true);
+  assert.equal(first.recordFileCount, 1);
+
+  // Writing the record changed its bytes but not the baseline; the working copy
+  // now differs from the clone, which must not be reported as irreproducible.
+  fs.writeFileSync(recordPath, '# protocol v1\n\n- new note\n');
+  const second = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
+  assert.equal(second.ok, true, JSON.stringify(second));
+  assert.equal(second.differentCount, 0);
+});
+
 await test('CCV06', 'a directory that is not a git repository fails closed', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-nogit-'));
   const cfg = {

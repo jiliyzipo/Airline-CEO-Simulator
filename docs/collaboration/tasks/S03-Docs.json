@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "queued",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Docs",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:23:57.199Z",
-  "updatedAt": "2026-10-18T13:24:25.650Z",
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "updatedAt": "2026-10-18T13:34:59.244Z",
+  "freshnessNote": "Delivery snapshot differs from current workspace.",
   "staleForReviewId": null
 }

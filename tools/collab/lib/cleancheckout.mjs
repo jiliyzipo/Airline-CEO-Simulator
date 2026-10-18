@@ -148,16 +148,26 @@ export function verifyCleanCheckout(cfg, args = {}) {
       fail(EXIT.CHECK_FAILED, 'cannot list tracked files in the clean clone');
     }
     const files = listed.stdout.split('\0').filter(Boolean);
+    // Records are bookkeeping about the baseline. Writing a delivery or an
+    // event changes their bytes in the working tree while the cloned copy still
+    // has the committed version; comparing them would report the tool's own
+    // output as an irreproducible baseline. They are counted, not judged.
+    const isRecord = (rel) => {
+      const p = rel.replace(/\\/g, '/');
+      return recordPrefixes(cfg).some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
+    };
+    const baselineFiles = files.filter((rel) => !isRecord(rel));
+    const recordFiles = files.filter(isRecord);
     const different = [];
     const missing = [];
-    for (const rel of files) {
+    for (const rel of baselineFiles) {
       const inClone = path.join(cloneRoot, rel);
       const inWork = path.join(repoRoot, rel);
       if (!fs.existsSync(inClone)) { missing.push(`clone:${rel}`); continue; }
       if (!fs.existsSync(inWork)) { missing.push(`work:${rel}`); continue; }
       if (sha256File(inClone) !== sha256File(inWork)) different.push(rel);
     }
-    const ok = files.length > 0 && different.length === 0 && missing.length === 0;
+    const ok = baselineFiles.length > 0 && different.length === 0 && missing.length === 0;
 
     // Optional evidence files: recorded by hash so a later claim is bound to the
     // exact bytes somebody actually inspected (Unity log, NUnit XML, screenshot).
@@ -201,14 +211,16 @@ export function verifyCleanCheckout(cfg, args = {}) {
         String(cfg.localRoot || '.collab-local'),
       ],
       fileCount: files.length,
-      byteIdentical: files.length - different.length - missing.length,
+      baselineFileCount: baselineFiles.length,
+      recordFileCount: recordFiles.length,
+      byteIdentical: baselineFiles.length - different.length - missing.length,
       different: different.slice(0, 200),
       differentCount: different.length,
       missing: missing.slice(0, 200),
       missingCount: missing.length,
       ok,
       claims:
-        'Every file tracked at gitHead is reproduced byte-for-byte by "git clone" of this repository into an empty directory.',
+        'Every baseline file tracked at gitHead is reproduced byte-for-byte by "git clone" of this repository into an empty directory. Collaboration records are excluded: they are notes about the baseline, and writing one changes it.',
       doesNotClaim:
         'Unity editor import, compilation or gameplay launch from the clone. Those need their own recorded run and evidence.',
       evidence,
@@ -225,6 +237,8 @@ export function verifyCleanCheckout(cfg, args = {}) {
       branch: meta.branch || null,
       treeFingerprint: tree.fingerprint,
       fileCount: files.length,
+      baselineFileCount: baselineFiles.length,
+      recordFileCount: recordFiles.length,
       byteIdentical: record.byteIdentical,
       differentCount: different.length,
       missingCount: missing.length,
@@ -235,7 +249,8 @@ export function verifyCleanCheckout(cfg, args = {}) {
       report: [
         `干净检出验证：${ccvId}`,
         `HEAD：${meta.head}（${meta.branch || 'detached'}）`,
-        `跟踪文件：${files.length} · 逐字节相同：${record.byteIdentical}`,
+        `基线文件：${baselineFiles.length} · 逐字节相同：${record.byteIdentical}`,
+        `协作记录：${recordFiles.length}（不计入比对）`,
         `差异：${different.length} · 缺失：${missing.length}`,
         evidence.length ? `附加证据：${evidence.length} 个文件（已记录 SHA256）` : '附加证据：无',
         '',
