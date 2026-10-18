@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 257,
-  "updatedAt": "2026-10-18T13:41:18.501Z",
+  "revision": 258,
+  "updatedAt": "2026-10-18T13:43:08.209Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",

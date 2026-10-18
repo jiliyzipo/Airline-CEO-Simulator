@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:03:21.389Z",
-  "updatedAt": "2026-10-18T13:41:18.494Z",
-  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "updatedAt": "2026-10-18T13:43:06.740Z",
+  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
   "staleForReviewId": null
 }
