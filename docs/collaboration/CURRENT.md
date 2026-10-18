@@ -1,10 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-18T13:49:10.729Z
-状态 revision：260
-Cursor 最近确认读取：revision 258 @ 2026-10-18T13:44:24.286Z
+生成时间：2026-10-18T13:54:21.092Z
+状态 revision：265
+Cursor 最近确认读取：revision 265 @ 2026-10-18T13:54:20.974Z
 Codex 最近确认读取：revision 259 @ 2026-10-18T13:49:03.915Z
-> 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -24,8 +23,8 @@ Codex 最近确认读取：revision 259 @ 2026-10-18T13:49:03.915Z
   - Delivery matches current fingerprints; awaiting review.
 - **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261018103950-3b9460 passed delivery DEL-20261018102500-1304ad; current workspace needs re-review.
-- **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
-  - Delivery snapshot differs from current workspace.
+- **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018134910-387fd9 still applies to delivery DEL-20261018134113-f7d6ec.
 - **S03-Docs** 阶段 S03-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
@@ -47,7 +46,7 @@ Codex 最近确认读取：revision 259 @ 2026-10-18T13:49:03.915Z
 
 ## 最新检测
 
-- REV-20261018134910-387fd9 → delivery DEL-20261018134113-f7d6ec status=queued · 独立检测角色 @ 2026-10-18T13:49:10.560Z
+- REV-20261018134910-387fd9 → delivery DEL-20261018134113-f7d6ec status=passed · 独立检测角色 @ 2026-10-18T13:50:37.113Z
 
 ## 开放缺陷
 

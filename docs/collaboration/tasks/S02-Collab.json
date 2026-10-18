@@ -5,8 +5,8 @@
   "title": "阶段 S02-Collab：Collab",
   "revision": 1,
   "devStatus": "ready_for_review",
-  "reviewStatus": "running",
-  "freshness": "stale",
+  "reviewStatus": "passed",
+  "freshness": "current",
   "holder": null,
   "scope": [
     "本阶段改动范围：Collab",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:03:21.389Z",
-  "updatedAt": "2026-10-18T13:49:11.693Z",
-  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "updatedAt": "2026-10-18T13:51:39.997Z",
+  "freshnessNote": "Review REV-20261018134910-387fd9 still applies to delivery DEL-20261018134113-f7d6ec.",
   "staleForReviewId": null
 }

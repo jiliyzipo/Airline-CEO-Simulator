@@ -157,6 +157,10 @@ node tools/collab/cli.mjs stage-review --delivery DEL-xxx --actor codex --covera
 
 它只声明"每个跟踪文件都被逐字节重建"，**不声明** Unity 导入、编译或启动成功——那需要单独跑一次并作为 `evidence` 附上。记录的 `treeFingerprint` 一旦遇到新提交就自动失效，闸门随即回到未通过，不会拿旧记录给新内容背书。
 
+**闸门对谁说真话：** `clean-git-checkout` 判断的是**已提交的 HEAD**，不是工作区。验证通过后再改源码但不提交，闸门仍是绿的——因为"HEAD 可复现"这件事确实成立。所以绿灯的含义是"这个提交可以被别人克隆重现"，不是"我本机现在改的东西也没问题"。要检查本机当前状态，直接跑 `clean-checkout-verify`：有未提交源码时它拒绝验证（退出码 3）。
+
+**不要在检测运行期间提交。** 复验过程会分几次写入同一份 REV 记录（先 `running`，结束后 `passed`）。此时执行 `git add -A` 会把半成品状态一起提交，之后还得再提一次差异。等 `stage review` 返回后再提交。
+
 ---
 
 ## 7. 仍然需要人工的三件事
