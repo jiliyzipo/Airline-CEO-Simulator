@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018134910-387fd9",
+  "deliveryId": "DEL-20261018134113-f7d6ec",
+  "taskId": "S02-Collab",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "running",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "6e5b03fc7a216a74d9b0b82e376e9c91bf1a18dbe7418a0a6252f291801d6c6a",
+    "verification": "ab7a92068cd2ee904cbfc561d6dc6ab568692370cd3ce281e6b09266402063a7",
+    "contract": "e1d3eea6b5ff431592942c749694ad7b8e27a1227ce093f0399b589accdcb7e3"
+  },
+  "snapshotPath": "out/collab/DEL-20261018134113-f7d6ec",
+  "createdAt": "2026-10-18T13:49:10.560Z",
+  "updatedAt": "2026-10-18T13:49:11.679Z",
+  "runs": [],
+  "coverage": [],
+  "issues": [],
+  "workerPid": 40392,
+  "activeRunToken": "23393689a1230eda",
+  "activeRunStartedAt": "2026-10-18T13:49:11.679Z"
+}

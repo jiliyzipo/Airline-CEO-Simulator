@@ -1,9 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-18T13:42:38.164Z
-状态 revision：257
-Cursor 最近确认读取：revision 256 @ 2026-10-18T13:41:09.260Z
-Codex 最近确认读取：revision 244 @ 2026-10-18T13:14:30.827Z
+生成时间：2026-10-18T13:49:10.729Z
+状态 revision：260
+Cursor 最近确认读取：revision 258 @ 2026-10-18T13:44:24.286Z
+Codex 最近确认读取：revision 259 @ 2026-10-18T13:49:03.915Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
@@ -24,7 +24,7 @@ Codex 最近确认读取：revision 244 @ 2026-10-18T13:14:30.827Z
   - Delivery matches current fingerprints; awaiting review.
 - **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261018103950-3b9460 passed delivery DEL-20261018102500-1304ad; current workspace needs re-review.
-- **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=queued · freshness=current · holder=-
+- **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
 - **S03-Docs** 阶段 S03-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
@@ -47,7 +47,7 @@ Codex 最近确认读取：revision 244 @ 2026-10-18T13:14:30.827Z
 
 ## 最新检测
 
-- REV-20261018131438-908885 → delivery DEL-20261018130325-dd2da0 status=passed · 独立检测角色 @ 2026-10-18T13:15:46.574Z
+- REV-20261018134910-387fd9 → delivery DEL-20261018134113-f7d6ec status=queued · 独立检测角色 @ 2026-10-18T13:49:10.560Z
 
 ## 开放缺陷
 
