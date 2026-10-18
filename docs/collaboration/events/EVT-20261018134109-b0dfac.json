@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018134109-b0dfac",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 256,
+  "at": "2026-10-18T13:41:09.235Z",
+  "actor": "system",
+  "action": "sync",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "sync revision=256",
+  "data": {
+    "freshness": [
+      {
+        "taskId": "C-COLLAB-FINAL",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018072743-74a233 passed delivery DEL-20261018071756-010504; current workspace needs re-review.",
+        "implementationFingerprint": "8ffa3e62db9d941e906726d49787edc83f6df18663d2fb92eb9c9bfdf1619009",
+        "verificationFingerprint": "1c923db616fd6fbe04de65997f307bb689ec453f139a67906558ce8ce3de455a",
+        "pairedDeliveryId": "DEL-20261018071756-010504",
+        "pairedReviewId": "REV-20261018072743-74a233"
+      },
+      {
+        "taskId": "C-DEMO",
+        "freshness": "stale",
+        "note": "Latest delivery DEL-20261018035835-766dc7 review REV-20261018041820-9f4b26 failed.",
+        "implementationFingerprint": "0b722ab5319739a90af4d6c89ce5d225fc8a3c66d353a056a94db7425925c128",
+        "verificationFingerprint": "97796810786c3c63f18e322bd696b866f8e05bb0e3677efdca5ac9cfa042ef2d",
+        "pairedDeliveryId": "DEL-20261018035835-766dc7",
+        "pairedReviewId": "REV-20261018041820-9f4b26"
+      },
+      {
+        "taskId": "C-ENG-COMPILE",
+        "freshness": "current",
+        "note": "Review REV-20261018033359-8f89f1 still applies to delivery DEL-20261018033139-af5cca.",
+        "implementationFingerprint": "22aac21aa9911c86a718c1c4792ef141e7f72a4d8524a2b72cb2205e34271a58",
+        "verificationFingerprint": "85a98cf4ace241696810fc7e3a6a39d49d031a74f2ed2f479564d072d6c619c9",
+        "pairedDeliveryId": "DEL-20261018033139-af5cca",
+        "pairedReviewId": "REV-20261018033359-8f89f1"
+      },
+      {
+        "taskId": "C-ENG-SLOT",
+        "freshness": "current",
+        "note": "Review REV-20261018033157-6550bc still applies to delivery DEL-20261018033145-e77a66.",
+        "implementationFingerprint": "9af30cf63cb24136b711b920c18a9644a9cae6452c94099e7b24f0888144182d",
+        "verificationFingerprint": "ecc34149f5a7ff43fc1356cc7a48aed201b70e92d43edd95393c531db86577d3",
+        "pairedDeliveryId": "DEL-20261018033145-e77a66",
+        "pairedReviewId": "REV-20261018033157-6550bc"
+      },
+      {
+        "taskId": "C-ENG-UNITY",
+        "freshness": "current",
+        "note": "Review REV-20261018033542-0f4993 still applies to delivery DEL-20261018033132-39a1e3.",
+        "implementationFingerprint": "c86f333ea49ac2c60d304fee522ff3ce8693f18368375aa318e877ae94d08d93",
+        "verificationFingerprint": "46071d9665223bcbd2fa305273884a3b9839b41406dd7061bc0039e15a53b6f0",
+        "pairedDeliveryId": "DEL-20261018033132-39a1e3",
+        "pairedReviewId": "REV-20261018033542-0f4993"
+      },
+      {
+        "taskId": "C-ENG",
+        "freshness": "current",
+        "note": "Delivery matches current fingerprints; awaiting review.",
+        "implementationFingerprint": "39dad7ced68acee9672888d951dbd3e0070676660c8fa43f07de5d849a889ee8",
+        "verificationFingerprint": "0bce3574d3830672e85b417351a5ff180dfc2c4da3569374261b19e57f726b45",
+        "pairedDeliveryId": "DEL-20261018032237-012f93",
+        "pairedReviewId": "REV-20261018032957-255eb1"
+      },
+      {
+        "taskId": "S01-COLLAB",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018103950-3b9460 passed delivery DEL-20261018102500-1304ad; current workspace needs re-review.",
+        "implementationFingerprint": "35bd19dd9986928bab5fa91560ffda78b0da32df827a783605f4c4a7d63f9e31",
+        "verificationFingerprint": "5f0b943ff098e9fecc74398270eae439ae7eb3695ecb2ba8f71a524b4146dcbe",
+        "pairedDeliveryId": "DEL-20261018102500-1304ad",
+        "pairedReviewId": "REV-20261018103950-3b9460"
+      },
+      {
+        "taskId": "S02-Collab",
+        "freshness": "stale",
+        "note": "Delivery snapshot differs from current workspace.",
+        "implementationFingerprint": "6e5b03fc7a216a74d9b0b82e376e9c91bf1a18dbe7418a0a6252f291801d6c6a",
+        "verificationFingerprint": "ab7a92068cd2ee904cbfc561d6dc6ab568692370cd3ce281e6b09266402063a7",
+        "pairedDeliveryId": "DEL-20261018133503-848c0c",
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "S03-Docs",
+        "freshness": "stale",
+        "note": "Delivery snapshot differs from current workspace.",
+        "implementationFingerprint": "6e5b03fc7a216a74d9b0b82e376e9c91bf1a18dbe7418a0a6252f291801d6c6a",
+        "verificationFingerprint": "ab7a92068cd2ee904cbfc561d6dc6ab568692370cd3ce281e6b09266402063a7",
+        "pairedDeliveryId": "DEL-20261018132401-c5d111",
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T01",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T02",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T03",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T04",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T05",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T06",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      }
+    ]
+  }
+}

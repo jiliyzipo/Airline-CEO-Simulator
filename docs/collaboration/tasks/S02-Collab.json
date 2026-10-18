@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:03:21.389Z",
-  "updatedAt": "2026-10-18T13:35:08.632Z",
-  "freshnessNote": "Historical review REV-20261018131438-908885 passed delivery DEL-20261018130325-dd2da0; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261018131438-908885"
+  "updatedAt": "2026-10-18T13:41:18.494Z",
+  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "staleForReviewId": null
 }
