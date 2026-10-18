@@ -228,7 +228,7 @@ node tools/collab/cli.mjs taskbook-check --task T06 --actor codex   # 仅当闸�
 - 工具**只读**任务书正文；唯一会写的是「总条款复选框」，且必须闸门通过。
 - 基线哈希**忽略复选框状态**：勾选是结果，不是条款改动。
 - 基线带 `scheme`：工具自己升级哈希算法时，会明确提示「重录基线」，不会被误报成「条款被改动」。
-- T02 这类任务即使本地全过，只要 `cleanGitCheckoutVerified=false`，总条款仍然不能勾。
+- T02 这类任务即使本地全过，只要没有可用的干净检出证据，总条款仍然不能勾。证据有两种：某份交付记录了 `cleanGitCheckoutVerified=true`，或存在与本提交内容匹配的 `clean-checkout` 记录（`clean-checkout-verify` 生成）。只读参考任务不接受交付，只能走后者。
 - §14 的 C01..C12 由 Codex 依据真实结果勾选，工具不会替你打勾。
 
 ---

@@ -37,6 +37,7 @@ export function collabDirs(cfg) {
     reviews: path.join(root, 'reviews'),
     events: path.join(root, 'events'),
     issues: path.join(root, 'issues'),
+    verifications: path.join(root, 'verifications'),
     current: path.join(root, 'CURRENT.md'),
     nextCursor: path.join(root, 'NEXT_CURSOR.md'),
     nextCodex: path.join(root, 'NEXT_CODEX.md'),

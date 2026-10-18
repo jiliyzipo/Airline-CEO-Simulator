@@ -139,9 +139,23 @@ node tools/collab/cli.mjs stage-review --delivery DEL-xxx --actor codex --covera
 | --- | --- |
 | `.\tools\collab\Collab.ps1 stage board` | 任务/复验/最新交付/未关缺陷 |
 | `.\tools\collab\Collab.ps1 gate <任务ID>` | 单任务完成闸门（阶段是否真正做完，以它为准） |
+| `.\tools\collab\Collab.ps1 clean-checkout-verify` | 克隆 HEAD 到空目录，逐文件比对字节，证明"干净检出可复现" |
 | `.\tools\collab\Collab.ps1 session` | 等价于 `stage open`，兼容旧习惯 |
 
 全项目 `gate` 在没有完成 T01–T06 时永远是 `false`，这是事实状态，不是故障。
+
+### 干净检出（T02 那一类任务）
+
+`gate` 只有两条路能点亮 `clean-git-checkout`：某份交付记录了 `cleanGitCheckoutVerified=true`，或存在一份与**当前提交内容**匹配的 `clean-checkout` 记录。任务书里标成"只读参考"的任务（例如 T02）根本不接受交付，所以只能走第二条。
+
+```powershell
+# 1. 先提交，再验证：未提交的源码克隆不到，命令会直接拒绝（退出码 3）
+.\tools\collab\Collab.ps1 clean-checkout-verify
+# 2. 需要附上 Unity 导入/启动证据时
+.\tools\collab\Collab.ps1 clean-checkout-verify "statement=从克隆导入并进入主菜单" "evidence=out/ccv/unity.log"
+```
+
+它只声明"每个跟踪文件都被逐字节重建"，**不声明** Unity 导入、编译或启动成功——那需要单独跑一次并作为 `evidence` 附上。记录的 `treeFingerprint` 一旦遇到新提交就自动失效，闸门随即回到未通过，不会拿旧记录给新内容背书。
 
 ---
 
@@ -163,7 +177,7 @@ node tools/collab/cli.mjs stage-review --delivery DEL-xxx --actor codex --covera
 | --- | --- | --- |
 | 0 | 正常 | 全部命令 |
 | 2 | 用法/配置错误 | 参数写错、profile 不存在 |
-| 3 | 冲突/CAS 失败 | 另一端刚写入，重跑 `stage open`；或同一 DEL 已有检测在执行 |
+| 3 | 冲突/CAS 失败 | 另一端刚写入，重跑 `stage open`；同一 DEL 已有检测在执行；或工作区有未提交源码，`clean-checkout-verify` 拒绝验证 |
 | 4 | 被锁/资源占用 | Unity 打开着；另一个 review 持有 `unity-review.lock`；保存关闭/等其结束后重跑同一条命令 |
 | 5 | 检查未通过 | 预检失败、检测 failed、无改动可交付 |
 | 6 | 证据不符 | 计数/指纹/覆盖与机器结果不一致（自动流程正常时不会出现） |

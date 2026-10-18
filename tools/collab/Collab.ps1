@@ -47,6 +47,7 @@ Usage:
   .\tools\collab\Collab.ps1 watch
   .\tools\collab\Collab.ps1 tasks
   .\tools\collab\Collab.ps1 gate [taskId]
+  .\tools\collab\Collab.ps1 clean-checkout-verify [statement=... evidence=...]
   .\tools\collab\Collab.ps1 task-add path\to\definition.json
   .\tools\collab\Collab.ps1 taskbook-baseline [taskId]
   .\tools\collab\Collab.ps1 taskbook-check <taskId>
@@ -137,6 +138,16 @@ Stage automation (one command per side):
     'gate' {
         $cliArgs = @('gate', '--json')
         if ($Rest[0]) { $cliArgs += @('--task', $Rest[0]) }
+        Invoke-Collab $cliArgs
+    }
+    'clean-checkout-verify' {
+        $cliArgs = @('clean-checkout-verify', '--actor', 'cursor', '--json')
+        foreach ($a in $Rest) {
+            if ($a -like 'statement=*') { $cliArgs += @('--statement', $a.Substring(10)) }
+            elseif ($a -like 'evidence=*') { $cliArgs += @('--evidence', $a.Substring(9)) }
+            elseif ($a -eq 'keep') { $cliArgs += @('--keep') }
+            elseif ($a -in @('cursor', 'codex', 'user')) { $cliArgs = @('clean-checkout-verify', '--actor', $a, '--json') }
+        }
         Invoke-Collab $cliArgs
     }
     'task-add' {

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { developerAuthorization, reviewerAuthorization } from './authorization.mjs';
+import { gitTreeFingerprint, latestCleanCheckoutFor } from './cleancheckout.mjs';
 import { startWatch } from './watch.mjs';
 import path from 'node:path';
 import os from 'node:os';
@@ -1460,7 +1461,19 @@ export function cmdDeliver(cfg, args) {
       notes: args['self-test-notes'] || 'developer self-test; not independent acceptance',
     },
     knownGaps: args.gaps ? String(args.gaps).split(';') : [],
-    git: fingerprints.git,
+    git: {
+      ...fingerprints.git,
+      // A delivery may only claim the checkout is reproducible when a passing
+      // verification of this exact committed tree exists; never inferred.
+      ...(() => {
+        const tree = fingerprints.git.head ? gitTreeFingerprint(cfg._repoRoot) : null;
+        const record = tree ? latestCleanCheckoutFor(cfg, tree.fingerprint) : null;
+        return {
+          cleanGitCheckoutVerified: !!record && fingerprints.git.dirty === false,
+          cleanCheckoutRecordId: record ? record.ccvId : null,
+        };
+      })(),
+    },
     fingerprints,
     recommendedProfiles: profiles,
     snapshotPath: path.relative(cfg._repoRoot, snapDir).split(path.sep).join('/'),

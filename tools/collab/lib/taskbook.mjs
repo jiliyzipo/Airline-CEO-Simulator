@@ -5,6 +5,8 @@ import { collabDirs, localDirs } from './paths.mjs';
 import { ensureDir, nowIso, readJson, writeFileAtomic, writeJsonAtomic } from './io.mjs';
 import { EXIT, fail } from './exit.mjs';
 import { listDeliveries, listIssues, listReviews } from './state.mjs';
+import { gitTreeFingerprint, latestCleanCheckoutFor } from './cleancheckout.mjs';
+import { gitMeta } from './fingerprint.mjs';
 
 const sha = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
 const normalize = (s) => s.replace(/\s+/g, ' ').trim();
@@ -367,14 +369,23 @@ function finishTaskGate(cfg, task, taskId, parts, { mapping, clause = null, unch
   }
 
   if (mapping?.requiresCleanCheckout) {
-    const declared = latestDelivery?.git?.cleanGitCheckoutVerified;
+    // Satisfied either by a delivery that recorded the flag, or by a clean
+    // checkout verification bound to the commit the gate is judging. The
+    // second path is what reference tasks need: they cannot be delivered, so a
+    // delivery-only rule made this check impossible to pass by construction.
+    const declared = latestDelivery?.git?.cleanGitCheckoutVerified === true;
+    const head = latestDelivery?.git?.head || gitMeta(cfg._repoRoot).head || null;
+    const tree = head ? gitTreeFingerprint(cfg._repoRoot) : null;
+    const record = tree ? latestCleanCheckoutFor(cfg, tree.fingerprint) : null;
+    const ok = declared || !!record;
     parts.push({
       id: 'clean-git-checkout',
-      ok: declared === true,
-      detail:
-        declared === true
+      ok,
+      detail: ok
+        ? declared
           ? 'a delivery recorded cleanGitCheckoutVerified=true'
-          : 'Git 干净检出未验证（cleanGitCheckoutVerified=false）— blocks the total clause even if local runs pass',
+          : `clean checkout ${record.ccvId} reproduces ${String(record.gitHead).slice(0, 12)} byte-for-byte (${record.fileCount} files)`
+        : 'Git 干净检出未验证（没有匹配当前提交内容的 clean-checkout 记录）— blocks the total clause even if local runs pass',
     });
   }
 

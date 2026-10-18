@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const tools = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-suite-'));
 const suites = [];
-for (const file of ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs']) {
+for (const file of ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs']) {
   const run = spawnSync(process.execPath, [path.join(tools, 'tests', file)], {
     cwd: root, encoding: 'utf8', windowsHide: true, timeout: 120000,
     env: { ...process.env, COLLAB_AUDIT_TOOL_SOURCE: tools, COLLAB_AUDIT_RUN_LABEL: 'suite' }, maxBuffer: 8 * 1024 * 1024,

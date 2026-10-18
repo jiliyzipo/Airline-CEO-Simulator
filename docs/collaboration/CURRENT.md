@@ -1,9 +1,11 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-18T10:50:44.373Z
-状态 revision：240
-Cursor 最近确认读取：revision 240 @ 2026-10-18T10:50:44.203Z
-Codex 最近确认读取：revision 240 @ 2026-10-18T10:46:09.579Z
+生成时间：2026-10-18T13:15:46.745Z
+状态 revision：248
+Cursor 最近确认读取：revision 244 @ 2026-10-18T13:05:17.559Z
+Codex 最近确认读取：revision 244 @ 2026-10-18T13:14:30.827Z
+> 状态已更新，Cursor 尚未确认读取最新 revision。
+> 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
 ## 任务
@@ -20,8 +22,10 @@ Codex 最近确认读取：revision 240 @ 2026-10-18T10:46:09.579Z
   - Review REV-20261018033542-0f4993 still applies to delivery DEL-20261018033132-39a1e3.
 - **C-ENG** 工程入口串联验收（compile / slotcheck / 隔离 Unity） · 开发=rework · 检测=cancelled · freshness=current · holder=-
   - Delivery matches current fingerprints; awaiting review.
-- **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
-  - Review REV-20261018103950-3b9460 still applies to delivery DEL-20261018102500-1304ad.
+- **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261018103950-3b9460 passed delivery DEL-20261018102500-1304ad; current workspace needs re-review.
+- **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018131438-908885 applies to delivery DEL-20261018130325-dd2da0.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
@@ -37,11 +41,11 @@ Codex 最近确认读取：revision 240 @ 2026-10-18T10:46:09.579Z
 
 ## 最新交付
 
-- DEL-20261018102500-1304ad → S01-COLLAB @ 2026-10-18T10:25:00.552Z
+- DEL-20261018130325-dd2da0 → S02-Collab @ 2026-10-18T13:03:30.573Z
 
 ## 最新检测
 
-- REV-20261018103950-3b9460 → delivery DEL-20261018102500-1304ad status=passed · 独立检测角色 @ 2026-10-18T10:40:39.837Z
+- REV-20261018131438-908885 → delivery DEL-20261018130325-dd2da0 status=passed · 独立检测角色 @ 2026-10-18T13:15:46.574Z
 
 ## 开放缺陷
 

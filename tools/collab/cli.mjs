@@ -4,6 +4,7 @@ import { EXIT } from './lib/exit.mjs';
 import { parseArgs } from './lib/commands.mjs';
 import * as cmds from './lib/commands.mjs';
 import * as stage from './lib/stage.mjs';
+import * as cleanCheckout from './lib/cleancheckout.mjs';
 import fs from 'node:fs';
 
 const HELP = `
@@ -30,6 +31,8 @@ Commands:
   watch [--interval 3]
   tasks
   gate [--task <id>]                 (no --task = whole project completion gate)
+  clean-checkout-verify [--actor cursor|codex|user] [--evidence a.log,b.xml] [--statement text] [--keep]
+                                     clone HEAD into an empty dir and compare every tracked file byte-for-byte
   task-add --definition <file.json> [--actor cursor|user]
   taskbook-baseline [--task <id>]    (records the clause text so later edits are detected)
   taskbook-check --task <id> [--actor codex|user]
@@ -99,6 +102,7 @@ function main() {
     watch: () => cmds.cmdWatch(cfg, args),
     tasks: () => cmds.cmdTasks(cfg, args),
     gate: () => cmds.cmdGate(cfg, args),
+    'clean-checkout-verify': () => cleanCheckout.cmdCleanCheckoutVerify(cfg, args),
     'task-add': () => cmds.cmdTaskAdd(cfg, args),
     'taskbook-baseline': () => cmds.cmdTaskBookBaseline(cfg, args),
     'taskbook-check': () => cmds.cmdTaskBookCheck(cfg, args),
