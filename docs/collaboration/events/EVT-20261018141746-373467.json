@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018141746-373467",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 265,
+  "at": "2026-10-18T14:17:46.907Z",
+  "actor": "codex",
+  "action": "taskbook-check",
+  "taskId": "T02",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "taskbook-check T02 checked line 52",
+  "data": {
+    "taskId": "T02",
+    "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+    "changed": true,
+    "line": 52,
+    "before": "- [ ] **T02：建立可复现的开发基线。** 状态：本地导出和构建场景已修正；Git 干净检出仍受必要文件未跟踪限制，不擅自提交。",
+    "after": "- [x] **T02：建立可复现的开发基线。** 状态：本地导出和构建场景已修正；Git 干净检出仍受必要文件未跟踪限制，不擅自提交。"
+  }
+}

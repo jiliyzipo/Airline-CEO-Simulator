@@ -1,10 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-18T13:54:21.092Z
+生成时间：2026-10-18T14:20:08.263Z
 状态 revision：265
-Cursor 最近确认读取：revision 265 @ 2026-10-18T13:54:20.974Z
-Codex 最近确认读取：revision 259 @ 2026-10-18T13:49:03.915Z
-> 状态已更新，Codex 尚未确认读取最新 revision。
+Cursor 最近确认读取：revision 265 @ 2026-10-18T14:20:08.150Z
+Codex 最近确认读取：revision 265 @ 2026-10-18T14:17:43.512Z
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
 ## 任务
