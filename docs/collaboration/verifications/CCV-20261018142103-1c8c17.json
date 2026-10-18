@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "ccvId": "CCV-20261018142103-1c8c17",
+  "kind": "clean-checkout-byte-reproduction",
+  "actor": "cursor",
+  "createdAt": "2026-10-18T14:21:20.008Z",
+  "gitHead": "ae984a4552d24479cf3649b15e14882a0c43fee2",
+  "gitBranch": "cursor/phase10-fleet-management",
+  "treeFingerprint": "bc152c7cd6e8ced3699d0c602eea601cd80106e9e80942de5e2643bd989df2a1",
+  "worktreeClean": true,
+  "ignoredForDirtyCheck": [
+    "docs/collaboration",
+    "out/collab",
+    ".collab-local"
+  ],
+  "fileCount": 2614,
+  "baselineFileCount": 2174,
+  "recordFileCount": 440,
+  "byteIdentical": 2174,
+  "different": [],
+  "differentCount": 0,
+  "missing": [],
+  "missingCount": 0,
+  "ok": true,
+  "claims": "Every baseline file tracked at gitHead is reproduced byte-for-byte by \"git clone\" of this repository into an empty directory. Collaboration records are excluded: they are notes about the baseline, and writing one changes it.",
+  "doesNotClaim": "Unity editor import, compilation or gameplay launch from the clone. Those need their own recorded run and evidence.",
+  "evidence": [],
+  "statement": null,
+  "clonePath": null
+}
