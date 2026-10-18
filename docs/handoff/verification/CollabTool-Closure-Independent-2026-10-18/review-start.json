@@ -1,0 +1,7 @@
+{
+  "reviewId": "REV-20261018041820-9f4b26",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "profile": "smoke",
+  "status": "queued",
+  "note": "review-start does not execute tests; bound to delivery snapshot"
+}

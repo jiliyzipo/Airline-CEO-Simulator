@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018035456-34af47",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 143,
+  "at": "2026-10-18T03:54:56.003Z",
+  "actor": "codex",
+  "action": "review-start",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018035450-a94911",
+  "reviewId": "REV-20261018035455-d2e816",
+  "parentEventId": null,
+  "summary": "review-start REV-20261018035455-d2e816 profile=smoke",
+  "data": {}
+}

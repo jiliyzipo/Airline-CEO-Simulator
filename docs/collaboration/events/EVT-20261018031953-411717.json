@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018031953-411717",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 87,
+  "at": "2026-10-18T03:19:53.429Z",
+  "actor": "cursor",
+  "action": "taskbook-baseline",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "taskbook-baseline T01,T02,T03,T04,T05,T06",
+  "data": {
+    "results": [
+      {
+        "taskId": "T01",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "1aee4002b0a91f5d6b4c8de71d5ba55b44ed3e2d2cd9ea4ebec271c26ec2ff0c",
+        "previousHash": "1aee4002b0a91f5d6b4c8de71d5ba55b44ed3e2d2cd9ea4ebec271c26ec2ff0c",
+        "changedSincePrevious": false,
+        "totalChecked": true,
+        "subItems": 8
+      },
+      {
+        "taskId": "T02",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "32bbbc58536b6bd6fdb2d75422e517230c867c224c937f222b4f9ac74786cb8f",
+        "previousHash": "32bbbc58536b6bd6fdb2d75422e517230c867c224c937f222b4f9ac74786cb8f",
+        "changedSincePrevious": false,
+        "totalChecked": false,
+        "subItems": 8
+      },
+      {
+        "taskId": "T03",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "d61deb20ad99c81b04605aae80fa8cd619c874e007b699f50139a954ab24032d",
+        "previousHash": "d61deb20ad99c81b04605aae80fa8cd619c874e007b699f50139a954ab24032d",
+        "changedSincePrevious": false,
+        "totalChecked": false,
+        "subItems": 9
+      },
+      {
+        "taskId": "T04",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "4c1c9c9db12d0e35d24690c7721f4c154f60b4606b62b86b03877d62fc711729",
+        "previousHash": "4c1c9c9db12d0e35d24690c7721f4c154f60b4606b62b86b03877d62fc711729",
+        "changedSincePrevious": false,
+        "totalChecked": false,
+        "subItems": 9
+      },
+      {
+        "taskId": "T05",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "1bfffc810edb200f03d8c142a6698247c767155a9c1bdeb6b68d9599aa5b92cf",
+        "previousHash": "1bfffc810edb200f03d8c142a6698247c767155a9c1bdeb6b68d9599aa5b92cf",
+        "changedSincePrevious": false,
+        "totalChecked": false,
+        "subItems": 8
+      },
+      {
+        "taskId": "T06",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "e65b39b24cebf1844b76f118ce34dcb6148d9fdb89dc2eaf0ff834be29bd8880",
+        "previousHash": null,
+        "changedSincePrevious": false,
+        "totalChecked": true,
+        "subItems": 7
+      }
+    ]
+  }
+}

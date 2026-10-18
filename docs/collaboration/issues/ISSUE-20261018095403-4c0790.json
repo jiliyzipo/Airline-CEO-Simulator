@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018095403-4c0790",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "title": "SA03 自动证据将机器结果未覆盖的自定义验收条件写成 passed",
+  "repro": "node docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/stage-audit.mjs ; subject=DEL-20261018093335-80f2f4; case=SA03; fixture=C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-2WX9Qv\\3",
+  "expected": "criteria without a trusted machine mapping or explicit reviewer verification must stay not_run/blocked; machine counters alone cannot mark every AC passed",
+  "actual": "{\"status\":\"passed\",\"coverage\":[{\"id\":\"AC1\",\"result\":\"passed\",\"evidence\":\"profile=smoke runToken=d68216786b2287df counters={\\\"total\\\":2,\\\"failed\\\":0,\\\"skipped\\\":0}\"}],\"requiredArtifactExists\":false}",
+  "evidence": "docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/results-2026-10-18T09-54-03-314Z.json#SA03",
+  "severity": "blocker",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T09:54:03.974Z"
+}

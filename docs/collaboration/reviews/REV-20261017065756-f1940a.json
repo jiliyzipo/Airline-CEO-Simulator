@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261017065756-f1940a",
+  "deliveryId": "DEL-20261017065745-c9b348",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "smoke",
+  "toolVersion": "collab-cli/1.0.0",
+  "subjectFingerprints": {
+    "implementation": "d539cdf988cf9d45a921a16c4f0a3b5b51ecf73a8a99f95cb6032e486a4d1aac",
+    "verification": "d539cdf988cf9d45a921a16c4f0a3b5b51ecf73a8a99f95cb6032e486a4d1aac",
+    "contract": "c4ceabc0fcb4735877e917acfc2a0036f0c6d06cff6caa7c27bdbb0c71fea779"
+  },
+  "snapshotPath": "out/collab/DEL-20261017065745-c9b348",
+  "createdAt": "2026-10-17T06:57:56.235Z",
+  "updatedAt": "2026-10-17T06:57:56.555Z",
+  "runs": [
+    {
+      "at": "2026-10-17T06:57:56.365Z",
+      "finishedAt": "2026-10-17T06:57:56.445Z",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261017065756-f1940a/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261017065756-f1940a/stderr.txt",
+      "signal": null
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "review-run smoke exit 0"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "immutable deliveries/reviews dirs"
+    },
+    {
+      "id": "AC3",
+      "result": "not_run",
+      "evidence": "stale drill deferred to separate negative test"
+    }
+  ],
+  "issues": [],
+  "assertions": {
+    "total": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "evidencePath": ".collab-local/tmp/evidence-pass.json",
+  "finishedAt": "2026-10-17T06:57:56.555Z",
+  "cleanGitCheckoutVerified": false
+}

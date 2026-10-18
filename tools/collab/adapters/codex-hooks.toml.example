@@ -1,0 +1,16 @@
+# Optional alternative to codex-hooks.json.example. Do not install both.
+# https://learn.chatgpt.com/docs/hooks
+# Commands assume starting Codex at the project root. Review and trust in /hooks.
+
+[[hooks.SessionStart]]
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "node tools/collab/adapters/client-hook.mjs codex SessionStart"
+timeout = 30
+
+[[hooks.PostToolUse]]
+matcher = "apply_patch|Edit|Write"
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "node tools/collab/adapters/client-hook.mjs codex PostToolUse"
+timeout = 30

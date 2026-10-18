@@ -22,6 +22,7 @@ namespace AirlineCEO.UI
             host.transform.SetParent(canvasParent, false);
             UIFactory.ApplyAnchor(host.GetComponent<RectTransform>(), UIFactory.Fill);
             var ui = host.AddComponent<HedgeTutorialUI>();
+            UIFactory.EnsureSortingCanvas(host, UITheme.SortBlockingModal);
             ui.Build(host.transform);
             host.SetActive(false);
             return ui;
@@ -44,8 +45,10 @@ namespace AirlineCEO.UI
                 UITheme.Warning, FontStyles.Bold);
 
             _bodyText = UIFactory.Label(card.transform, "Body", "", 15, TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.07f, 0.34f), new Vector2(0.93f, 0.80f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.07f, 0.36f), new Vector2(0.93f, 0.80f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
+            _bodyText.textWrappingMode = TextWrappingModes.Normal;
+            _bodyText.overflowMode = TextOverflowModes.Truncate;
 
             UIFactory.Button(card.transform, "BtnSafe",
                 "👍 试试保本稳妥",
@@ -55,10 +58,10 @@ namespace AirlineCEO.UI
             UIFactory.Button(card.transform, "BtnDiy",
                 "👀 我自己来",
                 new UIFactory.Anchor(new Vector2(0.08f, 0.04f), new Vector2(0.92f, 0.14f), Vector2.zero, Vector2.zero),
-                UITheme.NavIdle, OnDiyClicked, 15);
+                UITheme.Accent, OnDiyClicked, 15);
         }
 
-        /// <summary>显示引导；同时标记已看过（避免重复弹）。</summary>
+        /// <summary>显示引导；不在此处标记已读（点按钮后再标记）。</summary>
         public void Show(Action onTrySafe, Action onDiy)
         {
             _onTrySafe = onTrySafe;
@@ -72,11 +75,7 @@ namespace AirlineCEO.UI
             }
 
             if (_titleText != null)
-                _titleText.text = "📊 燃油价格波动提醒";
-
-            var gs = GameState.Instance;
-            if (gs != null)
-                gs.hasSeenHedgeTutorial = true;
+                _titleText.text = "燃油价格波动提醒";
 
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
@@ -89,8 +88,16 @@ namespace AirlineCEO.UI
             _onDiy = null;
         }
 
+        private static void MarkTutorialSeen()
+        {
+            var gs = GameState.Instance;
+            if (gs != null)
+                gs.hasSeenHedgeTutorial = true;
+        }
+
         private void OnTrySafeClicked()
         {
+            MarkTutorialSeen();
             var cb = _onTrySafe;
             Hide();
             cb?.Invoke();
@@ -98,6 +105,7 @@ namespace AirlineCEO.UI
 
         private void OnDiyClicked()
         {
+            MarkTutorialSeen();
             var cb = _onDiy;
             Hide();
             cb?.Invoke();

@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-17",
+  "unity": "6000.3.21f1",
+  "sourceHead": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+  "sourceFingerprint": "2f37f48ee7205c8f9484d9c24a44b61824cd147fb9c07b291d65546c507a6b37",
+  "export": "out/b17-verified",
+  "sourceFiles": 1153,
+  "untrackedRequired": 726,
+  "cleanGitCheckoutVerified": false,
+  "suites": [
+    {
+      "failed": 0,
+      "result": "Passed",
+      "unityExit": 0,
+      "skipped": 0,
+      "platform": "PlayMode",
+      "passed": 99
+    },
+    {
+      "failed": 0,
+      "result": "Passed",
+      "unityExit": 0,
+      "skipped": 0,
+      "platform": "EditMode",
+      "passed": 25
+    }
+  ],
+  "r42": {
+    "passed": 6,
+    "baselineFlights": 1,
+    "finalFlights": 3,
+    "unityExit": 0
+  },
+  "startup": {
+    "takeover": "actual gameplay",
+    "scratch": "actual gameplay",
+    "unityExit": 0
+  },
+  "stress": {
+    "bankrupt": 13,
+    "seed": 42,
+    "combinations": 60,
+    "red": 2,
+    "exit": 1,
+    "green": 45,
+    "runaway": 0
+  },
+  "taskCompletion": {
+    "incomplete": [
+      "T02",
+      "T03",
+      "T04",
+      "T05"
+    ],
+    "complete": [
+      "T01",
+      "T06"
+    ]
+  },
+  "limits": [
+    "No clean Git checkout; required files untracked",
+    "UI callbacks verified, full map/numeric/visual cross-check pending",
+    "No complete long-duration 1x wait",
+    "Balance risks and complete budget/special ledger audit pending"
+  ],
+  "longRun": [
+    "LONGRUN scenario=scratch quarters=8 cash=7722.447 fleet=1 routes=0 gameOver=False payrollMonthly=20 maintenanceMonthly=5.5 loans=0 reason=",
+    "LONGRUN scenario=preset_startup quarters=3 cash=-80.35791 fleet=3 routes=2 gameOver=True payrollMonthly=60 maintenanceMonthly=21 loans=1 reason=敌意收购：大股东满意度跌破 20% 且经营持续亏损，外部资本发动敌意收购，你被迫出局。游戏结束。",
+    "LONGRUN scenario=preset_regional quarters=3 cash=-2395.428 fleet=12 routes=8 gameOver=True payrollMonthly=240 maintenanceMonthly=109.5 loans=1 reason=敌意收购：大股东满意度跌破 20% 且经营持续亏损，外部资本发动敌意收购，你被迫出局。游戏结束。",
+    "LONGRUN scenario=preset_legacy quarters=3 cash=-335.7674 fleet=31 routes=25 gameOver=True payrollMonthly=620 maintenanceMonthly=365.75 loans=1 reason=敌意收购：大股东满意度跌破 20% 且经营持续亏损，外部资本发动敌意收购，你被迫出局。游戏结束。",
+    "LONGRUN scenario=preset_distressed quarters=3 cash=-584.0756 fleet=50 routes=40 gameOver=True payrollMonthly=1000 maintenanceMonthly=566.25 loans=1 reason=敌意收购：大股东满意度跌破 20% 且经营持续亏损，外部资本发动敌意收购，你被迫出局。游戏结束。"
+  ]
+}

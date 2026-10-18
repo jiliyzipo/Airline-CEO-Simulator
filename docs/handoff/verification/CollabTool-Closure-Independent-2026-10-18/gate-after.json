@@ -1,0 +1,463 @@
+{
+  "ok": false,
+  "tasks": [
+    {
+      "taskId": "T01",
+      "ok": true,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 51, 8 sub-items, section ## 4. T01 · R42 交割后加班失败"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline ae61539a4918 recorded 2026-10-18T03:44:39.490Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": true,
+          "detail": "all 8 sub-items checked"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 51,
+        "totalChecked": true,
+        "subItems": 8,
+        "checkedSubItems": 8,
+        "clauseHash": "ae61539a4918dd66b7eb4f923967db2177dd72c51179eccb9af7ca9288e00507"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    },
+    {
+      "taskId": "T02",
+      "ok": false,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 52, 8 sub-items, section ## 5. T02 · 可复现开发基线"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline d05528f353e9 recorded 2026-10-18T03:44:39.695Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": true,
+          "detail": "all 8 sub-items checked"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "clean-git-checkout",
+          "ok": false,
+          "detail": "Git 干净检出未验证（cleanGitCheckoutVerified=false）— blocks the total clause even if local runs pass"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "clean-git-checkout",
+          "detail": "Git 干净检出未验证（cleanGitCheckoutVerified=false）— blocks the total clause even if local runs pass"
+        }
+      ],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 52,
+        "totalChecked": false,
+        "subItems": 8,
+        "checkedSubItems": 8,
+        "clauseHash": "d05528f353e9d8fe79108fd2517e7a6c29425aa98590bdd7a9087de0c77ed038"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    },
+    {
+      "taskId": "T03",
+      "ok": false,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 53, 9 sub-items, section ## 6. T03 · 主链路集成回归"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline 230cdc3815ef recorded 2026-10-18T03:44:39.881Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": false,
+          "detail": "1 unchecked: T03.8"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "sub-items",
+          "detail": "1 unchecked: T03.8"
+        }
+      ],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 53,
+        "totalChecked": false,
+        "subItems": 9,
+        "checkedSubItems": 8,
+        "clauseHash": "230cdc3815ef7f62467c900e206f2c92ce509feeaffc6f5a0cf4f48c39903f22"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    },
+    {
+      "taskId": "T04",
+      "ok": false,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 54, 9 sub-items, section ## 7. T04 · 经营账务与长线平衡"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline 37adb7c6b570 recorded 2026-10-18T03:44:40.062Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": false,
+          "detail": "2 unchecked: T04.3, T04.8"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "sub-items",
+          "detail": "2 unchecked: T04.3, T04.8"
+        }
+      ],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 54,
+        "totalChecked": false,
+        "subItems": 9,
+        "checkedSubItems": 7,
+        "clauseHash": "37adb7c6b570a9df1f921cbcd156c90869d408d5d05679735e76f5f5fecd3449"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    },
+    {
+      "taskId": "T05",
+      "ok": false,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 55, 8 sub-items, section ## 8. T05 · 当前时间策略下的交互体验"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline 79981fa6ede0 recorded 2026-10-18T03:44:40.221Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": false,
+          "detail": "4 unchecked: T05.2, T05.5, T05.6, T05.7"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "sub-items",
+          "detail": "4 unchecked: T05.2, T05.5, T05.6, T05.7"
+        }
+      ],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 55,
+        "totalChecked": false,
+        "subItems": 8,
+        "checkedSubItems": 4,
+        "clauseHash": "79981fa6ede06807433e9748dd843233a77ce990788c0c0567cdb02a9de4d37a"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    },
+    {
+      "taskId": "T06",
+      "ok": true,
+      "checks": [
+        {
+          "id": "mapped",
+          "ok": true,
+          "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+        },
+        {
+          "id": "clause-locatable",
+          "ok": true,
+          "detail": "total line 56, 7 sub-items, section ## 9. T06 · 文档与架构收口"
+        },
+        {
+          "id": "clause-baseline",
+          "ok": true,
+          "detail": "baseline d40eb03a0203 recorded 2026-10-18T03:44:40.383Z (scheme 2)",
+          "legacyScheme": false
+        },
+        {
+          "id": "clause-unchanged",
+          "ok": true,
+          "detail": "clause text matches baseline"
+        },
+        {
+          "id": "sub-items",
+          "ok": true,
+          "detail": "all 7 sub-items checked"
+        },
+        {
+          "id": "reference-authority",
+          "ok": true,
+          "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+        },
+        {
+          "id": "no-open-blockers",
+          "ok": true,
+          "detail": "no open blocker/critical issues"
+        }
+      ],
+      "blockers": [],
+      "clause": {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "totalLine": 56,
+        "totalChecked": true,
+        "subItems": 7,
+        "checkedSubItems": 7,
+        "clauseHash": "d40eb03a0203b039f0c0d5185ec332f31da55d996566571d806c96a94c40c61e"
+      },
+      "latestDeliveryId": null,
+      "latestReview": null
+    }
+  ],
+  "taskBook": {
+    "totalClauses": 6,
+    "checked": 2,
+    "unchecked": [
+      "T02",
+      "T03",
+      "T04",
+      "T05"
+    ]
+  },
+  "toolClauses": {
+    "configured": true,
+    "path": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md",
+    "total": 12,
+    "checked": 2,
+    "unchecked": [
+      "C01",
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C06",
+      "C08",
+      "C09",
+      "C10",
+      "C11"
+    ],
+    "error": null
+  },
+  "openIssues": [
+    {
+      "issueId": "ISSUE-20261018041847-27c5bf",
+      "severity": "major",
+      "status": "fixed"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "gate:T02",
+      "detail": "clean-git-checkout"
+    },
+    {
+      "id": "gate:T03",
+      "detail": "sub-items"
+    },
+    {
+      "id": "gate:T04",
+      "detail": "sub-items"
+    },
+    {
+      "id": "gate:T05",
+      "detail": "sub-items"
+    },
+    {
+      "id": "clause:T02",
+      "detail": "total clause still unchecked in task book"
+    },
+    {
+      "id": "clause:T03",
+      "detail": "total clause still unchecked in task book"
+    },
+    {
+      "id": "clause:T04",
+      "detail": "total clause still unchecked in task book"
+    },
+    {
+      "id": "clause:T05",
+      "detail": "total clause still unchecked in task book"
+    },
+    {
+      "id": "tool:C01",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C02",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C03",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C04",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C05",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C06",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C08",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C09",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C10",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "tool:C11",
+      "detail": "tool delivery clause not yet checked"
+    },
+    {
+      "id": "issue:ISSUE-20261018041847-27c5bf",
+      "detail": "fixed"
+    }
+  ],
+  "exitCode": 5
+}

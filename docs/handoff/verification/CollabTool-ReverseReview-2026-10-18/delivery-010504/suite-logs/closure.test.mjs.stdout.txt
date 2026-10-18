@@ -1,0 +1,14 @@
+PASS G01: Missing clause baseline blocks completion
+PASS G02: Satisfied dependency is evaluated without an internal error
+PASS G03: Dependency cycle is a diagnostic blocker rather than an exception
+PASS G04: Configured missing tool-clause document cannot make overall gate green
+PASS G05: Tool clauses outside the declared section do not count as acceptance
+PASS G06: An older passed review cannot hide a newer failed review of the same delivery
+PASS G07: Required profile coverage is bound to the latest delivery
+PASS G08: Concurrent duplicate hooks apply once and a retry remains deduped
+PASS G09: A complete mapped task with baseline can pass
+PASS G10: Overall gate passes with complete mapped tasks and exactly twelve checked tool clauses
+PASS G11: All required profiles passed on the latest delivery can pass
+PASS G12: Concurrent issue transitions preserve both states after retrying lock contention
+PASS G13: Latest review follows createdAt rather than random ID suffix order
+SUMMARY 13/13 closure checks passed; RESULT C:\Users\jiliy\AppData\Local\Temp\collab-suite-WBKvbx\.collab-local\closure-audit\suite\2026-10-18T07-18-16-595Z\results.json

@@ -1,0 +1,35 @@
+{
+  "conclusion": "failed",
+  "subjectImplementationFingerprint": "c248c0b6e472d29600d67b86b7114df5447012aeb0b4d31dde4d09f20a8cd32e",
+  "summary": "C12 端到端演练第一次交付：smoke 链路本身跑通，但本次交付未覆盖「实现指纹变化后旧 passed 显示 stale」这一项，按规则判 failed 并生成缺陷，用于验证失败退回与新交付复验分支。",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "claim → deliver(sql) → review-start → review-run → review-finish 全链路执行，run bc37bcc0c1e8cb9e exitCode=0，smoke profile 输出 protocol-exists=true 等检查全为 ok。"
+    },
+    {
+      "id": "AC2",
+      "result": "failed",
+      "evidence": "失败分支尚未在本次交付内演示：需要先有一条 failed 结论与缺陷记录，再由新交付复验通过。"
+    },
+    {
+      "id": "AC3",
+      "result": "failed",
+      "evidence": "实现指纹变化后的 stale 展示尚未执行；本次未改动实现，无法证明旧 passed 会转为待复验。"
+    }
+  ],
+  "assertionsTotal": 0,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "issues": [
+    {
+      "title": "C12 演练：本次交付未覆盖失败退回与 stale 展示",
+      "repro": "按 C-DEMO 的三条 AC 逐条对照本次交付的 run 记录与任务状态。",
+      "expected": "一次交付内覆盖 claim/deliver/review 全链路、失败退回、以及实现变化后的待复验展示。",
+      "actual": "本次交付只覆盖了主链路，缺失败退回与 stale 两项。",
+      "severity": "major",
+      "suggestedOwner": "cursor"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+PASS R01 ordinary Cursor still cannot start, finish, draft or cancel a review
+PASS R02 a reverse-review grant cannot approve a Cursor-authored delivery
+PASS R03 project, task, delivery, every fingerprint, profile and action must match
+PASS R04 authorized Cursor creates and finishes its own independent bound smoke REV
+PASS R05 the grant bytes are pinned and cannot change between review commands
+PASS R06 another actor cannot run, draft, finish or cancel a reviewer-owned record
+PASS R07 reverse review still rejects tampered bound stdout
+PASS R08 reverse review requires complete AC coverage and cannot finish twice
+PASS R09 authorized cancellation is terminal; user retains administrative cancellation
+PASS R10 Codex self-check remains nonindependent and cannot complete the task
+PASS R11 a self-checked required profile cannot borrow a different profile independent pass
+PASS R12 schema rejects Cursor records without the matching grant, hash or independent identity
+PASS R13 review grant does not grant issue closure, taskbook writes or global recovery
+PASS R14 PowerShell wrapper preserves real Cursor actor and scoped grant
+SUMMARY 14/14 reverse-review checks passed; RESULT C:\Users\jiliy\AppData\Local\Temp\collab-reverse-st1fBJ\results.json

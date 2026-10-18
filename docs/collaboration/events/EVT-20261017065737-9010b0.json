@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261017065737-9010b0",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 10,
+  "at": "2026-10-17T06:57:37.507Z",
+  "actor": "cursor",
+  "action": "claim",
+  "taskId": "C-DEMO",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "claimed C-DEMO",
+  "data": {}
+}

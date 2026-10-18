@@ -1,0 +1,8 @@
+C12 端到端演练 · 第三次交付（工具自身小修 + 手册收口后的定版复验）
+
+相对 REV-20261018034919-2a0d89 的增量：
+1) Hook payload 容忍 UTF-8 BOM（PowerShell 5 重定向、部分编辑器会带），非 JSON 仍然退出码 2；新增对应回归。
+2) Collab.ps1 补齐 tasks / gate / task-add / taskbook-baseline / taskbook-check / issue / hook / hooks-status。
+3) 新增 docs/collaboration/OPERATOR_MANUAL_ZH.md（权限矩阵、全部命令、profile 契约、故障排查、演练记录），README 增加入口与任务/缺陷章节。
+
+自测：collab.test.mjs 全过（含新增 BOM 用例）；xml.test.mjs 26/26。

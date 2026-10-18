@@ -7,6 +7,14 @@ namespace AirlineCEO.Logic
     /// <summary>运营部自动编班：选可用飞机 + 时刻/班期（CEO 只批方案，不亲手排）。</summary>
     public static class OpsScheduleLogic
     {
+        /// <summary>
+        /// 航程容差（km）：目录写的是**厂商典型航程（按设计载荷）**，实际减载后能多飞一点，
+        /// 故比对时给**机型侧**加这 50 km 余量（见 <see cref="RangeCovers"/>）。
+        /// 方向不能搞反：若把它加在本线需求上（`距离 + 50`），就变成「更严」，
+        /// 会把 A321LR 从 FRA–ATL（7,400 vs 7,409）这种现实里真在飞的线上剔掉。
+        /// </summary>
+        public const float RangeToleranceKm = 50f;
+
         public static bool ApplyDraft(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes, int revision)
         {
             if (route == null) return false;
@@ -24,11 +32,10 @@ namespace AirlineCEO.Logic
             arrMin %= 24 * 60;
             string arr = $"{arrMin / 60:00}:{arrMin % 60:00}";
 
-            bool longHaul = route.distanceKm >= 5000f;
-            string days = longHaul
-                ? (revision % 2 == 0 ? "二四六" : "一三五")
-                : "每日";
-            int weekly = longHaul ? 4 : 7;
+            // 班次/班期统一由 RouteFrequencyModel 推算（取代 km>=5000 ? 4 : 7）。
+            // 单波草案只有 1 个班次承载，故周班次上限取 7；更密的班次由 ApplyWaves 多波铺开。
+            int weekly = Math.Min(RouteFrequencyModel.ClampWeekly(RouteFrequencyModel.ForRoute(route).weeklyFlights), 7);
+            string days = RouteFrequencyModel.DaysForWaveCount(weekly);
 
             route.registration = ac.registration;
             route.aircraftType = string.IsNullOrEmpty(ac.type) ? route.aircraftType : ac.type;
@@ -38,11 +45,33 @@ namespace AirlineCEO.Logic
             route.weeklyFlights = weekly;
             route.groundStaffAssigned = OpsEconomics.RecommendedGroundStaff(route.aircraftType);
             if (string.IsNullOrEmpty(route.flightNumber))
-                route.flightNumber = "NV" + (100 + Math.Abs(route.routeId != null ? route.routeId.GetHashCode() : 0) % 800);
+                route.flightNumber = NextFreeNumber(allRoutes);
             route.schedulePending = true;
             route.opsPlanRevision = revision;
             route.SyncFlightsFromPrimary();
             return true;
+        }
+
+        /// <summary>
+        /// 兜底航班号：取**下一个空块**的块首（块首 = 现有最大块首 + 块距）。
+        /// 旧版写 `"NV" + (100 + hash % 800)` —— 哈希会撞号，而航班号要写进时刻槽持仓
+        /// （`usedByFlightNo`），撞号会让两条线认领同一条槽。块粒度见 `FlightScheduleFormat.BlockStride`。
+        /// </summary>
+        static string NextFreeNumber(IList<RouteData> allRoutes)
+        {
+            string prefix = "";
+            int maxBase = FlightScheduleFormat.FirstBase - FlightScheduleFormat.BlockStride;
+            if (allRoutes != null)
+                for (int i = 0; i < allRoutes.Count; i++)
+                {
+                    var r = allRoutes[i];
+                    if (r == null) continue;
+                    if (string.IsNullOrEmpty(prefix)) prefix = FlightScheduleFormat.PrefixOf(r.flightNumber);
+                    int n = FlightScheduleFormat.NumberOf(r.flightNumber);
+                    if (n > maxBase) maxBase = n;
+                }
+            if (string.IsNullOrEmpty(prefix)) prefix = "NV";
+            return $"{prefix}{maxBase + FlightScheduleFormat.BlockStride}";
         }
 
         public static Aircraft PickAircraft(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes, int revision)
@@ -68,7 +97,11 @@ namespace AirlineCEO.Logic
         {
             string s = note ?? "";
             maximize = ContainsAny(s, "最大", "加密", "潜力", "客货流", "很多", "高峰", "挖掘");
-            allDaySlots = ContainsAny(s, "全天", "持续", "从早", "多班", "班次")
+            // 「班次」曾在 allDaySlots 词表里，但它是中文里描述班次最常用的词，
+            // 于是「把班次收一收」「班次太多了」都会命中 → 判成「挖满全天」→ 直排 4 段，
+            // 把「想减班」办成「从 1 班加密到 4 班」。用户想说的是「别猜」，
+            // 所以这里只保留真正表达了「铺满全天」的词。
+            allDaySlots = ContainsAny(s, "全天", "全天候", "持续", "从早", "多班")
                           || (ContainsAny(s, "早班") && ContainsAny(s, "红眼"))
                           || maximize;
             return !string.IsNullOrWhiteSpace(s);
@@ -84,10 +117,37 @@ namespace AirlineCEO.Logic
 
         public static bool ApplyFromCeoNote(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes, string note)
         {
+            return ApplyFromCeoNote(route, fleet, allRoutes, note, out _);
+        }
+
+        /// <summary>
+        /// 关键词通道排班。<paramref name="how"/> 回一句话说明**依据了什么**。
+        ///
+        /// 旧版只认「全天 vs 非全天」：玩家说「换到红眼」，`allDay=false`，于是被当成
+        /// 「随便挑一个时段」，按 `opsPlanRevision` 取模落一个 —— 说了等于没说。
+        /// 现在显式说出的时段优先于「随便挑」，与 §14 的「不猜 / 不忽略玩家明说的」同源。
+        /// </summary>
+        public static bool ApplyFromCeoNote(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes,
+            string note, out string how)
+        {
             ParseCeoNote(note, out bool allDay, out bool max);
-            string[] deps = (allDay || max)
-                ? (string[])ScheduleSlots.DepTimes.Clone()
-                : new[] { ScheduleSlots.DepTimes[Math.Abs(route.opsPlanRevision) % ScheduleSlots.DepTimes.Length] };
+            var parsed = CapacityDirectiveLogic.Parse(note);
+            string[] deps;
+            if (allDay || max)
+            {
+                deps = (string[])ScheduleSlots.DepTimes.Clone();
+                how = "已按批复铺满早班至红眼。";
+            }
+            else if (parsed.deps != null && parsed.deps.Length > 0)
+            {
+                deps = parsed.deps;
+                how = "已按批复把班次排在 " + string.Join("、", parsed.deps) + "。";
+            }
+            else
+            {
+                deps = new[] { ScheduleSlots.DepTimes[Math.Abs(route.opsPlanRevision) % ScheduleSlots.DepTimes.Length] };
+                how = "批复未指明时段，运营部按现稿替换了一个时段。";
+            }
             return ApplyWaves(route, fleet, allRoutes, deps, "每日");
         }
 
@@ -107,9 +167,9 @@ namespace AirlineCEO.Logic
                     return true;
                 }
             }
-            if (ApplyFromCeoNote(route, fleet, allRoutes, note))
+            if (ApplyFromCeoNote(route, fleet, allRoutes, note, out string how))
             {
-                opsReply = "未接通分析服务或解析失败，已按批复关键词加密早班至红眼。";
+                opsReply = "未接通分析服务或解析失败，" + how;
                 return true;
             }
             opsReply = "无法按批复改班，已维持改时刻方案。";
@@ -146,23 +206,51 @@ namespace AirlineCEO.Logic
             public string slotLabel;   // 时段名，如 午班
             public string reason;      // 为什么该时段无机可排（汇总）
             public List<string> details; // 逐机归因（到具体机号，便于追溯）
-            /// <summary>缺口类型：no_aircraft / no_slot / curfew / duty。</summary>
+            /// <summary>
+            /// 缺口类型：no_aircraft / no_slot / curfew / duty / crew。
+            ///
+            /// ★crew（2026-10-14 第十一次问询后新增）：机队有时刻槽、飞机也排得开，但**没人可派**
+            /// —— 与时刻槽并列的第四道闸门，见 <see cref="CrewCapacityLogic"/>。
+            /// </summary>
             public string kind = "no_aircraft";
-            /// <summary>缺槽时：卡住的那一端机场（去程离港或回程离港），供按机场/时段归集申请。</summary>
+            /// <summary>
+            /// 缺槽时：卡住的那**第一个**端机场（去程离港在本场 / 回程离港在对端）。
+            ///
+            /// ⚠️ 这是**归因**字段，不是「要办几张单」的清单 —— 它由
+            /// <see cref="RoutePermitLogic.TryShortEnd"/>/<see cref="RoutePermitLogic.TryShortClock"/> 填，
+            /// 那两个函数遇到第一个不满足的端就 return，而本场端在需求列表里排下标 0，
+            /// 所以它**恒定是本场端**，对端缺不缺它并不知道。
+            /// 要办单/要列清单请用 `RoutePermitLogic.WaveEndNeeds` + `CanApplyEnd` 逐端自问
+            /// （2026-10-16 报障：旧版把它当清单用，于是往返只申请了起飞机场的时刻槽，落地机场一次都没被提起）。
+            /// </summary>
             public string slotAirport;
             /// <summary>缺槽时：卡住的那一端时段（0 早 / 1 中 / 2 晚 / 3 夜）；−1 = 未知。</summary>
             public int slotBand = -1;
-            /// <summary>缺槽时：true = 卡在对端机场的回程离港端。</summary>
+            /// <summary>缺槽时：true = 卡在对端机场那一次停留。（同上：归因字段，非办单清单）</summary>
             public bool slotInbound;
         }
 
         public static bool ApplyWaves(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes, string[] deps, string days)
             => ApplyWaves(route, fleet, allRoutes, deps, days, out _);
 
-        /// <summary>编班。shortages 回传「想要但排不出」的时段及原因，便于上层如实呈报。</summary>
+        /// <summary>
+        /// 编班。shortages 回传「想要但排不出」的时段及原因，便于上层如实呈报。
+        ///
+        /// <paramref name="honorWeekly"/>（★2026-10-14 第十次问询后新增）：
+        /// 周班次的**权威**。传 0 = 按 <see cref="RouteFrequencyModel"/> 的建议值摊分（旧口径，
+        /// 非调令路径沿用）；传 &gt;0 = **以 CEO 明说的班次为准**（`CapacityDirectiveLogic` 由
+        /// 「班期天数 × 波次数」算出后传入）。
+        ///
+        /// 为什么要这个参数：旧版无论 CEO 说什么，周班次都按模型现算 —— 于是
+        /// ① 「加密到每天 1 班」在一周模型只给 4 班的长程线上，永远排不出「每日」；
+        /// ② 「加密到每天 3 班」反而把周班次从 4 摊成 3（波次重分同一个总数）；
+        /// ③ 呈报里「班期未照办…先改周班次（加密/削减）」是一句**死路建议**（加密抬不动周班次）。
+        /// 现改为：**CEO 明说的班次优先**，模型降为建议值，代价（日利用率偏离目标）写进呈报。
+        /// 硬闸门仍是时刻槽 / 值勤 / 机队 / **机组** —— 排不出就如实进「运力缺口」。
+        /// </summary>
         public static bool ApplyWaves(RouteData route, IList<Aircraft> fleet, IList<RouteData> allRoutes,
             string[] deps, string days, out List<WaveShortage> shortages,
-            AirlineCEO.Systems.GameState gsRef = null)
+            AirlineCEO.Systems.GameState gsRef = null, int honorWeekly = 0)
         {
             shortages = new List<WaveShortage>();
             if (route == null || deps == null || deps.Length == 0) return false;
@@ -192,33 +280,69 @@ namespace AirlineCEO.Logic
             int target = Math.Min(deps.Length, ScheduleSlots.DepTimes.Length);
             if (target < 1) target = 1;
 
+            // —— 机组闸门（第四道，★2026-10-14 CEO 第十一次问询）——
+            // 原话：「当 CEO 输入『增加此航线的航班量』，那么除了要获得更多的时刻槽，也要考虑增加轮换机组。」
+            // 旧版排班器**完全不看机组**：槽批下来了、飞机也在，班次就排出去 —— 三根轴里唯一会被
+            // 静默忽略的那根。现改为：超出机组产能的波次记成「缺机组」缺口（kind=crew），
+            // 呈报给出「先补机组 → 再重下加密指令」两阶段，与时刻槽缺口同一套处置形状。
+            //
+            // 只拦**新增**波次（下限 = 现值段数）：机组不足不该反过来把已有班次砍掉 ——
+            // 那是「削减」指令的活，不该是加密失败时的副作用。
+            int crewCap = CrewCapacityLogic.MaxCrewedTrips(gs, route);
+            int crewAllowed = crewCap == CrewCapacityLogic.NoLimit
+                ? int.MaxValue
+                : Math.Max(route.FlightCount, crewCap);
+
             var assigned = new List<RouteFlight>();
-            var usedBands = new List<int>();
+            var takenClocks = new List<string>();
             for (int i = 0; i < target; i++)
             {
                 // 需求波窗口：不再固定到 4 个时刻点，而是「该波窗口内、该机落回后最早可起飞」
                 string peg = PickDep(deps, i, target);
                 int band = ScheduleSlots.BandOfDep(peg);
-                if (usedBands.Contains(band)) continue;
-                usedBands.Add(band);
+                // ★2026-10-15 去掉「同时段只排一波」的桶去重。现实里一个时段窗口内可以塞很多波：
+                // 早高峰 06:30–09:30 就是枢纽一天最挤的一排，06:30 / 07:00 / 07:30 / 08:00 各飞一班
+                // 才是常态。旧版按段去重后，一天一段只出一波 —— 这正是「加密指令排不动」的根因。
+                // 现在能否再排一波，完全由三根硬轴决定：**那一刻有没有槽**、有没有机、有没有机组。
+
+                // 机组闸门：已排定的段数到顶 → 本波没人可派，不排（缺口如实记，不静默少排）
+                if (assigned.Count >= crewAllowed)
+                {
+                    shortages.Add(CrewShortage(route, band, target, gs));
+                    continue;
+                }
 
                 bool grandfather = keepBands.Contains(band);
-                if (!RoutePermitLogic.CanScheduleBand(gs, route, band, grandfather))
+                // 本波落在哪一刻：在该波网格上取「第一个既没被本次排班占用、又有槽可用」的时刻。
+                // 本航线在该波持有的槽（各自时刻不同）自然就是这些候选点 —— 持有几条不同时刻的槽，
+                // 这一波就能排几班，这正是「同段多波」的物理上限。
+                string candidate = RoutePermitLogic.FirstSchedulableClock(
+                    gs, route, band, takenClocks, grandfather, ScheduleSlots.ParseClock(peg));
+                if (candidate == null)
                 {
-                    shortages.Add(DiagnoseBand(route, fleet, plan, band, "", gs));
+                    shortages.Add(DiagnoseClock(route, fleet, plan, peg, band, "", gs));
                     continue;
                 }
 
                 var ac = OpsRotationLogic.PickForWindow(route, fleet, plan, band, false, gs,
-                                                        out int depMin, out string why);
+                                                        out int depMin, out string why,
+                                                        ScheduleSlots.ParseClock(candidate));
                 if (ac == null)
                 {
-                    var s = DiagnoseBand(route, fleet, plan, band, why, gs);
-                    shortages.Add(s);
+                    shortages.Add(DiagnoseClock(route, fleet, plan, candidate, band, why, gs));
                     continue;
                 }
 
                 string dep = ScheduleSlots.FormatClock(depMin);
+                // 实际离港必须落在某条槽上（容差内）：时刻槽是「某一刻的一次离港」。
+                // 飞机赶不上 06:30 的槽、只能 07:40 起飞时，那一刻没有槽就如实报缺口，
+                // 不偷偷把班次记在别的槽名下（否则 80% 统计与实际运行对不上）。
+                if (!RoutePermitLogic.CanScheduleClock(gs, route, dep, grandfather))
+                {
+                    shortages.Add(DiagnoseClock(route, fleet, plan, dep, band, why, gs));
+                    continue;
+                }
+                takenClocks.Add(dep);
                 // R4：先取本条值勤的报到时刻（并入既有值勤期则取该值勤期首段），再落班
                 int dutyReport = OpsRotationLogic.ReportAt(plan, ac.registration, depMin);
                 plan.Assign(ac.registration, OpsRotationLogic.WindowOf(route, dep));
@@ -250,8 +374,12 @@ namespace AirlineCEO.Logic
             }
 
             int maxWaves = assigned.Count;
-            int weeklyEach = longHaul ? 4 : 7;
-            string daysUse = longHaul && (days == "每日" || string.IsNullOrEmpty(days)) ? "二四六" : (string.IsNullOrEmpty(days) ? "每日" : days);
+            // 周班次权威：CEO 明说（honorWeekly > 0）优先，否则按模型建议值摊分到实际排得出的波次上。
+            int modelWeekly = RouteFrequencyModel.ForRoute(route).weeklyFlights;
+            int weeklyTarget = honorWeekly > 0 ? RouteFrequencyModel.ClampWeekly(honorWeekly) : modelWeekly;
+            int weeklyEach = RouteFrequencyModel.PerWaveWeekly(weeklyTarget, maxWaves);
+            // 尊重 CEO 已选班期：天数与每波班次一致时原样保留，否则回落到规范班期字符串。
+            string daysUse = RouteFrequencyModel.ReconcileDays(days, weeklyEach);
             float share = 1f / maxWaves;
             for (int i = 0; i < assigned.Count; i++)
             {
@@ -357,7 +485,7 @@ namespace AirlineCEO.Logic
         static string BucketOf(string why)
         {
             string w = why ?? "";
-            if (w.Contains("检修") || w.Contains("停用") || w.Contains("退役")) return "检修/停用";
+            if (w.Contains("检修") || w.Contains("停用") || w.Contains("退役") || w.Contains("退租")) return "检修/停用";
             if (w.Contains("过渡业务")) return "已投入过渡业务";
             if (w.Contains("航程不足")) return "航程不足";
             if (w.Contains("机型不符")) return "机型不符";
@@ -417,7 +545,45 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
-        /// 该航线该去程时段的时刻槽缺口说明；两端（去程离港端 + 回程离港端）都齐备则返回空。
+        /// 需求波窗口的「缺机组」缺口打包（第四道闸门，★2026-10-14 CEO 第十一次问询）。
+        ///
+        /// 与 <see cref="DiagnoseBand"/> 同形，但不做逐机归因 —— 卡点不在飞机，而在**没人可派**：
+        /// 逐机看过去每架都「有空」，旧版据此照排，班次排出来却无人执飞。故这里改为写清
+        /// 需求（本线 N 段要几组/几人）、可供（在册/编制基准 − 其它航线占用）、以及两阶段处置
+        /// （先补机组 → 再重下加密指令），与时刻槽缺口同一套形状，便于上层并列处理。
+        /// </summary>
+        public static WaveShortage CrewShortage(RouteData route, int band, int targetTrips,
+            AirlineCEO.Systems.GameState gsRef = null)
+        {
+            int i = band < 0 ? 0 : band > 3 ? 3 : band;
+            string peg = ScheduleSlots.DepTimes[i];
+            var s = new WaveShortage
+            {
+                dep = peg,
+                slotLabel = ScheduleSlots.LabelForDep(peg),
+                kind = CrewCapacityLogic.KindCrew,
+                details = new List<string>()
+            };
+            if (route == null) { s.reason = "机组缺口：航线数据缺失。"; return s; }
+
+            var gs = gsRef ?? AirlineCEO.Systems.GameState.Instance;
+            int want = Math.Max(1, Math.Min(targetTrips, ScheduleSlots.DepTimes.Length));
+            int now = Math.Max(1, route.FlightCount);
+            int cap = CrewCapacityLogic.MaxCrewedTrips(gs, route);
+            string win = $"{ScheduleSlots.FormatClock(ScheduleSlots.WindowStartOf(i))}"
+                         + $"–{ScheduleSlots.FormatClock(ScheduleSlots.WindowEndOf(i))}";
+
+            s.details.Add("机组需求　" + CrewCapacityLogic.Line(gs, route, want));
+            s.details.AddRange(CrewCapacityLogic.Details(gs, route, want));
+            s.reason = $"{ScheduleSlots.Labels[i]}需求波窗口 {win} 排不出：**机组不足** —— "
+                       + CrewCapacityLogic.Reason(gs, route, want)
+                       + $"本条线机组口径最多排 {(cap == CrewCapacityLogic.NoLimit ? now : cap)} 段/日，"
+                       + $"现值 {now} 段，本次要排 {want} 段。";
+            return s;
+        }
+
+        /// <summary>
+        /// 该航线该去程时段的时刻槽缺口说明；**每一个协调停站**（本场端 / 经停端 / 对端）都齐备则返回空。
         /// 协调机场无空闲持仓即构成排班缺口（不论时刻池是否还有可申请余量）。
         /// </summary>
         public static string SlotGapOf(RouteData route, int band, AirlineCEO.Systems.GameState gsRef = null)
@@ -434,6 +600,61 @@ namespace AirlineCEO.Logic
             if (RoutePermitLogic.BandNeeds(route, band).Count == 0) return "";   // 两端均非协调机场
             if (RoutePermitLogic.CanScheduleBand(gs, route, band, true)) return "";
             return RoutePermitLogic.BandGapText(gs, route, band);
+        }
+
+        /// <summary>某**具体时刻**的时刻槽缺口说明（★2026-10-15：时刻槽精确到时刻后的归因口径）。</summary>
+        public static string SlotGapOfClock(RouteData route, string clock, AirlineCEO.Systems.GameState gsRef = null)
+        {
+            if (route == null || ScheduleSlots.ParseClock(clock) < 0) return "";
+            try
+            {
+                var gs = gsRef ?? AirlineCEO.Systems.GameState.Instance;
+                if (gs == null) return "";
+                if (RoutePermitLogic.ClockNeeds(route, clock).Count == 0) return "";
+                if (RoutePermitLogic.CanScheduleClock(gs, route, clock, true)) return "";
+                return RoutePermitLogic.ClockGapText(gs, route, clock);
+            }
+            catch (Exception) { return ""; }
+        }
+
+        /// <summary>
+        /// 某**具体时刻**排不出的缺口打包（★2026-10-15）。与 <see cref="DiagnoseBand"/> 同形，
+        /// 但把「哪一刻」写进缺口，CEO 才能据此去申请/购买**那一条**槽。
+        /// </summary>
+        public static WaveShortage DiagnoseClock(RouteData route, IList<Aircraft> fleet,
+            OpsRotationLogic.RotationPlan plan, string clock, int band, string pickWhy,
+            AirlineCEO.Systems.GameState gsRef = null)
+        {
+            int m = ScheduleSlots.ParseClock(clock);
+            string at = m < 0 ? (clock ?? "") : ScheduleSlots.FormatClock(m);
+            int i = m < 0 ? (band < 0 ? 0 : band > 3 ? 3 : band) : ScheduleSlots.BandOfDep(at);
+            string win = $"{ScheduleSlots.FormatClock(ScheduleSlots.WindowStartOf(i))}"
+                         + $"–{ScheduleSlots.FormatClock(ScheduleSlots.WindowEndOf(i))}";
+            var s = new WaveShortage { dep = at, slotLabel = ScheduleSlots.LabelForDep(at) };
+            string summary = DiagnoseSlotDetail(route, fleet, plan, at, i, out var details, out string kind);
+            s.details = details;
+            s.kind = kind;
+            string extra = string.IsNullOrEmpty(pickWhy) ? "" : $"选机结论：{pickWhy}。";
+            s.reason = $"{at} 这一波（{win}）排不出：{extra}{summary}";
+
+            string slotWhy = SlotGapOfClock(route, at, gsRef);
+            if (!string.IsNullOrEmpty(slotWhy))
+            {
+                s.details.Add("时刻槽　" + slotWhy);
+                var gsNow = gsRef ?? AirlineCEO.Systems.GameState.Instance;
+                if (RoutePermitLogic.TryShortClock(gsNow, route, at, out var shortEnd))
+                {
+                    s.slotAirport = shortEnd.airport;
+                    s.slotBand = shortEnd.band;
+                    s.slotInbound = shortEnd.inbound;
+                }
+                if (s.kind == "no_aircraft" || !RoutePermitLogic.CanScheduleClock(gsRef, route, at, true))
+                {
+                    s.kind = "no_slot";
+                    s.reason = $"{at} 这一波（{win}）排不出：{slotWhy}";
+                }
+            }
+            return s;
         }
 
         /// <summary>当天分钟数 → HH:mm（跨夜以 +1 标注）。</summary>
@@ -479,8 +700,23 @@ namespace AirlineCEO.Logic
 
             var plan = new OpsRotationLogic.RotationPlan();
             plan.LoadFrom(allRoutes, route);
+
+            // —— 机组闸门（第四道，★2026-10-14 CEO 第十一次问询）——
+            // 与 ApplyWaves 同口径：能排的段数一旦到顶，后续波次即便「有机有槽」也如实报「缺机组」，
+            // 免得预检说「四个波次都排得出」、真下指令却少排两班（旧版就是因为不看机组而这样说）。
+            int crewCap = CrewCapacityLogic.MaxCrewedTrips(gsRef, route);
+            int crewAllowed = crewCap == CrewCapacityLogic.NoLimit
+                ? int.MaxValue
+                : Math.Max(route.FlightCount, crewCap);
+            int crewed = 0;
+
             for (int i = 0; i < ScheduleSlots.DepTimes.Length; i++)
             {
+                if (crewed >= crewAllowed)
+                {
+                    shortages.Add(CrewShortage(route, i, ScheduleSlots.DepTimes.Length, gsRef));
+                    continue;
+                }
                 if (!RoutePermitLogic.CanScheduleBand(gsRef, route, i, true))
                 {
                     shortages.Add(DiagnoseBand(route, fleet, plan, i, "", gsRef));
@@ -496,6 +732,7 @@ namespace AirlineCEO.Logic
                 string dep = ScheduleSlots.FormatClock(depMin);
                 feasible.Add($"{ScheduleSlots.Labels[i]} {dep}");
                 plan.Assign(ac.registration, OpsRotationLogic.WindowOf(route, dep));
+                crewed++;
             }
             return shortages;
         }
@@ -571,24 +808,44 @@ namespace AirlineCEO.Logic
                 if (used.Contains(a.registration)) continue;
                 // 已投入过渡业务（干租/湿租/包机/培训）的飞机不可再排定期航班
                 if (TransitionBusinessLogic.IsBusy(gsRef, a.registration)) continue;
-                if (RangeKm(a.type) + 50f < Math.Max(200f, route.distanceKm)) continue;
+                if (!OpsScheduleLogic.RangeKnown(a.type)) continue;          // 机型不在目录：航程无法核实，不予放行
+                if (!OpsScheduleLogic.RangeCovers(a.type, route)) continue;
                 ok.Add(a);
             }
             return ok;
         }
 
-        public static float RangeKm(string type)
+        /// <summary>
+        /// 机型航程（km）—— **目录真值**（<see cref="AircraftCatalog.RangeKmOf"/>）。
+        /// 0 = 机型不在目录，航程无法核实：调用方必须按「飞不了」处理并向玩家说明，
+        /// 不得像旧版那样给未知机型兜底 8,000 km（那会让飞不到 7,409 km 的飞机被派上洲际线）。
+        /// </summary>
+        public static float RangeKm(string type) => AirlineCEO.Data.AircraftCatalog.RangeKmOf(type);
+
+        /// <summary>
+        /// 本线需要的**机型航程**（km）＝ 航段距离，下限 200 km。
+        /// <see cref="RangeToleranceKm"/> 不在这里扣 —— 余量给的是机型侧（见 <see cref="RangeCovers"/>）。
+        /// 于是对外文案里的「本线需 N km」就是玩家看到的航线距离，可直接核对。
+        /// </summary>
+        public static float RequiredRangeKm(RouteData route)
+            => Math.Max(200f, route != null ? route.distanceKm : 0f);
+
+        /// <summary>
+        /// 该机型能否覆盖该航线：**机型航程 + 减载余量 ≥ 本线距离**。
+        ///
+        /// 余量 50 km 是刻意留的，且必须加在机型侧：目录写的是厂商典型航程（载荷受限），
+        /// 减载后能多飞一点 —— A321LR 目录 7,400 km vs FRA–ATL 7,409 km 这种「差一点」的线，
+        /// 若一分余量都不给，就会把一个现实里真在飞的机型判成飞不了。
+        /// （旧写法 `航程 ≥ 距离 + 50` 恰好相反：把 A321LR 判成够不着，与这段说明自相矛盾。）
+        /// </summary>
+        public static bool RangeCovers(string type, RouteData route)
         {
-            if (string.IsNullOrEmpty(type)) return 6300f;
-            if (type.IndexOf("787", StringComparison.OrdinalIgnoreCase) >= 0) return 14100f;
-            if (type.IndexOf("777", StringComparison.OrdinalIgnoreCase) >= 0) return 13600f;
-            if (type.IndexOf("A350", StringComparison.OrdinalIgnoreCase) >= 0) return 15000f;
-            if (type.IndexOf("A330", StringComparison.OrdinalIgnoreCase) >= 0) return 11750f;
-            if (type.IndexOf("737", StringComparison.OrdinalIgnoreCase) >= 0) return 5600f;
-            if (type.IndexOf("A321", StringComparison.OrdinalIgnoreCase) >= 0) return 7400f;
-            if (type.IndexOf("A320", StringComparison.OrdinalIgnoreCase) >= 0) return 6300f;
-            return 8000f;
+            float r = RangeKm(type);
+            return r > 0f && r + RangeToleranceKm >= RequiredRangeKm(route);
         }
+
+        /// <summary>该机型航程是否可核实（在目录里）。不在目录的机型不得参与排班判定。</summary>
+        public static bool RangeKnown(string type) => RangeKm(type) > 0f;
 
         public static string FormatPlanBody(RouteData route, string ceoNote = null, string opsReply = null)
         {
@@ -605,7 +862,8 @@ namespace AirlineCEO.Logic
             {
                 var f = route.flights[i];
                 if (f == null) continue;
-                sb.Append($"班次 {i + 1}　{f.registration}　{f.depTime} → {f.arrTime}　{ScheduleSlots.LabelForDep(f.depTime)}　{f.daysOfWeek} / 周{f.weeklyFlights}班\n");
+                // 时刻印**一次往返的真实占窗**（跨夜标 +1），与周计划/单航线页同一口径 —— 2026-10-14 报障
+                sb.Append($"班次 {i + 1}　{f.registration}　{FlightScheduleFormat.WindowLabel(route, f)}　{ScheduleSlots.LabelForDep(f.depTime)}　{f.daysOfWeek} / 周{f.weeklyFlights}班\n");
             }
             sb.Append($"\n过站回程　落地后约 {turn} 分钟返航\n");
             sb.Append($"预估日利　约 {route.dailyProfit:F1} 万\n\n");

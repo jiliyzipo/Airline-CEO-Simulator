@@ -1,4 +1,6 @@
 using AirlineCEO.Data;
+using AirlineCEO.Logic;
+using AirlineCEO.Systems;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,7 +43,7 @@ namespace AirlineCEO.UI
                 TextAlignmentOptions.MidlineRight,
                 new UIFactory.Anchor(new Vector2(0.55f, 0.48f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero),
                 UITheme.Success);
-            card.metaText = UIFactory.Label(root.transform, "Meta", "开通：第 1 年 Q1 · 综合 70", 12,
+            card.metaText = UIFactory.Label(root.transform, "Meta", "第 1 年 Q1 开航 · 7 班/周 · 周需（人次/周）商务 1,200 · 超经 900 · 经济 3,400　｜　货邮 4.0 吨/周", 12,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.05f, 0.08f), new Vector2(0.96f, 0.48f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
@@ -52,21 +54,53 @@ namespace AirlineCEO.UI
         public void Bind(RouteData route)
         {
             if (route == null) return;
+
+            // 无机可派（未指派 / 已退役转售 / 停场 / 已投入过渡业务）：该线不产生航班，也照实标出来，
+            // 免得 CEO 在列表里只看到「日利 0.0 万」却找不到原因（旧弊端：机号照旧显示、幽灵航班照飞）。
+            var ground = FlightGroundLogic.RouteOf(GameState.Instance, route);
+            bool grounded = FlightGroundLogic.IsPersistent(ground);
+
             if (titleText != null)
-                titleText.text = $"{route.origin} → {route.destination}";
+            {
+                titleText.text = grounded
+                    ? $"{AirportCatalog.Od(route.origin, route.destination)}　⚠ {FlightGroundLogic.Label(ground)}"
+                    : AirportCatalog.Od(route.origin, route.destination);
+                titleText.color = grounded ? UITheme.Warning : UITheme.TextPrimary;
+            }
             if (profitText != null)
-                profitText.text = $"日利 {route.dailyProfit:F1} 万";
+            {
+                // 停飞线不得在列表里照报「日利 X 万」：那正是幽灵收入的界面版（季结也按同口径剔除），
+                // 故此处直接换成停飞提示，潜在日利请进详情页看（详情页保留设计口径并标注不计营收）。
+                if (grounded)
+                {
+                    profitText.text = "停飞不计营收";
+                    profitText.color = UITheme.Warning;
+                }
+                else
+                {
+                    profitText.text = $"日利 {route.dailyProfit:F1} 万";
+                    profitText.color = route.dailyProfit < 0f ? UITheme.Danger : UITheme.Success;
+                }
+            }
             if (metaText != null)
-                metaText.text = $"开通：{route.openedDate} · 综合评定 {route.score} 分（{route.rating}）";
+            {
+                var g = RouteGravityModel.EvaluateRoute(GameState.Instance, route);
+                // 开航时间与每周班次都走 RouteData 的一行式（哨兵值「接管前」不得当日期用；
+                // 离港/值勤两侧恒等时只报一个数字，见 RouteData.WeeklyLine）。
+                metaText.text =
+                    $"{RouteData.OpenedText(route.openedDate)} · {route.WeeklyLine()} · {g.FormatOneLine()}";
+            }
             if (accentBar != null)
             {
-                accentBar.color = route.rating switch
-                {
-                    "绿" => UITheme.Success,
-                    "黄" => UITheme.Warning,
-                    "红" => UITheme.Danger,
-                    _ => UITheme.Accent
-                };
+                accentBar.color = grounded
+                    ? UITheme.Warning
+                    : route.rating switch
+                    {
+                        "绿" => UITheme.Success,
+                        "黄" => UITheme.Warning,
+                        "红" => UITheme.Danger,
+                        _ => UITheme.Accent
+                    };
             }
         }
     }

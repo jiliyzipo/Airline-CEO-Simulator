@@ -1,0 +1,82 @@
+{
+  "at": "2026-10-18T07:14:46.307Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "total": 14,
+  "passed": 11,
+  "failed": 3,
+  "results": [
+    {
+      "id": "R01",
+      "name": "ordinary Cursor still cannot start, finish, draft or cancel a review",
+      "passed": true
+    },
+    {
+      "id": "R02",
+      "name": "a reverse-review grant cannot approve a Cursor-authored delivery",
+      "passed": true
+    },
+    {
+      "id": "R03",
+      "name": "project, task, delivery, every fingerprint, profile and action must match",
+      "passed": true
+    },
+    {
+      "id": "R04",
+      "name": "authorized Cursor creates and finishes its own independent bound smoke REV",
+      "passed": false,
+      "error": "TypeError: state.listEvents is not a function\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:86:23\n    at test (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:51:15)\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:77:7"
+    },
+    {
+      "id": "R05",
+      "name": "the grant bytes are pinned and cannot change between review commands",
+      "passed": true
+    },
+    {
+      "id": "R06",
+      "name": "another actor cannot run, draft, finish or cancel a reviewer-owned record",
+      "passed": true
+    },
+    {
+      "id": "R07",
+      "name": "reverse review still rejects tampered bound stdout",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'path')\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:105:75\n    at test (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:51:15)\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:103:7"
+    },
+    {
+      "id": "R08",
+      "name": "reverse review requires complete AC coverage and cannot finish twice",
+      "passed": true
+    },
+    {
+      "id": "R09",
+      "name": "authorized cancellation is terminal; user retains administrative cancellation",
+      "passed": true
+    },
+    {
+      "id": "R10",
+      "name": "Codex self-check remains nonindependent and cannot complete the task",
+      "passed": true
+    },
+    {
+      "id": "R11",
+      "name": "a self-checked required profile cannot borrow a different profile independent pass",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'find')\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:135:59\n    at test (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:51:15)\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/tests/reverse-review.test.mjs:128:7"
+    },
+    {
+      "id": "R12",
+      "name": "schema rejects Cursor records without the matching grant, hash or independent identity",
+      "passed": true
+    },
+    {
+      "id": "R13",
+      "name": "review grant does not grant issue closure, taskbook writes or global recovery",
+      "passed": true
+    },
+    {
+      "id": "R14",
+      "name": "PowerShell wrapper preserves real Cursor actor and scoped grant",
+      "passed": true
+    }
+  ]
+}

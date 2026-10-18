@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18T05:06:24.680Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018050538-fe84c9\\tools\\collab",
+  "label": "codex-final-delivery-final",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 38,
+      "failLines": 0,
+      "script": ".collab-local/devtests-codex-final-delivery-final-1792299984602/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-codex-final-delivery-final-1792299984602",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 24,
+        "passed": 24,
+        "failed": 0
+      },
+      "passLines": 24,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/baseline24-terminal.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/codex-final-delivery-final-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "passLines": 12,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-final-delivery-final-supplemental/2026-10-18T05-07-00-001Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "passLines": 8,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/edge8-terminal.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-final-delivery-final-boundary8/2026-10-18T05-07-15-852Z/results.json"
+    }
+  ],
+  "failedSuites": 0
+}

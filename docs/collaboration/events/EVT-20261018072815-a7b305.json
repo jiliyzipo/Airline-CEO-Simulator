@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018072815-a7b305",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 194,
+  "at": "2026-10-18T07:28:15.705Z",
+  "actor": "cursor",
+  "action": "review-run",
+  "taskId": "C-COLLAB-FINAL",
+  "deliveryId": "DEL-20261018071756-010504",
+  "reviewId": "REV-20261018072743-74a233",
+  "parentEventId": null,
+  "summary": "review-run exit=0 cwd=snapshot status=running",
+  "data": {
+    "exitCode": 0,
+    "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504",
+    "cancelledDuringRun": false,
+    "runToken": "30cc87cca6933a0d",
+    "resultFile": null,
+    "resultFileProducedByRun": null,
+    "resultFileSha256": null,
+    "postSnapshotOk": true,
+    "postSnapshotReason": null
+  }
+}

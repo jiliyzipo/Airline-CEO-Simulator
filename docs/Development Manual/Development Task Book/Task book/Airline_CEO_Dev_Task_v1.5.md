@@ -615,7 +615,8 @@ passRate = clamp01(0.70 − competitorShare × 0.30)
 | 10.2 购买 | 三机型弹窗；扣现金；注册号 B-1004… | `FleetPurchaseUI` / `FleetManager` |
 | 10.3 状态 | 机龄&gt;15→维护中；&gt;20 维护费翻倍 | `FleetManager` |
 | 10.4 老化 | 财年末机龄 +1 | `TimeManager` → `OnYearEndAgeFleet` |
-| 10.5 退役 | 残值 = 购价×max(10%, 100−机龄×3)% | `TryRetireAircraft` |
+| 10.5 退役 | 自有 / 二手引进 → 退役：残值 = 购价×max(10%, 100−机龄×3)% | `TryRetireAircraft` |
+| 10.6 退租 | 融资租赁 / 经营租赁 → 退租（产权在出租人）：不回收残值；经营租赁 0 违约金，融资租赁按剩余租期租金×30%（10 年期） | `TryRetireAircraft` / `FleetEconomics.LeaseReturnCostWan` |
 | 联动 | 开通航线检查适航数 &gt; 航线数；月维护计入烧钱 | `ActionExecutor` / `GameState` |
 | 存档 | `ACEO_Fleet` | `SaveManager` |
 | 调试 | Grant Cash / Add Random Aircraft / Force Age +1 | `Phase10DebugMenu` |

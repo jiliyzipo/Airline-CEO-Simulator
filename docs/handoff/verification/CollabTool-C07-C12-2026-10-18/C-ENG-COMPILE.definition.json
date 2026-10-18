@@ -1,0 +1,20 @@
+{
+  "taskId": "C-ENG-COMPILE",
+  "title": "编译入口串联（tools/semcheck 三道门真实执行）",
+  "scope": [
+    "仅在隔离快照中执行既有 node tools/semcheck/run.js，不复制第二套实现",
+    "解析 errors / tests-asm / enc 三道门，任一非零即不得通过"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "compile profile 真实执行 tools/semcheck/run.js，scripts、tests-asm、enc 三道门均为 errors=0，退出码 0"
+    }
+  ],
+  "dependencies": [],
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "tools/semcheck"
+  ],
+  "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07"
+}

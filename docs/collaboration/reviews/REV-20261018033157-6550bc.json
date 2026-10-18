@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018033157-6550bc",
+  "deliveryId": "DEL-20261018033145-e77a66",
+  "taskId": "C-ENG-SLOT",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "slot",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "9af30cf63cb24136b711b920c18a9644a9cae6452c94099e7b24f0888144182d",
+    "verification": "ecc34149f5a7ff43fc1356cc7a48aed201b70e92d43edd95393c531db86577d3",
+    "contract": "1f30bba4568028b78cf610d75044aa1d6c57c3fc4dec20dfad09447b28b03417"
+  },
+  "snapshotPath": "out/collab/DEL-20261018033145-e77a66",
+  "createdAt": "2026-10-18T03:31:57.872Z",
+  "updatedAt": "2026-10-18T03:35:33.316Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:34:59.786Z",
+      "finishedAt": "2026-10-18T03:35:06.181Z",
+      "runToken": "940c78cb5a0bf932",
+      "profile": "slot",
+      "deliveryId": "DEL-20261018033145-e77a66",
+      "subjectImplementationFingerprint": "9af30cf63cb24136b711b920c18a9644a9cae6452c94099e7b24f0888144182d",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tools/slotcheck/slotcheck.csproj",
+        "-c",
+        "Release"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018033145-e77a66",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018033157-6550bc/run-940c78cb5a0bf932/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018033157-6550bc/run-940c78cb5a0bf932/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018033157-6550bc/run-940c78cb5a0bf932/stdout.txt",
+        "sha256": "a9f3c617cc6a12c88fae2d24bafd12fce001982c8e4b7cf63f8f5761ee24c20e",
+        "bytes": 41105,
+        "runToken": "940c78cb5a0bf932"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018033157-6550bc/run-940c78cb5a0bf932/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "940c78cb5a0bf932"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 940c78cb5a0bf932 in out/collab/DEL-20261018033145-e77a66: 371 [PASS] / 0 [FAIL], SLOTCHECK OK, external exit code 0. Post-run snapshot integrity verified (only bin/obj build artifacts appeared)."
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:34:59.765Z",
+  "assertions": {
+    "total": 371,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "slotcheck",
+      "total": 371,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 371,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-C07-C12-2026-10-18/evidence-slot.json",
+  "finishedAt": "2026-10-18T03:35:33.316Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "940c78cb5a0bf932",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018033145-e77a66"
+  }
+}

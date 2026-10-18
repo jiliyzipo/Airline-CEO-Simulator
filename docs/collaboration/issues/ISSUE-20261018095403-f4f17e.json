@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018095403-f4f17e",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "title": "SA02 Unity预检绕过另一review持有的工具资源锁",
+  "repro": "node docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/stage-audit.mjs ; subject=DEL-20261018093335-80f2f4; case=SA02; fixture=C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-2WX9Qv\\2",
+  "expected": "Unity preflight must check/acquire the shared Unity review lease immediately before spawn; held lease returns 4 without execution",
+  "actual": "{\"executed\":true,\"code\":null,\"preflightOk\":true,\"usedRealUnity\":false}",
+  "evidence": "docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/results-2026-10-18T09-54-03-314Z.json#SA02",
+  "severity": "blocker",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T09:54:03.968Z"
+}

@@ -1,0 +1,11 @@
+const assert = require('node:assert/strict');
+const { build } = require('./run');
+const result = overrides => build('unused.csproj', () => ({ status: 0, stdout: '', stderr: '', ...overrides }));
+assert.equal(result({}).failed, false);
+assert.equal(result({ status: 1, stdout: 'error MSB1009: Project file does not exist.' }).failed, true);
+assert.match(result({ status: 1, stderr: 'restore failed' }).diagnostic, /restore failed/);
+assert.equal(result({ status: null, error: new Error('spawn dotnet ENOENT') }).failed, true);
+assert.equal(result({ status: null, signal: 'SIGTERM' }).failed, true);
+assert.equal(result({ stdout: 'file.cs(1,2): error CS1002: ; expected [test.csproj]' }).failed, true);
+assert.equal(result({ status: 1, stdout: 'file.cs(1,2): error CS1002: ; expected [test.csproj]' }).lines.length, 1);
+console.log('semcheck runner: 7 failure-propagation checks PASS');

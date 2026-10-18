@@ -1,0 +1,25 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+  "summary": "Cursor 以真实 actor=cursor 按限定复验声明独立复验 DEL-20261018071756-010504。三项验收条件全部满足；快照 35/35 哈希在复验前后一致。另发现并已在报告中记录一处交付后的工作区漂移（与快照无关，已恢复并备份）。",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "review-run runToken=30cc87cca6933a0d，cwd=out/collab/DEL-20261018071756-010504，exit=0，stderr 0 字节；标准输出为 112/0/0（collab 38、xml 26、closure 13、daily 21、reverse-review 14），ok=true。日志 .collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stdout.txt。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "同一快照外部套件：developer 38 行通过、baseline24 24/24、supplemental 12/12、boundary8 8/8（evidence/cursor-REV-20261018072743-74a233）。XML 结果闸门审计 12/12，含 6 类非法 XML 在解析层与 finish 层被拒、合法 NUnit/JSON 仍通过（.collab-local/cursor-REV-20261018072743-74a233-xml）。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "README/操作手册明确默认手动 sync/ack + 前台 watch，Hooks 可选且 nativeVerified=false、cliAppliedDoesNotProveNativeTrigger=true；跨 actor 操作被拒（codex 取消 cursor 的 REV 返回 7）；另跑 6 条独立探针全部通过（P1 非法输入非零、P2 本机 config 不入指纹、P3 无基线不得完成、P4 并发 Hook 不重复应用且重试去重、P5 改动后 stale 但保留 passed、P6 未授权与借用授权均被拒）。"
+    }
+  ],
+  "assertionsTotal": 112,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0
+}

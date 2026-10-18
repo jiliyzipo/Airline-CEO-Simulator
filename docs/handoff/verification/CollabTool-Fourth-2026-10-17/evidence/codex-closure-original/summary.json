@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18T04:08:10.442Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018035835-766dc7\\tools\\collab",
+  "label": "codex-closure-original",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 38,
+      "failLines": 0,
+      "script": ".collab-local/devtests-codex-closure-original-1792296490372/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-codex-closure-original-1792296490372",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 1,
+      "ok": false,
+      "counts": {
+        "total": 24,
+        "passed": 23,
+        "failed": 1
+      },
+      "passLines": 23,
+      "failLines": 1,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/baseline24-rerun.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/codex-closure-original-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "passLines": 12,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-closure-original-supplemental/2026-10-18T04-08-55-152Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 1,
+      "ok": false,
+      "counts": {
+        "total": 8,
+        "passed": 7,
+        "failed": 1
+      },
+      "passLines": 7,
+      "failLines": 1,
+      "script": "docs/handoff/verification/CollabTool-Third-2026-10-17/edge-cases.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-closure-original-boundary8/2026-10-18T04-09-14-783Z/results.json"
+    }
+  ],
+  "failedSuites": 2
+}

@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-18T03:05:21.535Z",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018022444-a55ae4\\tools\\collab",
+  "sourceFingerprint": "0965e49e503e24fd05a006b341a5e678bd23ca0fcfbfcdff0cb8d3f8da50d07e",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-fifth-original-xml-integration\\2026-10-18T03-05-13-193Z",
+  "total": 7,
+  "passed": 6,
+  "failed": 1,
+  "results": [
+    {
+      "id": "F01",
+      "requirement": "Valid machine JSON and complete evidence explicitly finish passed",
+      "passed": true,
+      "actual": {
+        "reviewId": "REV-20261018030514-aa05e0",
+        "status": "passed",
+        "issues": [],
+        "freshness": "current",
+        "revision": 6,
+        "machineResult": {
+          "parsed": {
+            "adapter": "stdout-json",
+            "total": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "counters": {
+            "total": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "unverified": false,
+          "reason": null
+        }
+      }
+    },
+    {
+      "id": "F02",
+      "requirement": "Uncontracted unknown output stays terminal blocked with exit 6 and unknown freshness",
+      "passed": true,
+      "result": {
+        "reviewId": "REV-20261018030515-5ae0f6",
+        "status": "blocked",
+        "blockedReason": "machine result does not support an independent verdict: declared JSON profile produced no machine result JSON in stdout",
+        "machineResult": {
+          "parsed": null,
+          "counters": null,
+          "unverified": true,
+          "reason": "declared JSON profile produced no machine result JSON in stdout"
+        },
+        "exitCode": 6
+      },
+      "repeat": {
+        "accepted": false,
+        "exitCode": 3,
+        "error": "review REV-20261018030515-5ae0f6 is immutable terminal status=blocked"
+      },
+      "task": {
+        "reviewStatus": "blocked",
+        "freshness": "unknown"
+      }
+    },
+    {
+      "id": "F03",
+      "requirement": "The actual fourth DEL can execute its configured default smoke successfully",
+      "passed": true,
+      "deliveryId": "DEL-20261018022444-a55ae4",
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018030517-fd3587",
+          "exitCode": 0,
+          "status": "running",
+          "cancelledDuringRun": false,
+          "runToken": "c310a6c1aedf92e3",
+          "stdoutPath": ".collab-local/logs/REV-20261018030517-fd3587/run-c310a6c1aedf92e3/stdout.txt",
+          "stderrPath": ".collab-local/logs/REV-20261018030517-fd3587/run-c310a6c1aedf92e3/stderr.txt",
+          "externalExitCode": 0,
+          "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-fifth-original-xml-integration\\2026-10-18T03-05-13-193Z\\fixtures\\03\\out\\collab\\DEL-20261018022444-a55ae4",
+          "resultFile": null
+        }
+      },
+      "stdout": "{\n  \"profile\": \"smoke\",\n  \"reviewId\": \"REV-20261018030517-fd3587\",\n  \"assertionsTotal\": 2,\n  \"assertionsFailed\": 0,\n  \"assertionsSkipped\": 0,\n  \"checks\": [\n    {\n      \"name\": \"cli-exists\",\n      \"ok\": true\n    },\n    {\n      \"name\": \"protocol-exists\",\n      \"ok\": true\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "F04",
+      "requirement": "Failed stdout recorded by run cannot be replaced after execution to produce passed",
+      "passed": true,
+      "stdoutHashChanged": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "review-finish refused: stdout evidence size changed (recorded=65 actual=64): .collab-local/logs/REV-20261018030518-344492/run-6bdca062fa4ddf55/stdout.txt"
+      }
+    },
+    {
+      "id": "F05",
+      "requirement": "Truncated declared NUnit XML is rejected rather than accepted as a complete result",
+      "passed": true,
+      "xml": "<test-run total=\"1\" passed=\"1\" failed=\"0\" skipped=\"0\" result=\"Passed\">",
+      "parsed": null,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a usable NUnit XML result: result.xml: result file is not a well-formed XML document: element <test-run> is not closed (offset 70)"
+      }
+    },
+    {
+      "id": "F06",
+      "requirement": "A reconstruction from exactly the real delivery manifest can pass configured smoke",
+      "passed": true,
+      "deliveryId": "DEL-20261018022444-a55ae4",
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018030519-bae484",
+          "exitCode": 0,
+          "status": "running",
+          "cancelledDuringRun": false,
+          "runToken": "1233939f7ec3c287",
+          "stdoutPath": ".collab-local/logs/REV-20261018030519-bae484/run-1233939f7ec3c287/stdout.txt",
+          "stderrPath": ".collab-local/logs/REV-20261018030519-bae484/run-1233939f7ec3c287/stderr.txt",
+          "externalExitCode": 0,
+          "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-fifth-original-xml-integration\\2026-10-18T03-05-13-193Z\\fixtures\\06\\out\\collab\\DEL-20261018022444-a55ae4",
+          "resultFile": null
+        }
+      },
+      "stdout": "{\n  \"profile\": \"smoke\",\n  \"reviewId\": \"REV-20261018030519-bae484\",\n  \"assertionsTotal\": 2,\n  \"assertionsFailed\": 0,\n  \"assertionsSkipped\": 0,\n  \"checks\": [\n    {\n      \"name\": \"cli-exists\",\n      \"ok\": true\n    },\n    {\n      \"name\": \"protocol-exists\",\n      \"ok\": true\n    }\n  ]\n}\n"
+    },
+    {
+      "id": "F07",
+      "requirement": "Adjacent XML attributes cannot produce passed through a real bound result file",
+      "passed": false,
+      "xml": "<test-run total=\"1\"passed=\"1\" failed=\"0\" skipped=\"0\" result=\"Passed\"/>",
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018030520-2e94ee",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6,
+          "machineResult": {
+            "parsed": {
+              "file": "result.xml",
+              "sha256": "6ae4d6ddee016075b788f7cdb9006eb45ea20ed76e86cd429c3a174b2f307255",
+              "total": 1,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 1
+            },
+            "counters": {
+              "total": 1,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 1
+            },
+            "unverified": false,
+            "reason": null
+          }
+        }
+      }
+    }
+  ],
+  "preservation": {
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionUnchanged": true,
+    "records": [
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json",
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/reviews/REV-20261017065756-f1940a.json",
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017095048-cfd9dd.json",
+        "before": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "after": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017122743-589b23.json",
+        "before": "8d909d5ea9d6859754d08615a1b1125ccdbd8726b00a5cc97845b415103ee02a",
+        "after": "8d909d5ea9d6859754d08615a1b1125ccdbd8726b00a5cc97845b415103ee02a",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261018022444-a55ae4.json",
+        "before": "33a6ea018274f409f071a0598bfb454a76c88d2043ee8ec51e4759dc9c7fcb53",
+        "after": "33a6ea018274f409f071a0598bfb454a76c88d2043ee8ec51e4759dc9c7fcb53",
+        "unchanged": true
+      },
+      {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    ]
+  }
+}

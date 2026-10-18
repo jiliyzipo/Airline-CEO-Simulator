@@ -1,0 +1,716 @@
+{
+  "date": "2026-10-18T04:17:52.723Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "results": [
+    {
+      "id": "G01",
+      "name": "Missing clause baseline blocks completion",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": false,
+            "detail": "no baseline; run: node tools/collab/cli.mjs taskbook-baseline --task A",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": false,
+            "detail": "cannot compare without baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "clause-baseline",
+            "detail": "no baseline; run: node tools/collab/cli.mjs taskbook-baseline --task A"
+          },
+          {
+            "id": "clause-unchanged",
+            "detail": "cannot compare without baseline"
+          }
+        ],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      }
+    },
+    {
+      "id": "G02",
+      "name": "Satisfied dependency is evaluated without an internal error",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": true,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:49.734Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          },
+          {
+            "id": "dependencies",
+            "ok": true,
+            "detail": "dependencies satisfied: B"
+          }
+        ],
+        "blockers": [],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      }
+    },
+    {
+      "id": "G03",
+      "name": "Dependency cycle is a diagnostic blocker rather than an exception",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:49.760Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          },
+          {
+            "id": "dependencies",
+            "ok": false,
+            "detail": "blocked by: B"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "dependencies",
+            "detail": "blocked by: B"
+          }
+        ],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      }
+    },
+    {
+      "id": "G04",
+      "name": "Configured missing tool-clause document cannot make overall gate green",
+      "passed": true,
+      "gate": {
+        "ok": false,
+        "tasks": [],
+        "taskBook": {
+          "totalClauses": 0,
+          "checked": 0,
+          "unchecked": []
+        },
+        "toolClauses": {
+          "configured": true,
+          "path": "docs/missing.md",
+          "total": 0,
+          "checked": 0,
+          "unchecked": [],
+          "error": "file missing"
+        },
+        "openIssues": [],
+        "blockers": [
+          {
+            "id": "tool:document",
+            "detail": "file missing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G05",
+      "name": "Tool clauses outside the declared section do not count as acceptance",
+      "passed": true,
+      "gate": {
+        "ok": false,
+        "tasks": [],
+        "taskBook": {
+          "totalClauses": 0,
+          "checked": 0,
+          "unchecked": []
+        },
+        "toolClauses": {
+          "configured": true,
+          "path": "docs/tool.md",
+          "total": 0,
+          "checked": 0,
+          "unchecked": [],
+          "error": "expected one tool-clause section ## 14. MVP, found 0"
+        },
+        "openIssues": [],
+        "blockers": [
+          {
+            "id": "tool:document",
+            "detail": "expected one tool-clause section ## 14. MVP, found 0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G06",
+      "name": "An older passed review cannot hide a newer failed review of the same delivery",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:49.803Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "current-passed-review",
+            "ok": false,
+            "detail": "latest review REV-2 failed; freshness=current"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "current-passed-review",
+            "detail": "latest review REV-2 failed; freshness=current"
+          }
+        ],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": "DEL-2",
+        "latestReview": {
+          "reviewId": "REV-2",
+          "status": "failed"
+        }
+      }
+    },
+    {
+      "id": "G07",
+      "name": "Required profile coverage is bound to the latest delivery",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:49.835Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "current-passed-review",
+            "ok": true,
+            "detail": "latest review REV-2 passed; freshness=current"
+          },
+          {
+            "id": "required-profiles",
+            "ok": false,
+            "detail": "missing passed profile(s): slot"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "required-profiles",
+            "detail": "missing passed profile(s): slot"
+          }
+        ],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": "DEL-2",
+        "latestReview": {
+          "reviewId": "REV-2",
+          "status": "passed"
+        }
+      }
+    },
+    {
+      "id": "G08",
+      "name": "Concurrent duplicate hooks apply once and a retry remains deduped",
+      "passed": true,
+      "executions": 1,
+      "workers": [
+        {
+          "code": 0,
+          "output": "{\"source\":\"cursor\",\"event\":\"sessionStart\",\"key\":\"84aa2de57450f0bb\",\"applied\":true,\"deduped\":false,\"reason\":\"synced collaboration state (hooks never create deliveries)\",\"revision\":1}\n"
+        },
+        {
+          "code": 4,
+          "output": "{\"error\":\"Lock held by hook:50332 pid=50332 (alive=true, ageMs=115). Do not delete Unity project locks. Use collab unlock only for this tool's locks.\",\"exitCode\":4}\n"
+        }
+      ],
+      "retry": {
+        "source": "cursor",
+        "event": "sessionStart",
+        "key": "84aa2de57450f0bb",
+        "applied": false,
+        "deduped": true,
+        "reason": "duplicate event within 60000ms; nothing re-applied",
+        "previousAt": "2026-10-18T04:17:49.972Z",
+        "revision": 1
+      }
+    },
+    {
+      "id": "G09",
+      "name": "A complete mapped task with baseline can pass",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": true,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:50.693Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      }
+    },
+    {
+      "id": "G10",
+      "name": "Overall gate passes with complete mapped tasks and exactly twelve checked tool clauses",
+      "passed": true,
+      "gate": {
+        "ok": true,
+        "tasks": [
+          {
+            "taskId": "A",
+            "ok": true,
+            "checks": [
+              {
+                "id": "mapped",
+                "ok": true,
+                "detail": "mapped to docs/book.md"
+              },
+              {
+                "id": "clause-locatable",
+                "ok": true,
+                "detail": "total line 1, 1 sub-items, section ## A"
+              },
+              {
+                "id": "clause-baseline",
+                "ok": true,
+                "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:50.712Z (scheme 2)",
+                "legacyScheme": false
+              },
+              {
+                "id": "clause-unchanged",
+                "ok": true,
+                "detail": "clause text matches baseline"
+              },
+              {
+                "id": "sub-items",
+                "ok": true,
+                "detail": "all 1 sub-items checked"
+              },
+              {
+                "id": "reference-authority",
+                "ok": true,
+                "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+              },
+              {
+                "id": "no-open-blockers",
+                "ok": true,
+                "detail": "no open blocker/critical issues"
+              }
+            ],
+            "blockers": [],
+            "clause": {
+              "file": "docs/book.md",
+              "totalLine": 1,
+              "totalChecked": true,
+              "subItems": 1,
+              "checkedSubItems": 1,
+              "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+            },
+            "latestDeliveryId": null,
+            "latestReview": null
+          },
+          {
+            "taskId": "B",
+            "ok": true,
+            "checks": [
+              {
+                "id": "mapped",
+                "ok": true,
+                "detail": "mapped to docs/book.md"
+              },
+              {
+                "id": "clause-locatable",
+                "ok": true,
+                "detail": "total line 2, 1 sub-items, section ## B"
+              },
+              {
+                "id": "clause-baseline",
+                "ok": true,
+                "detail": "baseline 97c1f7f40540 recorded 2026-10-18T04:17:50.717Z (scheme 2)",
+                "legacyScheme": false
+              },
+              {
+                "id": "clause-unchanged",
+                "ok": true,
+                "detail": "clause text matches baseline"
+              },
+              {
+                "id": "sub-items",
+                "ok": true,
+                "detail": "all 1 sub-items checked"
+              },
+              {
+                "id": "reference-authority",
+                "ok": true,
+                "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+              },
+              {
+                "id": "no-open-blockers",
+                "ok": true,
+                "detail": "no open blocker/critical issues"
+              }
+            ],
+            "blockers": [],
+            "clause": {
+              "file": "docs/book.md",
+              "totalLine": 2,
+              "totalChecked": true,
+              "subItems": 1,
+              "checkedSubItems": 1,
+              "clauseHash": "97c1f7f405407d11dfc50388afabd79990c509f605ca21551ac70b9713049863"
+            },
+            "latestDeliveryId": null,
+            "latestReview": null
+          }
+        ],
+        "taskBook": {
+          "totalClauses": 2,
+          "checked": 2,
+          "unchecked": []
+        },
+        "toolClauses": {
+          "configured": true,
+          "path": "docs/tool.md",
+          "total": 12,
+          "checked": 12,
+          "unchecked": [],
+          "error": null
+        },
+        "openIssues": [],
+        "blockers": []
+      }
+    },
+    {
+      "id": "G11",
+      "name": "All required profiles passed on the latest delivery can pass",
+      "passed": true,
+      "gate": {
+        "taskId": "A",
+        "ok": true,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/book.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 1, 1 sub-items, section ## A"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline dccc8f75c57c recorded 2026-10-18T04:17:50.736Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 1 sub-items checked"
+          },
+          {
+            "id": "current-passed-review",
+            "ok": true,
+            "detail": "latest review REV-2 passed; freshness=current"
+          },
+          {
+            "id": "required-profiles",
+            "ok": true,
+            "detail": "covered: compile, slot"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [],
+        "clause": {
+          "file": "docs/book.md",
+          "totalLine": 1,
+          "totalChecked": true,
+          "subItems": 1,
+          "checkedSubItems": 1,
+          "clauseHash": "dccc8f75c57c06f33f719715e0906fa4fe4367df4fb371cc219280ce293bb5c5"
+        },
+        "latestDeliveryId": "DEL-2",
+        "latestReview": {
+          "reviewId": "REV-2",
+          "status": "passed"
+        }
+      }
+    },
+    {
+      "id": "G12",
+      "name": "Concurrent issue transitions preserve both states after retrying lock contention",
+      "passed": true,
+      "workers": [
+        {
+          "id": "A",
+          "code": 0,
+          "output": "{\"issueId\":\"ISSUE-A\",\"taskId\":\"A\",\"from\":\"open\",\"to\":\"fixing\",\"revision\":2,\"eventId\":\"EVT-20261018041751-b6a455\",\"actor\":\"cursor\"}\n"
+        },
+        {
+          "id": "B",
+          "code": 4,
+          "output": "{\"error\":\"Lock held by issue-update:ISSUE-A pid=6864 (alive=true, ageMs=124). Do not delete Unity project locks. Use collab unlock only for this tool's locks.\",\"exitCode\":4}\n"
+        }
+      ],
+      "issueStatus": {
+        "ISSUE-A": {
+          "status": "fixing",
+          "previous": "open",
+          "actor": "cursor",
+          "note": "",
+          "at": "2026-10-18T04:17:50.878Z"
+        },
+        "ISSUE-B": {
+          "status": "fixing",
+          "previous": "open",
+          "actor": "cursor",
+          "note": "",
+          "at": "2026-10-18T04:17:52.140Z"
+        }
+      }
+    }
+  ],
+  "total": 12,
+  "passed": 12,
+  "failed": 0
+}

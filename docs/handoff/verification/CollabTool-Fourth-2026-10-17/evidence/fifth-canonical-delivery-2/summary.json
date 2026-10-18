@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18T02:27:19.688Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018022444-a55ae4\\tools\\collab",
+  "label": "fifth-canonical-delivery-2",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 22,
+      "failLines": 0,
+      "script": ".collab-local/devtests-fifth-canonical-delivery-2-1792290439640/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-fifth-canonical-delivery-2-1792290439640",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 24,
+        "passed": 24,
+        "failed": 0
+      },
+      "passLines": 24,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/baseline24-rerun.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/fifth-canonical-delivery-2-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "passLines": 12,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/fifth-canonical-delivery-2-supplemental/2026-10-18T02-27-52-367Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "passLines": 8,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Third-2026-10-17/edge-cases.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/fifth-canonical-delivery-2-boundary8/2026-10-18T02-28-09-358Z/results.json"
+    }
+  ],
+  "failedSuites": 0
+}

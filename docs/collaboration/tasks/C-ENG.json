@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "C-ENG",
+  "title": "工程入口串联验收（compile / slotcheck / 隔离 Unity）",
+  "revision": 1,
+  "devStatus": "rework",
+  "reviewStatus": "cancelled",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "仅用于协作工具 C07 的真实工程入口串联验收，不改变任何游戏任务结论",
+    "所有命令只在隔离快照中执行，不启动用户正在使用的 Unity 实例",
+    "compile/slot/unity 三类结果必须由工具真实执行并解析，不得用历史 XML 冒充"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "compile profile 在隔离快照内真实执行 tools/semcheck/run.js，并解析其 scripts/tests/encoding 三道门"
+    },
+    {
+      "id": "AC2",
+      "text": "slot profile 在隔离快照内真实执行 tools/slotcheck/slotcheck.csproj，并从 [PASS]/[FAIL] 与 SLOTCHECK 汇总推导计数"
+    },
+    {
+      "id": "AC3",
+      "text": "unity-editmode profile 真实调用 tools/regression/RunUnityTests.ps1，用本次 run 生成的 NUnit XML 判定；非零退出、缺结果、含失败、只有跳过均不得通过"
+    },
+    {
+      "id": "AC4",
+      "text": "Unity 被占用时拒绝启动第二个批处理、不关闭用户进程、不删除用户锁；恢复后重新检查"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07",
+  "createdAt": "2026-10-18T03:22:17.337Z",
+  "updatedAt": "2026-10-18T03:57:36.912Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression"
+  ],
+  "snapshotFiles": [],
+  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "staleForReviewId": null
+}

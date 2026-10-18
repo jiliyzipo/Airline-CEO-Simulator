@@ -1,0 +1,285 @@
+{
+  "date": "2026-10-18T05:07:15.401Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018050538-fe84c9\\tools\\collab",
+  "sourceFingerprint": "e14d72710ec3de32d750dc6b954b6a4c954c0529c5188469de3f354f8681d098",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-final-delivery-final-supplemental\\2026-10-18T05-07-00-001Z",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "results": [
+    {
+      "id": "S01",
+      "requirement": "Exit-zero machine JSON with failed assertions cannot be overridden by caller success",
+      "passed": true,
+      "runExitCode": 0,
+      "stdout": "{\"assertionsTotal\":3,\"assertionsFailed\":1,\"assertionsSkipped\":0}\n",
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "evidence counters disagree with machine result on failed: machine={\"total\":3,\"failed\":1,\"skipped\":0} evidence={\"total\":3,\"failed\":0,\"skipped\":0}"
+      }
+    },
+    {
+      "id": "S02",
+      "requirement": "Empty stdout and no result file cannot produce passed",
+      "passed": true,
+      "stdoutBytes": 0,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: stdout is empty; no real result produced"
+      }
+    },
+    {
+      "id": "S03",
+      "requirement": "Non-numeric assertion counters are rejected",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "evidence.total must be a non-negative integer (got \"not-a-number\")"
+      }
+    },
+    {
+      "id": "S04",
+      "requirement": "Demo deliver does not invalidate its own implementation fingerprint",
+      "passed": true,
+      "deliveryFingerprint": "c4ee946ea4ae18c365fe1f635fadefe31318662f57bacc3ea0093656d3ddcbf3",
+      "current": {
+        "taskId": "C-DEMO",
+        "freshness": "current",
+        "note": "Delivery matches current fingerprints; awaiting review.",
+        "implementationFingerprint": "c4ee946ea4ae18c365fe1f635fadefe31318662f57bacc3ea0093656d3ddcbf3",
+        "verificationFingerprint": "bc7e3c71ae517ca74d58c7e08a20e00b152734b34b02067798e6cd881c613308",
+        "pairedDeliveryId": "DEL-20261018050704-3194d8",
+        "pairedReviewId": null
+      }
+    },
+    {
+      "id": "S05",
+      "requirement": "Snapshot ProjectSettings identity and executable settings are validated",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "snapshot tampered: Unity Project/ProjectSettings/ProjectSettings.asset"
+      }
+    },
+    {
+      "id": "S06",
+      "requirement": "Unlisted executable source added to snapshot is detected",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "snapshot contains unlisted files: src/Extra.cs"
+      }
+    },
+    {
+      "id": "S07",
+      "requirement": "Finishing smoke does not delete another review resource lock",
+      "passed": true,
+      "lockExistsAfter": true,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018050707-3c668c",
+          "status": "blocked",
+          "blockedReason": "machine result does not support an independent verdict: declared JSON profile produced no machine result JSON in stdout",
+          "machineResult": {
+            "parsed": null,
+            "counters": null,
+            "unverified": true,
+            "reason": "declared JSON profile produced no machine result JSON in stdout"
+          },
+          "exitCode": 6
+        }
+      }
+    },
+    {
+      "id": "S08",
+      "requirement": "Cancelling a running worker remains cancelled after the worker completes",
+      "passed": true,
+      "cancelled": {
+        "reviewId": "REV-20261018050708-0e9f3a",
+        "status": "cancelled"
+      },
+      "workerExitCode": 0,
+      "finalStatus": "cancelled",
+      "finishedAt": "2026-10-18T05:07:09.336Z",
+      "output": "{\n  \"reviewId\": \"REV-20261018050708-0e9f3a\",\n  \"exitCode\": 0,\n  \"status\": \"cancelled\",\n  \"cancelledDuringRun\": true,\n  \"runToken\": \"7516980ce7d4dd6a\",\n  \"stdoutPath\": \".collab-local/logs/REV-20261018050708-0e9f3a/run-7516980ce7d4dd6a/stdout.txt\",\n  \"stderrPath\": \".collab-local/logs/REV-20261018050708-0e9f3a/run-7516980ce7d4dd6a/stderr.txt\",\n  \"externalExitCode\": 0,\n  \"cwd\": \"C:\\\\Users\\\\jiliy\\\\Airline-CEO-Simulator\\\\.collab-local\\\\reaccept-20261017\\\\codex-final-delivery-final-supplemental\\\\2026-10-18T05-07-00-001Z\\\\fixtures\\\\08\\\\out\\\\collab\\\\DEL-20261018050708-0c0a6f\",\n  \"resultFile\": null\n}\n"
+    },
+    {
+      "id": "S09",
+      "requirement": "Sync cannot overwrite a claim committed after sync read the task",
+      "passed": true,
+      "scheduler": "Run valid claim between sync task read and task replacement; no production code changed.",
+      "claim": {
+        "taskId": "C-DEMO",
+        "holder": "cursor",
+        "revision": 3
+      },
+      "sync": {
+        "accepted": true,
+        "value": {
+          "revision": 3,
+          "revisionBumped": true,
+          "anyChange": false,
+          "taskBookChanges": [],
+          "freshness": [
+            {
+              "taskId": "C-DEMO",
+              "freshness": "unknown",
+              "note": "",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T01",
+              "freshness": "unknown",
+              "note": "taskBookStatus=accepted",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T02",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T03",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T04",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T05",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T06",
+              "freshness": "unknown",
+              "note": "taskBookStatus=accepted",
+              "implementationFingerprint": null,
+              "verificationFingerprint": null,
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            }
+          ],
+          "ack": {
+            "cursor": {
+              "revision": 2,
+              "at": "2026-10-18T05:07:11.360Z"
+            },
+            "codex": null
+          },
+          "currentPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-final-delivery-final-supplemental\\2026-10-18T05-07-00-001Z\\fixtures\\09\\docs\\collaboration\\CURRENT.md"
+        }
+      },
+      "taskHolder": "cursor",
+      "indexHolder": "cursor"
+    },
+    {
+      "id": "S10",
+      "requirement": "PowerShell ack wrapper forwards its actor/revision arguments",
+      "passed": true,
+      "exitCode": 0,
+      "stdout": "{\n  \"ack\": {\n    \"cursor\": null,\n    \"codex\": {\n      \"revision\": 1,\n      \"at\": \"2026-10-18T05:07:12.725Z\"\n    }\n  },\n  \"revision\": 1\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "S11",
+      "requirement": "Delivery/review/issue/event malformed field types are rejected individually",
+      "passed": true,
+      "observations": [
+        {
+          "type": "delivery",
+          "accepted": false,
+          "exitCode": 2,
+          "error": "delivery.taskRevision must be positive integer"
+        },
+        {
+          "type": "review",
+          "accepted": false,
+          "exitCode": 2,
+          "error": "review.reviewId invalid"
+        },
+        {
+          "type": "issue",
+          "accepted": false,
+          "exitCode": 2,
+          "error": "issue.issueId invalid"
+        },
+        {
+          "type": "event",
+          "accepted": false,
+          "exitCode": 2,
+          "error": "event.eventId invalid"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "requirement": "Verification tool test change preserves implementation identity",
+      "passed": true,
+      "implementationChanged": false,
+      "verificationChanged": true
+    }
+  ],
+  "preservation": {
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionUnchanged": true,
+    "records": [
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json",
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/reviews/REV-20261017065756-f1940a.json",
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017095048-cfd9dd.json",
+        "before": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "after": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "unchanged": true
+      },
+      {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    ]
+  }
+}

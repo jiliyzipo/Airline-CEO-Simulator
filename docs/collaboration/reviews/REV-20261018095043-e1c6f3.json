@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018095043-e1c6f3",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "taskId": "S01-COLLAB",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "ce3ca6c8471ede1f2bedcac9f402385e438e1c8fe455e77e0694441274c3c873",
+    "verification": "555f9bba97cff0e1ff271f5cd041a15ab054a6ae8a3419bd9cb81eb4b0d3aa25",
+    "contract": "bedaab66847ba099f2f18b454cbb569b7f7b2b3628c7add37bd3bc4066305b33"
+  },
+  "snapshotPath": "out/collab/DEL-20261018093335-80f2f4",
+  "createdAt": "2026-10-18T09:50:43.544Z",
+  "updatedAt": "2026-10-18T09:51:21.966Z",
+  "runs": [
+    {
+      "at": "2026-10-18T09:50:43.746Z",
+      "finishedAt": "2026-10-18T09:51:21.318Z",
+      "runToken": "ee9bef9b6adaa148",
+      "profile": "collab",
+      "deliveryId": "DEL-20261018093335-80f2f4",
+      "subjectImplementationFingerprint": "ce3ca6c8471ede1f2bedcac9f402385e438e1c8fe455e77e0694441274c3c873",
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018093335-80f2f4",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018095043-e1c6f3/run-ee9bef9b6adaa148/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018095043-e1c6f3/run-ee9bef9b6adaa148/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018095043-e1c6f3/run-ee9bef9b6adaa148/stdout.txt",
+        "sha256": "0c2217166e82bc84513c43ca83fd6d8245eed345dea43f603e08cdcde97447cb",
+        "bytes": 679,
+        "runToken": "ee9bef9b6adaa148"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018095043-e1c6f3/run-ee9bef9b6adaa148/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "ee9bef9b6adaa148"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=collab runToken=ee9bef9b6adaa148 counters={\"total\":126,\"failed\":0,\"skipped\":0}"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=collab runToken=ee9bef9b6adaa148 counters={\"total\":126,\"failed\":0,\"skipped\":0}"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=collab runToken=ee9bef9b6adaa148 counters={\"total\":126,\"failed\":0,\"skipped\":0}"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T09:50:43.723Z",
+  "assertions": {
+    "total": 126,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 126,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 126,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261018095043-e1c6f3-1792317081493.json",
+  "finishedAt": "2026-10-18T09:51:21.966Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "ee9bef9b6adaa148",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018093335-80f2f4"
+  }
+}

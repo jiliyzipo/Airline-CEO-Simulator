@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018083740-a009ab",
+  "deliveryId": "DEL-20261017150657-dd9483",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "queued",
+  "profile": "smoke",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/smoke-profile.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collab tool smoke profile for demo reviews"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "efdddc5f2a11639ad3454a21b6092114b8d692f244bc0b4f2e475e82d28fdd1c",
+    "verification": "3f24a449533486f82dd926dff2a6c998d7cdd621564d01ba7743ec36d582aa89",
+    "contract": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+  },
+  "snapshotPath": "out/collab/DEL-20261017150657-dd9483",
+  "createdAt": "2026-10-18T08:37:40.143Z",
+  "updatedAt": "2026-10-18T08:37:40.143Z",
+  "runs": [],
+  "coverage": [],
+  "issues": []
+}

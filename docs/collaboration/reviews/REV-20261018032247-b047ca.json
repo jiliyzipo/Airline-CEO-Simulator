@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018032247-b047ca",
+  "deliveryId": "DEL-20261018032237-012f93",
+  "taskId": "C-ENG",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "unity-editmode",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "39dad7ced68acee9672888d951dbd3e0070676660c8fa43f07de5d849a889ee8",
+    "verification": "0bce3574d3830672e85b417351a5ff180dfc2c4da3569374261b19e57f726b45",
+    "contract": "d4154fc11553c51d27c12ffedd50abde29fddef9d32fe5821bb26a9ecdeaeffc"
+  },
+  "snapshotPath": "out/collab/DEL-20261018032237-012f93",
+  "createdAt": "2026-10-18T03:22:48.138Z",
+  "updatedAt": "2026-10-18T03:25:56.814Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:22:54.548Z",
+      "finishedAt": "2026-10-18T03:25:56.814Z",
+      "runToken": "4db8ac33bb7e3bad",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261018032237-012f93",
+      "subjectImplementationFingerprint": "39dad7ced68acee9672888d951dbd3e0070676660c8fa43f07de5d849a889ee8",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "4db8ac33bb7e3bad"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018032237-012f93",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018032247-b047ca/run-4db8ac33bb7e3bad/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018032247-b047ca/run-4db8ac33bb7e3bad/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018032247-b047ca/run-4db8ac33bb7e3bad/stdout.txt",
+        "sha256": "cfa383fe0ba87ecbcd5a833e185a706bc1f3d297aab4c345f802a5725eeebffc",
+        "bytes": 64,
+        "runToken": "4db8ac33bb7e3bad"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018032247-b047ca/run-4db8ac33bb7e3bad/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "4db8ac33bb7e3bad"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_4db8ac33bb7e3bad.xml",
+        "runToken": "4db8ac33bb7e3bad",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261018032237-012f93",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "f245f9eabfa21eb7dbc2d7372308accc1476797523002ed3aee6bccdfbe49699",
+          "bytes": 21186,
+          "mtimeMs": 1792293953965.2026
+        },
+        "producedByRun": true,
+        "sha256": "f245f9eabfa21eb7dbc2d7372308accc1476797523002ed3aee6bccdfbe49699"
+      },
+      "postSnapshot": {
+        "ok": false,
+        "reason": "snapshot contains unlisted files: Unity Project/.vsconfig, Unity Project/AirlineCEO.EditModeTests.csproj, Unity Project/AirlineCEO.Editor.csproj, Unity Project/AirlineCEO.PlayModeTests.csproj, Unity Project/AirlineCEO.Runtime.csproj, Unity Project/Unity Project.slnx, Unity Project/UserSettings/EditorUserSettings.asset, Unity Project/UserSettings/Search.settings"
+      }
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:22:54.531Z",
+  "integrityFailure": "snapshot contains unlisted files: Unity Project/.vsconfig, Unity Project/AirlineCEO.EditModeTests.csproj, Unity Project/AirlineCEO.Editor.csproj, Unity Project/AirlineCEO.PlayModeTests.csproj, Unity Project/AirlineCEO.Runtime.csproj, Unity Project/Unity Project.slnx, Unity Project/UserSettings/EditorUserSettings.asset, Unity Project/UserSettings/Search.settings"
+}

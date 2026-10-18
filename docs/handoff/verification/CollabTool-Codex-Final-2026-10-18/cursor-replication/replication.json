@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-18T06:58:00Z",
+  "actor": "cursor",
+  "subjectDeliveryId": "DEL-20261018051637-e21eae",
+  "subjectSnapshot": "out/collab/DEL-20261018051637-e21eae",
+  "subjectManifest": "4fcef83d0df4a8daf8f48997e5facd6a42c1d8a1df83d2e28a0641f65528678e",
+  "revisionAcked": 186,
+  "note": "Cursor 反方独立复跑，不是 tool REV：本机角色门禁只允许 actor=codex 执行 review-start，因此本文件只记录复现结果，不冒充正式独立验收记录。",
+  "checks": [
+    {
+      "id": "suite",
+      "command": "node tools/collab/tests/run-all.mjs  (cwd = snapshot)",
+      "result": "98/98，assertionsFailed=0",
+      "suites": { "collab": 38, "xml": 26, "closure": 13, "daily": 21 }
+    },
+    {
+      "id": "boundary7",
+      "command": "acceptance-boundaries.mjs with COLLAB_AUDIT_TOOL_SOURCE=snapshot",
+      "result": "7/7 passed",
+      "evidence": "boundary7.results.json"
+    },
+    {
+      "id": "xml12",
+      "command": "xml-gate-audit.mjs with COLLAB_AUDIT_TOOL_SOURCE=snapshot",
+      "result": "12/12 passed",
+      "evidence": "xml12.results.json"
+    },
+    {
+      "id": "snapshot-integrity",
+      "command": "recompute sha256 of all 34 manifest entries and scan for extras",
+      "result": "34/34 哈希一致，未列文件 0"
+    }
+  ],
+  "notVerifiedByCursor": [
+    "Unity EditMode / PlayMode（本轮未启动 Unity）",
+    "游戏业务代码与游戏任务书结论",
+    "原生客户端 Hooks 真实加载",
+    "cleanGitCheckoutVerified"
+  ]
+}

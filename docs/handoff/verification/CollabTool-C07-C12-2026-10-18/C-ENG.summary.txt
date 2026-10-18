@@ -1,0 +1,3 @@
+C07 工程入口串联交付：新增 C-ENG 任务，用任务自声明快照根（Assets/Packages/ProjectSettings + tools/semcheck + tools/slotcheck + tools/regression）导出隔离快照，再在快照内分别执行 compile、slot、unity-editmode 三个真实入口。
+
+本交付只改协作工具：任务自声明 roots（lib/roots.mjs）、生成文件与 UserSettings 的完整性口径统一、Unity 命令参数去内嵌引号、doctor 的任务书/hooks 检查。未改游戏业务代码，未启动用户 Unity 实例。

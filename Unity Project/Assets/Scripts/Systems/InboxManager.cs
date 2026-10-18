@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using AirlineCEO.AI;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
@@ -29,6 +30,26 @@ namespace AirlineCEO.Systems
         public const string CapacityDirectiveAction = CapacityDirectiveLogic.Action;
         /// <summary>P3：按班次批量申请时刻槽（批准后下季交割）。</summary>
         public const string ApplySlotAction = "apply_slot";
+        /// <summary>
+        /// **时刻变更（改时）申请**：本端缺槽，而本线在该站**已有一条槽**、只是时刻滑点
+        /// （超 15 分容差、在 4 小时改时窗口内）。★2026-10-16 第四十一次修订。
+        ///
+        /// 现实依据：WASG 9.1.3 要求航司「request the necessary **slot adjustments** in a timely manner」、
+        /// 8.10.1「slots are not route, aircraft, or flight number specific … may be changed」——
+        /// 持槽后时刻滑点是**报协调人变更为准**，不是把缺的那条槽当新槽再申请一遍。
+        /// 协调人按**目标系列余量**批驳（余量 0 就是驳），15 分容差内本就算同一条（无需变更）。
+        /// </summary>
+        public const string ChangeSlotAction = "change_slot";
+        /// <summary>
+        /// 加班**时刻备选**呈报（运营部按整张窗口网格提名 2–4 条往返时刻对 → CEO 点定一条）。
+        /// ★2026-10-15：与「执飞飞机提名」同源的两段式 —— 先选定时刻，再去开申请单。
+        /// </summary>
+        public const string SlotSelectAction = SlotCandidateLogic.Action;
+        /// <summary>
+        /// 排班咨询答复件（汇报件：action 留空，无需批复）。UI 靠这个 role 认出它，
+        /// 好把「详见」按钮指回本线，而不是落到「航线网络 / 董事会」那对兜底按钮上。
+        /// </summary>
+        public const string OpsQueryRole = "排班咨询答复";
 
         /// <summary>未读数变化（底栏角标刷新）。</summary>
         public static event System.Action Changed;
@@ -37,6 +58,16 @@ namespace AirlineCEO.Systems
         public static void NotifyChanged() => Changed?.Invoke();
 
         public static int Turn(int year, int quarter) => year * 4 + (quarter - 1);
+
+        /// <summary>
+        /// 呈报**被取代而作废**的状态（不写 <c>approved</c> —— 那是「CEO 批过」的意思）。
+        ///
+        /// ★2026-10-16 第四十二次修订：CEO 下新调令时，同一航线还挂着的旧呈报会被自动作废
+        /// （新方案另有一封），旧版把它标成 `approved`，收件箱徽章于是一律显示「已批准」——
+        /// 而它正文里写着「本呈报自动作废」。与「运力调整已生效」的回执同源：**没生效的事不要说生效**。
+        /// 本状态不属于待办（<see cref="IsOpen"/> 只认 pending/deferred），也不占决策按钮。
+        /// </summary>
+        public const string SupersededStatus = "superseded";
 
         /// <summary>邮件是否「未处理」（待办状态，含暂缓）。</summary>
         public static bool IsOpen(InboxMail m)
@@ -71,7 +102,7 @@ namespace AirlineCEO.Systems
 
         /// <summary>是否已到期（超过截止仍待处理）。会议暂缓（补条件中）的邮件不阻断时间推进。</summary>
         public static bool IsDue(InboxMail m, int year, int quarter)
-            => IsOpen(m) && MeetingOutcomeOf(m) != "deferred" && RemainingQuarters(m, year, quarter) < 0;
+            => RequiresDecision(m) && RemainingQuarters(m, year, quarter) < 0;
 
         public static void Add(GameState gs, InboxMail mail)
         {
@@ -264,7 +295,8 @@ namespace AirlineCEO.Systems
                 return ApprovePermitRetry(gs, mail, out message);
 
             if (mail.action == "codeshare" || mail.action == "alliance_join"
-                || mail.action == "buy_slot" || mail.action == ApplySlotAction || mail.action == "apply_right"
+                || mail.action == "buy_slot" || mail.action == ApplySlotAction || mail.action == ChangeSlotAction
+                || mail.action == "apply_right"
                 || mail.action == "investment")
             {
                 NextQuarter(gs.year, gs.quarter, out int ey, out int eq);
@@ -276,14 +308,22 @@ namespace AirlineCEO.Systems
                     message = $"已批准与{(string.IsNullOrEmpty(mail.dest) ? "合作航司" : mail.dest)}的代码共享。协议将于第{ey}年 Q{eq} 生效。";
                 else if (mail.action == "alliance_join")
                     message = $"已批准加入星空联盟（观察员）。入盟手续将于第{ey}年 Q{eq} 办结。";
+                else if (mail.action == ChangeSlotAction)
+                {
+                    string aptC = string.IsNullOrEmpty(mail.origin) ? (gs.hubIata ?? "HUB") : mail.origin;
+                    message = $"已批准向协调人提 {aptC} 的时刻变更（{mail.slotFromClock} → {SlotMailClock(mail)}）。"
+                              + $"协调人按目标系列余量批驳，第{ey}年 Q{eq} 出结果；批准后原槽即改为该时刻。";
+                }
                 else if (mail.action == "buy_slot" || mail.action == ApplySlotAction)
                 {
                     string apt = string.IsNullOrEmpty(mail.origin) ? (gs.hubIata ?? "HUB") : mail.origin;
-                    int band = StrategyManager.ParseSlotBand(mail.dest);
+                    string clk = SlotMailClock(mail);
                     int qty = SlotQtyOf(mail);
+                    bool free = mail.action == ApplySlotAction;
+                    string chan = free ? "协调池分配（不收费）" : "二级市场购入";
                     message = qty > 1
-                        ? $"已批准申请 {apt} {StrategyManager.SlotBandName(band)}时段时刻槽 {qty} 个。将于第{ey}年 Q{eq} 扣款交割。"
-                        : $"已批准购买 {apt} {StrategyManager.SlotBandName(band)}时段时刻槽。将于第{ey}年 Q{eq} 扣款交割。";
+                        ? $"已批准通过{chan}取得 {apt} {clk} 时刻槽 {qty} 条。将于第{ey}年 Q{eq} 交割。"
+                        : $"已批准通过{chan}取得 {apt} {clk} 时刻槽。将于第{ey}年 Q{eq} 交割。";
                 }
                 else if (mail.action == "investment")
                     message = $"已批准投资项目。资本将于第{ey}年 Q{eq} 投入并进入执行。";
@@ -349,6 +389,18 @@ namespace AirlineCEO.Systems
             if (mail.action == "ops_schedule")
                 return ApproveOpsSchedule(gs, mail, out message);
 
+            if (mail.action == AssignFlightAction)
+                return ApproveAssignFlight(gs, mail, out message);
+
+            if (mail.action == AssignAircraftAction)
+                return ApproveAssignAircraft(gs, mail, null, out message);   // 无指定机号 = 取收益最优候选
+
+            // 时刻备选件不带机号参数（与执飞飞机提名不同）：批准 = 采纳**运营部推荐的那一条**（备选表首条，
+            // 排序口径见 SlotCandidateLogic.Compare）。CEO 想挑别的，就得走 ui 的「候选 N」按钮那条路
+            // （ApproveSlotSelect 带 clock 重载），而不是靠「批准」按钮替他瞎猜。
+            if (mail.action == SlotSelectAction)
+                return ApproveSlotSelect(gs, mail, null, out message);
+
             if (mail.action == CapacityDirectiveAction)
                 return ApproveCapacityDirective(gs, mail, out message);
 
@@ -357,6 +409,9 @@ namespace AirlineCEO.Systems
 
             if (mail.action == SeasonReviewAction)
                 return ApproveSeasonReview(gs, mail, out message);
+
+            if (mail.action == SlotUsageAction)
+                return ApproveSlotUsage(gs, mail, out message);
 
             if (mail.action == "reg_inspect")
             {
@@ -446,16 +501,25 @@ namespace AirlineCEO.Systems
                         continue;
                     }
 
-                    if (m.action == "buy_slot" || m.action == ApplySlotAction || m.action == "apply_right")
+                    if (m.action == "buy_slot" || m.action == ApplySlotAction || m.action == ChangeSlotAction
+                        || m.action == "apply_right")
                     {
                         EnsureStrategyManager();
                         string execMsg;
                         bool ok;
-                        if (m.action == "buy_slot" || m.action == ApplySlotAction)
+                        if (m.action == ChangeSlotAction)
+                        {
+                            // ★2026-10-16 第四十一次修订：改时由**协调人**批复（系列余量 + 15 分容差），
+                            //   不收费、不占新容量；被驳则原槽保留、该需求波仍排不出（如实回报）。
+                            ok = ExecuteSlotChange(gs, m, out execMsg);
+                        }
+                        else if (m.action == "buy_slot" || m.action == ApplySlotAction)
                         {
                             string apt = string.IsNullOrEmpty(m.origin) ? (gs.hubIata ?? "PEK") : m.origin;
                             int qty = SlotQtyOf(m);
-                            ok = StrategyManager.AcquireSlots(gs, apt, StrategyManager.ParseSlotBand(m.dest), qty, out execMsg);
+                            // ★2026-10-15：协调池分配免费、二级市场购入计费 —— 两条渠道的价钱本就不同。
+                            bool freeChan = m.action == ApplySlotAction;
+                            ok = StrategyManager.AcquireSlotsAt(gs, apt, SlotMailClock(m), qty, freeChan, out execMsg);
                         }
                         else
                         {
@@ -463,10 +527,20 @@ namespace AirlineCEO.Systems
                             string d = string.IsNullOrEmpty(m.dest) ? "SIN" : m.dest;
                             ok = StrategyManager.Instance.ApplyRouteRight(o, d, 5, out execMsg);
                         }
+                        string note = SlotSettleNote(m, execMsg, ok);
+                        // ★2026-10-15：交割成功且单子上记了「为哪条线、为哪一刻」时，运营部自己接着办 ——
+                        // 挑机、调环、呈报加机（或缺机/缺另一端的受阻汇报），不再让 CEO 回 n98 重来一遍。
+                        if (ok && !string.IsNullOrEmpty(m.slotRouteId))
+                        {
+                            string auto = RescheduleAfterSlotSettle(gs, m);
+                            if (!string.IsNullOrEmpty(auto)) note += "\n" + auto;
+                        }
                         AddExecReceipt(gs, m, ok,
-                            ok ? (m.action == "apply_right" ? "航权已获批" : "时刻槽已交割")
-                               : (m.action == "apply_right" ? "航权申请未获批" : "时刻槽未能购入"),
-                            execMsg);
+                            ok ? (m.action == "apply_right" ? "航权已获批"
+                                    : m.action == ChangeSlotAction ? "时刻已变更" : "时刻槽已交割")
+                               : (m.action == "apply_right" ? "航权申请未获批"
+                                    : m.action == ChangeSlotAction ? "改时未获批准" : "时刻槽未能取得"),
+                            note);
                         continue;
                     }
 
@@ -483,7 +557,11 @@ namespace AirlineCEO.Systems
                     if (m.action == "parts_order")
                     {
                         EnsureMaintenanceManager();
-                        bool ok = MaintenanceManager.Instance.ConfirmOrder(m.origin, out string execMsg);
+                        // Instance 可能仍为空（编辑器/批处理里 AddComponent 不触发 Awake，见本文件其它同类判据）：
+                        // 直接解引用会抛 NRE，把 ProcessPendingEffects 余下的**所有**待办效果一起中断。
+                        string execMsg = "维保管理器不可用";
+                        bool ok = MaintenanceManager.Instance != null
+                            && MaintenanceManager.Instance.ConfirmOrder(m.origin, out execMsg);
                         AddExecReceipt(gs, m, ok,
                             ok ? "航材已采购入库" : "航材采购未能入库",
                             execMsg);
@@ -509,6 +587,10 @@ namespace AirlineCEO.Systems
             MaybeOfferAnnualGoals(gs);
             MaybeOfferCapacity(gs);
             MaybeOfferSeasonReview(gs);
+
+            // 时刻槽使用率考核的换季清算（判航季：航季开端 Q2/Q4 结算上一等价航季）
+            OnSlotUsageSeasonTurn(gs);
+
             SyncFeedIntoInbox(gs);
         }
 
@@ -896,27 +978,36 @@ namespace AirlineCEO.Systems
             m.permitStage = RoutePermitLogic.StageGranted;
             m.effectPending = true;
 
-            int slotIndex = -1, slotIndexB = -1;
+            int slotIndex = -1, slotIndexB = -1, slotIndexV = -1;
             string originApt = fromHub ? (string.IsNullOrEmpty(gs.hubIata) ? o : gs.hubIata) : o;
+            string viaApt = RoutePermitLogic.StopoverOf(m.stopover, o, d);
             if (needsSlot)
             {
+                // ★2026-10-16：**逐停站**占槽 —— 本场端 + 经停端 + 对端，缺任一停站都不能开航。
+                // 经停端一趟往返停两次（去程一次、回程一次），但开航只需一条持仓顶着，
+                // 与另两端同口径（加密时由 WaveEndNeeds 逐条补齐）。
                 bool needA = RoutePermitLogic.NeedsDepartureSlot(originApt);
                 bool needB = RoutePermitLogic.NeedsDepartureSlot(d);
+                bool needV = viaApt != null && RoutePermitLogic.NeedsDepartureSlot(viaApt);
                 if (needA) slotIndex = RoutePermitLogic.ReserveSlotAt(gs, originApt);
+                if (needV) slotIndexV = RoutePermitLogic.ReserveSlotAt(gs, viaApt);
                 if (needB) slotIndexB = RoutePermitLogic.ReserveSlotAt(gs, d);
                 bool gotA = !needA || slotIndex >= 0;
+                bool gotV = !needV || slotIndexV >= 0;
                 bool gotB = !needB || slotIndexB >= 0;
-                if (!gotA || !gotB)
+                if (!gotA || !gotV || !gotB)
                 {
-                    // 往返两端各占一条：缺任一端都不能开航（先证后槽，此时才涉及时刻花费）
+                    // 逐停站各占一条：缺任一停站都不能开航（先证后槽，此时才涉及时刻花费）
                     if (slotIndex >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndex);
+                    if (slotIndexV >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndexV);
                     if (slotIndexB >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndexB);
                     slotIndex = -1;
+                    slotIndexV = -1;
                     slotIndexB = -1;
                     bool first = m.permitGate != "时刻";
-                    string apt = !gotA ? originApt : d;
+                    string apt = !gotA ? originApt : !gotV ? viaApt : d;
                     if (first || !HasOpenAction(gs, "buy_slot"))
-                        QueueSlotDecision(gs, apt, 1, null, out _);   // 已有待批提案时内部会自守
+                        QueueSlotDecision(gs, apt, ScheduleSlots.DepTimes[1], null, out _);   // 已有待批提案时内部会自守
                     m.permitGate = "时刻";
                     m.permitNote = kind + " · 已核准 · 待时刻";
                     DeferPermit(m, 2);
@@ -926,7 +1017,8 @@ namespace AirlineCEO.Systems
                         InboxLetter.Section("当前节点") +
                         InboxLetter.Bullet($"第{RoutePermitLogic.NodeSlot}节点 时刻协调与开航：尚无可用时刻槽") +
                         InboxLetter.Bullet($"缺口端　{apt}（{AirportCatalog.TierLabelOf(apt)}，协调机场，按夏秋/冬春协调季分配，热门时段需竞拍或购买）") +
-                        InboxLetter.Bullet($"两端口径　往返班次在 {originApt}（去程离港）与 {d}（回程离港）各需 1 条对应时段持仓") +
+                        InboxLetter.Bullet($"停站口径　飞机在哪一站停一次，那一站就要一对（到场 + 离场）：本场端 {originApt} 1 对、对端 {d} 1 对；"
+                            + "若航线经停第三地，经停站一趟往返停两次，故要 2 对") +
                         InboxLetter.Section("已采取的措施") +
                         InboxLetter.Bullet(first
                             ? "已请战略发展部在收件箱提出时刻槽购买方案（许可已到手，此时交割时刻费用，不会白花）"
@@ -934,7 +1026,7 @@ namespace AirlineCEO.Systems
                         InboxLetter.Section("为什么先证后槽") +
                         InboxLetter.Bullet("时刻（尤其竞拍时段）先花钱再等证，一旦许可未获批准费用即打水漂；先取证再办时刻更稳妥。") +
                         InboxLetter.Section("后续") +
-                        InboxLetter.Bullet($"两端时刻齐备后自动排班开航（预计 第{m.permitDueYear}年 Q{m.permitDueQuarter} 复核）")
+                        InboxLetter.Bullet($"各停站时刻齐备后自动排班开航（预计 第{m.permitDueYear}年 Q{m.permitDueQuarter} 复核）")
                         + PermitProgressBlock(m, intl, needsSlot, true), "受阻");
                     return;
                 }
@@ -954,7 +1046,7 @@ namespace AirlineCEO.Systems
                 }
             };
             var result = ActionExecutor.Instance.ExecuteOpenRouteFromPermit(advice);
-            bool slotTaken = slotIndex >= 0 || slotIndexB >= 0;
+            bool slotTaken = slotIndex >= 0 || slotIndexV >= 0 || slotIndexB >= 0;
 
             if (result != null && result.success)
             {
@@ -964,13 +1056,14 @@ namespace AirlineCEO.Systems
                 m.effectPending = false;
                 var slotApts = new System.Collections.Generic.List<string>();
                 if (slotIndex >= 0) slotApts.Add(originApt);
+                if (slotIndexV >= 0) slotApts.Add(viaApt);
                 if (slotIndexB >= 0) slotApts.Add(d);
                 AddPermitReceipt(gs, m, "grant", $"航线 {o}-{d} 已获许可并投入运营",
                     InboxLetter.Section("发证") +
                     InboxLetter.Bullet($"{kind}已核准") +
                     InboxLetter.Section("时刻协调") +
                     InboxLetter.Bullet(slotTaken
-                        ? $"已占两端时刻槽（{string.Join("、", slotApts.ToArray())}），可排班飞行"
+                        ? $"已占各停站时刻槽（{string.Join("、", slotApts.ToArray())}），可排班飞行"
                         : "本航线无需新增时刻（非协调机场）") +
                     InboxLetter.Section("开航执行") +
                     InboxLetter.Bullet($"开航季度　第{gs.year}年 Q{gs.quarter}（第{m.permitNode}节点 {RoutePermitLogic.NodeName(RoutePermitLogic.NodeSlot)}）") +
@@ -981,6 +1074,7 @@ namespace AirlineCEO.Systems
 
             // 开航未成（现金/运力等）→ 退还时刻槽，许可证继续有效，待条件就绪再试
             if (slotIndex >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndex);
+            if (slotIndexV >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndexV);
             if (slotIndexB >= 0) RoutePermitLogic.ReleaseSlot(gs, slotIndexB);
             m.permitGate = "运力";
             m.permitNote = kind + " · 已核准 · 待开航条件";
@@ -1295,6 +1389,98 @@ namespace AirlineCEO.Systems
 
         #endregion
 
+        /// <summary>
+        /// 时刻槽交割回执的正文：申请单上带了「为谁而提」的缘由时照抄一句。
+        ///
+        /// ★2026-10-15：**不再**写「请到机队·航线选择器重新呈报加机」——交割后运营部自己按单子上
+        /// 结构化的 slotRouteId / slotFlightClock 接着重排并呈报（<see cref="RescheduleAfterSlotSettle"/>，
+        /// 结果由调用方追加在正文里）。让 CEO 记着哪条线哪一刻再点一遍，等于申请单只办了一半。
+        /// 战略部自主提案（不属于任何航线，slotRouteId 为空）才仍然只报「已可排班」。
+        /// </summary>
+        static string SlotSettleNote(InboxMail m, string execMsg, bool ok)
+        {
+            string body = execMsg ?? "";
+            if (m == null) return body;
+            if (m.action == ChangeSlotAction)
+            {
+                if (!string.IsNullOrEmpty(m.slotReason)) body += $"\n\n缘由：{m.slotReason}";
+                body += ok
+                    ? "\n原槽已改为新时刻，运营部随即按新时刻重排本线。"
+                    : "\n改时未获批准，原槽照旧（该需求波仍排不出，运营部已如实回报）。";
+                return body;
+            }
+            if (m.action != ApplySlotAction || string.IsNullOrEmpty(m.slotReason)) return body;
+            body += $"\n\n缘由：{m.slotReason}";
+            if (ok && string.IsNullOrEmpty(m.slotRouteId))
+                body += "\n该时刻槽已可排班，可在排班时使用。";
+            else if (!ok)
+                body += "\n本次未能交割，该时段仍缺槽；请另择时段或稍后再申请。";
+            return body;
+        }
+
+        /// <summary>
+        /// 交割季执行**时刻变更（改时）**：协调人按「**15 分容差** + **目标系列余量**」批复。
+        ///
+        /// ★2026-10-16 第四十一次修订（CEO 第十八次问询衍生）。三条分支，缺一条就会出错：
+        /// 1. `|原刻 − 目标刻| ≤ 15 分` → 本就算**同一条槽**（WASG 8.7.1(e)：系列 = 同一或**约同一**时刻），
+        ///    协调人视为无需变更 —— **不占新容量、不动持仓**，直接算成功；
+        /// 2. 目标系列**无余量** → **驳**：原槽原样保留，该需求波继续排不出（如实回报，不静默放行）；
+        /// 3. 有余量 → **批**：把本线在该站的那条持仓**就地改时刻**（`slotTime` 12:00 → 12:30）。
+        ///
+        /// 为什么是「就地改」而不是「退还旧的 + 申请新的」：改时的现实含义就是**同一条系列的时刻被
+        /// 修正**（WASG 8.10.1：槽不绑航线/航班号、可以变更）。若按退还+新取去做，同一时段内
+        /// 池余量会被自己算两次，还会在旧时刻留下一条谁也不用的幽灵持仓。
+        /// </summary>
+        public static bool ExecuteSlotChange(GameState gs, InboxMail m, out string message)
+        {
+            message = "";
+            if (gs == null || m == null) { message = "邮件无效。"; return false; }
+            string apt = string.IsNullOrEmpty(m.origin) ? (gs.hubIata ?? "PEK") : m.origin;
+            string to = SlotMailClock(m);
+            string from = string.IsNullOrEmpty(m.slotFromClock)
+                ? "" : RoutePermitLogic.SlotRequestClock(m.slotFromClock);
+            if (ScheduleSlots.ParseClock(to) < 0 || ScheduleSlots.ParseClock(from) < 0)
+            {
+                message = $"改时单缺少有效的「原刻 → 目标刻」（收到 {from} → {to}）。";
+                return false;
+            }
+
+            int d = ScheduleSlots.ClockDiff(from, to);
+            if (d <= ScheduleSlots.SlotToleranceMinutes)
+            {
+                message = $"{apt} {from} 与 {to} 相差 {d} 分（≤ 容差 {ScheduleSlots.SlotToleranceMinutes} 分）——"
+                          + "协调人视为同一系列，**无需变更**，原槽照旧可用。";
+                return true;
+            }
+
+            int band = ScheduleSlots.BandOfDep(to);
+            if (RoutePermitLogic.SlotsAvailable(gs, apt, band) <= 0)
+            {
+                message = $"协调人**驳回**改时申请：{RoutePermitLogic.SlotPoolLineAt(gs, apt, to)} ——"
+                          + $"该系列无可分配余量，{from} 的时刻不得变更为 {to}。原槽保留，"
+                          + "该需求波仍需另找时刻（或等其它航线释放）。";
+                return false;
+            }
+
+            int idx = RoutePermitLogic.FreeHoldingIndexAt(gs, apt, from, m.slotRouteId);
+            if (idx < 0)
+            {
+                message = $"{apt} {from} 那条槽已不在持仓（可能已绑班次、已退还或已被收回），"
+                          + "改时申请自动作废 —— 本线该停站仍缺槽。";
+                return false;
+            }
+            var stg = StrategyManager.EnsureState(gs);
+            var hold = stg.slots[idx];
+            hold.slotTime = to;
+            // 获批的系列＝新取得的系列：闲置收回的倒计时应从改时季重新起算（否则会被当旧槽收回）
+            int turn = RoutePermitLogic.Turn(gs.year, gs.quarter);
+            hold.expiresTurn = turn + 2;
+            hold.expiresQuarter = gs.quarter + 2;
+            message = $"协调人**批准**时刻变更：{apt} {from} → {to}（差 {d} 分，超过容差故须报批；不收费）。"
+                      + $"原槽已改为 {to}。";
+            return true;
+        }
+
         static void AddExecReceipt(GameState gs, InboxMail src, bool ok, string subject, string body)
         {
             Schedule(gs, new InboxMail
@@ -1362,6 +1548,18 @@ namespace AirlineCEO.Systems
                 if (m != null && m.id == id) return true;
             }
             return false;
+        }
+
+        /// <summary>按 id 取收件箱里的邮件（不限状态）；没有则 null。未投递（pendingInbox）的不算。</summary>
+        static InboxMail FindMail(GameState gs, string id)
+        {
+            if (gs?.inbox == null || string.IsNullOrEmpty(id)) return null;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m != null && m.id == id) return m;
+            }
+            return null;
         }
 
         static bool HasOpenAction(GameState gs, string action)
@@ -1590,6 +1788,9 @@ namespace AirlineCEO.Systems
             if (draft == null)
             {
                 EnsureMaintenanceManager();
+                // 同上：批处理/编辑器自检里 Instance 可能是空的，跳过即可（下一季还会再试），
+                // 但不能让它把 ProcessPendingEffects 整条流程打断。
+                if (MaintenanceManager.Instance == null) return;
                 MaintenanceManager.Instance.CreateOrder("PN-HYD-002", "OEM 原厂", 6, 80000f, false, out _);
                 draft = mnt.orders.Find(o => o != null && o.status == "草稿");
             }
@@ -1924,7 +2125,7 @@ namespace AirlineCEO.Systems
             if ((stg.slots == null || stg.slots.Count == 0)
                 && !HasMailId(gs, "m_slot_hub") && !HasOpenAction(gs, "buy_slot"))
             {
-                QueueSlotDecision(gs, hub, 1, "m_slot_hub", out _);
+                QueueSlotDecision(gs, hub, ScheduleSlots.DepTimes[1], "m_slot_hub", out _);
                 return;
             }
 
@@ -1935,7 +2136,8 @@ namespace AirlineCEO.Systems
             }
         }
 
-        public static bool QueueSlotDecision(GameState gs, string airport, int band, string id, out string message)
+        /// <param name="clock">要购入的时刻槽的**具体离港时刻** `"HH:mm"`（★2026-10-15）。</param>
+        public static bool QueueSlotDecision(GameState gs, string airport, string clock, string id, out string message)
         {
             message = "";
             if (gs == null) { message = "游戏未就绪"; return false; }
@@ -1952,17 +2154,25 @@ namespace AirlineCEO.Systems
             }
 
             string apt = string.IsNullOrEmpty(airport) ? (gs.hubIata ?? "PEK") : airport;
-            int b = Mathf.Clamp(band, 0, 3);
+            int m = ScheduleSlots.ParseClock(clock);
+            if (m < 0) { message = $"时刻无效（{clock}）。时刻槽须精确到时刻，如 06:30 / 08:00。"; return false; }
+            string clk = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(m));
+            int b = ScheduleSlots.BandOfDep(clk);
+
+            // ★2026-10-15：区分两条渠道（现实里它们是两码事，价钱也完全不同）。
+            //   协调池申请（apply_slot）= WASG 规定的正常渠道，**免费**，排队按需分配；
+            //   二级市场购入（buy_slot）= 向持槽航司买，**收费**，本函数就是这条。
             float cost = StrategyEconomics.SlotValueWan(apt, b);   // 按机场真实等级定价
             if (RoutePermitLogic.SlotPoolFull(gs, apt, b))
             {
                 message = $"该机场该时段时刻池已满（{RoutePermitLogic.SlotPoolLine(gs, apt, b)}），暂不便再提申请。";
                 return false;
             }
-            string mailId = string.IsNullOrEmpty(id) ? "m_slot_" + apt + "_" + gs.year + "q" + gs.quarter : id;
+            string mailId = string.IsNullOrEmpty(id)
+                ? "m_slot_" + apt + "_" + clk.Replace(":", "") + "_" + gs.year + "q" + gs.quarter : id;
             if (HasMailId(gs, mailId))
             {
-                message = "本季已提交同时刻槽提案。";
+                message = "本季已提交同一时刻的时刻槽提案。";
                 return false;
             }
 
@@ -1975,18 +2185,22 @@ namespace AirlineCEO.Systems
                 kind = "report",
                 action = "buy_slot",
                 origin = apt,
-                dest = b.ToString(),
-                subject = $"建议购买 {apt} {StrategyManager.SlotBandName(b)}时段时刻槽",
+                dest = clk,
+                slotClock = clk,
+                subject = $"建议购入 {apt} {clk} 时刻槽",
                 body =
                     InboxLetter.Section("提案要点") +
                     InboxLetter.Bullet($"机场　{apt}（{AirportCatalog.TierLabelOf(apt)}）") +
-                    InboxLetter.Bullet($"时段　{StrategyManager.SlotBandName(b)}") +
+                    InboxLetter.Bullet($"时刻　{clk}（机场当地离港时刻）—— **时刻槽精确到时刻**，"
+                                       + $"06:30 与 08:00 是两条槽，不能互相顶替") +
+                    InboxLetter.Bullet($"渠道　二级市场购入（向持槽航司买，需付款）") +
                     InboxLetter.Bullet($"估价　约 {cost:F0} 万美元") +
-                    InboxLetter.Bullet($"池况　{RoutePermitLogic.SlotPoolLine(gs, apt, b)}") +
+                    InboxLetter.Bullet($"池况　{RoutePermitLogic.SlotPoolLineAt(gs, apt, clk)}") +
                     InboxLetter.Section("时点与影响") +
-                    InboxLetter.Bullet("批准：下季度扣款交割，可加密高峰班次") +
-                    InboxLetter.Bullet("拒绝：本季不扩容时刻，高峰难以加密") +
-                    InboxLetter.Bullet("两端持槽：往返班次在离港机场与对端机场各占 1 个对应时段槽") +
+                    InboxLetter.Bullet("批准：下季度扣款交割，交割后可按该时刻加密班次") +
+                    InboxLetter.Bullet("拒绝：该时刻不扩容，该时刻的班次排不进去") +
+                    InboxLetter.Bullet("若不愿付费：改走**协调池申请**（收件箱「申请时刻槽」，不收费、按序分配）") +
+                    InboxLetter.Bullet("两端持槽：往返班次在两个离港机场各占 1 条**对应时刻**的槽") +
                     InboxLetter.Bullet("持仓与进度见「航权与时刻槽」页"),
                 tag = "提案",
                 receivedYear = gs.year,
@@ -1994,8 +2208,24 @@ namespace AirlineCEO.Systems
                 time = gs.DateLabel,
                 deadlineQuarters = DefaultDeadlineQuarters
             });
-            message = "已提交收件箱：请批准购买时刻槽，下季度扣款交割。";
+            message = $"已提交收件箱：请批准购入 {apt} {clk} 时刻槽，下季度扣款交割。";
             return true;
+        }
+
+        /// <summary>时刻槽提案/交割单上的具体时刻（★2026-10-15：一切文案都写时刻，不写「早/中/晚/夜」）。</summary>
+        public static string SlotMailClock(InboxMail m)
+        {
+            if (m == null) return "";
+            // 一律吸附到系列时刻：旧档/旧路径可能存了 07:40 这类非系列时刻，比对与文案都要归到 07:30，
+            // 否则「同一刻是否已有申请在箱」的判据（HasOpenApplySlot）会漏判。
+            if (ScheduleSlots.ParseClock(m.slotClock) >= 0)
+                return RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(ScheduleSlots.ParseClock(m.slotClock)));
+            if (ScheduleSlots.ParseClock(m.dest) >= 0)
+                return RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(ScheduleSlots.ParseClock(m.dest)));
+            // 旧档（dest 存的是时段下标 0–3）：折成该时段峰点，别让历史邮件显示成空白
+            if (int.TryParse(m.dest, out int band) && band >= 0 && band <= 3)
+                return ScheduleSlots.DepTimes[band];
+            return "";
         }
 
         public static int SlotQtyOf(InboxMail mail)
@@ -2004,9 +2234,9 @@ namespace AirlineCEO.Systems
             return n < 1 ? 1 : n;
         }
 
-        /// <summary>已批准、尚未到交割季的时刻槽提案（buy_slot / apply_slot）。</summary>
+        /// <summary>已批准、尚未到交割季的时刻槽提案（buy_slot / apply_slot / change_slot）。</summary>
         public static List<InboxMail> PendingSlotSettlements(GameState gs)
-            => PendingSettlements(gs, "buy_slot", ApplySlotAction);
+            => PendingSettlements(gs, "buy_slot", ApplySlotAction, ChangeSlotAction);
 
         /// <summary>已批准、尚未到交割季的航权申请。</summary>
         public static List<InboxMail> PendingRightSettlements(GameState gs)
@@ -2036,8 +2266,12 @@ namespace AirlineCEO.Systems
         {
             if (m == null) return "";
             string apt = string.IsNullOrEmpty(m.origin) ? "HUB" : m.origin;
-            string band = StrategyManager.SlotBandName(StrategyManager.ParseSlotBand(m.dest));
-            return $"{apt} {band}时段 {SlotQtyOf(m)} 个　待交割 · 第{m.effectYear}年 Q{m.effectQuarter}";
+            string clk = SlotMailClock(m);
+            bool free = string.Equals(m.action, ApplySlotAction, StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(m.action, ChangeSlotAction, StringComparison.OrdinalIgnoreCase))
+                return $"{apt} {m.slotFromClock} → {clk} 改时　协调人按系列余量批复·免费"
+                       + $"　待交割 · 第{m.effectYear}年 Q{m.effectQuarter}";
+            return $"{apt} {clk} {SlotQtyOf(m)} 条　{(free ? "协调池分配·免费" : "二级市场购入")}　待交割 · 第{m.effectYear}年 Q{m.effectQuarter}";
         }
 
         public static string FormatPendingRight(InboxMail m)
@@ -2048,58 +2282,182 @@ namespace AirlineCEO.Systems
             return $"{o}—{d}  第五航权　待交割 · 第{m.effectYear}年 Q{m.effectQuarter}";
         }
 
-        /// <summary>运力缺口里的缺槽波次 → 按「机场 × 时段」汇总（往返两端分别归集），发批量申请邮件（下季交割）。</summary>
+        /// <summary>
+        /// 本线在途的时刻槽单（待批 / 已批待交割）列表 —— 供**批复回执**如实写出「槽在办、卡在哪一步」。
+        ///
+        /// ★2026-10-16 第四十二次修订：回执只说一句「缺口：缺时刻槽」还不够 —— 插槽未交割期间 CEO 会
+        /// **再下同一条令**（本线已开的单不会再开第二张，`HasOpenApplySlot` 按航线判重），于是一次动静
+        /// 都没有、又收一封回执。这里把在办的单子摊给他看：**这件事已经有人办了**，卡在协调人（待批）
+        /// 还是卡在交割季（已批待交割），他就不必一遍遍重下。
+        ///
+        /// 只认 <c>slotRouteId</c> == 本线的单子（空 = 战略部自主提案，与哪天缺口无关）；
+        /// 已结案（既不在待办、也不在待交割）的单子不再提。
+        /// </summary>
+        static string SlotInFlightLines(GameState gs, string routeId)
+        {
+            if (gs?.inbox == null || string.IsNullOrEmpty(routeId)) return "";
+            var sb = new StringBuilder();
+            int shown = 0;
+            for (int i = 0; i < gs.inbox.Count && shown < 5; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null) continue;
+                if (!string.Equals(m.slotRouteId, routeId, StringComparison.OrdinalIgnoreCase)) continue;
+                bool isSlot = m.action == "buy_slot" || m.action == ApplySlotAction || m.action == ChangeSlotAction;
+                if (!isSlot) continue;
+                if (!IsOpen(m) && !m.effectPending) continue;
+
+                string apt = string.IsNullOrEmpty(m.origin) ? (gs.hubIata ?? "HUB") : m.origin;
+                string clk = SlotMailClock(m);
+                bool changeMail = m.action == ChangeSlotAction;
+                string what = changeMail
+                    ? $"{apt} {m.slotFromClock} → {clk} 改时（协调人按系列余量批复）"
+                    : $"{apt} {clk} {SlotQtyOf(m)} 条"
+                      + (m.action == ApplySlotAction ? "（协调池分配·免费）" : "（二级市场购入）");
+                string step;
+                if (IsOpen(m)) step = "待您批准";
+                else if (m.effectPending) step = $"已批准·待交割（第{m.effectYear}年 Q{m.effectQuarter}）";
+                else continue;                sb.Append(InboxLetter.Bullet($"{step}　{what}"));
+                shown++;
+            }
+            if (shown == 0) return "";
+            sb.Append(InboxLetter.Bullet("交割到账后运营部自动重排本线并另行呈报，无需重下这条指令。"));
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 运力缺口里的缺槽波次 → 按「机场 × **具体时刻**」汇总，发协调池申请邮件（**每个缺槽停站各一张**）。
+        /// ★2026-10-15：由「按时段归集」改为「按时刻归集」—— 缺口是 07:30 这一刻缺槽，
+        /// 邮件就必须申请 **07:30** 这一条，否则交割回 08:00 的槽，缺口一点没补上。
+        ///
+        /// ★2026-10-16：由「每波只办一端」改为「**逐停站各办一张**」。一趟往返要办的槽是
+        /// 逐个停站的（本场端 1 对、对端 1 对、经停站一趟往返停两次故 2 对），而排班闸门
+        /// <see cref="RoutePermitLogic.CanScheduleClock"/> 每个协调停站都要求 —— 只办一端等于只办一半：
+        /// 批准入账后本刻仍排不出班，CEO 的「增加航班量」还是没生效。
+        ///
+        /// 旧口径只读 <c>WaveShortage.slotAirport</c>，而那是 <see cref="RoutePermitLogic.TryShortClock"/>
+        /// 返回的**第一个**缺端；本场端在需求列表里排下标 0、且新增波次在本场必然没有持仓，
+        /// 于是「只办一端」在实际运行中恒定表现为「只办起飞机场」——对端一次都没被提起过。
+        /// </summary>
         public static void QueueSlotApplications(GameState gs, RouteData route, List<OpsScheduleLogic.WaveShortage> shortages)
         {
             if (gs == null || route == null || shortages == null || shortages.Count == 0) return;
             var order = new List<string>();
             var counts = new Dictionary<string, int>();
             var apts = new Dictionary<string, string>();
-            var bands = new Dictionary<string, int>();
+            var clocks = new Dictionary<string, string>();
+            var flights = new Dictionary<string, string>();
+            var stations = new Dictionary<string, string>();
             for (int i = 0; i < shortages.Count; i++)
             {
                 var s = shortages[i];
                 if (s == null || s.kind != "no_slot") continue;
-                string apt = string.IsNullOrEmpty(s.slotAirport) ? route.origin : s.slotAirport;
-                int band = s.slotBand >= 0 ? s.slotBand : ScheduleSlots.BandOfDep(s.dep);
-                string key = apt.ToUpperInvariant() + "|" + band;
-                if (!counts.ContainsKey(key)) { counts[key] = 0; order.Add(key); apts[key] = apt; bands[key] = band; }
-                counts[key]++;
+
+                int m = ScheduleSlots.ParseClock(s.dep);
+                if (m < 0) m = ScheduleSlots.ParseClock(ScheduleSlots.DepTimes[Mathf.Clamp(s.slotBand, 0, 3)]);
+                // ★2026-10-15：缺口时刻是 5 分钟粒度的（飞机晚于槽 → 07:40），而槽只在 30 分系列网格上。
+                // 申请时刻必须吸附到系列时刻，否则会开出一张「申请 07:40」的空单（买不到对应系列）。
+                string flightClk = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(m));
+
+                // 本波**逐站**自问：这一刻到底缺哪几站的槽？（缺几站开几张单，一站不缺就不开）
+                // ★2026-10-16：经停航线的经停站一趟往返**缺两条**（去程一次、回程一次），本循环天然各开一张。
+                var ends = RoutePermitLogic.WaveEndNeeds(route, s.dep);
+                for (int k = 0; k < ends.Count; k++)
+                {
+                    // ★2026-10-16 第四十一次修订：本端缺槽、而本线在该站**已有一条槽**、只是时刻滑点
+                    //   → 现实里走「时刻变更申请」（WASG 9.1.3），不是把缺的那条当新槽再申请一遍。
+                    //   协调人按目标系列余量批驳：余量为 0 → 连改时也批不下来，如实汇报，不开空单。
+                    if (RoutePermitLogic.TryTimeChange(gs, route, ends[k], out _, out string cFrom, out string cTo, out bool cRoom))
+                    {
+                        if (cRoom)
+                            QueueChangeSlot(gs, ends[k].airport, cFrom, cTo, 1,
+                                ChangeSlotMailId(gs, route, ends[k].airport, cTo), out _,
+                                SlotChangeReason(route, ends[k], cFrom, cTo), route.routeId, flightClk,
+                                RoutePermitLogic.LegName(ends[k]) + "　" + RoutePermitLogic.LegClocks(ends[k]));
+                        continue;
+                    }
+
+                    // 已有持仓可飞 / 祖父条款保住 / 非协调机场 / 时段池已满 → 都不该开单（判据与页面档位同源）
+                    if (!RoutePermitLogic.CanApplyEnd(gs, route, ends[k])) continue;
+                    string apt = ends[k].airport;
+                    string clk = RoutePermitLogic.SlotRequestClock(RoutePermitLogic.TimeOf(ends[k]));
+                    string key = apt.ToUpperInvariant() + "|" + clk;
+                    if (!counts.ContainsKey(key))
+                    {
+                        counts[key] = 0; order.Add(key);
+                        apts[key] = apt; clocks[key] = clk; flights[key] = flightClk;
+                        stations[key] = RoutePermitLogic.LegName(ends[k]) + "　" + RoutePermitLogic.LegClocks(ends[k]);
+                    }
+                    counts[key]++;
+                }
             }
             for (int k = 0; k < order.Count; k++)
             {
                 string key = order[k];
                 string apt = apts[key];
-                int band = bands[key];
-                QueueApplySlots(gs, apt, band, counts[key],
-                    "m_apply_slot_" + apt + "_" + band + "_" + gs.year + "q" + gs.quarter, out _);
+                string clk = clocks[key];
+                QueueApplySlots(gs, apt, clk, counts[key],
+                    ApplySlotMailId(gs, route, apt, clk), out _,
+                    SlotApplyReason(route, apt, clk, flights[key], stations[key]), route.routeId, flights[key]);
             }
         }
 
-        /// <summary>批量申请 N 个时刻槽：批准后下季扣款交割。</summary>
-        public static bool QueueApplySlots(GameState gs, string airport, int band, int count, string id, out string message)
+        /// <summary>
+        /// 协调池申请单的单号。★2026-10-16：**按航线**编号 —— 两条航线同一刻各缺各的槽，
+        /// 是两件事、两张单；旧单号只含「机场+时刻」，第二条航线的那张会被 <see cref="HasMailId"/>
+        /// 判成重号而**静默丢弃**（调用处 `out _` 连原因都没留下）。
+        /// </summary>
+        static string ApplySlotMailId(GameState gs, RouteData route, string airport, string clock)
+            => "m_apply_slot_" + (route == null || string.IsNullOrEmpty(route.routeId) ? "" : route.routeId + "_")
+               + airport + "_" + clock.Replace(":", "") + "_" + gs.year + "q" + gs.quarter;
+
+        /// <summary>
+        /// 申请单上的「缘由」一行：写清是哪条线、哪一刻的往返、缺的是**哪一个停站**的哪一对时刻。
+        /// ★2026-10-16：停站名由调用方给出（<see cref="RoutePermitLogic.LegName"/>）——
+        /// 旧版自己按「机场 == destination ？」二分，经停端的单子会被写成「去程离港端」。
+        /// </summary>
+        static string SlotApplyReason(RouteData route, string airport, string clock, string flightClock, string stationLabel)
+        {
+            if (route == null) return null;
+            string leg = string.IsNullOrEmpty(stationLabel) ? "停站" : stationLabel;
+            return $"{route.origin}—{route.destination} 运力指令：{flightClock} 起飞的往返缺{leg}的时刻槽"
+                   + $"（{airport} {clock}）。各停站槽齐备后运营部自动重排本线并呈报加机。";
+        }
+
+        /// <summary>
+        /// 申请 N 条**指定时刻**的时刻槽：走**协调池**（WASG 规定的正常渠道），**不收费**，
+        /// 批准后下季交割。reason = 为哪条航线/哪个机号而提（可不填）。
+        ///
+        /// ★2026-10-15：旧版这条渠道也照价扣款（与二级市场同价），等于对「排队分到的槽」
+        /// 又收了一道钱；现实里协调人分配是不收费的，付费只出现在航司之间的二级市场交易。
+        /// </summary>
+        public static bool QueueApplySlots(GameState gs, string airport, string clock, int count, string id, out string message,
+            string reason = null, string routeId = null, string flightClock = null)
         {
             message = "";
             if (gs == null) { message = "游戏未就绪"; return false; }
             if (gs.inbox == null) gs.inbox = new List<InboxMail>();
             string apt = string.IsNullOrEmpty(airport) ? (gs.hubIata ?? "PEK") : airport;
-            int b = Mathf.Clamp(band, 0, 3);
+            int m = ScheduleSlots.ParseClock(clock);
+            if (m < 0) { message = $"时刻无效（{clock}）。时刻槽须精确到时刻，如 06:30 / 08:00。"; return false; }
+            string clk = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(m));
+            int b = ScheduleSlots.BandOfDep(clk);
             int n = count < 1 ? 1 : count;
             if (RoutePermitLogic.SlotPoolFull(gs, apt, b)
-                && RoutePermitLogic.FreeSlots(gs, apt, b) <= 0)
+                && RoutePermitLogic.FreeSlotsAt(gs, apt, clk) <= 0)
             {
-                message = $"该机场该时段时刻池已满（{RoutePermitLogic.SlotPoolLine(gs, apt, b)}），暂不便再提申请。";
+                message = $"该机场该时刻无可用槽、所在时段池也已满（{RoutePermitLogic.SlotPoolLineAt(gs, apt, clk)}），暂不便再提申请。";
                 return false;
             }
-            string mailId = string.IsNullOrEmpty(id) ? "m_apply_slot_" + apt + "_" + b + "_" + gs.year + "q" + gs.quarter : id;
-            if (HasMailId(gs, mailId) || HasOpenApplySlot(gs, apt, b))
+            string mailId = string.IsNullOrEmpty(id)
+                ? "m_apply_slot_" + apt + "_" + clk.Replace(":", "") + "_" + gs.year + "q" + gs.quarter : id;
+            if (HasMailId(gs, mailId) || HasOpenApplySlot(gs, apt, clk, routeId))
             {
-                message = "同时段已有时刻槽申请在收件箱。";
+                message = "同一航线的同一时刻已有时刻槽申请在收件箱。";
                 return false;
             }
 
             float unit = StrategyEconomics.SlotValueWan(apt, b);
-            float cost = unit * n;
             Add(gs, new InboxMail
             {
                 id = mailId,
@@ -2109,46 +2467,172 @@ namespace AirlineCEO.Systems
                 kind = "report",
                 action = ApplySlotAction,
                 origin = apt,
-                dest = b.ToString(),
+                dest = clk,
+                slotClock = clk,
                 permitAttempts = n,
                 subject = n > 1
-                    ? $"建议申请 {apt} {StrategyManager.SlotBandName(b)}时段时刻槽 {n} 个"
-                    : $"建议申请 {apt} {StrategyManager.SlotBandName(b)}时段时刻槽",
+                    ? $"建议向协调池申请 {apt} {clk} 时刻槽 {n} 条"
+                    : $"建议向协调池申请 {apt} {clk} 时刻槽",
                 body =
                     InboxLetter.Section("提案要点") +
                     InboxLetter.Bullet($"机场　{apt}（{AirportCatalog.TierLabelOf(apt)}）") +
-                    InboxLetter.Bullet($"时段　{StrategyManager.SlotBandName(b)}") +
-                    InboxLetter.Bullet($"数量　{n} 个（往返两端各占 1 个：去程离港 + 回程离港）") +
-                    InboxLetter.Bullet($"估价　约 {cost:F0} 万美元（单价 {unit:F0} 万）") +
-                    InboxLetter.Bullet($"池况　{RoutePermitLogic.SlotPoolLine(gs, apt, b)}") +
+                    InboxLetter.Bullet($"时刻　{clk}（机场当地离港时刻）—— **时刻槽精确到时刻**，"
+                                       + $"申请的就是 {clk} 这一条，交割后也只有这一刻能飞") +
+                    InboxLetter.Bullet($"渠道　机场协调人问询/协调池分配（WASG 正常渠道，**不收费**）") +
+                    InboxLetter.Bullet($"数量　{n} 条（**一个停站一对**：本场端 1 对、对端 1 对；经停站一趟往返停两次，故要 2 对）") +
+                    InboxLetter.Bullet($"市场价参考　约 {unit * n:F0} 万美元（若走二级市场购入需付此价；协调池分配不收）") +
+                    InboxLetter.Bullet($"池况　{RoutePermitLogic.SlotPoolLineAt(gs, apt, clk)}") +
+                    (string.IsNullOrEmpty(reason) ? "" : InboxLetter.Section("缘由") + InboxLetter.Bullet(reason)) +
                     InboxLetter.Section("时点与影响") +
-                    InboxLetter.Bullet("批准：下季度扣款交割，交割后方可加密该时段班次") +
-                    InboxLetter.Bullet("拒绝：该时段继续缺槽，运营部无法加班") +
+                    InboxLetter.Bullet("批准：下季度交割入账，交割后方可按该时刻加密班次") +
+                    InboxLetter.Bullet("拒绝：该时刻继续缺槽，运营部无法在该时刻加班") +
+                    InboxLetter.Bullet("若等不及排队：可改走二级市场购入（收件箱「购买时刻槽」，需付费）") +
                     InboxLetter.Bullet("持仓与进度见「航权与时刻槽」页"),
                 tag = "提案",
+                slotReason = reason ?? "",
+                slotRouteId = routeId ?? "",
+                slotFlightClock = flightClock ?? "",
                 receivedYear = gs.year,
                 receivedQuarter = gs.quarter,
                 time = gs.DateLabel,
                 deadlineQuarters = DefaultDeadlineQuarters
             });
-            message = $"已提交收件箱：请批准申请 {apt} {StrategyManager.SlotBandName(b)}时段 {n} 个时刻槽，下季度扣款交割。";
+            message = $"已提交收件箱：请批准向协调池申请 {apt} {clk} 时刻槽 {n} 条（免费），下季度交割。";
             return true;
         }
 
-        static bool HasOpenApplySlot(GameState gs, string airport, int band)
+        /// <summary>
+        /// 收件箱里是否已有**同一件事**的申请单在办（待批或待交割）。
+        /// ★2026-10-16：给了 <paramref name="routeId"/> 就**按航线**判重 —— 两条不同航线同一刻各缺各的槽，
+        /// 是两件事，各开各的单；旧口径全局判重会把第二条航线那张静默吞掉。
+        /// 不传 routeId 时保持原全局语义（旧档邮件、自测里的裸调用）。
+        /// </summary>
+        static bool HasOpenApplySlot(GameState gs, string airport, string clock, string routeId = null)
+        {
+            return HasOpenSlotMail(gs, ApplySlotAction, airport, clock, routeId);
+        }
+
+        /// <summary>同上，认任意一种时刻槽单（申请 / 改时）：按「机场 × 目标时刻 × 本线」判重。</summary>
+        static bool HasOpenSlotMail(GameState gs, string action, string airport, string clock, string routeId)
         {
             if (gs?.inbox == null) return false;
-            string b = band.ToString();
+            string clk = ScheduleSlots.FormatClock(ScheduleSlots.ParseClock(clock));
             for (int i = 0; i < gs.inbox.Count; i++)
             {
                 var m = gs.inbox[i];
-                if (m == null || m.action != ApplySlotAction) continue;
+                if (m == null || m.action != action) continue;
                 if (!IsOpen(m) && !m.effectPending) continue;
                 if (!string.Equals(m.origin, airport, StringComparison.OrdinalIgnoreCase)) continue;
-                if (m.dest != b) continue;
+                if (!string.Equals(SlotMailClock(m), clk, StringComparison.Ordinal)) continue;
+                if (!string.IsNullOrEmpty(routeId)
+                    && !string.Equals(m.slotRouteId, routeId, StringComparison.OrdinalIgnoreCase)) continue;
                 return true;
             }
             return false;
+        }
+
+        /// <summary>改时单的单号（与申请单同构，按**航线**编号，避免两条线同名互吞）。</summary>
+        static string ChangeSlotMailId(GameState gs, RouteData route, string airport, string toClock)
+            => "m_change_slot_" + (route == null || string.IsNullOrEmpty(route.routeId) ? "" : route.routeId + "_")
+               + airport + "_" + (toClock ?? "").Replace(":", "") + "_" + gs.year + "q" + gs.quarter;
+
+        /// <summary>改时单的「缘由」一行：写明是哪条线、哪一站、把哪一刻改到哪一刻（含差值与容差口径）。</summary>
+        static string SlotChangeReason(RouteData route, RoutePermitLogic.SlotNeed need, string fromClock, string toClock)
+        {
+            if (route == null) return null;
+            int d = ScheduleSlots.ClockDiff(fromClock, toClock);
+            return $"{route.origin}—{route.destination} 运力指令：{RoutePermitLogic.LegName(need)}"
+                   + $"（{need.airport}）需要 {toClock}，而本线在该站持有的是 {fromClock}"
+                   + $"（差 {d} 分，超 {ScheduleSlots.SlotToleranceMinutes} 分容差）—— 提请时刻变更。";
+        }
+
+        /// <summary>
+        /// 开一张**时刻变更（改时）申请**单：把本线在该站已有的 `fromClock` 请求改为 `toClock`。
+        ///
+        /// 现实口径（★2026-10-16 第四十一次修订，CEO 第十八次问询衍生）：
+        /// - 这是**持槽后**的动作，不是新申请 —— WASG 9.1.3「necessary slot adjustments」、
+        ///   8.10.1（槽不绑航线/航班号，可变更）、8.7.1(e)（系列 = 同一或**约同一**时刻 → 15 分容差）；
+        /// - 协调人按**目标系列余量**批驳：余量 0 就驳（此时连空单都不该开，调用处已先问 `poolRoom`）；
+        /// - **不收费**：改时走的仍是协调渠道，二级市场才是花钱的地方。
+        /// </summary>
+        public static bool QueueChangeSlot(GameState gs, string airport, string fromClock, string toClock, int count,
+            string id, out string message, string reason = null, string routeId = null, string flightClock = null,
+            string stationLabel = null)
+        {
+            message = "";
+            if (gs == null) { message = "游戏未就绪"; return false; }
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            string apt = string.IsNullOrEmpty(airport) ? (gs.hubIata ?? "PEK") : airport;
+            int fm = ScheduleSlots.ParseClock(fromClock);
+            int tm = ScheduleSlots.ParseClock(toClock);
+            if (fm < 0 || tm < 0)
+            {
+                message = $"改时需要「原时刻 → 目标时刻」两个有效时刻（收到 {fromClock} → {toClock}）。";
+                return false;
+            }
+            string from = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(fm));
+            string to = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(tm));
+            int d = ScheduleSlots.ClockDiff(from, to);
+            if (d <= ScheduleSlots.SlotToleranceMinutes)
+            {
+                // 容差内本就算同一条槽（闸门也已放行）—— 不需要改时，更不能凭空多占容量
+                message = $"{apt} {from} 与 {to} 相差 {d} 分（≤ 容差 {ScheduleSlots.SlotToleranceMinutes} 分），"
+                          + "协调人视为同一系列，无需变更，该槽照旧可用。";
+                return false;
+            }
+            int band = ScheduleSlots.BandOfDep(to);
+            if (RoutePermitLogic.SlotsAvailable(gs, apt, band) <= 0)
+            {
+                message = $"该机场该系列无可分配余量（{RoutePermitLogic.SlotPoolLineAt(gs, apt, to)}），改时也无法批准。";
+                return false;
+            }
+            string mailId = string.IsNullOrEmpty(id) ? ChangeSlotMailId(gs, null, apt, to) : id;
+            if (HasMailId(gs, mailId) || HasOpenSlotMail(gs, ChangeSlotAction, apt, to, routeId))
+            {
+                message = "同一航线的同一刻改时申请已在本线收件箱。";
+                return false;
+            }
+            int n = count < 1 ? 1 : count;
+            Add(gs, new InboxMail
+            {
+                id = mailId,
+                sender = "战略发展部",
+                role = "航权提案",
+                glyph = "战",
+                kind = "report",
+                action = ChangeSlotAction,
+                origin = apt,
+                dest = to,
+                slotClock = to,
+                slotFromClock = from,
+                permitAttempts = n,
+                subject = $"{apt} 时刻变更申请：{from} → {to}",
+                body =
+                    InboxLetter.Section("提案要点") +
+                    InboxLetter.Bullet($"机场　{apt}（{AirportCatalog.TierLabelOf(apt)}）") +
+                    InboxLetter.Bullet($"变更　**{from} → {to}**（差 {d} 分，超 {ScheduleSlots.SlotToleranceMinutes} 分容差）") +
+                    InboxLetter.Bullet($"性质　**时刻变更（改时）**：本线在该站已持有一条槽，不是新申请 —— "
+                                       + "WASG 9.1.3 要求航司对已分配的时刻「及时提出必要调整」") +
+                    InboxLetter.Bullet($"停站　{(string.IsNullOrEmpty(stationLabel) ? "—" : stationLabel)}") +
+                    InboxLetter.Bullet($"渠道　机场协调人批复（**不收费**，也不占用新容量）") +
+                    InboxLetter.Bullet($"批复口径　目标系列**有余量即批**；容量已满则驳（"
+                                       + $"{RoutePermitLogic.SlotPoolLineAt(gs, apt, to)}）") +
+                    (string.IsNullOrEmpty(reason) ? "" : InboxLetter.Section("缘由") + InboxLetter.Bullet(reason)) +
+                    InboxLetter.Section("时点与影响") +
+                    InboxLetter.Bullet("批准：下季度协调人批复；批了则原槽改为该时刻，运营部自动重排本线") +
+                    InboxLetter.Bullet("被驳：原槽保留，该需求波仍排不出 —— 运营部会如实回报，不静默放行") +
+                    InboxLetter.Bullet("仓位与进度见「航权与时刻槽」页"),
+                tag = "提案",
+                slotReason = reason ?? "",
+                slotRouteId = routeId ?? "",
+                slotFlightClock = flightClock ?? "",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            });
+            message = $"已提交收件箱：请批准向协调人提 {apt} 的时刻变更（{from} → {to}，免费）。";
+            return true;
         }
 
         public static bool QueueRightDecision(GameState gs, string origin, string dest, string id, out string message)
@@ -3224,10 +3708,28 @@ namespace AirlineCEO.Systems
         static string CapacityMailId(string routeId, int revision) =>
             $"m_cap_dir_{routeId ?? "x"}_{revision}";
 
+        /// <summary>
+        /// 把「目标 / 指令前 / 缺口原文」随呈报一起记住 —— 批复回执的三档裁定（已生效 / 部分生效 /
+        /// 未变动）全靠这三个数（★2026-10-16 第四十二次修订）。
+        ///
+        /// 目标波次：正数 = 目标段数；**-1 = 指令要求维持现状**（<see cref="CapacityDirectiveLogic.Report.requestedWaves"/>
+        /// 为 0 且不是失败路径时就是这个意思）。回执只能读到「现在几段」，没有它就只能凭常量写「已生效」。
+        /// </summary>
+        static void StampCapacityFacts(InboxMail m, CapacityDirectiveLogic.Report rep)
+        {
+            if (m == null || rep == null) return;
+            m.capTargetWaves = rep.requestedWaves > 0 ? rep.requestedWaves : -1;
+            m.capBeforeWaves = rep.beforeWaves;
+            m.capGapSection = rep.shortageSection ?? "";
+        }
+
         /// <summary>运营部执行完 CEO 运力指令后，把「调整后运力 + 航班环」呈报给 CEO。</summary>
         public static bool QueueCapacityReport(GameState gs, RouteData route, CapacityDirectiveLogic.Report rep)
         {
             if (gs == null || route == null || rep == null || !rep.ok) return false;
+            // 指派/改派执飞飞机的呈报走 assign_aircraft 专用邮件（Execute 里已直接投递提名件）。
+            // 这里早退，免得同一件事出现两封待批邮件（一封挑机号、一封说班次没变）。
+            if (rep.assignment) return true;
             if (gs.inbox == null) gs.inbox = new List<InboxMail>();
 
             // 原排班呈报若还挂着，标记为已被指令取代，避免同一航线两封待办互相阻断
@@ -3255,6 +3757,7 @@ namespace AirlineCEO.Systems
                     m.ringIdsCsv = rep.ringIdsCsv;
                     m.directiveNote = rep.directiveRaw;
                     m.capEngineRev = CapacityDirectiveLogic.EngineRev;
+                    StampCapacityFacts(m, rep);
                     m.tag = rep.slotFirst ? "待槽" : "呈报";
                     QueueSlotApplications(gs, route, rep.shortages);
                     Changed?.Invoke();
@@ -3263,7 +3766,7 @@ namespace AirlineCEO.Systems
                 }
             }
 
-            Add(gs, new InboxMail
+            var fresh = new InboxMail
             {
                 id = id,
                 sender = "运营部",
@@ -3283,7 +3786,9 @@ namespace AirlineCEO.Systems
                 receivedQuarter = gs.quarter,
                 time = gs.DateLabel,
                 deadlineQuarters = DefaultDeadlineQuarters
-            });
+            };
+            StampCapacityFacts(fresh, rep);
+            Add(gs, fresh);
             gs.AddDecisionLog(
                 $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），已呈报待批。");
             QueueSlotApplications(gs, route, rep.shortages);
@@ -3291,33 +3796,114 @@ namespace AirlineCEO.Systems
             return true;
         }
 
-        static void SupersedeOpsSchedule(GameState gs, RouteData route)
+        /// <summary>
+        /// 复核报告（**指令未能执行**时投的汇报件）：把「为什么没办成 + 本线现状 + 可以怎么办」回一封。
+        ///
+        /// 与 <see cref="QueueCapacityReport"/>（呈报件，待批复）相对：这是**汇报件**（action 留空、
+        /// status=approved），不占待办、不挡时间推进。存在的理由见 2026-10-13 四次报障：
+        /// 单航线页对 CEO 的承诺是「结果以邮件呈报」，失败时若只在页面状态行里说一句，他走一趟收件箱
+        /// 什么都找不到 —— 报障原话「发布增加每日一段往返的指令，收件箱没有收到反馈邮件」。
+        /// 与「无机可派 → 发运力核对汇报」同源：办不成也要回一封，只是无需批复。
+        ///
+        /// 同一航线 + 同一句原话共用一个 ID：重复下同一条办不成的令只刷新那封，不叠函。
+        /// </summary>
+        public static bool QueueCapacityFailureReport(GameState gs, RouteData route, string directiveRaw,
+                                                      string note, out string message)
         {
-            if (gs?.inbox == null || route == null) return;
+            message = "";
+            if (gs == null || route == null) { message = "航线不可用。"; return false; }
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            route.EnsureFlights();
+
+            string id = $"m_cap_fail_{route.routeId}_{StableSuffix(CapacityDirectiveLogic.NormalizeRaw(directiveRaw))}";
+            string subject = $"关于 {route.origin}—{route.destination} 运力指令未获执行（复核报告）";
+            string body = CapacityDirectiveLogic.FormatFailureBody(gs, route, directiveRaw, note);
+
+            var existing = FindMail(gs, id);
+            if (existing != null)
+            {
+                existing.subject = subject;
+                existing.body = body;
+                existing.status = "approved";
+                existing.read = false;
+                existing.time = gs.DateLabel;
+                existing.directiveNote = directiveRaw ?? "";
+                existing.origin = route.routeId;
+                existing.dest = route.destination;
+                Changed?.Invoke();
+            }
+            else
+            {
+                Add(gs, new InboxMail
+                {
+                    id = id,
+                    sender = "运营部",
+                    // 汇报件（action 留空 = 无需批复）：给一封办不成事的决策邮件只是添乱
+                    role = CapacityDirectiveLogic.FailureRole,
+                    glyph = "运",
+                    kind = "report",
+                    origin = route.routeId,
+                    dest = route.destination,
+                    subject = subject,
+                    body = body,
+                    tag = "受阻",
+                    status = "approved",
+                    directiveNote = directiveRaw ?? "",
+                    receivedYear = gs.year,
+                    receivedQuarter = gs.quarter,
+                    time = gs.DateLabel,
+                    deadlineQuarters = 1
+                });
+            }
+            message = $"运营部复核：{route.origin}—{route.destination} 的指令未获执行，"
+                      + "已发复核报告（收件箱·汇报件，无需批复），写明原因与本线可选处置。本线维持现状。";
+            // ★办不成的令会把本线回退到**上一个已批准**的班次 → 还挂着待批的旧呈报一并作废
+            //   （否则收件箱里留着一封「调整后 N 班/周」的待批件，而台账早已回退）。
+            SupersedeCapacityReports(gs, route, null,
+                "随后下达的运力指令未获执行，本线已回退到上一个已批准的班次；本呈报自动作废。");
+            gs.AddDecisionLog($"运营：{route.origin}—{route.destination} 的运力指令未能执行，已发复核报告。");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        static void SupersedeOpsSchedule(GameState gs, RouteData route)
+        {            if (gs?.inbox == null || route == null) return;
             string id = OpsScheduleMailId(route.routeId);
             for (int i = 0; i < gs.inbox.Count; i++)
             {
                 var m = gs.inbox[i];
                 if (m == null || m.id != id || !IsOpen(m)) continue;
-                m.status = "approved";
+                // ★2026-10-16 第四十二次修订：作废 ≠ 批准。旧版把「被新调令取代」的呈报标成 approved，
+                //   收件箱徽章于是写「已批准」—— CEO 从没批过这一封，而它正文里写的是「本呈报已被取代」。
+                //   同一天的另一半病（回执恒写「已生效」）已在 ApproveCapacityDirective 修掉，这里一并钉住。
+                m.status = SupersededStatus;
                 m.body += "\n\n（本排班呈报已被 CEO 的运力调整指令取代，新方案见运力调整呈报。）";
-                gs.AddDecisionLog("运营：原排班呈报由运力调整指令取代。");
+                gs.AddDecisionLog("运营：原排班呈报由运力调整指令取代（已作废）。");
             }
         }
 
-        /// <summary>同一航线的旧运力呈报标记为已取代（keepId 为当前呈报，保留待批）。</summary>
-        static void SupersedeCapacityReports(GameState gs, RouteData route, string keepId)
+        /// <summary>
+        /// 同一航线的旧运力呈报标记为已取代（<paramref name="keepId"/> 为当前呈报，保留待批；
+        /// 传 null 表示本条线不再有待批呈报 —— 失败路径用它）。
+        ///
+        /// ★2026-10-14：失败路径也必须清。指令办不成时会把本线**回退到上一个已批准的班次**
+        /// （`BackupScheduleForDirective` 只为「一封待批函 = 一批改动」记一次快照），于是那封
+        /// 还挂着待批的旧呈报，数字描述的正是被回退掉的方案 —— 留着待批，CEO 一批就会出现
+        /// 「呈报说 7 班/周、台账与回执却是 4 班/周」的自相矛盾。
+        /// </summary>
+        static void SupersedeCapacityReports(GameState gs, RouteData route, string keepId, string why = null)
         {
             if (gs?.inbox == null || route == null) return;
+            string note = string.IsNullOrEmpty(why) ? "已有更新的运力调令执行，本呈报自动作废。" : why;
             for (int i = 0; i < gs.inbox.Count; i++)
             {
                 var m = gs.inbox[i];
                 if (m == null || m.action != CapacityDirectiveAction) continue;
                 if (!string.Equals(m.origin, route.routeId, StringComparison.OrdinalIgnoreCase)) continue;
                 if (!IsOpen(m) || m.id == keepId) continue;
-                m.status = "approved";
-                m.body += "\n\n（已有更新的运力调令执行，本呈报自动作废。）";
-                gs.AddDecisionLog("运营：旧运力呈报被新调令取代。");
+                m.status = SupersededStatus;
+                m.body += "\n\n（" + note + "）";
+                gs.AddDecisionLog("运营：旧运力呈报被新调令取代（已作废）。");
             }
         }
 
@@ -3341,7 +3927,35 @@ namespace AirlineCEO.Systems
             route.schedulePending = false;
             route.SyncPrimaryFromFlights();
             Mark(gs, mail.id, "approved");
-            message = $"已批准 {route.origin}—{route.destination} 运力：{CapacityDirectiveLogic.RegsOf(route)} {route.DualWeeklyLine()}。";
+            // 批准 = 玩家明确的「这个理解是对的」信号 → 把挂起的原话正式记成关键词。
+            bool learned = DirectiveLexicon.Promote(mail.directiveNote);
+
+            // ★2026-10-16 第四十二次修订：回执按「目标 vs 实际」裁三档。
+            //   旧版在这里写死「运力调整已生效」—— 呈报是「先批时刻槽」（1 班 → 1 班、缺 1 波）时，
+            //   回执却说「已生效」，与呈报自己那句「批准仅确认已排定的班次生效」当场打架；
+            //   插槽未交割期间重下同一条令，第二次的回执依旧写「已生效」，一班都没动也说生效。
+            var verdict = CapacityDirectiveLogic.VerdictOf(route, mail.capTargetWaves, mail.capBeforeWaves);
+            int nowWaves = route.FlightCount;
+            string verdictText = CapacityDirectiveLogic.VerdictWord(verdict);
+            string slotInFlight = SlotInFlightLines(gs, route.routeId);
+            switch (verdict)
+            {
+                case CapacityDirectiveLogic.CapVerdict.Done:
+                    message = $"已批准 {route.origin}—{route.destination} 运力：{CapacityDirectiveLogic.RegsOf(route)} {route.DualWeeklyLine()}。";
+                    break;
+                case CapacityDirectiveLogic.CapVerdict.Keep:
+                    message = $"已批准 {route.origin}—{route.destination} 维持现有运力（{nowWaves} 段/日），班次未作改动。";
+                    break;
+                case CapacityDirectiveLogic.CapVerdict.Unknown:
+                    // 旧档（呈报当年没记目标）：只敢说「已确认」——不拿「已生效」去糊弄
+                    message = $"已批准 {route.origin}—{route.destination} 运力呈报，现 {nowWaves} 段/日，回执已发收件箱。";
+                    break;
+                default:
+                    message = $"已批准 {route.origin}—{route.destination} 运力呈报：裁定「{verdictText}」—— "
+                              + $"目标每日 {mail.capTargetWaves} 段，实际 {nowWaves} 段，缺口见回执"
+                              + "（无需重下同一条指令，该办的单子已在办）。";
+                    break;
+            }
             gs.AddDecisionLog("运营：" + message);
             Schedule(gs, new InboxMail
             {
@@ -3350,10 +3964,10 @@ namespace AirlineCEO.Systems
                 role = "执行回执",
                 glyph = "运",
                 kind = "report",
-                subject = $"{route.origin}—{route.destination} 运力调整已生效",
-                body = message + (string.IsNullOrEmpty(mail.ringIdsCsv)
-                    ? "\n航班环未变（本航线单段执飞）。"
-                    : $"\n航班环 {mail.ringIdsCsv} 已生效，机号 {route.registration} 按两段连班执行。"),
+                subject = CapacityDirectiveLogic.ReceiptSubject(route.origin, route.destination, verdict, nowWaves, mail.capTargetWaves),
+                body = CapacityDirectiveLogic.FormatReceiptBody(gs, route, mail.ringIdsCsv,
+                           mail.capTargetWaves, mail.capBeforeWaves, mail.capGapSection, slotInFlight)
+                    + (learned ? "\n（已记住这次的说法：下次您这样写，即使分析服务没接通我也照这个理解办。）\n" : ""),
                 status = "approved",
                 tag = "回执",
                 receivedYear = gs.year,
@@ -3378,6 +3992,9 @@ namespace AirlineCEO.Systems
                 return true;
             }
             CapacityDirectiveLogic.Revert(gs, route, mail.ringIdsCsv, out message);
+            // 驳回 = 这次理解（或这次方案）不算数 → 丢弃候选；若这句话此前已被记住，一并抹掉。
+            // 宁可少记，不可记错：记忆会让一句话压过关键词猜测，误读一旦被固化就再也改不回来。
+            DirectiveLexicon.Discard(mail.directiveNote);
             Mark(gs, mail.id, "rejected");
             gs.NotifyChanged();
             return true;
@@ -3400,19 +4017,54 @@ namespace AirlineCEO.Systems
             }
 
             var d = CapacityDirectiveLogic.Parse(ceoNote);
-            CapacityDirectiveLogic.MergeAiJson(d, aiJson);
-            var rep = CapacityDirectiveLogic.Execute(gs, route, d);
-            if (!rep.ok)
+
+            // 「提出修改」框里同样可能是**提问**（同源问题，2026-10-13 CEO 报障）。
+            // 与单航线页不同的是：这里没有「先回显再确认」的位置，故直接转成答复件，
+            // 原呈报**原封不动**地留在收件箱等真正的调令 —— 不能因为一句「为什么」就把呈报结掉。
+            if (CapacityDirectiveLogic.LooksLikeQuestion(ceoNote))
             {
-                message = rep.note;
+                bool queued = QueueOpsQueryAnswer(gs, route, ceoNote, out string qmsg);
+                message = queued
+                    ? "这句是询问，已转运营部答复（见新到邮件），本呈报未作任何改动。要改运力请写「加密到每天 N 班」这类调令。"
+                    : "这句是询问，但答复件未能发出：" + qmsg;
+                mail.read = false;             // 退回收件箱未读，避免 CEO 以为改稿已受理
+                Changed?.Invoke();
+                gs.NotifyChanged();
+                return false;
+            }
+
+            CapacityDirectiveLogic.MergeAiJson(d, aiJson);
+            // 与单航线页同源：只说目标的改稿（「调整为每日 N 段往返」）在这里也要能把方向定下来。
+            CapacityDirectiveLogic.ResolveStatedTarget(route, d);
+            // 收件箱里的「提出修改」同样是自由文本，同一个坑：措辞没命中词表时旧版默认按增班办。
+            // 这里没有「先回显再确认」的交互位（改稿是逐稿往返的），故退而求其次：**拒绝执行并说清为什么**，
+            // 让 CEO 补一句明确的量再提交 —— 比默默把想砍的班加密了好得多。
+            if (CapacityDirectiveLogic.NeedsConfirm(d))
+            {
+                message = "没读懂这条改稿想增班还是减班，未做任何改动。请明确写「加密到每天 N 班」或「削减到每天 N 班」。";
                 Changed?.Invoke();
                 return false;
             }
+            var rep = CapacityDirectiveLogic.Execute(gs, route, d);
+            if (!rep.ok)
+            {
+                // 呈报仍留在收件箱（未改动），但**未能执行也要回一封复核报告**，
+                // 免得 CEO 只看到页面/提示栏一句话就去收件箱找一个不存在的东西（2026-10-13 报障）。
+                message = rep.note + (rep.failureQueued
+                    ? " 已发复核报告（收件箱·汇报件，无需批复）。原呈报未改动，可另写下一条调令。"
+                    : "");
+                Changed?.Invoke();
+                return false;
+            }
+            DirectiveLexicon.Stage(d.raw, d, d.fromAi);
 
             mail.body = CapacityDirectiveLogic.FormatReportBody(gs, route, rep);
             mail.ringIdsCsv = rep.ringIdsCsv;
             mail.directiveNote = rep.directiveRaw;
             mail.capEngineRev = CapacityDirectiveLogic.EngineRev;
+            // ★2026-10-16：改稿也必须重记「目标 / 指令前 / 缺口」—— 否则回执拿的是上一稿的目标，
+            //   裁定就会用旧目标去比新班次（例：原写 3 段、改稿改成 2 段并排满，回执却说「部分生效」）。
+            StampCapacityFacts(mail, rep);
             mail.subject = $"关于 {route.origin}—{route.destination} 运力调整与航班环的报告（改稿 {route.opsPlanRevision + 1}，请批复）";
             mail.status = "pending";
             mail.read = false;
@@ -3496,6 +4148,26 @@ namespace AirlineCEO.Systems
             }
             else
             {
+                // 与另两处收口同源：CEO 说了话，但关键词与分析服务都读不出任何「时段 / 班期 / 铺满」
+                // 这类可执行信息时，旧行为是**静默按 opsPlanRevision 取模挑一个时段**执行 ——
+                // 玩家说「换 4 号机」，系统把时刻挪走了，还说「已按您的批复调整」。
+                // 空批复改稿（note 为空）走的是上面 ApplyDraft 分支，那次「换个时刻」是有意的；
+                // 这里的「说不清就重掷」不是，故拒编并说清。
+                if (!string.IsNullOrWhiteSpace(ceoNote) && string.IsNullOrWhiteSpace(aiJson))
+                {
+                    var gd = CapacityDirectiveLogic.Parse(ceoNote);
+                    bool understood = gd.maximize || !string.IsNullOrEmpty(gd.days)
+                                      || (gd.deps != null && gd.deps.Length > 0);
+                    if (!understood)
+                    {
+                        message = "没读懂这条批复要改什么，未做任何改动。"
+                                  + "请写明时段（早班/午班/晚班/红眼 · 或 08:00 这类时刻）、"
+                                  + "班期（每日/一三五/二四六），或「早班到红眼都排上」。";
+                        Changed?.Invoke();
+                        gs.NotifyChanged();
+                        return false;
+                    }
+                }
                 if (!OpsScheduleLogic.ApplyFromCeoNoteOrAi(route, gs.fleet, gs.activeRoutes, ceoNote, aiJson, out string opsReply))
                 {
                     message = "运营部暂无替代飞机或时刻，请批准现稿或退回。";
@@ -3530,6 +4202,1025 @@ namespace AirlineCEO.Systems
             route.schedulePending = true;
             Mark(gs, mail.id, "rejected");
             message = $"已退回 {route.origin}—{route.destination} 排班方案，本航线暂不执行航班。";
+            gs.AddDecisionLog("运营：" + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        // ———————————————— 航班时刻加机呈报（n98 点时段 → 呈报 → CEO 批准才落班） ————————————————
+
+        /// <summary>
+        /// 在 n98 点某个「航班时刻」不再当场落班，而是走本呈报：运营部提案 → CEO 批准 → 才写进班次表。
+        /// 与 ops_schedule 的区别：ops_schedule 是「整条航线的执飞机与全部班次」方案（批准前整线冻结）；
+        /// 本呈报只动**被点的那几个班次**，退回即等于没提过，在飞航线不受任何牵连。
+        /// </summary>
+        public const string AssignFlightAction = "assign_flight";
+
+        static string AssignFlightSubject(RouteData route, int count)
+            => $"请批准 {route.origin}—{route.destination} 加机（{count} 班）";
+
+        /// <summary>
+        /// 本航线当前该用哪个呈报编号：同一条航线同一时间只允许一封未结案，
+        /// 未结案期间继续点时段就累加到它；结案（批准/退回）后再点则开新的一批。
+        /// 编号带序号是为了避免「同一 id 两封邮件」——Mark 按 id 只标第一封，同 id 会漏标。
+        /// </summary>
+        static string AssignFlightMailId(GameState gs, string routeId)
+        {
+            for (int n = 1; n <= 999; n++)
+            {
+                string id = $"m_assign_flight_{routeId}_{n}";
+                var m = FindMail(gs, id);
+                if (m == null || IsOpen(m)) return id;
+            }
+            return $"m_assign_flight_{routeId}_{gs.year}{gs.quarter}";
+        }
+
+        /// <summary>
+        /// 运营部呈报「把某机号排进某航线某**具体时刻**」。返回 false 时 message 说明为何报不上
+        /// （参数不全 / 已在执飞 / 已在待批 / 缺时刻槽）。
+        ///
+        /// ★2026-10-15：<paramref name="timeOrLabel"/> 由「时段名」改为「**时刻**」为主口径 ——
+        /// 传 `"07:00"` 就排 07:00 这一刻，传 `"早班"` 才折成该波峰点 08:00（旧界面/旧调用点的兼容路径）。
+        /// 于是同一需求波内 06:30 / 07:00 / 07:30 可以各报一班（各占各的槽），这就是「同段多波」。
+        /// </summary>
+        public static bool QueueAssignFlight(GameState gs, RouteData route, string reg, string timeOrLabel, out string message)
+        {
+            message = "";
+            if (gs == null || route == null) { message = "航线不可用。"; return false; }
+            if (string.IsNullOrEmpty(timeOrLabel)) { message = "请选择时刻。"; return false; }
+            if (string.IsNullOrEmpty(reg)) { message = "请先选择执飞飞机。"; return false; }
+            if (!ScheduleSlots.IsKnownTimeOrBand(timeOrLabel))
+            {
+                message = $"时刻无效（{timeOrLabel}）。时刻槽须精确到时刻，如 06:30 / 07:00。";
+                return false;
+            }
+            string clock = FlightProposalLogic.ClockOf(timeOrLabel);
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            route.EnsureFlights();
+
+            if (FlightProposalLogic.HasFlight(route, reg, clock))
+            {
+                message = $"机号 {reg} 已在 {route.origin}-{route.destination} 执飞 {clock} 这一班，无需再呈报。";
+                return false;
+            }
+
+            // ★2026-10-15：先过**飞机**硬门槛，再过**时刻槽**门槛 —— 顺序不能反。
+            // 反了就会出现「为一条根本没有合适飞机可飞的班次去申请一条时刻槽」：槽批下来照样飞不了，
+            // 白白占掉一条稀缺的时刻与一个季度。这也正是界面那行「⚠ 机型可能不匹配」从一句话变成真闸门的地方。
+            // 放在 HasFlight 之后：同一机同一刻已在飞的情形，先说那句更直白的（不劳排班闸门判冲突）。
+            if (!AircraftNominationLogic.CanOperateClock(gs, route, reg, clock, out string acWhy, out var acKind))
+            {
+                message = $"机号 {reg} 此刻排不进本线：{acWhy}。本班未呈报。"
+                          + AircraftNominationLogic.Advice(acKind)
+                          + "（换一架可在机队页指定；或在本航线页下「安排一架合适的飞机」调令，由运营部按硬门槛提名）";
+                return false;
+            }
+
+            // 缺时刻槽时不落班、也不在界面上摆一段红字：让运营部把「为加这一班要申请哪一端的哪条槽」
+            // 呈报给 CEO（QueueSlotRequestForFlight，批准 → 下季交割 → 交割后再重新呈报加机）。
+            // 让 CEO 批准一个排不出、飞不了的班次才是把问题推给下一环；在这里挡住并当场开单才是出路。
+            var proposal = FlightProposalLogic.Make(route, reg, clock);
+            if (!RoutePermitLogic.CanScheduleClock(gs, route, proposal.dep, true))
+                return QueueSlotRequestForFlight(gs, route, reg, clock, out message);
+
+            string id = AssignFlightMailId(gs, route.routeId);
+            var existing = FindMail(gs, id);
+            bool open = existing != null && IsOpen(existing);
+            var list = open ? FlightProposalLogic.Decode(existing.flightProposalsCsv)
+                            : new List<FlightProposalLogic.Proposal>();
+
+            if (FlightProposalLogic.IndexOf(list, reg, clock) >= 0)
+            {
+                message = $"机号 {reg} 的 {clock} 已在待批呈报中（收件箱 · {existing.subject}）。";
+                return false;
+            }
+
+            list.Add(proposal);
+            string body = FlightProposalLogic.FormatBody(gs, route, list);
+            string subject = AssignFlightSubject(route, list.Count);
+
+            if (open)
+            {
+                existing.subject = subject;
+                existing.body = body;
+                existing.flightProposalsCsv = FlightProposalLogic.Encode(list);
+                existing.time = gs.DateLabel;
+                Changed?.Invoke();
+            }
+            else
+            {
+                Add(gs, new InboxMail
+                {
+                    id = id,
+                    sender = "运营部",
+                    role = "航班计划",
+                    glyph = "运",
+                    kind = "report",
+                    action = AssignFlightAction,
+                    origin = route.routeId,
+                    dest = route.destination,
+                    subject = subject,
+                    body = body,
+                    tag = "提案",
+                    flightProposalsCsv = FlightProposalLogic.Encode(list),
+                    receivedYear = gs.year,
+                    receivedQuarter = gs.quarter,
+                    time = gs.DateLabel,
+                    deadlineQuarters = DefaultDeadlineQuarters
+                });
+            }
+
+            message = $"已呈报 CEO：{reg} 排进 {route.origin}-{route.destination} 的 {clock} 班（{proposal.dep} 起飞，{proposal.slotLabel}）。"
+                      + "在收件箱批准后落班。";
+            gs.AddDecisionLog("运营：呈报 " + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// n98「点时刻加机」却缺时刻槽时的出口（2026-10-13 裁定「缺槽改走邮件」，
+        /// ★2026-10-15 第十五次问询后改为**给备选**）：不在网页上摆一段红字警告，而是让运营部
+        /// 把「这一刻拿不到，但同一波窗口内还有哪几条路、各自的代价是什么」写成决策邮件呈报 CEO。
+        ///
+        /// **旧版只报「办不成」**：拿调令要的那一刻去问 `FirstSchedulableClock`，问不出来就把缺槽记在
+        /// 那一刻上、申请那一刻的槽 —— 既没有选择，也看不见「手里已有的其它时刻的槽」。
+        /// 而排班器是**从峰点往后搜**的，于是「手上握着 07:30 的槽、调令写 08:00」这种情形会被报成
+        /// 「08:00 缺槽、要去买」，是一张**假缺口**。改后由 <see cref="SlotCandidateLogic.Options"/>
+        /// 在该波窗口的**整张 30 分钟网格**上（含早于峰点的时刻）找可行的**往返时刻对**，
+        /// 逐条给出两端可得性 / 取槽成本 / 那一刻派不派得出机 / 利弊，CEO 点选一条才去开申请单。
+        ///
+        /// 整张网格都拿不到时才发「受阻」汇报件（列两端池况与三条下一步），绝不开一张没有选项的选择题。
+        /// 返回 false 是因为**加机呈报没提交**（班次表一根汗毛未动）；message 说明已开的单子去了哪。
+        /// </summary>
+        public static bool QueueSlotRequestForFlight(GameState gs, RouteData route, string reg, string timeOrLabel, out string message)
+        {
+            message = "";
+            if (gs == null || route == null) { message = "航线不可用。"; return false; }
+            if (string.IsNullOrEmpty(timeOrLabel)) { message = "请选择时刻。"; return false; }
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            route.EnsureFlights();
+
+            var proposal = FlightProposalLogic.Make(route, reg, FlightProposalLogic.ClockOf(timeOrLabel));
+            if (RoutePermitLogic.CanScheduleClock(gs, route, proposal.dep, true))
+            {
+                message = "该时刻两端时刻槽齐备，可直接呈报加机。";
+                return false;
+            }
+
+            // 备选以**系列时刻**为身份：排班器的 5 分钟粒度时刻（07:40）不是任何机场会公布的系列。
+            string peg = RoutePermitLogic.SlotRequestClock(proposal.dep);
+            string reason = $"{(string.IsNullOrEmpty(reg) ? "未定机号" : reg)} 拟加 "
+                            + $"{route.origin}—{route.destination} 的 {peg} 班";
+
+            var opts = SlotCandidateLogic.Options(gs, route, peg);
+            if (opts.Count == 0)
+            {
+                bool fresh = QueueSlotWindowBlockedReport(gs, route, peg);
+                message = $"缺时刻槽：{peg} 所在需求波整张时刻表上都拿不到可用的往返时刻对，"
+                          + $"已发汇报件（收件箱{(fresh ? "" : "，同封已在")}），列明两端池况与下一步。本班未呈报。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return false;
+            }
+
+            string id = SlotSelectMailId(gs, route.routeId, peg);
+            string subject = SlotCandidateLogic.Subject(route, false, opts.Count);
+            string body = SlotCandidateLogic.FormatBody(gs, route, opts, peg);
+            string payload = SlotCandidateLogic.Encode(opts);
+
+            var existing = FindMail(gs, id);
+            if (existing != null && IsOpen(existing))
+            {
+                // 同一条航线同一波未结案期间再点：按最新台账重算备选，写回同一封（不叠两封待批）
+                existing.subject = subject;
+                existing.body = body;
+                existing.payloadCsv = payload;
+                existing.slotReason = reason;
+                existing.slotClock = peg;
+                existing.time = gs.DateLabel;
+                Changed?.Invoke();
+            }
+            else
+            {
+                Add(gs, new InboxMail
+                {
+                    id = id,
+                    sender = "运营部",
+                    role = "加班时刻提名",
+                    glyph = "运",
+                    kind = "report",
+                    action = SlotSelectAction,
+                    origin = route.routeId,
+                    dest = peg,
+                    subject = subject,
+                    body = body,
+                    tag = "提名",
+                    payloadCsv = payload,
+                    slotReason = reason,
+                    slotClock = peg,
+                    slotRouteId = route.routeId,
+                    receivedYear = gs.year,
+                    receivedQuarter = gs.quarter,
+                    time = gs.DateLabel,
+                    deadlineQuarters = DefaultDeadlineQuarters
+                });
+            }
+
+            message = $"缺时刻槽：{peg} 拿不到，但同一需求波窗口还有 {opts.Count} 条路可走 —— "
+                      + $"已呈报 CEO 点选一刻（收件箱待批，运营部推荐 {opts[0].depClock}）。"
+                      + "选定后运营部再为缺槽的那一端开申请单，交割后自动重排本线并呈报加机。本班未呈报。";
+            gs.AddDecisionLog("运营：就 " + $"{route.origin}—{route.destination} 的加班时刻提名 {opts.Count} 个备选（{peg} 不可得）。");
+            gs.NotifyChanged();
+            return false;
+        }
+
+        /// <summary>
+        /// 加班时刻提名件的编号：同一条航线**同一波**在同一季度只允许一封未结案，
+        /// 未结案期间再点同一波就按最新台账重算备选并写回它（不叠两封待批）。
+        /// 分波编号是必须的：早班的备选与晚班的备选是两件互不相干的事，不该挤在一封里。
+        /// </summary>
+        static string SlotSelectMailId(GameState gs, string routeId, string pegClock)
+        {
+            int m = ScheduleSlots.ParseClock(pegClock);
+            int band = m < 0 ? 0 : ScheduleSlots.BandOfDep(ScheduleSlots.FormatClock(m));
+            return $"m_slot_sel_{routeId ?? "x"}_{ScheduleSlots.DepTimes[band].Replace(":", "")}_{gs.year}q{gs.quarter}";
+        }
+
+        /// <summary>
+        /// 该波窗口整张网格都拿不到可用往返时刻对时的「受阻」汇报件（`action` 留空 = 无需决策）：
+        /// 讲清两端池况与三条下一步，不占一封待批邮件。
+        /// 返回是否新投递（同航线同波同期只留一封，重复点击不刷屏）。
+        /// </summary>
+        static bool QueueSlotWindowBlockedReport(GameState gs, RouteData route, string pegClock)
+        {
+            if (gs == null || route == null) return false;
+            string id = $"m_slot_blocked_{route.routeId}_{(pegClock ?? "").Replace(":", "")}_{gs.year}q{gs.quarter}";
+            if (HasMailId(gs, id)) return false;
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = "运营部",
+                role = "航班计划",
+                glyph = "运",
+                kind = "report",
+                subject = SlotCandidateLogic.Subject(route, true),
+                body = SlotCandidateLogic.FormatBlockedBody(gs, route, pegClock),
+                tag = "受阻",
+                status = "approved",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            });
+            return true;
+        }
+
+        #region 加班时刻备选：CEO 点定一刻 → 开申请单 → 交割后自动重排
+
+        /// <summary>
+        /// CEO 在备选件上**点定某一刻**：为那一刻两端里缺槽的那一端开协调池申请单，
+        /// 并把「为哪条线、为哪一刻的班次」**结构化**记在单子上 ——
+        /// 交割后 <see cref="RescheduleAfterSlotSettle"/> 才不靠解析人话就能接着办。
+        ///
+        /// <paramref name="clockChoice"/> 为空 = 采用运营部推荐（备选表首条，排序见
+        /// <see cref="SlotCandidateLogic.Compare"/>）——「批准」按钮走的就是这一支。
+        /// 选中那一刻若两端此刻都已齐备（呈报期间别处释放了槽），就不开单、直接进入重排。
+        ///
+        /// **认不出的时刻一律打回**，绝不替 CEO 挑一个相近的买下去：时刻槽精确到时刻，
+        /// 买错一条等于错一整季（§15.8）。
+        /// </summary>
+        public static bool ApproveSlotSelect(GameState gs, InboxMail mail, string clockChoice, out string message)
+        {
+            message = "";
+            if (gs == null || mail == null) { message = "邮件无效。"; return false; }
+
+            var opts = SlotCandidateLogic.Decode(mail.payloadCsv);
+            if (opts.Count == 0)
+            {
+                // 旧档/脏数据：备选表解不出来。结案而不是挂起 —— 挂着只会永远占一封待批。
+                Mark(gs, mail.id, "approved");
+                mail.body += "\n\n（本函备选表已失效，自动结案；请重新下达加机指令。）";
+                message = "备选表已失效，本函自动结案。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return true;
+            }
+
+            int idx = string.IsNullOrEmpty(clockChoice)
+                ? 0
+                : SlotCandidateLogic.IndexOf(opts, RoutePermitLogic.SlotRequestClock(clockChoice));
+            if (idx < 0)
+            {
+                message = $"备选表里没有 {clockChoice} 这一刻，请从候选 1–{opts.Count} 中点选。";
+                return false;
+            }
+            var opt = opts[idx];
+
+            var route = FindRoute(gs, mail);
+            Mark(gs, mail.id, "approved");
+
+            // 归档选定结论：重排要用**去程离港**这一刻，不是「缺槽那一端」的时刻 ——
+            // 申请单上的 slotClock 写的是缺槽端（可能是对端回程离港），两者不是同一件事。
+            mail.slotClock = opt.depClock;
+            mail.slotFlightClock = opt.depClock;
+            if (route != null) mail.slotRouteId = route.routeId;
+            mail.slotReason = route == null
+                ? $"选定加班时刻 {opt.depClock}（候选 {idx + 1}/{opts.Count}）"
+                : $"{route.origin}—{route.destination} 选定加班时刻 {opt.depClock}（候选 {idx + 1}/{opts.Count}）";
+
+            if (route == null)
+            {
+                mail.body += "\n\n（对应航线已不在运营，本函自动结案，无需申请。）";
+                message = "对应航线已不在运营，本函已自动结案。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return true;
+            }
+
+            var sb = new StringBuilder();
+            sb.Append($"已选定 {route.origin}—{route.destination} 的 {opt.depClock} 起飞的往返");
+            sb.Append(idx == 0 ? "（运营部推荐）。" : $"，候选 {idx + 1}/{opts.Count}。");
+
+            if (RoutePermitLogic.CanScheduleClock(gs, route, opt.depClock, true))
+            {
+                sb.Append("两端时刻槽此刻都已齐备，不必再开申请单；运营部直接重排本线并呈报加机。");
+                message = sb.ToString();
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                string auto = RescheduleAfterSlotSettle(gs, mail);
+                if (!string.IsNullOrEmpty(auto)) message += "\n" + auto;
+                gs.NotifyChanged();
+                return true;
+            }
+
+            int opened = 0, closed = 0, changed = 0, denied = 0;
+            var needs = RoutePermitLogic.ClockNeeds(route, opt.depClock);
+            for (int i = 0; i < needs.Count; i++)
+            {
+                var need = needs[i];
+                string st = SlotCandidateLogic.EndStateOf(gs, route, need);
+                if (st != SlotCandidateLogic.EndApply && st != SlotCandidateLogic.EndChange) continue;
+                string apt = need.airport;
+                string clk = RoutePermitLogic.SlotRequestClock(RoutePermitLogic.TimeOf(need));
+                if (st == SlotCandidateLogic.EndChange)
+                {
+                    // ★2026-10-16 第四十一次修订：本线在该站已有槽、只是时刻滑点 → 提**改时**（免费、批准即用），
+                    //   不去当新槽申请一遍（现实里那是持槽后的调整，见 WASG 9.1.3 / 8.10.1）。
+                    if (RoutePermitLogic.TryTimeChange(gs, route, need, out _, out string chFrom, out string chTo, out bool chRoom))
+                    {
+                        if (!chRoom) { denied++; continue; }
+                        if (QueueChangeSlot(gs, apt, chFrom, chTo, 1,
+                                ChangeSlotMailId(gs, route, apt, chTo), out _,
+                                SlotChangeReason(route, need, chFrom, chTo), route.routeId, opt.depClock,
+                                RoutePermitLogic.LegName(need) + "　" + RoutePermitLogic.LegClocks(need)))
+                            changed++;
+                        else
+                            closed++;
+                    }
+                    else denied++;
+                    continue;
+                }
+                if (QueueApplySlots(gs, apt, clk, 1,
+                        ApplySlotMailId(gs, route, apt, clk),
+                        out _, mail.slotReason, route.routeId, opt.depClock))
+                    opened++;
+                else
+                    closed++;
+            }
+
+            if (opened > 0)
+                sb.Append($"已为缺槽一端开{opened}张开单（协调池申请，免费，下季交割）；交割后运营部自动重排本线并呈报加机。");
+            if (changed > 0)
+                sb.Append($"另有{changed}站本已持有槽、只是时刻滑点，已提**时刻变更申请**（改时，免费，协调人按系列余量批）。");
+            if (closed > 0)
+                sb.Append("另有同刻申请已在收件箱，未重复开单。");
+            if (denied > 0)
+                sb.Append($"另有{denied}站既无余量可申请、改时也批不下来，运营部已如实列为受阻端。");
+            if (opened == 0 && closed == 0 && changed == 0 && denied == 0)
+                // 各停站都不是「可申请/可改时」态：缺槽却拿不到，只能如实汇报（不硬开空单）
+                sb.Append("可这一刻各停站都取不到槽（该时刻池已满），运营部已改为发受阻汇报，列明下一步。");
+            message = sb.ToString();
+            gs.AddDecisionLog("运营：" + message);
+
+            // 时刻被买定 → 备选题已答完：把**同线同波**的旧备选件一并结案，免得同一件事挂着两封。
+            CloseSiblingSlotSelects(gs, mail, opt.depClock);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// 同一航线同一需求波的其它备选件一并结案（本次点定后，那些选择已经过时）。
+        /// 只动 `action == slot_select` 且仍待处理的同线件，不碰别的邮件。
+        /// </summary>
+        static void CloseSiblingSlotSelects(GameState gs, InboxMail self, string chosenClock)
+        {
+            if (gs?.inbox == null) return;
+            int band = ScheduleSlots.BandOfDep(chosenClock);
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || ReferenceEquals(m, self)) continue;
+                if (m.action != SlotSelectAction || !IsOpen(m)) continue;
+                if (!string.Equals(m.origin, self.origin, StringComparison.OrdinalIgnoreCase)) continue;
+                if (ScheduleSlots.BandOfDep(SlotMailClock(m)) != band) continue;
+                m.status = "approved";
+                m.read = true;
+                m.body += $"\n\n（同波时刻已定为 {chosenClock}，本函一并结案。）";
+            }
+        }
+
+        /// <summary>
+        /// CEO 退回备选件（「暂缓」也走这条）：本线维持现状，不申请、不花钱。
+        /// 与加机呈报的退回同源 —— 什么都没发生过，无需撤销任何台账。
+        /// </summary>
+        public static bool RejectSlotSelect(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            if (gs == null || mail == null) { message = "邮件无效。"; return false; }
+            var route = FindRoute(gs, mail);
+            string where = route == null ? "" : $"{route.origin}—{route.destination} ";
+            Mark(gs, mail.id, "rejected");
+            message = $"已退回{where}的加班时刻提名：本季不为加班申请时刻槽，该线维持现有班次。"
+                      + "若要改到别的需求波，可在航线页重新下达加机指令。";
+            gs.AddDecisionLog("运营：" + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// 申请单上记的**目标班次时刻**（去程离港）。优先用签发时写死的
+        /// <see cref="InboxMail.slotFlightClock"/>；旧档没有该字段时，按申请单所在机场反推：
+        /// 单子写在**经停端或对端**（非本场停站）时，去程离港 = 该刻 − 轮挡 − 过站。
+        /// </summary>
+        public static string FlightClockOf(InboxMail m, RouteData route)
+        {
+            if (m == null) return "";
+            if (ScheduleSlots.ParseClock(m.slotFlightClock) >= 0)
+                return RoutePermitLogic.SlotRequestClock(m.slotFlightClock);
+
+            int mm = ScheduleSlots.ParseClock(SlotMailClock(m));
+            if (mm < 0) return "";
+            if (route != null && !string.IsNullOrEmpty(route.destination)
+                && string.Equals(m.origin, route.destination, StringComparison.OrdinalIgnoreCase))
+            {
+                mm -= OpsRotationLogic.BlockOf(route) + OpsRotationLogic.TurnOf(route);
+                while (mm < 0) mm += 24 * 60;
+            }
+            return RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(mm));
+        }
+
+        /// <summary>
+        /// 时刻槽交割成功后的**自动重排**（2026-10-15 CEO 第十六问：新槽持仓后运营部派哪架机、怎么调航班环）。
+        ///
+        /// 旧口径把这一步留给玩家：交割回执写一句「请回 n98 重新呈报加机」，要 CEO 自己记住是哪条线、
+        /// 哪一刻，再点一遍。**槽都买回来了还要 CEO 回来补手续，等于申请单只办了一半**。
+        /// 现在运营部按单子上结构化的 slotRouteId / slotFlightClock 自己接着办：
+        /// <list type="number">
+        /// <item>本线那一刻若两端槽已齐备 → 用与排班同源的 <see cref="OpsRotationLogic.PickForWindow"/>
+        ///   挑一架真排得进的机（值勤/过站/宵禁/串飞一起判）→ 交给 <see cref="QueueAssignFlight"/> 复核
+        ///   <see cref="AircraftNominationLogic.CanOperateClock"/> → 呈报一封加机件待批；</item>
+        /// <item>另一端还缺槽 → 顺手为重排所需的另一端开新单（闭环，不让缺口停在半路）；</item>
+        /// <item>那一刻派不出机或该刻已在飞 → **如实发汇报件**，绝不硬落一班排不出来的班次。</item>
+        /// </list>
+        ///
+        /// 边界仍然是「呈报待批」而不是直接落班：加机是 CEO 拍板的事（§15.8）。
+        /// 自动化的界限在**把单子办到该 CEO 拍板的那一步为止**，不是替他把班落下去。
+        /// </summary>
+        static string RescheduleAfterSlotSettle(GameState gs, InboxMail m)
+        {
+            if (gs == null || m == null || string.IsNullOrEmpty(m.slotRouteId)) return "";
+            var route = RouteById(gs, m.slotRouteId);
+            if (route == null)
+                return "交割后重排：原申请航线已不在运营，本线不再补班。";
+
+            string clock = FlightClockOf(m, route);
+            if (string.IsNullOrEmpty(clock))
+                return "交割后重排：申请单未记下目标时刻（旧档），请到航线页重新呈报加机。";
+
+            route.EnsureFlights();
+            for (int i = 0; i < route.flights.Count; i++)
+            {
+                var f = route.flights[i];
+                if (f == null) continue;
+                if (ScheduleSlots.ClockDiff(f.depTime, clock) > ScheduleSlots.SlotToleranceMinutes) continue;
+                return $"交割后重排：{clock} 这一班已在飞（{(string.IsNullOrEmpty(f.registration) ? "—" : f.registration)}），"
+                       + "本线无需补班。";
+            }
+
+            if (!RoutePermitLogic.CanScheduleClock(gs, route, clock, true))
+            {
+                // 只补上了一端：另一端若已有申请单在等交割，就不必再开一张（否则同一件事挂两封）；
+                // 若根本没有在途申请单，才把重排所需的另一端缺口当场开成新单 —— 不让缺口停在半路等人想。
+                if (HasPendingApplyForRoute(gs, route.routeId))
+                    return $"交割后重排：本刻另一端仍缺槽，但该端的申请单已在收件箱等候交割（{clock}）；"
+                           + "交割到齐后运营部会再自动重排本线。";
+                QueueSlotRequestForFlight(gs, route, route.registration, clock, out string pm);
+                return "交割后重排：本刻只补齐了一端，另一端仍缺槽 —— " + pm;
+            }
+
+            int band = ScheduleSlots.BandOfDep(clock);
+            int depMin = ScheduleSlots.ParseClock(clock);
+            var plan = new OpsRotationLogic.RotationPlan();
+            plan.LoadFrom(gs.activeRoutes);
+            var ac = OpsRotationLogic.PickForWindow(route, gs.fleet, plan, band, false, gs,
+                                                    out int chosenDep, out string why, depMin);
+            if (ac == null || string.IsNullOrEmpty(ac.registration))
+            {
+                return $"交割后重排：{clock} 的槽已到手，但那一刻派不出机"
+                       + (string.IsNullOrEmpty(why) ? "" : $"（{why}）")
+                       + "；已发运力核对汇报，请先在机队页腾出一架或调整航班环。";
+            }
+
+            // 选出的机可能落在窗口内别的时刻（PickForWindow 会往前推到该机回场之后）：
+            // 有持仓时刻却飞别的刻等于违反 WASG 1.7.2d，故以**持仓的那一刻**为准，排不进就如实说。
+            string useClock = RoutePermitLogic.SlotRequestClock(ScheduleSlots.FormatClock(chosenDep));
+            if (!string.Equals(useClock, clock, StringComparison.Ordinal))
+                return $"交割后重排：{clock} 的槽已到手，但 {ac.registration} 最早 {useClock} 才回场，"
+                       + "赶不上这一刻；请调整航班环或另派一架。";
+
+            if (QueueAssignFlight(gs, route, ac.registration, clock, out string am))
+                return $"交割后重排：已按 {clock} 的槽提名 {ac.registration}（{ac.type}）加班，请批复。{am}";
+            return "交割后重排未能呈报：" + am;
+        }
+
+        /// <summary>按 routeId 找航线（交割后重排用；<see cref="FindRoute"/> 认的是邮件的 origin/dest）。</summary>
+        static RouteData RouteById(GameState gs, string routeId)
+        {
+            if (gs?.activeRoutes == null || string.IsNullOrEmpty(routeId)) return null;
+            for (int i = 0; i < gs.activeRoutes.Count; i++)
+            {
+                var r = gs.activeRoutes[i];
+                if (r != null && string.Equals(r.routeId, routeId, StringComparison.OrdinalIgnoreCase)) return r;
+            }
+            return null;
+        }
+
+        /// <summary>本线是否已有时刻槽单在等交割（申请 / 改时；避免交割后重排对同一缺口再开一张）。</summary>
+        static bool HasPendingApplyForRoute(GameState gs, string routeId)
+        {
+            if (string.IsNullOrEmpty(routeId)) return false;
+            var pend = PendingSlotSettlements(gs);
+            for (int i = 0; i < pend.Count; i++)
+            {
+                bool slotMail = string.Equals(pend[i].action, ApplySlotAction, StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(pend[i].action, ChangeSlotAction, StringComparison.OrdinalIgnoreCase);
+                if (slotMail
+                    && string.Equals(pend[i].slotRouteId, routeId, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        #endregion
+
+        /// <summary>CEO 批准：把呈报里的班次逐条落进航线，并按两端需求占用时刻槽。</summary>
+        public static bool ApproveAssignFlight(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            var route = FindRoute(gs, mail);
+            if (route == null)
+            {
+                Mark(gs, mail.id, "approved");
+                mail.body += "\n\n（对应航线已不在运营，本呈报自动结案，无需批复。）";
+                message = "对应航线已不在运营，本呈报已自动结案。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return true;
+            }
+
+            route.EnsureFlights();
+            var list = FlightProposalLogic.Decode(mail.flightProposalsCsv);
+            int n = FlightProposalLogic.Apply(gs, route, list,
+                out var applied, out var skipped, out var blocked, out var ineligible, out int slotsBound);
+            Mark(gs, mail.id, "approved");
+
+            var sb = new System.Text.StringBuilder();
+            if (n > 0)
+            {
+                sb.Append($"已批准 {route.origin}—{route.destination} 加机 {n} 班：");
+                for (int i = 0; i < applied.Count; i++)
+                {
+                    if (i > 0) sb.Append("、");
+                    sb.Append($"{applied[i].reg} {applied[i].dep}");
+                }
+                sb.Append("。");
+                if (slotsBound > 0) sb.Append($"已按运行需求占用时刻槽 {slotsBound} 条。");
+            }
+            if (skipped.Count > 0)
+            {
+                if (sb.Length > 0) sb.Append(' ');
+                sb.Append($"其中 {skipped.Count} 班因同一机号同一时刻已在执飞而跳过：");
+                for (int i = 0; i < skipped.Count; i++)
+                {
+                    if (i > 0) sb.Append("、");
+                    sb.Append($"{skipped[i].reg} {skipped[i].dep}");
+                }
+                sb.Append("。");
+            }
+            if (blocked.Count > 0)
+            {
+                // 呈报期间时刻槽易手：宁可如实拒落，也不落一个占不到槽的班次（那等于绕开 80/20 考核硬飞）
+                if (sb.Length > 0) sb.Append(' ');
+                sb.Append($"另有 {blocked.Count} 班因等待批复期间时刻槽已不再满足而未落班（{SlotGapOfFirst(gs, route, blocked)}）：");
+                for (int i = 0; i < blocked.Count; i++)
+                {
+                    if (i > 0) sb.Append("、");
+                    sb.Append($"{blocked[i].reg} {blocked[i].dep}");
+                }
+                sb.Append("。");
+                // 缺槽 = 要申请槽（§15.8）：审批过程中槽被拿走时，顺手把申请单/受阻汇报开出来 ——
+                // 只回一句「请先申请」等于把 CEO 刚批过的班次丢在半路，还得玩家自己去别的页面重办一遍。
+                for (int i = 0; i < blocked.Count; i++)
+                    QueueSlotRequestForFlight(gs, route, blocked[i].reg, blocked[i].dep, out string _);
+                sb.Append("已按缺口机场与时刻另行呈报（时刻槽申请单或受阻汇报，见收件箱）；交割后再重新呈报加机。");
+            }
+            if (ineligible.Count > 0)
+            {
+                // 机队侧硬门槛（★2026-10-15）：呈报时挑得出的机，等批复的这两三个季度里可能已调走、
+                // 退役、值勤已满或换了机型。与「缺槽」分开说，因为处置方向完全不同 ——
+                // 缺槽要开申请单，无机要腾运力（换一架 / 调航班环），拿缺槽的话术去答有机的问题只会误导。
+                if (sb.Length > 0) sb.Append(' ');
+                sb.Append($"另有 {ineligible.Count} 班因执飞机此刻已不满足执飞条件而未落班（");
+                for (int i = 0; i < ineligible.Count; i++)
+                {
+                    if (i > 0) sb.Append("、");
+                    sb.Append($"{ineligible[i].reg} {ineligible[i].dep}");
+                    string why = AircraftIneligibleWhy(gs, route, ineligible[i]);
+                    if (!string.IsNullOrEmpty(why)) sb.Append($"：{why}");
+                }
+                sb.Append("）。请到机队页换一架合适的飞机，或下「安排一架合适的飞机」调令让运营部重新提名；本班未落班。");
+            }
+            if (sb.Length == 0) sb.Append("本呈报没有可落班的班次，已结案。");
+
+            message = sb.ToString();
+            gs.AddDecisionLog("运营：" + message);
+            Schedule(gs, new InboxMail
+            {
+                id = "fx_" + mail.id + "_" + gs.year + gs.quarter,
+                sender = "运营部",
+                role = "执行回执",
+                glyph = "运",
+                kind = "report",
+                subject = $"{route.origin}—{route.destination} 加机已落班",
+                body = message + (n > 0 ? $"\n\n该线现有 {route.flights.Count} 班。" : ""),
+                status = "approved",
+                tag = n > 0 ? "回执" : "受阻",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            }, InboxCadence.ReplyReady(gs.SimUtc));
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>批准时被时刻槽拦下的那几班，取首条的缺口说明（供批复正文指路）。</summary>
+        static string SlotGapOfFirst(GameState gs, RouteData route, List<FlightProposalLogic.Proposal> blocked)
+        {
+            if (route == null || blocked == null || blocked.Count == 0) return "";
+            var p = blocked[0];
+            string dep = FlightProposalLogic.ClockOf(p.dep);
+            string gap = RoutePermitLogic.ClockGapText(gs, route, dep);
+            return string.IsNullOrEmpty(gap) ? $"{dep} 各停站无可用时刻槽" : gap;
+        }
+
+        /// <summary>批准时被机队硬门槛拦下的那一班，取一句拦因（供批复正文指路：换机 / 调环）。</summary>
+        static string AircraftIneligibleWhy(GameState gs, RouteData route, FlightProposalLogic.Proposal p)
+        {
+            if (route == null) return "";
+            string dep = FlightProposalLogic.ClockOf(p.dep);
+            if (AircraftNominationLogic.CanOperateClock(gs, route, p.reg, dep, out string why, out var _))
+                return "";   // 复算时又合格了（如刚腾出的运力）——不编一句不存在的拦因
+            return why ?? "";
+        }
+
+        /// <summary>CEO 退回：什么都不落班 —— 这正是提案存在邮件里（而非先落班等批复）的原因。</summary>
+        public static bool RejectAssignFlight(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            var route = FindRoute(gs, mail);
+            var list = FlightProposalLogic.Decode(mail.flightProposalsCsv);
+            Mark(gs, mail.id, "rejected");
+
+            string tag = route != null
+                ? $"{route.origin}—{route.destination}"
+                : $"{mail.origin}—{mail.dest}";
+            var sb = new System.Text.StringBuilder($"已退回 {tag} 的加机呈报 {list.Count} 班，未作任何改动。");
+            if (route != null)
+            {
+                route.EnsureFlights();
+                sb.Append($"本航线照常按现有 {route.flights.Count} 班执飞。");
+            }
+            message = sb.ToString();
+            gs.AddDecisionLog("运营：" + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        // ———————————————— 执飞飞机提名（单航线页一句话调令 → 运营部提名 → CEO 选定一架） ————————————————
+
+        /// <summary>
+        /// 单航线页**没有**「分配执飞飞机」按钮：机号只能靠 CEO 一句话调令产生（「安排一架合适的飞机
+        /// 执飞此航班」）。本动作就是那条路的下半段 —— 运营部按硬门槛 + 投影收益提名 2–3 架候选，
+        /// 呈报后由 CEO 在邮件里**选定一架**；退回即等于没提过，在飞航线毫发无伤。
+        /// </summary>
+        public const string AssignAircraftAction = AircraftNominationLogic.Action;
+
+        /// <summary>
+        /// 本航线当前该用哪个提名件编号：同一条航线同一时间只允许一封未结案，
+        /// 未结案期间再下同类指令就按最新机队重算并写回它；结案（选定/退回）后再下则开新的一批。
+        /// 带序号是为了避免「同一 id 两封邮件」——<c>Mark</c> 按 id 只标第一封，同 id 会漏标。
+        /// </summary>
+        static string AssignAircraftMailId(GameState gs, string routeId)
+        {
+            for (int n = 1; n <= 999; n++)
+            {
+                string id = $"m_assign_ac_{routeId ?? "x"}_{n}";
+                var m = FindMail(gs, id);
+                if (m == null || IsOpen(m)) return id;
+            }
+            return $"m_assign_ac_{routeId ?? "x"}_{gs.year}{gs.quarter}";
+        }
+
+        /// <summary>
+        /// 运营部就「安排合适的飞机执飞」呈报候选，或（无机可派时）发一封汇报件。
+        ///
+        /// 返回 true 表示**已有邮件进箱**（提名件或汇报件都会说明去了哪）；false 只用于参数不全这类
+        /// 真失败。之所以不把「无机可派」当失败：玩家该看到的是「为什么没有一架能飞、下一步怎么办」
+        /// （<see cref="AircraftNominationLogic.FormatBlockedBody"/>），而不是界面上的一句红字。
+        /// </summary>
+        public static bool QueueAircraftNominationMail(GameState gs, RouteData route, string directiveRaw, string analysis, out string message)
+        {
+            message = "";
+            if (gs == null || route == null) { message = "航线不可用。"; return false; }
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            route.EnsureFlights();
+
+            var cands = AircraftNominationLogic.Nominate(gs, route);
+            bool blocked = cands == null || cands.Count == 0;
+            var rejected = AircraftNominationLogic.RejectionDetails(gs, route, blocked ? 8 : 6);
+
+            if (blocked)
+            {
+                string bid = AssignAircraftMailId(gs, route.routeId) + "_blocked";
+                bool existed = FindMail(gs, bid) != null;
+                if (!existed)
+                {
+                    Add(gs, new InboxMail
+                    {
+                        id = bid,
+                        sender = "运营部",
+                        // 汇报件（action 留空 = 无需批复）：给一封挑不出东西的决策邮件只是添乱
+                        role = "运力核对汇报",
+                        glyph = "运",
+                        kind = "report",
+                        subject = AircraftNominationLogic.Subject(route, true),
+                        body = AircraftNominationLogic.FormatBlockedBody(gs, route, rejected),
+                        tag = "受阻",
+                        status = "approved",
+                        directiveNote = directiveRaw ?? "",
+                        receivedYear = gs.year,
+                        receivedQuarter = gs.quarter,
+                        time = gs.DateLabel,
+                        deadlineQuarters = 1
+                    });
+                }
+                message = $"运营部已逐机核对：机队里没有能执飞 {route.origin}—{route.destination} 的飞机，"
+                          + "已发运力核对汇报（收件箱），列明本线的真正拦因与可选处置。本线维持现状。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return true;
+            }
+
+            string id = AssignAircraftMailId(gs, route.routeId);
+            string subject = AircraftNominationLogic.Subject(route, false);
+            string body = AircraftNominationLogic.FormatBody(gs, route, cands, rejected);            string payload = AircraftNominationLogic.Encode(cands);
+
+            var existing = FindMail(gs, id);
+            if (existing != null && IsOpen(existing))
+            {
+                // 同一条航线未结案期间再下同类指令：按最新机队重算候选，写回同一封（不叠两封待批）
+                existing.subject = subject;
+                existing.body = body;
+                existing.payloadCsv = payload;
+                existing.directiveNote = directiveRaw ?? "";
+
+                existing.status = "pending";
+                existing.read = false;
+                existing.time = gs.DateLabel;
+                Changed?.Invoke();
+            }
+            else
+            {
+                Add(gs, new InboxMail
+                {
+                    id = id,
+                    sender = "运营部",
+                    role = "执飞飞机提名",
+                    glyph = "运",
+                    kind = "report",
+                    action = AssignAircraftAction,
+                    origin = route.routeId,
+                    dest = route.destination,
+                    subject = subject,
+                    body = body,
+                    tag = "提名",
+                    payloadCsv = payload,
+                    directiveNote = directiveRaw ?? "",
+                    receivedYear = gs.year,
+                    receivedQuarter = gs.quarter,
+                    time = gs.DateLabel,
+                    deadlineQuarters = DefaultDeadlineQuarters
+                });
+            }
+
+            message = $"运营部已提名 {cands.Count} 架候选（{(string.IsNullOrEmpty(cands[0].reg) ? "—" : cands[0].reg)} 收益最优，"
+                      + $"投影日利 {cands[0].profitWan:F2} 万），已呈报收件箱待您选定。";
+            gs.AddDecisionLog("运营：按 CEO 指令提名航线 " + $"{route.origin}—{route.destination} 的执飞飞机（{cands.Count} 架候选）。");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// 运营部答复件：CEO 在单航线页（或收件箱改稿框）写下的**问句**不走调令链路，
+        /// 由这里把 <see cref="OpsQueryLogic.Build"/> 组好的答复投进收件箱。
+        ///
+        /// 三个刻意的选择，都与「别让答复变成负担」有关：
+        /// <list type="number">
+        /// <item><b>汇报件、无决策按钮</b>（<c>action</c> 留空、<c>status=approved</c>）：一句询问不该占收件箱的待办，
+        ///   更不该因为「没批复」而卡住季度推进 —— 与「无机可派」那封汇报件同一处理；</item>
+        /// <item><b>立刻投递</b>（不用 <c>Schedule</c> 的办公节奏延迟）：CEO 正盯着屏幕等答案，
+        ///   答复过几个小时才到，他只会以为又没反应；</item>
+        /// <item><b>按「航线 + 问题原话」去重</b>：同一句问两遍（他常会再按一次 Enter）只更新同一封，
+        ///   不把收件箱刷成一片；台账变了则用最新数据覆写，正文说明口径同源。</item>
+        /// </list>
+        /// </summary>
+        public static bool QueueOpsQueryAnswer(GameState gs, RouteData route, string raw, out string message)
+        {
+            message = "";
+            if (gs == null || route == null) { message = "航线不可用，无法答复。"; return false; }
+
+            var ans = OpsQueryLogic.Build(gs, route, raw);
+            if (!ans.ok) { message = ans.body; return false; }
+
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            string id = QueryMailId(route.routeId, raw);
+            var existing = FindMail(gs, id);
+            if (existing != null)
+            {
+                existing.subject = ans.subject;
+                existing.body = ans.body;
+                existing.directiveNote = raw ?? "";
+                existing.origin = route.routeId;      // 老件（上一版没写这两格）顺手补上，深链才认得出本线
+                existing.dest = route.destination;
+                existing.status = "approved";
+                existing.read = false;
+                existing.time = gs.DateLabel;
+                existing.receivedYear = gs.year;
+                existing.receivedQuarter = gs.quarter;
+                Changed?.Invoke();
+                message = $"运营部已按现台账更新答复（收件箱《{ans.subject}》）："
+                        + OpsQueryLogic.TopicTitles(ans.topics) + "。本线班次与机号未作任何改动。";
+                gs.AddDecisionLog("运营：答复 CEO 关于 " + $"{route.origin}—{route.destination} 的排班询问（同一问题，按最新台账更新）。");
+                gs.NotifyChanged();
+                return true;
+            }
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = "运营部",
+                // 汇报件（action 留空 = 无需批复）：询问要的是答案，不是再来一封待办
+                role = OpsQueryRole,
+                glyph = "运",
+                kind = "report",
+                subject = ans.subject,
+                body = ans.body,
+                tag = "答复",
+                status = "approved",
+                // origin/dest 与同部门的呈报件同一口径（origin=routeId、dest=机场三字码）：
+                // 信笺抬头、以及「详见 · 本航线」都靠它们认出是哪条线。
+                origin = route.routeId,
+                dest = route.destination,
+                directiveNote = raw ?? "",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            });
+
+            message = $"这是一句询问，运营部未改动本线运力 —— 已按本线台账答复（收件箱《{ans.subject}》）："
+                    + OpsQueryLogic.TopicTitles(ans.topics) + "。";
+            gs.AddDecisionLog($"运营：答复 {route.origin}—{route.destination} 的排班询问「{raw}」。");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>答复件 ID：同一航线 + 同一句问话用同一封（重复提问只刷新，不叠函）。</summary>
+        static string QueryMailId(string routeId, string raw)
+            => $"m_ops_query_{routeId ?? "x"}_{StableSuffix(CapacityDirectiveLogic.NormalizeRaw(raw))}";
+
+        /// <summary>FNV-1a 摘要（不用 string.GetHashCode：跨会话不稳定，存档里的 ID 会变）。</summary>
+        static string StableSuffix(string s)
+        {
+            uint h = 2166136261u;
+            string t = s ?? "";
+            for (int i = 0; i < t.Length; i++)
+            {
+                h ^= t[i];
+                h *= 16777619u;
+            }
+            return h.ToString("x8");
+        }
+
+        /// <summary>
+        /// CEO 在提名件里选定一架。reg 为空则取候选首位（＝投影日利最优，界面「批准」按钮即此义）。
+        ///
+        /// 批准时重新过一遍硬门槛（<see cref="AircraftNominationLogic.Apply"/>）：呈报可能在收件箱里
+        /// 躺了好几个季度，飞机可能已退役/停场/被租出。不合格就如实拒落，邮件留在收件箱等 CEO 另选。
+        /// </summary>
+        public static bool ApproveAssignAircraft(GameState gs, InboxMail mail, string reg, out string message)
+        {
+            message = "";
+            var route = FindRoute(gs, mail);
+            if (route == null)
+            {
+                Mark(gs, mail.id, "approved");
+                mail.body += "\n\n（对应航线已不在运营，本呈报自动结案，无需批复。）";
+                message = "对应航线已不在运营，本呈报已自动结案。";
+                gs.AddDecisionLog("运营：" + message);
+                gs.NotifyChanged();
+                return true;
+            }
+
+            var cands = AircraftNominationLogic.Decode(mail.payloadCsv);
+            if (string.IsNullOrEmpty(reg) && cands.Count > 0) reg = cands[0].reg;
+            if (string.IsNullOrEmpty(reg)) { message = "本呈报没有可选的候选机号，请退回后重新下达指令。"; return false; }
+
+            if (!AircraftNominationLogic.Apply(gs, route, reg, out string applied))
+            {
+                // 复验不过：不落班、不结案。重算候选写回邮件，让 CEO 换一架或退回。
+                message = applied;
+                message += RefreshNominationCandidates(gs, mail, route);
+                gs.AddDecisionLog("运营：" + applied);
+                Changed?.Invoke();
+                gs.NotifyChanged();
+                return false;
+            }
+
+            Mark(gs, mail.id, "approved");
+            message = applied;
+            gs.AddDecisionLog("运营：" + message);
+            Schedule(gs, new InboxMail
+            {
+                id = "fx_" + mail.id + "_" + gs.year + gs.quarter,
+                sender = "运营部",
+                role = "执行回执",
+                glyph = "运",
+                kind = "report",
+                subject = $"{route.origin}—{route.destination} 执飞机号已生效",
+                body = message + $"\n\n本线 {route.origin}—{route.destination} 自即日起由该机号执行；"
+                                + "如需调整班次（加密/减班），请在本航线页下运力调令。",
+                status = "approved",
+                tag = "回执",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            }, InboxCadence.ReplyReady(gs.SimUtc));
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>批准复验失败后重算候选并写回邮件；返回补在提示语后面的一句（无候选时给出汇报口径）。</summary>
+        static string RefreshNominationCandidates(GameState gs, InboxMail mail, RouteData route)
+        {
+            if (mail == null || route == null) return "";
+            var cands = AircraftNominationLogic.Nominate(gs, route);
+            if (cands.Count == 0)
+            {
+                mail.action = "";                       // 挑不出东西了：转汇报件，避免留一封点不动的决策邮件
+                mail.status = "approved";
+                mail.tag = "受阻";
+                mail.body = AircraftNominationLogic.FormatBlockedBody(gs, route, AircraftNominationLogic.RejectionDetails(gs, route, 8));
+                return " 运营部已重核机队，当前没有能执飞本线的飞机，本函改为汇报件（无需批复）。";
+            }
+            mail.payloadCsv = AircraftNominationLogic.Encode(cands);
+            mail.body = AircraftNominationLogic.FormatBody(gs, route, cands, AircraftNominationLogic.Rejections(gs, route, 6));
+            return " 运营部已按最新机队重算候选，请另选一架或退回。";
+        }
+
+        /// <summary>CEO 退回：不指派任何机号 —— 飞机从未写进航线，故无需撤销任何东西。</summary>
+        public static bool RejectAssignAircraft(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            var route = FindRoute(gs, mail);
+            Mark(gs, mail.id, "rejected");
+            string tag = route != null ? $"{route.origin}—{route.destination}" : $"{mail.origin}—{mail.dest}";
+            message = route != null && !route.HasAircraft
+                ? $"已退回 {tag} 的执飞飞机提名：不指派机号，本线继续停飞（不计营收）。"
+                : $"已退回 {tag} 的执飞飞机提名：不指派新机号，维持现状。";
             gs.AddDecisionLog("运营：" + message);
             gs.NotifyChanged();
             return true;
@@ -3651,6 +5342,27 @@ namespace AirlineCEO.Systems
         {
             message = "";
             var d = CapacityDirectiveLogic.Parse(ceoNote);
+            // 与运力呈报同源收口：换季方案的方向由 d.intent 决定，而 intent 默认偏增班 ——
+            // 「把班次收一收」这种措辞会生成一份**加密**方案（且焦点文字写成「再加密」），
+            // 与 CEO 的本意相反。这里拒编并说清怎么改写，草案与现网都不动。
+            if (d.intent == "assign")
+            {
+                // 换季评审只处理班次与日循环：机号指派在单航线页办，别把一条派机令当成加密/减班来解读
+                message = "换季评审处理的是班次与机队日循环，不办机号指派。"
+                          + "请到该航线页（单航线）下达「安排一架合适的飞机执飞」这类调令。\n"
+                          + "（未重编换季方案，现有方案与排班均未改动。）";
+                Changed?.Invoke();
+                gs?.NotifyChanged();
+                return false;
+            }
+            if (CapacityDirectiveLogic.NeedsConfirm(d))
+            {
+                message = CapacityDirectiveLogic.ConfirmPrompt(null, d, false)
+                          + "\n（未重编换季方案，现有方案与排班均未改动。）";
+                Changed?.Invoke();
+                gs?.NotifyChanged();
+                return false;
+            }
             var plan = SeasonReviewLogic.Build(gs, d, apply: false);
             plan.rev = (mail != null ? mail.seasonRev : 0) + 1;
             QueueSeasonReview(gs, plan, ceoNote, force: true);
@@ -3673,6 +5385,290 @@ namespace AirlineCEO.Systems
                 nextQuarter = 1;
                 nextYear++;
             }
+        }
+
+        // ———————————— 时刻槽使用率考核（IATA WASG 80/20 · 每航季一次） ————————————
+
+        /// <summary>CEO 就「正当未用」豁免申请作出裁定的邮件动作。</summary>
+        public const string SlotUsageAction = "slot_usage_review";
+
+        static string SlotUsageMailId(int key) => $"m_slotusage_{key}";
+
+        /// <summary>
+        /// 换季时刻清算 —— 在每季度推进后由 <see cref="ProcessPendingEffects"/> 调用。
+        ///
+        /// 时点安排（与真实规则对齐，见 <see cref="SlotUsageLogic"/> 类注释）：
+        /// - **航季第 2 个季度初（Q3 / Q1）＝ 历史基准日**：开始本季计数，计数器清零。
+        /// - **航季开端（Q2 / Q4）＝ 换季清算**：先执行已到季的失格释放（含到季未获批的豁免申请），
+        ///   再结算刚刚结束的上一等价航季，据结果发通报与豁免申请邮件。
+        ///
+        /// 判季不判年：一年判两次，每次覆盖一个航季的**同季** —— 与「年底判一次」是两回事。
+        /// </summary>
+        public static void OnSlotUsageSeasonTurn(GameState gs)
+        {
+            if (gs?.stg == null) return;
+            int key = SlotUsageLogic.CurrentKey(gs);
+
+            if (SlotUsageLogic.IsHbdQuarter(gs.quarter))
+            {
+                SlotUsageLogic.BeginSeason(gs, key);
+                return;
+            }
+            if (!SlotUsageLogic.IsSeasonStartQuarter(gs.quarter)) return;
+
+            // 1) 执行到季的处置：直接失格者释放持仓；待裁豁免到季仍未获批者按失格处置。
+            var releaseNotes = new List<string>();
+            releaseNotes.AddRange(SlotUsageLogic.ApplyDueReleases(gs, key, out int released));
+            releaseNotes.AddRange(SlotUsageLogic.SettlePendingJnus(gs, key, out int jnusReleased));
+            int totalReleased = released + jnusReleased;
+
+            // 1b) ★2026-10-15：use-it-or-lose-it 的另一半 —— 收回**整季一次没绑班次**的闲置持仓。
+            // 系列考核（80%）只能裁到「有过应飞记录」的槽；买了就搁着、压根不飞的槽没有系列，
+            // 旧版因此漏在规则之外。这里按「取得季 + 2 个季度」到点收回，并如实记成资产损失。
+            float idleLostWan = 0f;
+            var idleNotes = SlotUsageLogic.ReleaseIdleHoldings(gs, RoutePermitLogic.Turn(gs.year, gs.quarter),
+                out int idleReleased, out idleLostWan);
+            if (idleReleased > 0)
+            {
+                releaseNotes.AddRange(idleNotes);
+                totalReleased += idleReleased;
+                QueueSlotIdleReclaimNotice(gs, idleNotes, idleReleased, idleLostWan);
+            }
+            if (releaseNotes.Count > 0)
+                gs.AddDecisionLog($"局方：换季时刻清算 —— {totalReleased} 条持仓退回时刻池。"
+                                  + string.Join("；", releaseNotes.ToArray()));
+
+            // 2) 结算刚结束的上一等价航季。
+            var verdict = SlotUsageLogic.Evaluate(gs, key - 1);
+
+            // 3) 发信：有未达标就要有下落，避免机制静默生效。
+            if (verdict.pendingJnus > 0) QueueSlotUsageReview(gs, verdict);
+            if (verdict.lost > 0 || releaseNotes.Count > 0)
+                QueueSlotUsageNotice(gs, verdict, releaseNotes, totalReleased);
+        }
+
+        /// <summary>
+        /// 闲置持仓收回通报（★2026-10-15，use-it-or-lose-it 的另一半）。
+        ///
+        /// 为什么单独发一封：系列考核的通报名叫「使用率未达标」，而这里的情况是**一次都没飞**、
+        /// 压根没有使用率可言。混在同一封里会让 CEO 以为「我飞了但没飞够」，实际是「买了没用」——
+        /// 两句账要分开说，损失金额也要明写，否则这笔钱白花了也没人知道。
+        /// </summary>
+        public static bool QueueSlotIdleReclaimNotice(GameState gs, List<string> notes, int count, float lostWan)
+        {
+            if (gs == null || notes == null || notes.Count == 0) return false;
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+
+            var sb = new StringBuilder();
+            sb.Append("以下时刻槽自取得起**整个航季未投入任何班次**，"
+                      + "按 use-it-or-lose-it 规则退回时刻池（WASG 8.6.1：未使用的时刻不予保留）。\n\n");
+            for (int i = 0; i < notes.Count && i < 16; i++) sb.Append($"　{notes[i]}\n");
+            if (notes.Count > 16) sb.Append($"　…另有 {notes.Count - 16} 条\n");
+            sb.Append($"\n共退回 {count} 条，取得成本合计 {lostWan:F0} 万美元 —— 这部分支出已无法通过运营收回。\n\n");
+            sb.Append("下步：\n");
+            sb.Append("　1) 若确实需要这些时刻，须在时刻协调窗口内重新申请或购入；\n");
+            sb.Append("　2) 时刻槽是**按具体时刻**分配的资源：06:30 的槽接不了 07:00 的班，"
+                      + "买来不用就等于白买；\n");
+            sb.Append("　3) 拿到槽后请尽快到「运营 → 航线排班」把它绑到对应时刻的班次上。\n");
+
+            string id = $"m_slotidle_{gs.year}q{gs.quarter}";
+            for (int i = 0; i < gs.inbox.Count; i++)
+                if (gs.inbox[i] != null && gs.inbox[i].id == id) return false;   // 同一季只通报一次
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = "局方（时刻协调）",
+                role = "时刻槽使用率考核",
+                glyph = "协",
+                kind = "report",
+                subject = $"时刻槽闲置收回：{count} 条未投运，成本 {lostWan:F0} 万美元作废",
+                body = sb.ToString(),
+                tag = "时刻",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            });
+            gs.AddDecisionLog($"局方：闲置时刻槽收回 {count} 条（成本 {lostWan:F0} 万美元）。");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// 正当未用（JNUS）豁免申请：局方把本季未达标、且**确有正当理由**的系列列出来，
+        /// 由 CEO 决定是否申请豁免。批准 → 保留历史优先权；驳回或到期未处理 → 下一等价航季释放。
+        /// </summary>
+        public static bool QueueSlotUsageReview(GameState gs, SlotUsageLogic.SeasonVerdict v)
+        {
+            if (gs == null || v == null || v.jnusSeries.Count == 0) return false;
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+
+            string id = SlotUsageMailId(v.key);
+            string subject = $"{v.label} 时刻槽使用率未达标 · 正当未用豁免申请（请裁定）";
+            string body = FormatJnusBody(gs, v);
+            string csv = SlotUsageLogic.EncodeSeries(v.jnusSeries);
+
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || m.id != id) continue;
+                m.subject = subject;
+                m.body = body;
+                m.slotSeriesCsv = csv;
+                m.status = "pending";
+                m.read = false;
+                m.time = gs.DateLabel;
+                m.receivedYear = gs.year;
+                m.receivedQuarter = gs.quarter;
+                Changed?.Invoke();
+                gs.NotifyChanged();
+                return true;
+            }
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = "局方（时刻协调）",
+                role = "时刻槽使用率考核",
+                glyph = "协",
+                kind = "approval",
+                action = SlotUsageAction,
+                subject = subject,
+                body = body,
+                tag = "时刻",
+                slotSeriesCsv = csv,
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            });
+            gs.AddDecisionLog(
+                $"局方：{v.label} 时刻槽使用率考核 —— {v.kept} 个系列达标、{v.lost} 个直接失格、{v.pendingJnus} 个待申请正当未用豁免。");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>失格通报（纯通报，不需 CEO 批复）：已失格的系列、以及本季退回池子的持仓。</summary>
+        public static bool QueueSlotUsageNotice(GameState gs, SlotUsageLogic.SeasonVerdict v,
+            List<string> releaseNotes, int releasedCount)
+        {
+            if (gs == null || v == null) return false;
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+
+            var sb = new StringBuilder();
+            sb.Append($"{v.label} 时刻槽使用率考核已经结束（阈值 {SlotUsageLogic.Threshold * 100f:F0}%）。\n\n");
+            sb.Append($"达标保留 {v.kept} 个系列");
+            if (v.lost > 0) sb.Append($"，**未达标失格 {v.lost} 个**");
+            if (v.pendingJnus > 0) sb.Append($"，待申请正当未用豁免 {v.pendingJnus} 个（另函呈报）");
+            sb.Append("。\n\n");
+
+            if (v.lostSeries.Count > 0)
+            {
+                sb.Append("一、已失格系列（下一等价航季不再自动保留历史优先权）\n");
+                for (int i = 0; i < v.lostSeries.Count && i < 12; i++)
+                    sb.Append($"　{SlotUsageLogic.FormatSeriesLine(v.lostSeries[i])}\n");
+                if (v.lostSeries.Count > 12) sb.Append($"　…另有 {v.lostSeries.Count - 12} 个系列\n");
+                sb.Append("\n");
+            }
+
+            if (releaseNotes.Count > 0)
+            {
+                sb.Append($"二、本季已退回时刻池的持仓（{releasedCount} 条）\n");
+                for (int i = 0; i < releaseNotes.Count && i < 12; i++)
+                    sb.Append($"　{releaseNotes[i]}\n");
+                sb.Append("\n");
+            }
+
+            sb.Append("三、下步\n");
+            sb.Append("　1) 想保住这些时刻，须在时刻协调窗口内重新申请或购买（战略发展部 →「航线网络/时刻槽」）；\n");
+            sb.Append("　2) 未重新取得的时段，排班引擎会按「缺槽」处理，不得再加/改班次；\n");
+            sb.Append("　3) 下一航季的计分从历史基准日（第 2 个季度初）起算，此前的班次修正不会改变本期结论。\n");
+
+            string id = $"m_slotnotice_{v.key}";
+            for (int i = 0; i < gs.inbox.Count; i++)
+                if (gs.inbox[i] != null && gs.inbox[i].id == id) return false;   // 同一季只通报一次
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = "局方（时刻协调）",
+                role = "时刻槽使用率考核",
+                glyph = "协",
+                kind = "report",
+                subject = $"{v.label} 时刻槽使用率考核结果：失格 {v.lost} 个系列",
+                body = sb.ToString(),
+                tag = "时刻",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            });
+            gs.NotifyChanged();
+            return true;
+        }
+
+        static string FormatJnusBody(GameState gs, SlotUsageLogic.SeasonVerdict v)
+        {
+            var sb = new StringBuilder();
+            sb.Append($"{v.label} 时刻槽使用率考核已完成。以下系列未达 {SlotUsageLogic.Threshold * 100f:F0}%，"
+                      + "但本季确有**正当未用**事由（WASG §8.8 Justified Non-Utilisation）。\n\n");
+
+            for (int i = 0; i < v.jnusSeries.Count; i++)
+            {
+                var x = v.jnusSeries[i];
+                if (x == null) continue;
+                int gap = x.due - x.operated;
+                sb.Append($"　{SlotUsageLogic.SeriesLabel(x.airport, x.time, x.weekday)}："
+                          + $"应飞 {x.due} 班、实飞 {x.operated} 班、未飞 {gap} 班，"
+                          + $"使用率 {x.operated / (float)x.due * 100f:F0}%\n");
+                if (!string.IsNullOrEmpty(x.jnusReasonCsv))
+                    sb.Append($"　　正当事由：{x.jnusReasonCsv}（其中正当 {x.justified} 班）\n");
+            }
+
+            sb.Append("\n批准 = 向局方申请豁免：该系列历史优先权保留，下一等价航季不受影响。\n");
+            sb.Append("驳回或逾期未处理 = 按未达标处置：下一等价航季历史优先权终止，"
+                      + "对应持仓退回时刻池，须重新申请或购买。\n");
+            sb.Append("\n提示：豁免只认「你确实飞了但飞不了」的班次；本季若因排班调整、主动减班而未飞，"
+                      + "那些班次不计入正当未用。");
+            return sb.ToString();
+        }
+
+        /// <summary>CEO 批准正当未用豁免：逐系列保留历史优先权。</summary>
+        public static bool ApproveSlotUsage(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            var list = SlotUsageLogic.DecodeSeries(mail?.slotSeriesCsv);
+            int ok = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var x = list[i];
+                if (SlotUsageLogic.GrantJnus(gs, x.airport, x.time, x.weekday)) ok++;
+            }
+            Mark(gs, mail.id, "approved");
+            message = ok > 0
+                ? $"已申请正当未用豁免 {ok} 个时刻系列，历史优先权予以保留。"
+                : "本函已无可裁定的时刻系列（可能已被后续考核取代）。";
+            gs.AddDecisionLog("CEO 批准时刻槽正当未用豁免：" + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>CEO 驳回正当未用豁免：转为失格，仍按「下一等价航季开端释放」执行。</summary>
+        public static bool RejectSlotUsage(GameState gs, InboxMail mail, out string message)
+        {
+            var list = SlotUsageLogic.DecodeSeries(mail?.slotSeriesCsv);
+            int ok = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var x = list[i];
+                if (SlotUsageLogic.DenyJnus(gs, x.airport, x.time, x.weekday)) ok++;
+            }
+            Mark(gs, mail.id, "rejected");
+            message = $"已放弃申请豁免：{ok} 个系列按未达标处置，将于下一等价航季开端释放对应时刻。";
+            gs.AddDecisionLog("CEO 放弃时刻槽正当未用豁免：" + message);
+            gs.NotifyChanged();
+            return true;
         }
 
         /// <summary>当前是否有到期未处理的待办邮件（阻断时间推进）。</summary>
@@ -3720,6 +5716,7 @@ namespace AirlineCEO.Systems
                 case "approved": return "已批准";
                 case "deferred": return "已暂缓";
                 case "rejected": return "已拒绝";
+                case SupersededStatus: return "已作废";
                 default: return "待处理";
             }
         }

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S01-COLLAB",
+  "title": "阶段 S01-COLLAB：Collab",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab",
+    "改动文件数 33，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S01-COLLAB）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S01-COLLAB）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S01-COLLAB）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-18T09:31:41.179Z",
+  "updatedAt": "2026-10-18T10:43:39.632Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "Review REV-20261018103950-3b9460 still applies to delivery DEL-20261018102500-1304ad.",
+  "staleForReviewId": null
+}

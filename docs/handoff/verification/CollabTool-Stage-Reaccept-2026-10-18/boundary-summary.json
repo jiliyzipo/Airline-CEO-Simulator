@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-18T10:42:07.020Z",
+  "summary": [
+    {
+      "name": "stage-audit-subject-only",
+      "exitCode": 0,
+      "total": 6,
+      "failed": 1,
+      "results": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\handoff\\verification\\CollabTool-Stage-Reaccept-2026-10-18\\results-2026-10-18T10-41-55-516Z.json",
+      "stdoutSha256": "1a80721901c8540d2f06d80e7e01f14dd38721b857fcac901c07a6e5fd924526"
+    },
+    {
+      "name": "stage-audit-reconciled",
+      "exitCode": 0,
+      "total": 7,
+      "failed": 0,
+      "results": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\handoff\\verification\\CollabTool-Stage-Reaccept-2026-10-18\\results-2026-10-18T10-42-07-004Z.json",
+      "stdoutSha256": "ec222e9e61deac1bf6cd67aa66cbeab121acde6dff2efc687ac3d58c68dcca78"
+    }
+  ],
+  "passed": true
+}

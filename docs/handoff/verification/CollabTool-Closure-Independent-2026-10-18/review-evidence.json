@@ -1,0 +1,29 @@
+{
+  "conclusion": "failed",
+  "subjectImplementationFingerprint": "9df55a451d615e7b385c8b0cdbe0c38b63dbde2b91610a9d87f4dfe290c4286f",
+  "assertionsTotal": 2,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "counterScope": "Actual default smoke only. Overall independent rejection comes from separately attached closure checks, not a fabricated smoke failure.",
+  "coverage": [
+    { "id": "AC1", "result": "passed", "evidence": "Codex ran the actual delivered smoke: external exit 0, 2 checks passed, bound stdout/stderr." },
+    { "id": "AC2", "result": "not_run", "evidence": "The new Codex workspace repairs have no replacement delivery and independent acceptance yet." },
+    { "id": "AC3", "result": "not_run", "evidence": "Scope is closure gate/Hook audit; not claiming this smoke reexercised every freshness scenario." }
+  ],
+  "additionalChecks": {
+    "original": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/original-final-12.results.json",
+    "repaired": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/repaired-verified.results.json",
+    "report": "docs/handoff/CollabTool_Closure_IndependentAudit_and_Fix_2026-10-18.md"
+  },
+  "issues": [
+    {
+      "title": "C09 completion gates and C10 concurrent Hook dedupe have reproducible gaps; Codex workspace repairs await reacceptance",
+      "repro": "COLLAB_AUDIT_TOOL_SOURCE=out/collab/DEL-20261018035835-766dc7/tools/collab; run tools/collab/tests/closure.test.mjs in repository root.",
+      "expected": "Missing baseline/document, stale or cross-delivery evidence must block; dependencies diagnose cycles; concurrent duplicate Hook applies once; concurrent issue transitions preserve both states.",
+      "actual": "Original subject passes 3/12: undefined nextSeen, fail-open gates, older passed/old profile evidence masking newer failures, Hook twice applied, lost issue state. Codex repaired workspace and achieved 12/12; original delivery remains unchanged.",
+      "evidence": "docs/handoff/CollabTool_Closure_IndependentAudit_and_Fix_2026-10-18.md",
+      "severity": "major",
+      "suggestedOwner": "codex"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ namespace AirlineCEO.AI
                     fuelPricePerTon = 850f,
                     competitorSupply = 0.65f,
                     demandMultiplier = 1.2f,
-                    brandEquity = 55f
+                    brandEquity = GameState.Instance != null ? GameState.Instance.brandAwareness : 55f
                 });
                 // 注意：本地话术也会被 BuildFallback 包成 AdvisorResponse；
                 // suggestedAction 在 GuessAction 里设为 open_route。
@@ -44,12 +44,12 @@ namespace AirlineCEO.AI
                        + $"{CashRunnelCalculator.FormatWarningPlain(runway)}。";
             }
 
-            if (ContainsAny(text, "首航", "起飞", "开航"))
+            if (ContainsAny(text, "首航", "起飞", "开航", "开通航线"))
             {
-                bool done = gs != null && gs.firstFlightCompleted;
-                return done
-                    ? "战略顾问：第一班已经飞完，钱也进账了。接下来可以看看哪条新航线更划算。"
-                    : "战略顾问：先点中间那个「确认首航」按钮，跑完第一班，后面的功能会更好懂。";
+                int routes = gs != null ? gs.activeRoutes.Count : 0;
+                return routes > 0
+                    ? $"战略顾问：已开通 {routes} 条航线。可去运营部编周计划，或构建航班环串联机班。"
+                    : "战略顾问：点运营部「开通航线」，或在市场分析后执行开通建议。启动资金约 300 万。";
             }
 
             if (ContainsAny(text, "董事", "董事会", "化学"))

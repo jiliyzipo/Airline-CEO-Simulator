@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018095403-a7a8ab",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "title": "SA04 同一DEL已有正在执行的阶段检测时仍可再次启动并执行",
+  "repro": "node docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/stage-audit.mjs ; subject=DEL-20261018093335-80f2f4; case=SA04; fixture=C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-2WX9Qv\\4",
+  "expected": "stage-review needs a delivery-level claim/lease so retries or two reviewers cannot create two active reviews and run the same delivery twice",
+  "actual": "{\"executions\":2,\"workerResults\":[{\"code\":0,\"output\":\"fatal: not a git repository (or any of the parent directories): .git\\n{\\\"ok\\\":true,\\\"deliveryId\\\":\\\"DEL-20261018095400-b88565\\\",\\\"reviewId\\\":\\\"REV-20261018095401-560789\\\",\\\"status\\\":\\\"passed\\\",\\\"profile\\\":\\\"smoke\\\",\\\"counters\\\":{\\\"total\\\":2,\\\"failed\\\":0,\\\"skipped\\\":0},\\\"issues\\\":[],\\\"freshness\\\":\\\"current\\\",\\\"nextCommand\\\":null,\\\"report\\\":\\\"交付：DEL-20261018095400-b88565\\\\n检测：REV-20261018095401-560789 → passed\\\\nprofile：smoke\\\\n断言：total=2 failed=0 skipped=0\\\\n\\\\n该阶段检测通过。\\\",\\\"exitCode\\\":0}\\n\"},{\"code\":4,\"output\":\"{\\\"error\\\":\\\"Lock held by summaries pid=36140 (alive=true, ageMs=3). Do not delete Unity project locks. Use collab unlock only for this tool's locks.\\\",\\\"exitCode\\\":4}\\n\"}],\"reviewCount\":2}",
+  "evidence": "docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/results-2026-10-18T09-54-03-314Z.json#SA04",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T09:54:03.980Z"
+}

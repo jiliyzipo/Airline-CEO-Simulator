@@ -1,0 +1,670 @@
+{
+  "schemaVersion": 1,
+  "deliveryId": "DEL-20261017065745-c9b348",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "tool": "cursor",
+  "model": "deepseek-v4.1-flash",
+  "summary": "C-DEMO MVP manual loop: schemas, claim, deliver, review profiles smoke.",
+  "files": {
+    "changedNote": "see fingerprints.implementation.entries / git porcelain"
+  },
+  "businessRisk": "none stated",
+  "selfTest": {
+    "performed": true,
+    "notes": "developer self-test; not independent acceptance"
+  },
+  "knownGaps": [],
+  "git": {
+    "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+    "dirty": true,
+    "cleanGitCheckoutVerified": false,
+    "sourceIncludesUncommittedFiles": true
+  },
+  "fingerprints": {
+    "schemaVersion": 1,
+    "fingerprintPolicyVersion": 1,
+    "computedAt": "2026-10-17T06:57:45.437Z",
+    "git": {
+      "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+      "dirty": true,
+      "cleanGitCheckoutVerified": false,
+      "sourceIncludesUncommittedFiles": true
+    },
+    "implementation": {
+      "fingerprint": "d539cdf988cf9d45a921a16c4f0a3b5b51ecf73a8a99f95cb6032e486a4d1aac",
+      "fileCount": 50,
+      "entries": [
+        {
+          "path": "docs/collaboration/CURRENT.md",
+          "bytes": 1225,
+          "sha256": "414d30aa16224d911e49b9abf5e011f4e15347c0498cfb17178b9f9ff192a4b3",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065707-ac26b4.json",
+          "bytes": 1959,
+          "sha256": "acf074e5bd42ac7764a22c11ad1fa9e97b40d6d0202880dcaa54aa9e997727f4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065709-2022a0.json",
+          "bytes": 1955,
+          "sha256": "7f0da69d38843b668b3e561332a032ba20fa4d8db9335d0daae4ac6d3acb5c7d",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065709-4f3f72.json",
+          "bytes": 1955,
+          "sha256": "1b264fd0cdfcaa31ffb02ebd746cde7a01b38076de79c01c6ec4575d56d39e61",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065715-bb7f16.json",
+          "bytes": 1955,
+          "sha256": "525316f3d0864ae48cc8824919f208c54992ad2e2540b08107f1f2505dd3f81b",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065715-c8db78.json",
+          "bytes": 1748,
+          "sha256": "fb0a86a0ee246c2cc3ed5f4b81ca7624aae7a0aa63538318d77ba136efe27b58",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-0943bb.json",
+          "bytes": 336,
+          "sha256": "2104ffb7f1b5034766f60f1de73b961510ca96f41dbdf19060ec16f070ebbbab",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-0987e5.json",
+          "bytes": 339,
+          "sha256": "56df141c7440f1138b4321015905fb23623be6722e29a8da3de0477e3a46532a",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-4287c0.json",
+          "bytes": 336,
+          "sha256": "e7ba7aac1a6f562e298442d3465d3ca348cec8f6b6338cff0c2c8a9962016e66",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-97bb82.json",
+          "bytes": 351,
+          "sha256": "8542d4c212f02bd34983c377bddfca434afd7b752d03082e981995bbf3942ab3",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-dc4c81.json",
+          "bytes": 339,
+          "sha256": "d7acbf2d009bf1d4c9300f977415d1a73363abc7dffe811b68b8e14764246548",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065729-eb4138.json",
+          "bytes": 1955,
+          "sha256": "45ad710059661cf3d1ca16da279db2ab47877738e7f440784948a71818dbf709",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065730-8823af.json",
+          "bytes": 1955,
+          "sha256": "47ea69e97946bbd988810b006c839c64c517e6c5a02d3e9ee298ad625edfb124",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-123862.json",
+          "bytes": 351,
+          "sha256": "341f858c083dd9fe20c487e45f306cfde4024ca201786420132f6e429b5c9d8d",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-354218.json",
+          "bytes": 1748,
+          "sha256": "9e2294757c4de67c5190442ba083a71c65b07c829d452cb12e23952fdab6b45a",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-d54325.json",
+          "bytes": 1955,
+          "sha256": "55dfdc5f6e48261dc9d0b48bef100ddf1538db6da952612e259637c4ab096824",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-1e4af7.json",
+          "bytes": 340,
+          "sha256": "bf8ef8f538be96a30663b9c0a8b095b9da9edc6d750e926e96b12d9bbc2b24a4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-48547e.json",
+          "bytes": 336,
+          "sha256": "25c8fa6975e781604435626a06c09c2ad72ef03b2c8e3ad0499332daaf7cd935",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-504e1e.json",
+          "bytes": 339,
+          "sha256": "28cc0c0b68a222e2d816ce804f0cdb0b2c276cca81c3a381000e108e1a90a9d9",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-9010b0.json",
+          "bytes": 337,
+          "sha256": "e83e224d24ec912b02b3596db7969a7331778b22ab2df2c081cdc21faed09898",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065744-6ff746.json",
+          "bytes": 340,
+          "sha256": "ab43feef04a9c2867abdad36483e0785cc224bc516062a4ca7edd7326669e3ca",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065744-f5c5d6.json",
+          "bytes": 1750,
+          "sha256": "9160adbf15f2756263c4e4beefede5188182470a5aee1e309872a56a28fc1f79",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/NEXT_CODEX.md",
+          "bytes": 14,
+          "sha256": "c0fb145db56392dba2465045aa7e51bd0b2ee05c3a7daf9873f35a6dbcf9cc29",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/NEXT_CURSOR.md",
+          "bytes": 248,
+          "sha256": "0c84485d0d3ccc18337e638f729e2264abed908c89347c61586ece26d6e769fd",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/PROTOCOL.md",
+          "bytes": 1775,
+          "sha256": "5b1578a225cc8e713327bfa562f7ee86c747c787e5e4cac3a15d843e061abca4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/README.md",
+          "bytes": 2195,
+          "sha256": "db84387c59d5c130f97aa1b4df712ccad3f347a9cc2897219476f8a2008a5638",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/state.json",
+          "bytes": 429,
+          "sha256": "16e82664166477405c6084228384a93a05fb3b44755ca0517ecf3a771823765f",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/C-DEMO.json",
+          "bytes": 1137,
+          "sha256": "277f519905ac767701ed48d61dc90ae62b5994cfc8974990c275f0ef2bea6acd",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T01.json",
+          "bytes": 732,
+          "sha256": "e24ae725def6092cb86430866a2308e34e007f4538e0dc911329e6880d841bd7",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T02.json",
+          "bytes": 732,
+          "sha256": "5195f1f71e9985b9d204a137521157c0485af15a7b70a3f7a4ee402aa226313f",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T03.json",
+          "bytes": 719,
+          "sha256": "4423be82153dc3292c115bc320b75b25ac2aee9bd62bbd764d892df84c410746",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T04.json",
+          "bytes": 722,
+          "sha256": "d60cd12db8781be04ea5a34dc0c87d6dd22578ed503878f1315f5298a5c960e7",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T05.json",
+          "bytes": 719,
+          "sha256": "9fe979e8b5315f24ab2cf695efeb689876a613faa46403a99c5dc076007aacce",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T06.json",
+          "bytes": 728,
+          "sha256": "1aa335698ebbcac75a098f7b3cfc4261e0c3d2f2d36ae248c114b08ce3263cf2",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 2927,
+          "sha256": "577cd37aa8d54d9a4bd637a2a3e532d7eeb4cd175bb2fedd3e48df53da3effdd",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 1256,
+          "sha256": "6f06f6494fa4dbf3459dbc201dd0e15e71edf0b6ba7fb2b9c41cd4e8b30a35eb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 1256,
+          "sha256": "6f06f6494fa4dbf3459dbc201dd0e15e71edf0b6ba7fb2b9c41cd4e8b30a35eb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 25789,
+          "sha256": "105999425b61685e51ef14fb434447a9a9adfb6c5535063f382ed243c4c43f09",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 5377,
+          "sha256": "0df26e0b1360911ea1ddfddba49c125c9f55051add5d82ac1175592fdd83d27f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 3374,
+          "sha256": "86bdb876d26e3ed6f453aeaeb2829c54c82476682f984fb823ad646647d2981e",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 3601,
+          "sha256": "4c70dd9707094854190f3d0473825038373a38504ce6c521582b388035ee2972",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3347,
+          "sha256": "f463b3964907e52220b2725f27f5c0dbdb020aa0584a3379a28fffe94d92af91",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 9543,
+          "sha256": "3c2aff133cc50b949d481b25aceca0a47177e169c198f50dac88c0255dcf15b9",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/collab.test.mjs",
+          "bytes": 6334,
+          "sha256": "d1d9284fb7bf936f64f333da5d41d521a7e6fa8f5c1c7941e1563d726c870f60",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/smoke-profile.mjs",
+          "bytes": 759,
+          "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+          "tracked": false
+        }
+      ]
+    },
+    "verification": {
+      "fingerprint": "d539cdf988cf9d45a921a16c4f0a3b5b51ecf73a8a99f95cb6032e486a4d1aac",
+      "fileCount": 50,
+      "entries": [
+        {
+          "path": "docs/collaboration/CURRENT.md",
+          "bytes": 1225,
+          "sha256": "414d30aa16224d911e49b9abf5e011f4e15347c0498cfb17178b9f9ff192a4b3",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065707-ac26b4.json",
+          "bytes": 1959,
+          "sha256": "acf074e5bd42ac7764a22c11ad1fa9e97b40d6d0202880dcaa54aa9e997727f4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065709-2022a0.json",
+          "bytes": 1955,
+          "sha256": "7f0da69d38843b668b3e561332a032ba20fa4d8db9335d0daae4ac6d3acb5c7d",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065709-4f3f72.json",
+          "bytes": 1955,
+          "sha256": "1b264fd0cdfcaa31ffb02ebd746cde7a01b38076de79c01c6ec4575d56d39e61",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065715-bb7f16.json",
+          "bytes": 1955,
+          "sha256": "525316f3d0864ae48cc8824919f208c54992ad2e2540b08107f1f2505dd3f81b",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065715-c8db78.json",
+          "bytes": 1748,
+          "sha256": "fb0a86a0ee246c2cc3ed5f4b81ca7624aae7a0aa63538318d77ba136efe27b58",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-0943bb.json",
+          "bytes": 336,
+          "sha256": "2104ffb7f1b5034766f60f1de73b961510ca96f41dbdf19060ec16f070ebbbab",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-0987e5.json",
+          "bytes": 339,
+          "sha256": "56df141c7440f1138b4321015905fb23623be6722e29a8da3de0477e3a46532a",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-4287c0.json",
+          "bytes": 336,
+          "sha256": "e7ba7aac1a6f562e298442d3465d3ca348cec8f6b6338cff0c2c8a9962016e66",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-97bb82.json",
+          "bytes": 351,
+          "sha256": "8542d4c212f02bd34983c377bddfca434afd7b752d03082e981995bbf3942ab3",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065716-dc4c81.json",
+          "bytes": 339,
+          "sha256": "d7acbf2d009bf1d4c9300f977415d1a73363abc7dffe811b68b8e14764246548",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065729-eb4138.json",
+          "bytes": 1955,
+          "sha256": "45ad710059661cf3d1ca16da279db2ab47877738e7f440784948a71818dbf709",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065730-8823af.json",
+          "bytes": 1955,
+          "sha256": "47ea69e97946bbd988810b006c839c64c517e6c5a02d3e9ee298ad625edfb124",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-123862.json",
+          "bytes": 351,
+          "sha256": "341f858c083dd9fe20c487e45f306cfde4024ca201786420132f6e429b5c9d8d",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-354218.json",
+          "bytes": 1748,
+          "sha256": "9e2294757c4de67c5190442ba083a71c65b07c829d452cb12e23952fdab6b45a",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065736-d54325.json",
+          "bytes": 1955,
+          "sha256": "55dfdc5f6e48261dc9d0b48bef100ddf1538db6da952612e259637c4ab096824",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-1e4af7.json",
+          "bytes": 340,
+          "sha256": "bf8ef8f538be96a30663b9c0a8b095b9da9edc6d750e926e96b12d9bbc2b24a4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-48547e.json",
+          "bytes": 336,
+          "sha256": "25c8fa6975e781604435626a06c09c2ad72ef03b2c8e3ad0499332daaf7cd935",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-504e1e.json",
+          "bytes": 339,
+          "sha256": "28cc0c0b68a222e2d816ce804f0cdb0b2c276cca81c3a381000e108e1a90a9d9",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065737-9010b0.json",
+          "bytes": 337,
+          "sha256": "e83e224d24ec912b02b3596db7969a7331778b22ab2df2c081cdc21faed09898",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065744-6ff746.json",
+          "bytes": 340,
+          "sha256": "ab43feef04a9c2867abdad36483e0785cc224bc516062a4ca7edd7326669e3ca",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/events/EVT-20261017065744-f5c5d6.json",
+          "bytes": 1750,
+          "sha256": "9160adbf15f2756263c4e4beefede5188182470a5aee1e309872a56a28fc1f79",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/NEXT_CODEX.md",
+          "bytes": 14,
+          "sha256": "c0fb145db56392dba2465045aa7e51bd0b2ee05c3a7daf9873f35a6dbcf9cc29",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/NEXT_CURSOR.md",
+          "bytes": 248,
+          "sha256": "0c84485d0d3ccc18337e638f729e2264abed908c89347c61586ece26d6e769fd",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/PROTOCOL.md",
+          "bytes": 1775,
+          "sha256": "5b1578a225cc8e713327bfa562f7ee86c747c787e5e4cac3a15d843e061abca4",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/README.md",
+          "bytes": 2195,
+          "sha256": "db84387c59d5c130f97aa1b4df712ccad3f347a9cc2897219476f8a2008a5638",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/state.json",
+          "bytes": 429,
+          "sha256": "16e82664166477405c6084228384a93a05fb3b44755ca0517ecf3a771823765f",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/C-DEMO.json",
+          "bytes": 1137,
+          "sha256": "277f519905ac767701ed48d61dc90ae62b5994cfc8974990c275f0ef2bea6acd",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T01.json",
+          "bytes": 732,
+          "sha256": "e24ae725def6092cb86430866a2308e34e007f4538e0dc911329e6880d841bd7",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T02.json",
+          "bytes": 732,
+          "sha256": "5195f1f71e9985b9d204a137521157c0485af15a7b70a3f7a4ee402aa226313f",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T03.json",
+          "bytes": 719,
+          "sha256": "4423be82153dc3292c115bc320b75b25ac2aee9bd62bbd764d892df84c410746",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T04.json",
+          "bytes": 722,
+          "sha256": "d60cd12db8781be04ea5a34dc0c87d6dd22578ed503878f1315f5298a5c960e7",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T05.json",
+          "bytes": 719,
+          "sha256": "9fe979e8b5315f24ab2cf695efeb689876a613faa46403a99c5dc076007aacce",
+          "tracked": false
+        },
+        {
+          "path": "docs/collaboration/tasks/T06.json",
+          "bytes": 728,
+          "sha256": "1aa335698ebbcac75a098f7b3cfc4261e0c3d2f2d36ae248c114b08ce3263cf2",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 2927,
+          "sha256": "577cd37aa8d54d9a4bd637a2a3e532d7eeb4cd175bb2fedd3e48df53da3effdd",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 1256,
+          "sha256": "6f06f6494fa4dbf3459dbc201dd0e15e71edf0b6ba7fb2b9c41cd4e8b30a35eb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 1256,
+          "sha256": "6f06f6494fa4dbf3459dbc201dd0e15e71edf0b6ba7fb2b9c41cd4e8b30a35eb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 25789,
+          "sha256": "105999425b61685e51ef14fb434447a9a9adfb6c5535063f382ed243c4c43f09",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 5377,
+          "sha256": "0df26e0b1360911ea1ddfddba49c125c9f55051add5d82ac1175592fdd83d27f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 3374,
+          "sha256": "86bdb876d26e3ed6f453aeaeb2829c54c82476682f984fb823ad646647d2981e",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 3601,
+          "sha256": "4c70dd9707094854190f3d0473825038373a38504ce6c521582b388035ee2972",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3347,
+          "sha256": "f463b3964907e52220b2725f27f5c0dbdb020aa0584a3379a28fffe94d92af91",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 9543,
+          "sha256": "3c2aff133cc50b949d481b25aceca0a47177e169c198f50dac88c0255dcf15b9",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/collab.test.mjs",
+          "bytes": 6334,
+          "sha256": "d1d9284fb7bf936f64f333da5d41d521a7e6fa8f5c1c7941e1563d726c870f60",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/smoke-profile.mjs",
+          "bytes": 759,
+          "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+          "tracked": false
+        }
+      ]
+    },
+    "contract": {
+      "fingerprint": "c4ceabc0fcb4735877e917acfc2a0036f0c6d06cff6caa7c27bdbb0c71fea779",
+      "fileCount": 1,
+      "entries": [
+        {
+          "path": "docs/collaboration/tasks/C-DEMO.json",
+          "bytes": 1137,
+          "sha256": "277f519905ac767701ed48d61dc90ae62b5994cfc8974990c275f0ef2bea6acd"
+        }
+      ]
+    }
+  },
+  "recommendedProfiles": [
+    "smoke"
+  ],
+  "snapshotPath": "out/collab/DEL-20261017065745-c9b348",
+  "snapshotManifest": {
+    "sourceFingerprint": "d539cdf988cf9d45a921a16c4f0a3b5b51ecf73a8a99f95cb6032e486a4d1aac",
+    "copiedFileCount": 50,
+    "cleanGitCheckoutVerified": false
+  },
+  "independentReviewPassed": false,
+  "createdAt": "2026-10-17T06:57:45.570Z"
+}

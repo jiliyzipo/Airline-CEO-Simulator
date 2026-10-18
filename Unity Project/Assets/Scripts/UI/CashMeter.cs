@@ -15,7 +15,7 @@ namespace AirlineCEO.UI
         [SerializeField] private Image fillImage;
         [SerializeField] private RectTransform needle;
         [SerializeField] private TextMeshProUGUI cashText;
-        [SerializeField] private TextMeshProUGUI runwayText;
+        [SerializeField] public TextMeshProUGUI runwayText;
         [SerializeField] private TextMeshProUGUI titleText;
 
         private float _displayMonths;
@@ -39,7 +39,7 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0, 0.72f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
-            meter.cashText = UIFactory.Label(root.transform, "Cash", "500 万", 22,
+            meter.cashText = UIFactory.Label(root.transform, "Cash", "500 万美元", 22,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0, 0.42f), new Vector2(0.55f, 0.78f), Vector2.zero, Vector2.zero),
                 UITheme.Success, FontStyles.Bold);
@@ -48,6 +48,11 @@ namespace AirlineCEO.UI
                 TextAlignmentOptions.MidlineRight,
                 new UIFactory.Anchor(new Vector2(0.55f, 0.42f), new Vector2(1, 0.78f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
+            meter.runwayText.textWrappingMode = TextWrappingModes.NoWrap;
+            meter.runwayText.overflowMode = TextOverflowModes.Truncate;
+
+            meter.cashText.textWrappingMode = TextWrappingModes.NoWrap;
+            meter.cashText.overflowMode = TextOverflowModes.Truncate;
 
             var track = UIFactory.Panel(root.transform, "Track",
                 new UIFactory.Anchor(new Vector2(0, 0.08f), new Vector2(1, 0.36f), Vector2.zero, Vector2.zero),
@@ -153,8 +158,8 @@ namespace AirlineCEO.UI
 
             if (cashText != null)
             {
-                string hint = _revenueHint > 0.5f ? $"  ·月入{_revenueHint:F0}" : "";
-                cashText.text = $"{cash:F0} 万{hint}";
+                string hint = _revenueHint > 0.5f ? $"  ·月入{_revenueHint:F0}万美元" : "";
+                cashText.text = $"{cash:F0} 万美元{hint}";
                 cashText.color = cash < 0f ? UITheme.Danger : UITheme.Success;
             }
 

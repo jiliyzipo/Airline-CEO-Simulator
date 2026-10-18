@@ -7,12 +7,16 @@ using UnityEngine.UI;
 
 namespace AirlineCEO.UI
 {
-    /// <summary>董事会页面：年度目标清单 + 红/黄/绿进度条。</summary>
+    /// <summary>
+    /// n20 董事会（L1）：年度目标追踪 + 董事成员卡（派系/满意度）+ 派系分布 + 投票/结算入口。
+    /// </summary>
     public class BoardTargetUI : MonoBehaviour
     {
         private Transform _listRoot;
+        private Transform _memberRoot;
         private TextMeshProUGUI _headerText;
         private TextMeshProUGUI _summaryText;
+        private TextMeshProUGUI _factionText;
         private readonly List<GameObject> _rows = new List<GameObject>();
 
         public static BoardTargetUI Build(Transform parent)
@@ -22,19 +26,20 @@ namespace AirlineCEO.UI
 
             var ui = panel.AddComponent<BoardTargetUI>();
 
-            ui._headerText = UIFactory.Label(panel.transform, "Title", "董事会 · 年度考核目标", 22,
+            ui._headerText = UIFactory.Label(panel.transform, "Title", "董事会", 22,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.6f, 0.98f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary, FontStyles.Bold);
 
             ui._summaryText = UIFactory.Label(panel.transform, "Summary",
                 "第 1 财年目标清单。完成率在 Q4 结束后结算。", 14,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.82f), new Vector2(0.97f, 0.9f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.03f, 0.82f), new Vector2(0.6f, 0.9f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
+            // 左侧：目标清单
             var listHost = UIFactory.Panel(panel.transform, "TargetList",
-                new UIFactory.Anchor(new Vector2(0.03f, 0.04f), new Vector2(0.97f, 0.8f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.03f, 0.04f), new Vector2(0.6f, 0.80f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep);
             var vlg = listHost.AddComponent<VerticalLayoutGroup>();
             vlg.padding = new RectOffset(12, 12, 12, 12);
@@ -46,7 +51,41 @@ namespace AirlineCEO.UI
             vlg.childForceExpandWidth = true;
             ui._listRoot = listHost.transform;
 
+            // 右侧：成员卡 + 派系 + 入口
+            UIFactory.Label(panel.transform, "MemberTitle", "董事会成员", 15,
+                TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.62f, 0.9f), new Vector2(0.97f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+
+            var memberHost = UIFactory.Panel(panel.transform, "MemberList",
+                new UIFactory.Anchor(new Vector2(0.62f, 0.34f), new Vector2(0.97f, 0.88f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep);
+            ui._memberRoot = memberHost.transform;
+
+            ui._factionText = UIFactory.Label(panel.transform, "Faction", "", 12,
+                TextAlignmentOptions.TopLeft,
+                new UIFactory.Anchor(new Vector2(0.62f, 0.24f), new Vector2(0.97f, 0.32f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
+            UIFactory.Button(panel.transform, "BudgetVote", "预算投票",
+                new UIFactory.Anchor(new Vector2(0.62f, 0.12f), new Vector2(0.79f, 0.21f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep, () => OpenPage("n22_年度预算编制_审批"), 13);
+            UIFactory.Button(panel.transform, "YearEnd", "财年结算 / 续聘",
+                new UIFactory.Anchor(new Vector2(0.80f, 0.12f), new Vector2(0.97f, 0.21f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, () => OpenPage("n26_财年结算_续聘_解雇"), 13);
+
+            UIFactory.Label(panel.transform, "VoteHint", "预算投票 → 财务审批　·　财年结算 → 续聘/解雇", 11,
+                TextAlignmentOptions.TopLeft,
+                new UIFactory.Anchor(new Vector2(0.62f, 0.06f), new Vector2(0.97f, 0.11f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+
             return ui;
+        }
+
+        private static void OpenPage(string pageId)
+        {
+            var nav = Object.FindFirstObjectByType<PrefabNavIntegration>();
+            if (nav != null) nav.OpenSubPage(pageId);
         }
 
         public void Refresh()
@@ -55,6 +94,13 @@ namespace AirlineCEO.UI
             if (BoardManager.Instance != null)
                 BoardManager.Instance.RefreshTargetProgress();
 
+            RebuildTargets();
+            RebuildMembers();
+        }
+
+        private void RebuildTargets()
+        {
+            var gs = GameState.Instance;
             for (int i = 0; i < _rows.Count; i++)
             {
                 if (_rows[i] != null) Destroy(_rows[i]);
@@ -86,10 +132,10 @@ namespace AirlineCEO.UI
             }
 
             for (int i = 0; i < gs.currentTargets.Count; i++)
-                _rows.Add(BuildRow(gs.currentTargets[i]));
+                _rows.Add(BuildTargetRow(gs.currentTargets[i]));
         }
 
-        private GameObject BuildRow(BoardTarget target)
+        private GameObject BuildTargetRow(BoardTarget target)
         {
             var row = UIFactory.Panel(_listRoot, "Target_" + target.id,
                 new UIFactory.Anchor(Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero),
@@ -118,7 +164,6 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.03f, 0.38f), new Vector2(0.97f, 0.72f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
 
-            // 进度条轨道
             var track = UIFactory.Panel(row.transform, "Track",
                 new UIFactory.Anchor(new Vector2(0.03f, 0.12f), new Vector2(0.97f, 0.32f), Vector2.zero, Vector2.zero),
                 new Color(0.05f, 0.08f, 0.12f, 1f));
@@ -139,6 +184,80 @@ namespace AirlineCEO.UI
             if (p < 0.4f) return UITheme.Danger;
             if (p < 0.75f) return UITheme.Warning;
             return UITheme.Success;
+        }
+
+        private void RebuildMembers()
+        {
+            if (_memberRoot == null) return;
+            for (int i = _memberRoot.childCount - 1; i >= 0; i--)
+                Destroy(_memberRoot.GetChild(i).gameObject);
+
+            var members = DataBase.Instance != null ? DataBase.Instance.BoardMembers : null;
+            if (members == null || members.Count == 0)
+            {
+                UIFactory.Label(_memberRoot, "Empty", "暂无董事数据。", 13, TextAlignmentOptions.Center,
+                    new UIFactory.Anchor(Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero), UITheme.TextMuted);
+                return;
+            }
+
+            var factionCounts = new Dictionary<string, int>();
+            for (int i = 0; i < members.Count; i++)
+            {
+                string f = members[i].faction ?? "其他";
+                factionCounts.TryGetValue(f, out int c);
+                factionCounts[f] = c + 1;
+            }
+
+            float y = 1f;
+            float rowH = 1f / members.Count;
+            for (int i = 0; i < members.Count; i++)
+            {
+                var m = members[i];
+                float sat = 50f;
+                if (BoardManager.Instance != null && BoardManager.Instance.memberSatisfaction.TryGetValue(m.id, out float v))
+                    sat = v;
+
+                var row = UIFactory.Panel(_memberRoot, "Member_" + m.id,
+                    new UIFactory.Anchor(new Vector2(0f, y - rowH), new Vector2(1f, y), Vector2.zero, Vector2.zero),
+                    new Color(0, 0, 0, 0), rounded: false);
+                row.GetComponent<Image>().raycastTarget = false;
+
+                UIFactory.Label(row.transform, "Name", $"{m.id} {m.fullName}", 12,
+                    TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(0.02f, 0.42f), new Vector2(0.62f, 0.95f), Vector2.zero, Vector2.zero),
+                    UITheme.TextPrimary);
+                UIFactory.Label(row.transform, "Faction", m.faction, 10,
+                    TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(0.02f, 0.02f), new Vector2(0.62f, 0.45f), Vector2.zero, Vector2.zero),
+                    UITheme.TextMuted);
+
+                var track = UIFactory.Panel(row.transform, "Track",
+                    new UIFactory.Anchor(new Vector2(0.64f, 0.28f), new Vector2(0.97f, 0.72f), Vector2.zero, Vector2.zero),
+                    new Color(0.05f, 0.08f, 0.12f, 1f));
+                var fillGo = UIFactory.Panel(track.transform, "Fill", UIFactory.Fill, SatColor(sat));
+                var fill = fillGo.GetComponent<Image>();
+                fill.sprite = UIFactory.RoundedSprite;
+                fill.type = Image.Type.Filled;
+                fill.fillMethod = Image.FillMethod.Horizontal;
+                fill.fillAmount = Mathf.Clamp01(sat / 100f);
+
+                y -= rowH;
+            }
+
+            if (_factionText != null)
+            {
+                var sb = new System.Text.StringBuilder("派系分布：");
+                foreach (var kv in factionCounts)
+                    sb.Append($" {kv.Key} {kv.Value}席");
+                _factionText.text = sb.ToString();
+            }
+        }
+
+        private static Color SatColor(float sat)
+        {
+            if (sat >= 70f) return UITheme.Success;
+            if (sat >= 40f) return UITheme.Warning;
+            return UITheme.Danger;
         }
     }
 }

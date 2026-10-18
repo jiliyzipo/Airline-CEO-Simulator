@@ -1,0 +1,30 @@
+{
+  "conclusion": "failed",
+  "subjectImplementationFingerprint": "ba52ba0daf508b52b3ab872d2a608465333409d0f569f103e6cc6fdde0157490",
+  "assertionsTotal": 2,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "counterScope": "Only the root review's actual smoke process: 2 checks passed. Overall rejection is based on the separately attached independent XML checks, not a fabricated smoke failure.",
+  "coverage": [
+    { "id": "AC1", "result": "passed", "evidence": "Actual fifth delivery default smoke ran successfully; review lifecycle executed by Codex." },
+    { "id": "AC2", "result": "not_run", "evidence": "New repaired delivery has not been published and independently reaccepted; original delivery still fails XML checks." },
+    { "id": "AC3", "result": "not_run", "evidence": "No claim that this root smoke process exercised the complete stale-history scenario." }
+  ],
+  "additionalChecks": {
+    "xmlOriginalDelivery": { "total": 26, "passed": 10, "failed": 16, "log": "docs/handoff/verification/CollabTool-Fifth-Independent-2026-10-18/xml-before-final.txt" },
+    "xmlCodexRepairedWorkspace": { "total": 26, "passed": 26, "failed": 0, "log": "docs/handoff/verification/CollabTool-Fifth-Independent-2026-10-18/xml-after-final.txt" },
+    "originalBoundResultIntegration": "docs/handoff/verification/CollabTool-Fifth-Independent-2026-10-18/original-integration.results.json",
+    "repairedBoundResultIntegration": "docs/handoff/verification/CollabTool-Fifth-Independent-2026-10-18/repaired-integration.results.json"
+  },
+  "issues": [
+    {
+      "title": "Fifth-delivery XML gate accepts malformed XML; Codex workspace fix awaits a new delivery and review",
+      "repro": "Select DEL-20261018022444-a55ae4/tools/collab with COLLAB_AUDIT_TOOL_SOURCE and run tools/collab/tests/xml.test.mjs; then run the independent acceptance-boundaries F07 with that subject.",
+      "expected": "Malformed XML is rejected before it can support passed; preserve valid historical NUnit sample parsing.",
+      "actual": "Original delivery accepts adjacent attributes, forbidden text/comment forms, invalid characters and declarations (16 negative checks fail). F07 reaches passed through a real bound malformed result file. Codex fixed the workspace under the user's conditional authorization; original DEL remains unchanged.",
+      "evidence": "docs/handoff/CollabTool_IndependentFifthAcceptance_and_CodexFix_2026-10-18.md",
+      "severity": "major",
+      "suggestedOwner": "codex"
+    }
+  ]
+}

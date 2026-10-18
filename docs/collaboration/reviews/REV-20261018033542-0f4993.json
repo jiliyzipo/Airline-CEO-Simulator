@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018033542-0f4993",
+  "deliveryId": "DEL-20261018033132-39a1e3",
+  "taskId": "C-ENG-UNITY",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "unity-editmode",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "c86f333ea49ac2c60d304fee522ff3ce8693f18368375aa318e877ae94d08d93",
+    "verification": "46071d9665223bcbd2fa305273884a3b9839b41406dd7061bc0039e15a53b6f0",
+    "contract": "ea6799a0496fb4970ad5faedf265f92d77ab3ed3c3904f94bdcff23afaa4cf44"
+  },
+  "snapshotPath": "out/collab/DEL-20261018033132-39a1e3",
+  "createdAt": "2026-10-18T03:35:43.538Z",
+  "updatedAt": "2026-10-18T03:40:24.216Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:35:49.038Z",
+      "finishedAt": "2026-10-18T03:39:12.527Z",
+      "runToken": "41321854c837843d",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261018033132-39a1e3",
+      "subjectImplementationFingerprint": "c86f333ea49ac2c60d304fee522ff3ce8693f18368375aa318e877ae94d08d93",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "41321854c837843d"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018033132-39a1e3",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018033542-0f4993/run-41321854c837843d/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018033542-0f4993/run-41321854c837843d/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018033542-0f4993/run-41321854c837843d/stdout.txt",
+        "sha256": "cfa383fe0ba87ecbcd5a833e185a706bc1f3d297aab4c345f802a5725eeebffc",
+        "bytes": 64,
+        "runToken": "41321854c837843d"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018033542-0f4993/run-41321854c837843d/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "41321854c837843d"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_41321854c837843d.xml",
+        "runToken": "41321854c837843d",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261018033132-39a1e3",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0",
+          "bytes": 21184,
+          "mtimeMs": 1792294749613.5754
+        },
+        "producedByRun": true,
+        "sha256": "5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 41321854c837843d in out/collab/DEL-20261018033132-39a1e3: stdout line 'NUNIT result=Passed passed=25 failed=0 skipped=0'; XML Unity Project/Logs/Tasks20261017_41321854c837843d.xml has testcasecount=25 result=Passed, suite name IsolatedBaseline_DEL-20261018033132-39a1e3, sha256 5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0 bound to runToken 41321854c837843d (before.exists=false, after.exists=true => producedByRun=true). External exit code 0."
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "Occupancy drill: a copy of a benign console program renamed Unity.exe was started (pid 6192). review-run was then invoked and refused before any execution: exitCode 4, error 'Unity occupied; close user Unity then retry', checked=true, pids=[6192]. The occupying process was still alive after the refusal (Get-Process 6192 => Unity), so the tool never closes a user Unity. The review record was untouched by the refusal (status running, runs=1, activeRunToken=null). Post-failure unity-review lease recovery is proven by the same review later finishing from its recorded run, and dead leases are reclaimed only when the lease payload names that review."
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:35:49.016Z",
+  "assertions": {
+    "total": 25,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_41321854c837843d.xml",
+      "sha256": "5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0",
+      "total": 25,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 25
+    },
+    "counters": {
+      "total": 25,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 25
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-C07-C12-2026-10-18/evidence-unity.json",
+  "finishedAt": "2026-10-18T03:40:24.216Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "41321854c837843d",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_41321854c837843d.xml",
+      "runToken": "41321854c837843d",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261018033132-39a1e3",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0",
+        "bytes": 21184,
+        "mtimeMs": 1792294749613.5754
+      },
+      "producedByRun": true,
+      "sha256": "5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018033132-39a1e3"
+  }
+}

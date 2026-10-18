@@ -1,0 +1,25 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "9df55a451d615e7b385c8b0cdbe0c38b63dbde2b91610a9d87f4dfe290c4286f",
+  "summary": "C12 定版复验：修正 freshness 的根集合来源后，smoke 链路真实执行通过。窄根集合任务（C-ENG-COMPILE/SLOT/UNITY）已恢复为 passed/current；本次交付把 stale 不再抹除历史结论的行为一并带入。",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 0eafcbaca99ee14e（out/collab/DEL-20261018035835-766dc7）exitCode=0，smoke profile 输出合法 JSON 且全部检查 ok。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "失败退回链路此前已实证（REV-20261018034555-87b436 failed → ISSUE-20261018034627-c975cb → fixing/fixed/verified/closed），旧报告不可改写；本轮新交付在同一任务上复验通过。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "本轮修复的正是“结论适用性”判断：refreshFreshness 改用 resolveTaskRoots，与快照/交付同源；stale 时保留 reviewStatus=passed 并记录 staleForReviewId。回归用例覆盖：窄根集合保持 current、根内改动转 stale 且结论保留、根外改动不影响。"
+    }
+  ],
+  "assertionsTotal": 2,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0
+}

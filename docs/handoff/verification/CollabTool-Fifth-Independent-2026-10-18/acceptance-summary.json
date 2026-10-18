@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ACCEPT-COLLAB-20261018-CODEX-05",
+  "date": "2026-10-18",
+  "actor": "codex",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "reviewId": "REV-20261018030537-cc1568",
+  "issueId": "ISSUE-20261018030616-3028cb",
+  "originalDeliveryVerdict": "failed",
+  "originalToolSourceFingerprint": "0965e49e503e24fd05a006b341a5e678bd23ca0fcfbfcdff0cb8d3f8da50d07e",
+  "originalDeliveryTests": {
+    "developer": "22/22",
+    "baseline": "24/24",
+    "supplemental": "12/12",
+    "boundary8": "8/8",
+    "frChecks": "11/11",
+    "xmlRegression": { "passed": 10, "failed": 16 },
+    "integration7": { "passed": 6, "failed": 1 }
+  },
+  "workspaceRepair": {
+    "author": "codex",
+    "authorization": "User explicitly requested Codex to repair if the next independent acceptance still failed",
+    "status": "self_tested_pending_new_delivery_and_independent_review",
+    "sourceFingerprint": "20a21c575814eb159d92f74e6cb640e7af2dd132cf98b6ac0c9af77dd5722c87",
+    "changedFiles": ["tools/collab/lib/xml.mjs", "tools/collab/tests/xml.test.mjs"],
+    "developer": "22/22",
+    "baseline": "24/24",
+    "supplemental": "12/12",
+    "boundary8": "8/8",
+    "frChecks": "11/11",
+    "xmlRegression": "26/26",
+    "integration7": "7/7"
+  },
+  "outstandingRequirements": ["C07", "C09", "C10", "C12"],
+  "productionUnchanged": true,
+  "gameTaskBookUnchanged": true,
+  "originalDeliveryUnchanged": true,
+  "realUnityExecuted": false,
+  "cleanGitCheckoutVerified": false,
+  "codexAcknowledgedRevision": 87,
+  "report": "../../CollabTool_IndependentFifthAcceptance_and_CodexFix_2026-10-18.md"
+}

@@ -1,0 +1,9 @@
+C12 端到端演练 · 第二次交付（修复后复验）
+
+本轮补齐：
+1) 失败退回与缺陷生命周期：新增 issue-update（open→fixing→fixed→verified→closed，Cursor 只能申报 fixing/fixed，Codex/user 才能 verified/closed/won't fix），缺陷状态只存在共享 state.json 一个源，CURRENT/事件同步刷新。
+2) 任务书映射的哈希方案版本化：工具自身改变哈希算法不再被误报为“条款被改动”，旧基线显式要求重录（scheme 2）。
+3) profile 声明的运行产物（tools/semcheck/semcheck_report.txt）不再被误判为夹带源码；未声明的文件仍然拒绝。
+4) 新增 3 组回归：runOutputs 归一化与拒绝源码、快照内声明产物与夹带文件对照、缺陷状态角色/转换矩阵。
+
+自测：node tools/collab/tests/collab.test.mjs 全部通过；xml.test.mjs 26/26。

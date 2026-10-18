@@ -24,6 +24,10 @@ namespace AirlineCEO.Data
         public bool isGuarantee;
         public bool completed;
         public string sourceNote;
+        /// <summary>CEO 目标清单编号（T-01~T-23），保底目标为空。</summary>
+        public string targetId;
+        /// <summary>目标难度（中/高/极高…），来自 TargetCatalog。</summary>
+        public string difficulty;
 
         public float Progress01
         {

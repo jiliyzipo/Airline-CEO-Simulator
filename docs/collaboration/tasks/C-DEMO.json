@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "C-DEMO",
+  "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
+  "revision": 1,
+  "devStatus": "rework",
+  "reviewStatus": "queued",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "仅用于 Cursor×Codex 协作工具 MVP 手动闭环演练",
+    "不得为演示而更改 T01～T06 真实验收勾选"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "claim→deliver→review-start→review-run→review-finish 可走通"
+    },
+    {
+      "id": "AC2",
+      "text": "失败可生成缺陷；修复后新交付可复验；旧报告不可覆盖"
+    },
+    {
+      "id": "AC3",
+      "text": "实现指纹变化后旧 passed 对当前代码显示 stale/待复验"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §14",
+  "createdAt": "2026-10-17T06:57:07.700Z",
+  "updatedAt": "2026-10-18T08:37:40.167Z",
+  "freshnessNote": "Latest delivery DEL-20261018035835-766dc7 review REV-20261018041820-9f4b26 failed.",
+  "staleForReviewId": "REV-20261018041820-9f4b26"
+}

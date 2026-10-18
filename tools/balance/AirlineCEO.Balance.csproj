@@ -35,6 +35,8 @@
              Link="Shared\Logic\EconomyBalanceParams.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\OpsEconomics.cs"
              Link="Shared\Logic\OpsEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\RouteFrequencyModel.cs"
+             Link="Shared\Logic\RouteFrequencyModel.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\LiveClockLogic.cs"
              Link="Shared\Logic\LiveClockLogic.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\ScheduleSlots.cs"
@@ -127,6 +129,26 @@
              Link="Shared\Logic\Telemetry.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\ModFramework.cs"
              Link="Shared\Logic\ModFramework.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\AirportGeoCatalog.cs"
+             Link="Shared\Data\AirportGeoCatalog.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\RouteGeography.cs"
+             Link="Shared\Logic\RouteGeography.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\Aircraft.cs"
+             Link="Shared\Data\Aircraft.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\AircraftCatalog.cs"
+             Link="Shared\Data\AircraftCatalog.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\AirlineProfile.cs"
+             Link="Shared\Data\AirlineProfile.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\PresetAirlines.cs"
+             Link="Shared\Data\PresetAirlines.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\TransitionTypes.cs"
+             Link="Shared\Data\TransitionTypes.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\LegacyIssue.cs"
+             Link="Shared\Data\LegacyIssue.cs" />
+    <Compile Include="$(UnityScriptsDir)\Data\AIAirline.cs"
+             Link="Shared\Data\AIAirline.cs" />
+    <Compile Include="$(UnityScriptsDir)\Systems\TakeoverWorldBuilder.cs"
+             Link="Shared\Systems\TakeoverWorldBuilder.cs" />
 
     <!-- ?????OpsScheduleLogic.cs / ExternalDataFetcher.cs ?? Aircraft(UnityEngine)
          ? AirlineCEO.Systems?????????????????????? -->

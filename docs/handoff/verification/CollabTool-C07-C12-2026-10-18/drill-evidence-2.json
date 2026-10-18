@@ -1,0 +1,25 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "d04f52b7aa29b166fd457d3ca03d9e12bfa1a40b5e2b11f4246f4148444939fc",
+  "summary": "C12 端到端演练第二次交付：claim → deliver → review-start → review-run → review-finish 全链路通过；第一次交付的缺陷经 issue-update（open→fixing→fixed）进入修复流程；实测实现指纹变化后任务显示 stale，恢复原文件后回到 current，历史 passed 报告不被覆盖。",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 809fe735a69b196e（out/collab/DEL-20261018034913-0a6e9f）exitCode=0；smoke profile stdout 为合法 JSON 且全部检查 ok。claim 时故意用过期 ack，工具以退出码 3 拒绝并给出 currentRevision=128，说明 CAS 生效。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "第一次交付 REV-20261018034555-87b436 判 failed 并生成缺陷 ISSUE-20261018034627-c975cb；随后 issue-update open→fixing（cursor）→fixed（cursor）进入修复；本次新交付复验通过。旧报告保持 failed 不可改写（review-finish 对终态返回冲突）。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "实测：修改 tools/collab/adapters/README.md 后 sync+status 显示 C-DEMO freshness=stale；按字节恢复原文件后再次 sync+status 回到 current。历史 passed 报告 REV-20261017065756-f1940a 仍为 passed，不被覆盖；旧 passed 对当前代码的适用性由 freshness 表达。"
+    }
+  ],
+  "assertionsTotal": 2,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0
+}

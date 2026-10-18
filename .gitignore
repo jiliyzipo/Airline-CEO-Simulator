@@ -24,8 +24,32 @@ Unity Project/*.userprefs
 **/~$*.docx
 **/~$*.doc
 
+# Secrets / local env
+.env
+.env.*
+!**/.env.example
+docs/API key/
+
 # 生成型产物：在仓库根运行 tools/balance 时会生成
 /STRESS_BALANCE_REPORT.md
 
 # 仓库根的一次性 scratch 样本（_brace_debug.txt / _mnt_full.txt / _saf_full.txt 等）
 /_*.txt
+
+# Isolated source exports used by the 2026-10-17 reproducibility checks.
+# All of /out is generated (exports, handoff queue, evidence); nothing under it
+# is a source input, so the whole directory is ignored rather than per-copy.
+/out/
+
+# Collab tool local locks/cache/logs and delivery snapshots (keep docs/collaboration records tracked)
+.collab-local/
+tools/collab/config.json
+
+# One-off diagnostics, scratch probes and screenshots (T02：可复现基线不含这些)
+# Verified tracked count under these paths is 0 before ignoring; see
+# docs/handoff/T02_可复现基线_2026-10-17.md 的文件分类。
+/Temp/
+/agent-tools/
+/*.txt
+/Unity Project/Screenshots/
+/Unity Project/TestResults-*.xml

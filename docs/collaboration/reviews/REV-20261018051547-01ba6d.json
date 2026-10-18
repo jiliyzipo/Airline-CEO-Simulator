@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018051547-01ba6d",
+  "deliveryId": "DEL-20261018050538-fe84c9",
+  "taskId": "C-COLLAB-FINAL",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "cancelled",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.2.0",
+  "independent": false,
+  "reviewKind": "developer-self-check",
+  "subjectFingerprints": {
+    "implementation": "1d5d9426de4039ccac057295d209b2362c7680038865cd979c2b57bc6f13233f",
+    "verification": "4619ab1a980d4171964970f28104de9b65b529601e2b2b63549f9a12131ab7a2",
+    "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+  },
+  "snapshotPath": "out/collab/DEL-20261018050538-fe84c9",
+  "createdAt": "2026-10-18T05:15:47.622Z",
+  "updatedAt": "2026-10-18T05:16:35.428Z",
+  "runs": [],
+  "coverage": [],
+  "issues": [],
+  "finishedAt": "2026-10-18T05:16:35.428Z",
+  "cancelReason": "启动前改进 doctor UnityPath 发现规则，此排队记录取消，最终交付另起 REV；原沙箱 CIM 失败记录保留",
+  "workerPid": null,
+  "activeRunToken": null
+}

@@ -12,6 +12,9 @@ namespace AirlineCEO.Systems
 
         [Range(0f, 1f)] public float eventChancePerQuarter = 0.10f;
 
+        /// <summary>重大空难每季概率（GDB 4.2 硬性失败：评级归零 → Game Over）。</summary>
+        [Range(0f, 1f)] public float fatalCrashChancePerQuarter = 0.002f;
+
         private static readonly string[] MildTitles =
         {
             "发动机轻微故障",
@@ -50,11 +53,47 @@ namespace AirlineCEO.Systems
         public string TryRollQuarterEvent(GameState gs)
         {
             if (gs == null || gs.gameOver) return "";
+
+            // 重大空难：极低概率，评级归零 → 立即 Game Over（硬性失败）
+            if (UnityEngine.Random.value < fatalCrashChancePerQuarter)
+                return TriggerFatalCrash(gs);
+
             if (UnityEngine.Random.value > eventChancePerQuarter) return "";
 
             bool moderate = UnityEngine.Random.value < 0.45f;
             var severity = moderate ? SafetyEventSeverity.Moderate : SafetyEventSeverity.Mild;
             return ApplyEvent(gs, severity);
+        }
+
+        /// <summary>重大空难：安全评级归零，立即触发 Game Over。</summary>
+        public string TriggerFatalCrash(GameState gs)
+        {
+            if (gs == null) return "";
+            SafetyRating before = gs.safetyRating;
+
+            gs.safetyRating = SafetyRating.D;
+            gs.safetyIndex = 0f;
+            gs.majorCrashOccurred = true;
+
+            var log = new SafetyEventLog
+            {
+                id = $"SE-CRASH-{gs.year}Q{gs.quarter}",
+                dateLabel = gs.DateLabel,
+                severity = SafetyEventSeverity.Moderate,
+                title = "重大空难",
+                detail = $"发生重大空难，安全评级归零（{Letter(before)} → 0）。执照吊销。",
+                ratingBefore = before,
+                ratingAfter = SafetyRating.D
+            };
+            gs.AddSafetyEventLog(log);
+            gs.AddDecisionLog("安全：重大空难，安全评级归零！");
+
+            gs.gameOver = true;
+            gs.gameOverVictory = false;
+            gs.gameOverReason = "重大空难：安全评级归零，运营执照被吊销。游戏结束。";
+            gs.NotifyChanged();
+
+            return "🚨 重大空难！安全评级归零，运营执照被吊销，游戏结束。";
         }
 
         public string ApplyEvent(GameState gs, SafetyEventSeverity severity)

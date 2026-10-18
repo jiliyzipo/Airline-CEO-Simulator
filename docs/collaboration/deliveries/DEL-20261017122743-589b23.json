@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "deliveryId": "DEL-20261017122743-589b23",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "tool": "cursor",
+  "model": "deepseek-v4.1-flash",
+  "summary": "Third-round delivery for ACCEPT-COLLAB-20261017-CODEX-02 (RQ-01..RQ-07).\nMachine-result parsing/binding, full snapshot set validation + overlay identity,\nper-review resource lock ownership, review state machine (cancel not overwritten),\nsync transaction boundary + index reconciliation, strict schemas for all record kinds,\nverification-owned test inputs excluded from implementation identity.\nSuites: baseline24 24/24, supplemental 12/12, developer tests 13/13.\nNot complete: real Unity integration run (C07), task-book dynamic mapping (C09),\nhook end-to-end (C10), full no-JSON daily workflow (C12).",
+  "files": {
+    "changedNote": "see fingerprints.implementation.entries / git porcelain"
+  },
+  "businessRisk": "none stated",
+  "selfTest": {
+    "performed": true,
+    "notes": "developer self-test; not independent acceptance"
+  },
+  "knownGaps": [],
+  "git": {
+    "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+    "dirty": true,
+    "cleanGitCheckoutVerified": false,
+    "sourceIncludesUncommittedFiles": true
+  },
+  "fingerprints": {
+    "schemaVersion": 1,
+    "fingerprintPolicyVersion": 1,
+    "computedAt": "2026-10-17T12:27:43.479Z",
+    "git": {
+      "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+      "dirty": true,
+      "cleanGitCheckoutVerified": false,
+      "sourceIncludesUncommittedFiles": true
+    },
+    "implementation": {
+      "fingerprint": "03af17c8136c52ef292f4420f5558bd72b9480c39b00d8c41c0dca9c693acc6c",
+      "fileCount": 15,
+      "entries": [
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 3146,
+          "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 4405,
+          "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 2164,
+          "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 2164,
+          "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 51739,
+          "sha256": "240331a79272ff73552ef72a05adc794ac23b4cd29c6855a3bac2e898341249b",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 9073,
+          "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 3941,
+          "sha256": "5d1d090d0ea2a299f2c98c0d0e8e2997dc913455b7f8badfe720c2f8d0cf9c05",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 9894,
+          "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 17789,
+          "sha256": "b5fddd71c536cc5824f9d1ff5bbdabba640cb9d5e848ed4498756ab7aa7493c7",
+          "tracked": false
+        }
+      ],
+      "roots": [
+        "tools/collab"
+      ]
+    },
+    "verification": {
+      "fingerprint": "4de91eb36478a57ee706d57a78ac5688e7bfd65d7a51956481f10ce7a0e11104",
+      "fileCount": 18,
+      "entries": [
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 3146,
+          "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 4405,
+          "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 2164,
+          "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 2164,
+          "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 51739,
+          "sha256": "240331a79272ff73552ef72a05adc794ac23b4cd29c6855a3bac2e898341249b",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 9073,
+          "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 3941,
+          "sha256": "5d1d090d0ea2a299f2c98c0d0e8e2997dc913455b7f8badfe720c2f8d0cf9c05",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 9894,
+          "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 17789,
+          "sha256": "b5fddd71c536cc5824f9d1ff5bbdabba640cb9d5e848ed4498756ab7aa7493c7",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/collab.test.mjs",
+          "bytes": 6762,
+          "sha256": "7684f13409b6ee6e3c2396ac96e0301b11fa973d47108f1fb71765b07f7987f9",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/smoke-profile.mjs",
+          "bytes": 759,
+          "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/stale-marker.txt",
+          "bytes": 20,
+          "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+          "tracked": false
+        }
+      ],
+      "roots": [
+        "tools/collab"
+      ]
+    },
+    "contract": {
+      "fingerprint": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043",
+      "fileCount": 1,
+      "entries": [
+        {
+          "path": "(stable-contract-payload)",
+          "bytes": 735,
+          "sha256": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+        }
+      ]
+    }
+  },
+  "recommendedProfiles": [
+    "smoke"
+  ],
+  "snapshotPath": "out/collab/DEL-20261017122743-589b23",
+  "snapshotManifest": {
+    "sourceFingerprint": "4de91eb36478a57ee706d57a78ac5688e7bfd65d7a51956481f10ce7a0e11104",
+    "copiedFileCount": 18,
+    "cleanGitCheckoutVerified": false,
+    "entries": [
+      {
+        "path": "tools/collab/adapters/codex-hooks.toml.example",
+        "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+        "bytes": 300,
+        "snapshotSha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0"
+      },
+      {
+        "path": "tools/collab/adapters/cursor-hooks.json.example",
+        "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+        "bytes": 434,
+        "snapshotSha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf"
+      },
+      {
+        "path": "tools/collab/adapters/README.md",
+        "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+        "bytes": 770,
+        "snapshotSha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a"
+      },
+      {
+        "path": "tools/collab/cli.mjs",
+        "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+        "bytes": 3146,
+        "snapshotSha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687"
+      },
+      {
+        "path": "tools/collab/Collab.ps1",
+        "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+        "bytes": 4405,
+        "snapshotSha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f"
+      },
+      {
+        "path": "tools/collab/config.example.json",
+        "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+        "bytes": 2164,
+        "snapshotSha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c"
+      },
+      {
+        "path": "tools/collab/config.json",
+        "sha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c",
+        "bytes": 2164,
+        "snapshotSha256": "90465454146d5522d9592c477fcec40feed30429a95d0ee1050b6156a2b9d57c"
+      },
+      {
+        "path": "tools/collab/lib/commands.mjs",
+        "sha256": "240331a79272ff73552ef72a05adc794ac23b4cd29c6855a3bac2e898341249b",
+        "bytes": 51739,
+        "snapshotSha256": "240331a79272ff73552ef72a05adc794ac23b4cd29c6855a3bac2e898341249b"
+      },
+      {
+        "path": "tools/collab/lib/exit.mjs",
+        "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+        "bytes": 378,
+        "snapshotSha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08"
+      },
+      {
+        "path": "tools/collab/lib/fingerprint.mjs",
+        "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+        "bytes": 9073,
+        "snapshotSha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4"
+      },
+      {
+        "path": "tools/collab/lib/io.mjs",
+        "sha256": "5d1d090d0ea2a299f2c98c0d0e8e2997dc913455b7f8badfe720c2f8d0cf9c05",
+        "bytes": 3941,
+        "snapshotSha256": "5d1d090d0ea2a299f2c98c0d0e8e2997dc913455b7f8badfe720c2f8d0cf9c05"
+      },
+      {
+        "path": "tools/collab/lib/paths.mjs",
+        "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+        "bytes": 1932,
+        "snapshotSha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66"
+      },
+      {
+        "path": "tools/collab/lib/schemas.mjs",
+        "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+        "bytes": 9894,
+        "snapshotSha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3"
+      },
+      {
+        "path": "tools/collab/lib/snapshot.mjs",
+        "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+        "bytes": 3919,
+        "snapshotSha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca"
+      },
+      {
+        "path": "tools/collab/lib/state.mjs",
+        "sha256": "b5fddd71c536cc5824f9d1ff5bbdabba640cb9d5e848ed4498756ab7aa7493c7",
+        "bytes": 17789,
+        "snapshotSha256": "b5fddd71c536cc5824f9d1ff5bbdabba640cb9d5e848ed4498756ab7aa7493c7"
+      },
+      {
+        "path": "tools/collab/tests/collab.test.mjs",
+        "sha256": "7684f13409b6ee6e3c2396ac96e0301b11fa973d47108f1fb71765b07f7987f9",
+        "bytes": 6762,
+        "snapshotSha256": "7684f13409b6ee6e3c2396ac96e0301b11fa973d47108f1fb71765b07f7987f9"
+      },
+      {
+        "path": "tools/collab/tests/smoke-profile.mjs",
+        "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+        "bytes": 759,
+        "snapshotSha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c"
+      },
+      {
+        "path": "tools/collab/tests/stale-marker.txt",
+        "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+        "bytes": 20,
+        "snapshotSha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1"
+      }
+    ]
+  },
+  "independentReviewPassed": false,
+  "createdAt": "2026-10-17T12:27:43.539Z"
+}

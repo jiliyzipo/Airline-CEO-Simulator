@@ -28,6 +28,15 @@ internal static class Program
         if (args.Contains("--routefixed"))
             return RunRouteFixedCostReport();
 
+        if (args.Contains("--freq"))
+            return FrequencyReport.Run();
+
+        if (args.Contains("--frequniverse"))
+            return UniverseFrequencyReport.Run();
+
+        if (args.Contains("--fleetcheck"))
+            return FleetNetworkReport.Run();
+
         if (args.Contains("--channels"))
         {
             float shortage = ParseFloat(args, "--shortage", 60f);
@@ -105,7 +114,9 @@ internal static class Program
         Console.WriteLine($"失控组合(RUNAWAY)             : {runaway}");
         Console.WriteLine(bad == 0
             ? "结论：无破产/告急组合，数值安全。"
-            : $"结论：{bad} 个告急组合均落在「滞胀」最坏宏观，属真实难度梯度（详见报告）。");
+            : $"结论：{bad} 个告急组合分布为 " + string.Join("、", results
+                .Where(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW")
+                .GroupBy(r => r.Scenario).Select(g => $"{g.Key} {g.Count()}")) + "；需逐情景判断，不自动视为健康。");
         return bad == 0 ? 0 : 1;
     }
 
@@ -187,7 +198,9 @@ internal static class Program
         }
 
         lines.Add("");
-        lines.Add("## 本次调优（Phase 4 数值落地）");
+        lines.Add("## 沿用的历史参数基线（Phase 4 数值落地）");
+        lines.Add("");
+        lines.Add("以下为既有参数；本报告不表示本轮实施了这些调参，也不代表 Runtime 的逐班执飞、机组与存档模型已覆盖。");
         lines.Add("");
         lines.Add("- **固定开销按机队规模分段**：新增 `EconomyBalanceParams.FixedMonthlyOpexFor(n) = 20 + 15×n`。5 机基准仍为 95 万/月（回归基线不变），3 机降到 65、6 机升到 110，修复「小机队被固定开销压垮」。");
         lines.Add("- **低成本 yield 折价**：`RouteTemplate.YieldMultiplier` 接入 `RPMCalculator`（新增 `yieldMultiplier` 字段，默认 1.0 不变）。LCC 4 条航线设 0.85，即低成本票价较全服务低约 15%。");
@@ -212,7 +225,10 @@ internal static class Program
         if (bad == 0 && runaway == 0)
             lines.Add("- 60 组合全部落于绿色区间，数值梯度健康，无需调参。");
         else if (runaway == 0)
-            lines.Add("- **结论**：LCC 失控已消除；仅小/窄体航司在最坏「滞胀」情景下告急，作为难度上限信号保留，无需进一步调参。");
+            lines.Add("- **结论**：本次无 RUNAWAY，但仍有告急。情景分布：" + string.Join("、", results
+                .Where(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW")
+                .GroupBy(r => r.Scenario).Select(g => $"{g.Key} {g.Count()}"))
+                + "。需逐项分析，不能据此宣布平衡验收通过。");
 
         return string.Join("\n", lines);
     }

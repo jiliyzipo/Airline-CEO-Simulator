@@ -71,7 +71,7 @@ namespace AirlineCEO.UI
             float w = 0.28f;
             float gap = 0.03f;
             float start = 0.06f;
-            for (int i = 0; i < types.Count; i++)
+            for (int i = 0; i < types.Count && i < 5; i++)
             {
                 var t = types[i];
                 float x0 = start + i * (w + gap);

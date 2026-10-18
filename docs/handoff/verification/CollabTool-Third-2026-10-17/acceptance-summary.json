@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ACCEPT-COLLAB-20261017-CODEX-03",
+  "actor": "codex",
+  "date": "2026-10-17",
+  "deliveryId": "DEL-20261017122743-589b23",
+  "conclusion": "failed",
+  "scope": "Independent section 14 acceptance; current tools and delivery tools tested separately and serially in fixtures; no real Unity execution",
+  "toolSourceFingerprint": "4de91eb36478a57ee706d57a78ac5688e7bfd65d7a51956481f10ce7a0e11104",
+  "deliveryImplementationFingerprint": "03af17c8136c52ef292f4420f5558bd72b9480c39b00d8c41c0dca9c693acc6c",
+  "sourceMatchesBetweenDeliveryAndWorkspace": true,
+  "perSubject": {
+    "developerTests": { "passed": 13, "failed": 0 },
+    "baseline24": { "passed": 24, "failed": 0 },
+    "supplemental12": { "passed": 12, "failed": 0 },
+    "boundary8": { "passed": 0, "failed": 8 }
+  },
+  "findings": [
+    { "id": "TH-01", "tests": ["T01", "T02"], "severity": "blocking", "summary": "Unstructured output or fallback from malformed required result file can still pass" },
+    { "id": "TH-02", "tests": ["T03", "T04"], "severity": "blocking", "summary": "Missing NUnit attributes become zero and failed cases contradicting root counters are ignored" },
+    { "id": "TH-03", "tests": ["T05"], "severity": "blocking", "summary": "Pre-existing result file can stand in for current execution result" },
+    { "id": "TH-04", "tests": ["T06"], "severity": "blocking", "summary": "Execution-time snapshot source mutation is not rejected at run end or finish" },
+    { "id": "TH-05", "tests": ["T07"], "severity": "blocking", "summary": "Two processes execute the same active review command twice" },
+    { "id": "TH-06", "tests": ["T08"], "severity": "high", "summary": "Generated build output prevents another review using the same snapshot" }
+  ],
+  "developerDeclaredIncomplete": ["C07", "C09", "C10", "C12"],
+  "evidence": ["delivery-baseline24-results.json", "current-baseline24-results.json", "delivery-supplemental-results.json", "current-supplemental-results.json", "delivery-edge-results.json", "current-edge-results.json"],
+  "report": "../../CollabTool_IndependentThirdAcceptance_2026-10-17.md",
+  "productionUnchanged": true,
+  "implementationChangedByAuditor": false
+}

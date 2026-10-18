@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018041820-9f4b26",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "smoke",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "9df55a451d615e7b385c8b0cdbe0c38b63dbde2b91610a9d87f4dfe290c4286f",
+    "verification": "d328aa967d26b8c121a92f734849a13c634d934ed097f635c3527a31cf60444c",
+    "contract": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+  },
+  "snapshotPath": "out/collab/DEL-20261018035835-766dc7",
+  "createdAt": "2026-10-18T04:18:20.033Z",
+  "updatedAt": "2026-10-18T04:18:47.944Z",
+  "runs": [
+    {
+      "at": "2026-10-18T04:18:20.594Z",
+      "finishedAt": "2026-10-18T04:18:20.694Z",
+      "runToken": "71a5b656b18c0caf",
+      "profile": "smoke",
+      "deliveryId": "DEL-20261018035835-766dc7",
+      "subjectImplementationFingerprint": "9df55a451d615e7b385c8b0cdbe0c38b63dbde2b91610a9d87f4dfe290c4286f",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018035835-766dc7",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018041820-9f4b26/run-71a5b656b18c0caf/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018041820-9f4b26/run-71a5b656b18c0caf/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018041820-9f4b26/run-71a5b656b18c0caf/stdout.txt",
+        "sha256": "8710903b59074409ecbc95b37fb6719ebc373b28865e9cdbd7e433a44b910e35",
+        "bytes": 282,
+        "runToken": "71a5b656b18c0caf"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018041820-9f4b26/run-71a5b656b18c0caf/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "71a5b656b18c0caf"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "Codex ran the actual delivered smoke: external exit 0, 2 checks passed, bound stdout/stderr."
+    },
+    {
+      "id": "AC2",
+      "result": "not_run",
+      "evidence": "The new Codex workspace repairs have no replacement delivery and independent acceptance yet."
+    },
+    {
+      "id": "AC3",
+      "result": "not_run",
+      "evidence": "Scope is closure gate/Hook audit; not claiming this smoke reexercised every freshness scenario."
+    }
+  ],
+  "issues": [
+    "ISSUE-20261018041847-27c5bf"
+  ],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T04:18:20.568Z",
+  "assertions": {
+    "total": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/review-evidence.json",
+  "finishedAt": "2026-10-18T04:18:47.944Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": false,
+    "change": {
+      "implementationChanged": true,
+      "verificationChanged": true,
+      "contractChanged": false,
+      "staleForCurrentCode": true,
+      "verificationBaselineChanged": true,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "71a5b656b18c0caf",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018035835-766dc7"
+  }
+}

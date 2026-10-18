@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018073933-56a42e",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 197,
+  "at": "2026-10-18T07:39:33.117Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "reviewId": "REV-20261018041820-9f4b26",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018041847-27c5bf: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261018041847-27c5bf",
+    "from": "fixed",
+    "to": "verified",
+    "note": "Verified against independent Cursor REV-20261018072743-74a233 for replacement DEL-20261018071756-010504: closure13, full112, external24/12/8, XML12, bound log SHA and snapshot35 checked in codex-closeout-audit.json. C10 manual mode accepted; native Hooks not verified. Old failed delivery stays historical."
+  }
+}

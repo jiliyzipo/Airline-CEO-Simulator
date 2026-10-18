@@ -1,0 +1,27 @@
+PASS adjacent attributes
+PASS CDATA terminator in text
+PASS double hyphen in comment
+PASS comment ends in hyphen
+PASS raw control character
+PASS decimal control reference
+PASS hex surrogate reference
+PASS noncharacter reference
+PASS misplaced XML declaration
+PASS declaration after whitespace
+PASS invalid declaration content
+PASS non-XML whitespace in declaration
+PASS duplicate XML declaration
+PASS reserved PI target
+PASS empty PI target
+PASS unvalidated doctype rejected
+PASS truncated document
+PASS nested tag mismatch
+PASS duplicate root
+PASS valid single quoted attributes
+PASS valid Unicode and entities
+PASS valid encoded text terminator
+PASS valid CDATA
+PASS valid declaration
+PASS valid PI and comments
+PASS valid attribute whitespace
+SUMMARY 26/26 XML gates passed; 0 failed; source=C:\Users\jiliy\Airline-CEO-Simulator\out\collab\DEL-20261018071756-010504\tools\collab

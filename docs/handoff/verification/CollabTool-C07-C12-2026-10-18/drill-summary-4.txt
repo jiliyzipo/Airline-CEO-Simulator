@@ -1,0 +1,12 @@
+C12 定版复验 4（freshness 根集合修复）
+
+本轮修复一个真实缺陷：`refreshFreshness` 之前用项目默认根集合重算指纹，而交付是按任务声明的 `snapshotRoots` 计算的，
+于是固定了窄根集合的任务（C-ENG-COMPILE/SLOT/UNITY）会被永久判为 stale，并在 stale 分支里把 `reviewStatus=passed`
+降级成 `not_run` —— 等于工具自己的 bug 抹掉真实检测结论。
+
+修复：
+1) 新鲜度比较改用 `resolveTaskRoots`，与交付、快照完全同源；
+2) stale 不再清除历史结论：`reviewStatus` 保持 passed，另记 `staleForReviewId`，由 `freshness`+`freshnessNote` 表达“待复验”；
+3) 新增回归：窄根集合任务保持 current、根内改动转 stale 且结论保留、根外改动不影响。
+
+自测：collab.test.mjs 全过。

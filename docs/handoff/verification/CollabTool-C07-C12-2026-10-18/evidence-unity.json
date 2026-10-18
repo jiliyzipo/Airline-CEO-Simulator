@@ -1,0 +1,25 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "c86f333ea49ac2c60d304fee522ff3ce8693f18368375aa318e877ae94d08d93",
+  "summary": "unity-editmode profile executed the real tools/regression/RunUnityTests.ps1 inside the isolated delivery snapshot. The NUnit XML produced by this very run reports 25/25 passed. A live occupancy drill (a benign process renamed Unity.exe) proved the tool refuses to start a second batchmode, reports the occupying PID, and never terminates the process.",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 41321854c837843d in out/collab/DEL-20261018033132-39a1e3: stdout line 'NUNIT result=Passed passed=25 failed=0 skipped=0'; XML Unity Project/Logs/Tasks20261017_41321854c837843d.xml has testcasecount=25 result=Passed, suite name IsolatedBaseline_DEL-20261018033132-39a1e3, sha256 5b8dbf5f2d58125c5b0af2a7dde3a089d491b6fc6751f2da229f6825f37afbf0 bound to runToken 41321854c837843d (before.exists=false, after.exists=true => producedByRun=true). External exit code 0."
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "Occupancy drill: a copy of a benign console program renamed Unity.exe was started (pid 6192). review-run was then invoked and refused before any execution: exitCode 4, error 'Unity occupied; close user Unity then retry', checked=true, pids=[6192]. The occupying process was still alive after the refusal (Get-Process 6192 => Unity), so the tool never closes a user Unity. The review record was untouched by the refusal (status running, runs=1, activeRunToken=null). Post-failure unity-review lease recovery is proven by the same review later finishing from its recorded run, and dead leases are reclaimed only when the lease payload names that review."
+    }
+  ],
+  "assertionsTotal": 25,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "notes": [
+    "The simulated Unity.exe was a renamed copy of a stock Windows console program used solely to exercise process detection; it was stopped by the operator after the drill. No real Unity instance was started or closed.",
+    "postSnapshot.ok=true: no editor-generated artifacts (csproj/sln/.vsconfig/UserSettings) were mistaken for smuggled files.",
+    "No game code was modified, the user's Unity was never touched, nothing was committed or pushed."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [{"command": "node tools/collab/adapters/client-hook.mjs cursor sessionStart"}],
+    "afterFileEdit": [{"command": "node tools/collab/adapters/client-hook.mjs cursor afterFileEdit"}],
+    "stop": [{"command": "node tools/collab/adapters/client-hook.mjs cursor stop"}]
+  }
+}

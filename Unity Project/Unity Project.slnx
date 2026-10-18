@@ -1,4 +1,6 @@
 ﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="AirlineCEO.Runtime.csproj" />
+  <Project Path="AirlineCEO.PlayModeTests.csproj" />
+  <Project Path="AirlineCEO.Editor.csproj" />
+  <Project Path="AirlineCEO.EditModeTests.csproj" />
 </Solution>

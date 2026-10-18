@@ -1,0 +1,387 @@
+
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>燃油对冲_锁价方式扩展_开发指令</title>
+                <!--[if gte mso 9]>
+                <xml>
+                    <w:WordDocument>
+                        <w:View>Print</w:View>
+                        <w:Zoom>100</w:Zoom>
+                    </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { background: #ffffff; color: #1e2a3a; font-family: 'Segoe UI', Arial, sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 30px; line-height: 1.6; }
+                    h1, h2, h3, h4 { color: #0b1a33; margin-top: 1.8em; border-bottom: 1px solid #e0e7ef; padding-bottom: 0.3em; }
+                    h1 { font-size: 2.2em; border-bottom: 3px solid #1a5cff; text-align: center; }
+                    h2 { font-size: 1.7em; border-bottom-width: 2px; }
+                    h3 { font-size: 1.3em; border-bottom: none; }
+                    h4 { font-size: 1.1em; border-bottom: none; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #d0d8e0; padding: 10px 14px; vertical-align: top; }
+                    th { background: #eef3f8; }
+                    .code-block { background: #f4f7fa; border-left: 4px solid #1a5cff; padding: 18px 22px; margin: 18px 0; white-space: pre-wrap; word-break: break-word; font-family: monospace; font-size: 0.9rem; line-height: 1.6; }
+                    .code-block .label { font-family: 'Segoe UI', sans-serif; font-weight: 700; color: #0b1a33; display: block; margin-bottom: 8px; }
+                    .footnote { background: #f0f6ff; border-left: 5px solid #1a5cff; padding: 12px 20px; margin: 20px 0; }
+                    .status-pending { color: #ff8c00; font-weight: 700; }
+                    .status-done { color: #00a854; font-weight: 700; }
+                    ul, ol { padding-left: 24px; margin: 12px 0; }
+                    li { margin: 6px 0; }
+                    hr { border: 0; border-top: 2px dashed #d0d8e0; margin: 40px 0; }
+                    .footer { margin-top: 50px; border-top: 1px solid #d0d8e0; padding-top: 20px; font-size: 0.9rem; color: #5a6a7a; text-align: center; }
+                    .download-btn { display: none; }
+                    .btn-wrapper { display: none; }
+                    .highlight-box { background: #f7faff; border: 1px solid #c0d0e0; padding: 14px 18px; margin: 12px 0; }
+                    .comparison-table td:first-child { font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                
+
+    <div class="btn-wrapper">
+        <button class="download-btn" onclick="downloadWord()">📥 下载 Word 文档 (.doc)</button>
+    </div>
+
+    <h1>✈️ 燃油对冲 · 锁价方式扩展 · 开发指令</h1>
+    <p style="text-align:center; font-size:1.05rem; color:#2a3a4a;">
+        基于 <strong>Phase 9 燃油对冲系统</strong> · 增加第三个决策维度
+    </p>
+
+    <div class="footnote">
+        <strong>📌 设计目标：</strong> 在原有“对冲比例 + 对冲月数”的基础上，增加 <strong>「锁价方式」</strong> 选择（固定价 / 区间价 / 看涨期权），让玩家在财务风险管理中做出更真实的策略权衡。
+    </div>
+
+    <hr>
+
+    <h2>🎯 三种锁价方式对比</h2>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th style="width:15%;">锁价方式</th>
+                <th style="width:30%;">结算逻辑</th>
+                <th style="width:25%;">成本</th>
+                <th style="width:30%;">适合油价预期</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>固定价</strong></td>
+                <td>按锁定价结算，无论市价如何</td>
+                <td>锁定溢价 3%～8%</td>
+                <td>看涨，希望彻底消除不确定性</td>
+            </tr>
+            <tr>
+                <td><strong>区间价</strong></td>
+                <td>市价在 [下限, 上限] 内无损益，超出按边界结算</td>
+                <td>零额外成本</td>
+                <td>认为油价将震荡</td>
+            </tr>
+            <tr>
+                <td><strong>看涨期权</strong></td>
+                <td>市价 &gt; 锁定价 → 盈利；否则仅损失权利金</td>
+                <td>权利金（市价 × 0.5% × 月数）</td>
+                <td>看涨但担心下跌，希望买“保险”</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>🚀 给 Cursor 的完整开发指令</h2>
+    <p>请将以下内容<b>完整复制</b>到 Cursor 对话框，由 AI 生成代码：</p>
+
+    <div class="code-block">
+        <span class="label">📋 指令开始 ————————</span>
+请基于 Airline_CEO_Dev_Task_v1.5.md 的 Phase 9 架构，在燃油对冲系统中增加「锁价方式」选择功能。
+
+【背景】
+当前对冲只有“比例 + 月数”两个维度。现在需要增加第三个维度“锁价方式”，让玩家在三种策略中选择，增加财务决策深度。
+
+【三种锁价方式定义】
+
+1. 固定价（Fixed）
+   - 玩家锁定一个具体价格（当前市价 × 1.03～1.08）
+   - 结算逻辑：无论市价如何，按锁定价结算
+   - UI 标签：「固定价锁死」
+   - 适用场景：看涨油价，希望彻底消除不确定性
+
+2. 区间价（Collar）
+   - 玩家设置一个价格区间 [下限, 上限]（当前市价 ±5%～10%）
+   - 结算逻辑：
+     - 市价在区间内 → 按市价结算（无对冲损益）
+     - 市价 &gt; 上限 → 按上限结算（盈利，但被“削顶”）
+     - 市价 &lt; 下限 → 按下限结算（亏损，但被“保底”）
+   - 备注：不需要支付额外溢价
+   - UI 标签：「区间震荡保护」
+   - 适用场景：认为油价会震荡，希望降低对冲成本
+
+3. 看涨期权（Call Option）
+   - 玩家支付一笔“权利金”（当前市价 × 0.5% × 月数），获得“上涨保险”
+   - 结算逻辑：
+     - 市价 &gt; 锁定价 → 按锁定价结算（盈利）
+     - 市价 ≤ 锁定价 → 不行权，权利金亏损
+   - 权利金在开仓时立即扣除
+   - UI 标签：「期权保险」
+   - 适用场景：想防涨，但不想承担跌价损失
+
+【数据结构扩展】
+在 HedgeContract 中新增：
+- public string lockType;        // "fixed", "collar", "call"
+- public float floorPrice;       // 区间价下限（仅 collar 使用）
+- public float capPrice;         // 区间价上限（仅 collar 使用）
+- public float premiumPaid;      // 权利金（仅 call 使用）
+
+【UI 扩展】
+在财务面板的对冲区域中，增加第三个控件：
+- 标签：「锁价方式」
+- 三个按钮/下拉选项：固定价 / 区间价 / 看涨期权
+- 默认选中「固定价」
+- 选择「区间价」时，显示两个滑块：下限（-5%～-10%）和上限（+5%～+10%）
+- 选择「看涨期权」时，显示权利金预览（当前市价 × 0.5% × 月数），确认时自动扣除
+
+【结算逻辑修改】
+在 HedgeManager.SettleContract() 中，根据 lockType 分别处理：
+
+switch (lockType) {
+    case "fixed":
+        损益 = quantity × (lockPrice - marketPrice);
+        break;
+    case "collar":
+        if (marketPrice &gt; capPrice) 损益 = quantity × (capPrice - marketPrice);
+        else if (marketPrice &lt; floorPrice) 损益 = quantity × (floorPrice - marketPrice);
+        else 损益 = 0;
+        break;
+    case "call":
+        if (marketPrice &gt; lockPrice) 损益 = quantity × (lockPrice - marketPrice);
+        else 损益 = 0;  // 不行权
+        break;
+}
+
+【验收标准】
+1. 财务面板显示三种锁价方式选项，默认选中「固定价」
+2. 选择「区间价」时，下限/上限滑块出现并可调
+3. 选择「看涨期权」时，权利金预览正确，确认后现金立即扣除权利金
+4. 三种方式在季度结算时的损益计算正确：
+   - 固定价：按锁定价结算
+   - 区间价：市价在区间内无损益，超出按边界结算
+   - 看涨期权：市价 &gt; 锁定价盈利，否则权利金亏损
+5. 存档 F5/F9 后，锁价方式及所有参数完整恢复
+
+完成后告诉我修改了哪些文件，并提供 Play 模式下测试步骤。
+        <span class="label">———————— 指令结束</span>
+    </div>
+
+    <hr>
+
+    <h2>📋 任务清单（Checklist）</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:8%;">序号</th>
+                <th style="width:37%;">任务</th>
+                <th style="width:30%;">文件</th>
+                <th style="width:25%;">状态</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>在 <code>HedgeContract</code> 中新增 <code>lockType</code>、<code>floorPrice</code>、<code>capPrice</code>、<code>premiumPaid</code></td>
+                <td><code>Systems/GameState.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>修改 <code>HedgeManager.CreateHedge()</code>：根据 <code>lockType</code> 计算锁定价/区间/权利金</td>
+                <td><code>Systems/HedgeManager.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>修改 <code>HedgeManager.SettleContract()</code>：按 <code>lockType</code> 分别结算损益</td>
+                <td><code>Systems/HedgeManager.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>修改 <code>FinancePanelUI</code>：增加锁价方式选择控件（三个按钮/下拉）</td>
+                <td><code>UI/FinancePanelUI.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>在 <code>FinancePanelUI</code> 中增加区间价滑块和权利金预览</td>
+                <td><code>UI/FinancePanelUI.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>修改 <code>SaveManager</code>：增加 <code>lockType</code>、<code>floorPrice</code>、<code>capPrice</code>、<code>premiumPaid</code> 存档</td>
+                <td><code>Systems/SaveManager.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>在 Debug 菜单中增加 <code>Debug/Force Oil Price Spike</code>（快速测试期权）</td>
+                <td><code>Editor/Phase9DebugMenu.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>更新 <code>Setup MVP Scene Objects</code>，确保新控件被创建</td>
+                <td><code>Editor/SetupMVPScene.cs</code></td>
+                <td><span class="status-pending">⬜ 待开发</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>✅ 验证条件（验收标准）</h2>
+
+    <h3>1. 固定价验证</h3>
+    <ul>
+        <li>选择「固定价」，锁定价显示为 $892.5/吨（850×1.05）</li>
+        <li>推进季度，若市价 $900，则盈利 $（900-892.5）× 对冲量</li>
+        <li>若市价 $800，则亏损 $（800-892.5）× 对冲量</li>
+    </ul>
+
+    <h3>2. 区间价验证</h3>
+    <ul>
+        <li>选择「区间价」，设置下限 -5%（$807.5）、上限 +5%（$892.5）</li>
+        <li>若季度均价 $860（在区间内）→ 损益为 0（不赚不赔）</li>
+        <li>若季度均价 $920（超过上限）→ 按 $892.5 结算（盈利被削顶）</li>
+        <li>若季度均价 $780（低于下限）→ 按 $807.5 结算（亏损被保底）</li>
+    </ul>
+
+    <h3>3. 看涨期权验证</h3>
+    <ul>
+        <li>选择「看涨期权」，锁定价 $892.5，权利金 $850×0.5%×6 = $25.5/吨</li>
+        <li>确认后现金立即扣除权利金总额</li>
+        <li>若季度均价 $900 → 执行盈利（按 $892.5 结算）</li>
+        <li>若季度均价 $850 → 不行权，仅亏损权利金</li>
+    </ul>
+
+    <h3>4. 存档验证</h3>
+    <ul>
+        <li>任意锁价方式确认后 F5 存档，F9 读档</li>
+        <li>锁价方式、所有参数（锁定价/上下限/权利金）完整恢复</li>
+    </ul>
+
+    <h3>5. UI 交互验证</h3>
+    <ul>
+        <li>三种锁价方式按钮可切换</li>
+        <li>选择「区间价」时，下限/上限滑块出现并可拖拽</li>
+        <li>选择「看涨期权」时，权利金预览数字正确</li>
+    </ul>
+
+    <hr>
+
+    <h2>📊 锁价方式策略对照</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>锁价方式</th>
+                <th>适合的油价预期</th>
+                <th>成本</th>
+                <th>风险特征</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>固定价</strong></td>
+                <td>看涨</td>
+                <td>3%～8% 溢价</td>
+                <td>方向看错会亏损，但完全锁定</td>
+            </tr>
+            <tr>
+                <td><strong>区间价</strong></td>
+                <td>震荡</td>
+                <td>零额外成本</td>
+                <td>零成本，但突破区间后有盈亏</td>
+            </tr>
+            <tr>
+                <td><strong>看涨期权</strong></td>
+                <td>看涨但担心下跌</td>
+                <td>权利金（0.5%/月）</td>
+                <td>成本高，但下跌时不受损</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footnote" style="background: #eaf3ff; border-left-color: #1a5cff;">
+        <p><strong>🎯 验收通过标志：</strong> 玩家能够在财务面板中切换三种锁价方式，每种方式的结算逻辑正确，且存档读档后状态完整恢复。</p>
+        <p style="margin-top:8px;"><strong>📌 下一步：</strong> 此功能完成后，燃油对冲系统将具备“比例 + 月数 + 锁价方式”三个完整决策维度，可与融资系统一起构成 Phase 9 的完整财务风险管理模块。</p>
+    </div>
+
+    <hr>
+
+    <div class="footer">
+        <p>📅 生成日期：2026-08-01 · 基于 Airline_CEO_Dev_Task_v1.5.md 与 Phase 9 架构</p>
+    </div>
+
+    <script>
+        function downloadWord() {
+            var content = document.documentElement.outerHTML;
+            var fullHtml = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>燃油对冲_锁价方式扩展_开发指令</title>
+                <!--[if gte mso 9]>
+                <xml>
+                    <w:WordDocument>
+                        <w:View>Print</w:View>
+                        <w:Zoom>100</w:Zoom>
+                    </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { background: #ffffff; color: #1e2a3a; font-family: 'Segoe UI', Arial, sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 30px; line-height: 1.6; }
+                    h1, h2, h3, h4 { color: #0b1a33; margin-top: 1.8em; border-bottom: 1px solid #e0e7ef; padding-bottom: 0.3em; }
+                    h1 { font-size: 2.2em; border-bottom: 3px solid #1a5cff; text-align: center; }
+                    h2 { font-size: 1.7em; border-bottom-width: 2px; }
+                    h3 { font-size: 1.3em; border-bottom: none; }
+                    h4 { font-size: 1.1em; border-bottom: none; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #d0d8e0; padding: 10px 14px; vertical-align: top; }
+                    th { background: #eef3f8; }
+                    .code-block { background: #f4f7fa; border-left: 4px solid #1a5cff; padding: 18px 22px; margin: 18px 0; white-space: pre-wrap; word-break: break-word; font-family: monospace; font-size: 0.9rem; line-height: 1.6; }
+                    .code-block .label { font-family: 'Segoe UI', sans-serif; font-weight: 700; color: #0b1a33; display: block; margin-bottom: 8px; }
+                    .footnote { background: #f0f6ff; border-left: 5px solid #1a5cff; padding: 12px 20px; margin: 20px 0; }
+                    .status-pending { color: #ff8c00; font-weight: 700; }
+                    .status-done { color: #00a854; font-weight: 700; }
+                    ul, ol { padding-left: 24px; margin: 12px 0; }
+                    li { margin: 6px 0; }
+                    hr { border: 0; border-top: 2px dashed #d0d8e0; margin: 40px 0; }
+                    .footer { margin-top: 50px; border-top: 1px solid #d0d8e0; padding-top: 20px; font-size: 0.9rem; color: #5a6a7a; text-align: center; }
+                    .download-btn { display: none; }
+                    .btn-wrapper { display: none; }
+                    .highlight-box { background: #f7faff; border: 1px solid #c0d0e0; padding: 14px 18px; margin: 12px 0; }
+                    .comparison-table td:first-child { font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                ${document.body.innerHTML.replace(/<div class="btn-wrapper">.*?<\/div>/, '')}
+            </body>
+            </html>`;
+            var blob = new Blob([fullHtml], { type: 'application/msword' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '燃油对冲_锁价方式扩展_开发指令.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+    </script>
+
+
+
+            </body>
+            </html>

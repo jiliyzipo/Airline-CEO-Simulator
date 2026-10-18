@@ -1,5 +1,16 @@
-// 生成 tools/semcheck/semcheck.csproj：把 Assembly-CSharp(.Editor).csproj 里的 Unity 引用
-// 原样搬过来，Compile 项换成 Assets/Scripts 全量 glob。
+// 生成 tools/semcheck 下的两个 csproj，分别对应 Unity 侧的两条程序集边界：
+//
+//   semcheck.csproj        ← Assets/Scripts   ≈ AirlineCEO.Runtime.asmdef（运行时代码）
+//   semcheck_tests.csproj  ← Assets/Tests     ≈ AirlineCEO.PlayModeTests.asmdef（测试代码）
+//
+// 为什么必须拆成两个工程：把两边塞进同一个工程时，引用集是两者的**并集**（含 Unity.TextMeshPro），
+// 于是「测试里碰到 TMP 类型」这类程序集边界错误 semcheck 全绿、Unity 一编译就红：
+//   CS0012 The type 'TextMeshProUGUI' is defined in an assembly that is not referenced.
+//   You must add a reference to assembly 'Unity.TextMeshPro'.
+// 2026-10-10 实例：SetupFlowPlayModeTests 读了主菜单句柄上的 TextMeshProUGUI 字段。
+// 测试 asmdef 只引用 Runtime + TestRunner（拿不到 TMPro），故测试工程也照此把 TMPro 系列剔除，
+// 才能真正复现并拦下这类错误 —— 只加 glob 不加边界，等于给了个「测试已被覆盖」的假象。
+// 本工程同时生成 Unity 里 Assembly-CSharp(.Editor).csproj 的引用集。
 const fs = require('fs');
 const path = require('path');
 
@@ -24,7 +35,13 @@ for (const f of csprojs) {
   }
 }
 
-const items = [...refs.entries()]
+// 测试程序集**看不到**的程序集（照 AirlineCEO.PlayModeTests.asmdef 的口径）。
+// 只列 Unity.TextMeshPro / .Editor 两项：这是实测被 Unity 拒绝的那一支。
+// 不在此处顺手扩大封锁名单 —— 名单开错会把 Unity 本来允许的写法判成错误（假阳性比漏报更坏）。
+const notInTestAsm = name => /^Unity\.TextMeshPro($|\.)/.test(name);
+
+const refItems = filter => [...refs.entries()]
+  .filter(([name]) => !filter || !filter(name))
   .map(([name, hint]) => `    <Reference Include="${name}">\n      <HintPath>${hint}</HintPath>\n      <Private>false</Private>\n    </Reference>`)
   .join('\n');
 
@@ -35,14 +52,9 @@ const items = [...refs.entries()]
 // 这两类全是「派生类自己写错」的信号，且遮蔽后代码能编译、只在运行期悄悄拿错值，
 // 靠编译器提示是唯一低成本的拦截点。2026-09 两面板 const PageId 遮蔽 BasePanel.PageId
 // 就是这么漏出去的（Unity 报了、semcheck 因 NoWarn 反而看不见）。
-const out = `<!-- 自动生成，请勿手改；重新生成：node tools/semcheck/gen.js -->
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+const commonProps = `    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <OutputType>Library</OutputType>
-    <AssemblyName>SemCheck</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -52,7 +64,15 @@ const out = `<!-- 自动生成，请勿手改；重新生成：node tools/semche
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <DebugType>none</DebugType>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>`;
+
+// ① 运行时代码（AssemblyName 保持 SemCheck：tools/slotcheck 以 ProjectReference 引用本工程取运行期类型）
+const runtimeProject = `<!-- 自动生成，请勿手改；重新生成：node tools/semcheck/gen.js -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+${commonProps}
+    <AssemblyName>SemCheck</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -60,12 +80,37 @@ const out = `<!-- 自动生成，请勿手改；重新生成：node tools/semche
   </ItemGroup>
 
   <ItemGroup>
-${items}
+${refItems(null)}
   </ItemGroup>
 
 </Project>
 `;
 
-const outPath = path.join(__dirname, 'semcheck.csproj');
-fs.writeFileSync(outPath, out, 'utf8');
-console.log(`refs=${refs.size} -> ${outPath}`);
+// ② 测试代码：独立程序集 + 剔掉测试 asmdef 拿不到的程序集（见文件头说明）
+const testsProject = `<!-- 自动生成，请勿手改；重新生成：node tools/semcheck/gen.js -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+${commonProps}
+    <AssemblyName>SemCheckTests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Unity Project/Assets/Tests/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="semcheck.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+${refItems(notInTestAsm)}
+  </ItemGroup>
+
+</Project>
+`;
+
+fs.writeFileSync(path.join(__dirname, 'semcheck.csproj'), runtimeProject, 'utf8');
+fs.writeFileSync(path.join(__dirname, 'semcheck_tests.csproj'), testsProject, 'utf8');
+const blocked = [...refs.keys()].filter(notInTestAsm);
+console.log(`refs=${refs.size} (tests block ${blocked.length}: ${blocked.join(', ')}) -> tools/semcheck/*.csproj`);

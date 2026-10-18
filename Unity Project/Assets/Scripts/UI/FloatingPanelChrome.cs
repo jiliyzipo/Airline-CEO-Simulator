@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// 顾问浮窗：默认右下角圆形图标（可拖动）；点击展开对话，再点图标收拢。
+    /// 顾问浮窗：可带右下角圆形图标，或仅由顶栏「顾问」按钮展开/收拢（无浮标）。
     /// </summary>
     public class FloatingPanelChrome : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
@@ -21,6 +21,7 @@ namespace AirlineCEO.UI
         private RectTransform _panelRt;
         private GameObject _iconGo;
         private Image _hostBg;
+        private bool _showFloatingIcon = true;
 
         private bool _expanded;
         private float _expandedWidth;
@@ -33,7 +34,7 @@ namespace AirlineCEO.UI
         public bool IsExpanded => _expanded;
 
         /// <summary>把已有对话面板挂进「图标 + 可展开窗」结构。</summary>
-        public static FloatingPanelChrome Attach(GameObject panel, string title = "战略顾问")
+        public static FloatingPanelChrome Attach(GameObject panel, string title = "战略顾问", bool showFloatingIcon = true)
         {
             if (panel == null) return null;
 
@@ -56,6 +57,7 @@ namespace AirlineCEO.UI
 
             var chrome = host.GetComponent<FloatingPanelChrome>();
             if (chrome == null) chrome = host.AddComponent<FloatingPanelChrome>();
+            chrome._showFloatingIcon = showFloatingIcon;
             chrome.Setup(panel, title);
             return chrome;
         }
@@ -74,16 +76,15 @@ namespace AirlineCEO.UI
             _expandedWidth = Mathf.Clamp(parentW * 0.36f, 420f, 560f);
             _expandedHeight = Mathf.Clamp(parentH * 0.32f, 260f, 360f);
 
-            // 面板：贴在图标上方
             _panelRt.anchorMin = new Vector2(1f, 0f);
             _panelRt.anchorMax = new Vector2(1f, 0f);
             _panelRt.pivot = new Vector2(1f, 0f);
             _panelRt.sizeDelta = new Vector2(_expandedWidth, _expandedHeight);
-            _panelRt.anchoredPosition = new Vector2(0f, IconSize + 10f);
+            _panelRt.anchoredPosition = new Vector2(0f, _showFloatingIcon ? IconSize + 10f : 12f);
 
-            // 去掉面板自身大块玻璃底在收拢时的干扰：收拢时整板隐藏
             EnsureHeader(title);
-            BuildIconButton();
+            if (_showFloatingIcon)
+                BuildIconButton();
             SetExpanded(false);
         }
 
@@ -103,22 +104,24 @@ namespace AirlineCEO.UI
             {
                 titleTmp = UIFactory.Label(_panelGo.transform, "Title", title, 14,
                     TextAlignmentOptions.MidlineLeft,
-                    new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.96f, 1f), Vector2.zero, Vector2.zero),
+                    new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.82f, 1f), Vector2.zero, Vector2.zero),
                     UITheme.TextPrimary, FontStyles.Bold);
             }
             else
             {
                 UIFactory.ApplyAnchor(titleTmp.GetComponent<RectTransform>(),
-                    new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.96f, 1f), Vector2.zero, Vector2.zero));
+                    new UIFactory.Anchor(new Vector2(0.04f, 0.88f), new Vector2(0.82f, 1f), Vector2.zero, Vector2.zero));
                 titleTmp.text = title;
             }
 
-            // 旧折叠按钮不再需要
             var oldCollapse = _panelGo.transform.Find("CollapseBtn");
             if (oldCollapse != null)
                 oldCollapse.gameObject.SetActive(false);
 
-            // 展开时可拖标题栏移动整个 dock
+            var closeAdvisor = _panelGo.transform.Find("CloseAdvisor");
+            if (closeAdvisor != null)
+                closeAdvisor.gameObject.SetActive(false);
+
             var headerGo = _panelGo.transform.Find("HeaderBar")?.gameObject;
             if (headerGo != null)
             {
@@ -151,7 +154,6 @@ namespace AirlineCEO.UI
             img.raycastTarget = true;
             img.preserveAspect = true;
 
-            // 内圈
             var ring = UIFactory.Panel(_iconGo.transform, "Ring",
                 new UIFactory.Anchor(new Vector2(0.12f, 0.12f), new Vector2(0.88f, 0.88f), Vector2.zero, Vector2.zero),
                 new Color(0.05f, 0.1f, 0.2f, 0.55f));
@@ -185,6 +187,19 @@ namespace AirlineCEO.UI
             SetExpanded(!_expanded);
         }
 
+        /// <summary>顶栏「顾问」入口：展开/收拢对话面板。</summary>
+        public void ToggleFromToolbar()
+        {
+            gameObject.SetActive(true);
+            SetExpanded(!_expanded);
+        }
+
+        public void OpenFromToolbar()
+        {
+            gameObject.SetActive(true);
+            SetExpanded(true);
+        }
+
         public void SetCollapsed(bool collapsed) => SetExpanded(!collapsed);
 
         public void CollapseIfExpanded()
@@ -203,34 +218,43 @@ namespace AirlineCEO.UI
                 _panelGo.SetActive(expanded);
             }
 
-            // host 命中盒：收拢仅图标；展开含对话区，避免点穿
             if (_hostRt != null)
             {
                 if (expanded)
                 {
-                    _hostRt.sizeDelta = new Vector2(_expandedWidth, _expandedHeight + IconSize + 10f);
+                    float bottomPad = _showFloatingIcon ? IconSize + 10f : 12f;
+                    _hostRt.sizeDelta = new Vector2(_expandedWidth, _expandedHeight + bottomPad);
                     if (_panelRt != null)
                     {
                         _panelRt.sizeDelta = new Vector2(_expandedWidth, _expandedHeight);
-                        _panelRt.anchoredPosition = new Vector2(0f, IconSize + 10f);
+                        _panelRt.anchoredPosition = new Vector2(0f, bottomPad);
                     }
+                }
+                else if (_showFloatingIcon)
+                {
+                    _hostRt.sizeDelta = new Vector2(IconSize, IconSize);
                 }
                 else
                 {
-                    _hostRt.sizeDelta = new Vector2(IconSize, IconSize);
+                    // 无浮标：收拢后占位为零，不挡点击
+                    _hostRt.sizeDelta = Vector2.zero;
                 }
             }
 
             if (_iconGo != null)
-                _iconGo.transform.SetAsLastSibling();
+            {
+                _iconGo.SetActive(_showFloatingIcon);
+                if (_showFloatingIcon)
+                    _iconGo.transform.SetAsLastSibling();
+            }
 
-            transform.SetAsLastSibling();
+            if (expanded)
+                transform.SetAsLastSibling();
             ClampToParent();
         }
 
         private void RestorePanelContentVisibility()
         {
-            // 展开时恢复子物体；执行建议按钮保持业务状态
             for (int i = 0; i < _panelGo.transform.childCount; i++)
             {
                 var child = _panelGo.transform.GetChild(i).gameObject;
@@ -279,7 +303,6 @@ namespace AirlineCEO.UI
         public void OnEndDrag(PointerEventData eventData)
         {
             ClampToParent();
-            // 下一帧再清 _dragMoved，避免同帧 Button.onClick 误判
             if (_dragMoved)
                 StartCoroutine(ClearDragFlagNextFrame());
         }
@@ -294,8 +317,8 @@ namespace AirlineCEO.UI
         {
             if (_hostRt == null || _parentRt == null) return;
             Vector2 pos = _hostRt.anchoredPosition;
-            float w = _hostRt.sizeDelta.x;
-            float h = _hostRt.sizeDelta.y;
+            float w = Mathf.Max(8f, _hostRt.sizeDelta.x);
+            float h = Mathf.Max(8f, _hostRt.sizeDelta.y);
             float maxX = -8f;
             float minX = -_parentRt.rect.width + w + 8f;
             float minY = 8f;

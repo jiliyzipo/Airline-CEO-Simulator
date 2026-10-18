@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airline CEO · MVP 2.1 UI 交互图（完整功能版）</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #0d1a2d;
+      --panel2: #13253f;
+      --line: #1e3a5f;
+      --accent: #4da6ff;
+      --accent2: #1a5cff;
+      --text: #e6eef8;
+      --muted: #8aa0b8;
+      --new: #e6a23c;
+      --ok: #3ecf8e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(26,92,255,0.18), transparent 40%),
+        radial-gradient(ellipse at 80% 30%, rgba(20,60,120,0.25), transparent 45%),
+        linear-gradient(180deg, #050b14 0%, #0a1628 50%, #071018 100%);
+      color: var(--text);
+      padding: 28px 20px 60px;
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1480px; margin: 0 auto; }
+    header {
+      border: 1px solid var(--line);
+      background: rgba(13,26,45,0.92);
+      border-radius: 14px;
+      padding: 22px 26px;
+      margin-bottom: 22px;
+    }
+    h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.3px; }
+    .sub { color: var(--muted); margin-top: 8px; font-size: 13px; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px;
+    }
+    .chip {
+      font-size: 12px; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--panel2); color: var(--muted);
+    }
+    .chip.new { border-color: rgba(230,162,60,0.7); color: #ffd59a; background: rgba(230,162,60,0.12); }
+    .chip.core { border-color: rgba(77,166,255,0.7); color: #b8d9ff; background: rgba(77,166,255,0.12); }
+    .chip.popup { border-color: rgba(62,207,142,0.7); color: #b8f0d4; background: rgba(62,207,142,0.12); }
+
+    section { margin: 28px 0; }
+    .sec-title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; margin-bottom: 14px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--line);
+    }
+    .sec-title span {
+      font-size: 11px; font-weight: 600; color: var(--accent);
+      border: 1px solid rgba(77,166,255,0.45); border-radius: 6px; padding: 2px 8px;
+    }
+    .flow-note { color: var(--muted); font-size: 12px; margin: -6px 0 14px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(19,37,63,0.95), rgba(13,26,45,0.95));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 14px 12px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+    }
+    .card.has-note {
+      box-shadow: 0 0 0 2px rgba(230, 194, 0, 0.55), 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .card.new { border-color: rgba(230,162,60,0.65); box-shadow: 0 0 0 1px rgba(230,162,60,0.15), 0 8px 24px rgba(0,0,0,0.25); }
+    .card.popup { border-color: rgba(62,207,142,0.45); }
+    .card.shell {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(10,30,55,0.95), rgba(8,20,38,0.95));
+    }
+    .badge {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    }
+    .badge.new { background: rgba(230,162,60,0.2); color: #ffd59a; border: 1px solid rgba(230,162,60,0.55); }
+    .badge.upd { background: rgba(77,166,255,0.18); color: #b8d9ff; border: 1px solid rgba(77,166,255,0.45); }
+    .badge.pop { background: rgba(62,207,142,0.15); color: #b8f0d4; border: 1px solid rgba(62,207,142,0.45); }
+    .name { font-size: 15px; font-weight: 700; color: #cfe4ff; padding-right: 52px; margin-bottom: 4px; }
+    .meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    ul { padding-left: 16px; font-size: 12.5px; color: #c5d4e6; }
+    li { margin: 3px 0; }
+    li strong { color: #9ec8ff; font-weight: 600; }
+    .entry { margin-top: 8px; font-size: 11px; color: #7fb0e6; border-top: 1px dashed rgba(77,166,255,0.25); padding-top: 7px; }
+    .arrow-row {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 10px 0 18px; color: var(--muted); font-size: 12px;
+    }
+    .arrow-row .a {
+      background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+      padding: 6px 10px; color: #b8d0ea;
+    }
+    .arrow-row .arr { color: var(--accent); font-weight: 700; }
+
+    .shell-layout {
+      display: grid; grid-template-rows: auto 1fr auto; gap: 8px; min-height: 220px;
+    }
+    .shell-top, .shell-bot {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .shell-top > div, .shell-bot > div {
+      background: rgba(26,44,68,0.9); border: 1px solid var(--line);
+      border-radius: 6px; padding: 6px 10px; font-size: 11px; color: #9eb6d0;
+    }
+    .shell-map {
+      border: 1px solid var(--line); border-radius: 8px; min-height: 120px;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(77,166,255,0.12), transparent 35%),
+        linear-gradient(135deg, #0a1a30, #06101c);
+      position: relative; padding: 10px;
+    }
+    .shell-map .ov {
+      display: inline-block; margin: 4px; padding: 5px 9px; border-radius: 4px;
+      background: rgba(26,92,255,0.18); border: 1px solid rgba(77,166,255,0.4);
+      color: #aaccff; font-size: 11px;
+    }
+    footer {
+      margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 12px; text-align: center;
+    }
+    a { color: var(--accent); }
+
+    /* ===== 批注（直接在 HTML 上标注） ===== */
+    .anno-bar {
+      margin-top: 14px;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .anno-bar button {
+      cursor: pointer;
+      border: 1px solid rgba(230,194,0,0.55);
+      background: rgba(255,243,191,0.12);
+      color: #ffe9a0;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .anno-bar button:hover { background: rgba(255,243,191,0.22); }
+    .anno-bar button.danger {
+      border-color: rgba(220,80,80,0.55);
+      color: #ffb0b0;
+      background: rgba(220,80,80,0.12);
+    }
+    .anno-bar .status { font-size: 12px; color: #9ec8ff; }
+    .anno-global {
+      margin-top: 12px;
+      background: #fff3bf;
+      border: 1.5px solid #e6c200;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .anno-global .anno-label {
+      font-size: 12px; font-weight: 700; color: #8a6d00; margin-bottom: 6px;
+    }
+    .anno-global textarea {
+      width: 100%; min-height: 64px; resize: vertical;
+      border: 1px dashed rgba(138,109,0,0.35);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.55);
+      color: #3a2e00;
+      font-size: 13px;
+      font-family: inherit;
+      line-height: 1.5;
+      padding: 8px;
+      outline: none;
+    }
+    .anno-global textarea:focus { border-color: #c9a000; background: #fffef5; }
+    .card-note {
+      margin-top: 10px;
+      background: #fff3bf;
+      border: 1.5px solid #e6c200;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .card-note .anno-label {
+      font-size: 11px; font-weight: 700; color: #8a6d00; margin-bottom: 5px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-note .anno-label span.hint { font-weight: 500; color: #a08420; }
+    .card-note textarea {
+      width: 100%; min-height: 56px; resize: vertical;
+      border: 1px dashed rgba(138,109,0,0.35);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.55);
+      color: #3a2e00;
+      font-size: 12.5px;
+      font-family: inherit;
+      line-height: 1.5;
+      padding: 7px;
+      outline: none;
+    }
+    .card-note textarea:focus { border-color: #c9a000; background: #fffef5; }
+    .card-note textarea::placeholder { color: #a09050; }
+    .chip.note { border-color: rgba(230,194,0,0.7); color: #ffe9a0; background: rgba(230,194,0,0.12); }
+    .chip.l0 { border-color:#c9a0ff; color:#e6d4ff; background:rgba(180,120,255,.12); }
+    .chip.l1 { border-color:#4da6ff; color:#b8d9ff; background:rgba(77,166,255,.12); }
+    .chip.l2 { border-color:#3ecf8e; color:#b8f0d4; background:rgba(62,207,142,.12); }
+    .chip.l3 { border-color:#e6a23c; color:#ffd59a; background:rgba(230,162,60,.12); }
+    .chip.l4 { border-color:#ff8fab; color:#ffd0dc; background:rgba(255,143,171,.12); }
+    .chip.l5 { border-color:#9ad0ff; color:#d6ecff; background:rgba(154,208,255,.12); }
+    body.hide-notes .card-note,
+    body.hide-notes .anno-global { display: none !important; }
+
+    /* ===== 信息架构 / 点击跳转 ===== */
+    .ia-box {
+      background: rgba(13,26,45,0.95);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 18px 12px;
+      margin-bottom: 18px;
+    }
+    .ia-box h3 {
+      font-size: 15px; color: #cfe4ff; margin: 0 0 10px;
+    }
+    .ia-levels {
+      display: grid;
+      gap: 10px;
+    }
+    .ia-row {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(19,37,63,0.65);
+    }
+    .ia-lv {
+      font-size: 12px; font-weight: 800;
+      padding: 6px 8px; border-radius: 8px; text-align: center;
+      line-height: 1.3;
+    }
+    .ia-lv.l0 { background:rgba(180,120,255,.18); color:#e6d4ff; border:1px solid rgba(180,120,255,.45); }
+    .ia-lv.l1 { background:rgba(77,166,255,.18); color:#b8d9ff; border:1px solid rgba(77,166,255,.45); }
+    .ia-lv.l2 { background:rgba(62,207,142,.18); color:#b8f0d4; border:1px solid rgba(62,207,142,.45); }
+    .ia-lv.l3 { background:rgba(230,162,60,.18); color:#ffd59a; border:1px solid rgba(230,162,60,.45); }
+    .ia-lv.l4 { background:rgba(255,143,171,.18); color:#ffd0dc; border:1px solid rgba(255,143,171,.45); }
+    .ia-lv.l5 { background:rgba(154,208,255,.18); color:#d6ecff; border:1px solid rgba(154,208,255,.45); }
+    .ia-body { font-size: 12.5px; color: #c5d4e6; }
+    .ia-body strong { color: #9ec8ff; }
+    .ia-body .tag {
+      display: inline-block; margin: 2px 4px 2px 0;
+      padding: 2px 8px; border-radius: 999px; font-size: 11px;
+      background: rgba(26,44,68,0.9); border: 1px solid var(--line); color: #b8d0ea;
+    }
+    .ia-body .tag a { color: inherit; text-decoration: none; }
+    .flow-table-wrap { overflow-x: auto; margin: 10px 0 6px; }
+    table.click-map {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+      min-width: 720px;
+    }
+    table.click-map th {
+      background: #152a44; color: #9ec8ff; text-align: left;
+      padding: 8px 10px; border: 1px solid var(--line); font-weight: 700;
+    }
+    table.click-map td {
+      padding: 7px 10px; border: 1px solid var(--line);
+      color: #c5d4e6; vertical-align: top; background: rgba(10,22,38,0.55);
+    }
+    table.click-map tr:nth-child(even) td { background: rgba(16,30,48,0.7); }
+    table.click-map .clickable {
+      color: #ffe9a0; font-weight: 700;
+    }
+    table.click-map .to {
+      color: #7dffa8; font-weight: 600;
+    }
+    table.click-map .lv {
+      display: inline-block; min-width: 28px; text-align: center;
+      font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 6px;
+      margin-right: 4px;
+    }
+    .tree {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px; line-height: 1.65;
+      background: #081422; border: 1px solid var(--line);
+      border-radius: 10px; padding: 14px 16px;
+      color: #b8d0ea; white-space: pre; overflow-x: auto;
+    }
+    .tree .c0 { color: #e6d4ff; }
+    .tree .c1 { color: #7eb6ff; }
+    .tree .c2 { color: #6ee7b0; }
+    .tree .c3 { color: #ffc46b; }
+    .tree .c4 { color: #ff9fbc; }
+    .tree .c5 { color: #9ad0ff; }
+    .level-pill {
+      display: inline-block; font-size: 10px; font-weight: 800;
+      padding: 2px 7px; border-radius: 999px; margin-right: 6px;
+      vertical-align: middle;
+    }
+    .level-pill.L0 { background:rgba(180,120,255,.2); color:#e6d4ff; border:1px solid rgba(180,120,255,.45); }
+    .level-pill.L1 { background:rgba(77,166,255,.2); color:#b8d9ff; border:1px solid rgba(77,166,255,.45); }
+    .level-pill.L2 { background:rgba(62,207,142,.2); color:#b8f0d4; border:1px solid rgba(62,207,142,.45); }
+    .level-pill.L3 { background:rgba(230,162,60,.2); color:#ffd59a; border:1px solid rgba(230,162,60,.45); }
+    .level-pill.L4 { background:rgba(255,143,171,.2); color:#ffd0dc; border:1px solid rgba(255,143,171,.45); }
+    .level-pill.L5 { background:rgba(154,208,255,.2); color:#d6ecff; border:1px solid rgba(154,208,255,.45); }
+    .card-clicks {
+      margin-top: 10px;
+      border: 1px solid rgba(77,166,255,0.35);
+      border-radius: 8px;
+      background: rgba(8,20,38,0.75);
+      padding: 8px 10px;
+    }
+    .card-clicks .ttl {
+      font-size: 11px; font-weight: 700; color: #9ec8ff; margin-bottom: 6px;
+    }
+    .card-clicks table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .card-clicks td {
+      border-top: 1px dashed rgba(77,166,255,0.2);
+      padding: 5px 4px; vertical-align: top; color: #c5d4e6;
+    }
+    .card-clicks tr:first-child td { border-top: none; }
+    .card-clicks .clk { color: #ffe9a0; font-weight: 700; width: 42%; }
+    .card-clicks .arrow { color: var(--accent); width: 18px; text-align: center; }
+    .card-clicks .dst { color: #7dffa8; }
+    .toc a {
+      color: #9ec8ff; text-decoration: none; margin-right: 10px; font-size: 12px;
+    }
+    .toc a:hover { text-decoration: underline; }
+    @media print {
+      .anno-bar { display: none; }
+      .card-note, .anno-global {
+        break-inside: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Airline CEO Simulator · MVP 2.1 UI 交互图</h1>
+    <div class="sub">
+      基于手绘线框图框架（世界地图背景 + 蓝色覆层面板 + 底部 Tab）· 功能内容整合自
+      <em>Airline_CEO_MVP2.1_UI规划.doc</em> 与 <em>Game Design Bible v0.9.2</em> · 2026-08-08
+    </div>
+    <div class="legend">
+      <span class="chip l0">L0 元流程/壳</span>
+      <span class="chip l1">L1 一级页（底部Tab）</span>
+      <span class="chip l2">L2 二级页</span>
+      <span class="chip l3">L3 三级工作台</span>
+      <span class="chip l4">L4 弹窗/会议</span>
+      <span class="chip l5">L5 嵌套确认</span>
+      <span class="chip note">黄框 = 批注</span>
+    </div>
+    <div class="toc" style="margin-top:10px;">
+      <a href="#sec-ia">①页面层级</a>
+      <a href="#sec-tree">②架构树</a>
+      <a href="#sec-clicks">③点击跳转总表</a>
+      <a href="#sec-shell">④界面详情</a>
+    </div>
+    <div style="margin-top:12px;">
+      <a href="./Airline_CEO__UI交互白板%20V1.0.html"
+         style="display:inline-block;padding:10px 16px;border-radius:10px;background:rgba(26,92,255,0.35);border:1px solid rgba(77,166,255,0.7);color:#e6f0ff;font-weight:700;text-decoration:none;font-size:14px;">
+        打开可拖拽 + 箭头连线白板 →
+      </a>
+      <span style="margin-left:10px;font-size:12px;color:#8aa0b8;">节点可自由移动，绿点拖到黄点画跳转箭头</span>
+    </div>
+    <div class="anno-bar">
+      <button type="button" id="btnExportNotes">导出全部批注</button>
+      <button type="button" id="btnToggleNotes">隐藏/显示批注</button>
+      <button type="button" id="btnClearNotes" class="danger">清空批注</button>
+      <span class="status" id="annoStatus">批注会自动保存在本机浏览器</span>
+    </div>
+    <div class="anno-global">
+      <div class="anno-label">全局修改意见（整份交互图）</div>
+      <textarea id="globalNote" placeholder="例如：整体风格要更接近手绘线框图；优先做主页和财务……"></textarea>
+    </div>
+  </header>
+
+  <!-- ========== 页面层级架构 ========== -->
+  <section id="sec-ia">
+    <div class="sec-title">A. 页面层级定义（一级～五级） <span>先看这个</span></div>
+    <div class="flow-note">规则：同级 Tab 互切不算「进入下级」；只有「列表→详情→子页→弹窗→二次确认」才算加深一层。</div>
+    <div class="ia-box">
+      <div class="ia-levels">
+        <div class="ia-row">
+          <div class="ia-lv l0">L0<br>壳/元流程</div>
+          <div class="ia-body">
+            <strong>未进游戏 / 常驻框架</strong>：主菜单、玩家资料、公司注册、董事会抽卡、年度目标确认；进游戏后的顶部栏+地图底+底部Tab壳、AO头像、消息铃铛、速度/暂停。<br>
+            <span class="tag">主菜单</span><span class="tag">公司注册</span><span class="tag">董事会组建</span><span class="tag">主界面框架</span>
+          </div>
+        </div>
+        <div class="ia-row">
+          <div class="ia-lv l1">L1<br>一级页面</div>
+          <div class="ia-body">
+            <strong>底部 Tab 整屏切换</strong>（同一层级，互相平级）：主页、收件箱、机队、航线、运营、市场、财务、战略、机务、人力、安全、董事会。<br>
+            <span class="tag">🏠主页</span><span class="tag">📬收件箱</span><span class="tag">🛩机队</span><span class="tag">🗺航线</span><span class="tag">七部门+董事会</span>
+          </div>
+        </div>
+        <div class="ia-row">
+          <div class="ia-lv l2">L2<br>二级页面</div>
+          <div class="ia-body">
+            <strong>从 L1 点进的详情/分栏页</strong>：飞机详情、消息中心、宏观经济、竞争态势、随机事件日志、设置/存档、飞行学院、历史回放、AO对话窗（半屏）。<br>
+            <span class="tag">飞机详情</span><span class="tag">消息中心</span><span class="tag">宏观面板</span><span class="tag">竞争态势</span>
+          </div>
+        </div>
+        <div class="ia-row">
+          <div class="ia-lv l3">L3<br>三级工作台</div>
+          <div class="ia-body">
+            <strong>从 L1/L2 再钻入的专业子界面</strong>：座位配置、对冲工作台、碳配额、FFP、产品工坊、RPM评估台、航班环构建器、工会谈判桌、预算编制界面。<br>
+            <span class="tag">座位配置</span><span class="tag">对冲台</span><span class="tag">RPM评估</span><span class="tag">航班环</span>
+          </div>
+        </div>
+        <div class="ia-row">
+          <div class="ia-lv l4">L4<br>四级弹窗</div>
+          <div class="ia-body">
+            <strong>覆盖层决策</strong>（盖住当前页，不换底Tab）：CEO决策会议、危机IRROPS、紧急融资/破产、部门负责人任命、财年续聘/解雇、合同签署弹窗。<br>
+            <span class="tag">决策会议</span><span class="tag">危机弹窗</span><span class="tag">紧急融资</span><span class="tag">续聘/解雇</span>
+          </div>
+        </div>
+        <div class="ia-row">
+          <div class="ia-lv l5">L5<br>五级确认</div>
+          <div class="ia-body">
+            <strong>弹窗内的二次确认 / 条件补全</strong>：会议「暂缓→补条件」、融资方式确认、破产保护条款勾选、任命薪酬确认、删除/退役二次确认。<br>
+            <span class="tag">二次确认框</span><span class="tag">补条件表单</span><span class="tag">条款勾选</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-tree">
+    <div class="sec-title">B. 信息架构树（谁下面挂谁）</div>
+    <div class="tree"><span class="c0">L0 主菜单</span>
+├─ <span class="c0">新游戏 → 玩家资料 → 公司注册 → 董事会抽卡 → 年度目标确认 → 进入游戏</span>
+├─ <span class="c2">继续/读档 → 进入游戏</span>
+├─ <span class="c2">设置 / 飞行学院</span>
+└─ <span class="c0">进入游戏后 · 主界面壳（顶栏+地图+底Tab+AO）</span>
+   ├─ <span class="c1">L1 主页</span>
+   │  ├─ <span class="c2">待办/快讯 → 收件箱邮件 或 L4 会议</span>
+   │  ├─ <span class="c2">宏观指示灯 → 宏观面板</span>
+   │  ├─ <span class="c2">竞争微件 → 竞争态势</span>
+   │  └─ <span class="c2">铃铛 → 消息中心</span>
+   ├─ <span class="c1">L1 收件箱</span>
+   │  └─ <span class="c4">批准开航 / 发起会议 / 暂缓 → L4 会议或回写状态</span>
+   ├─ <span class="c1">L1 机队</span>
+   │  ├─ <span class="c2">点击飞机 → L2 飞机详情</span>
+   │  │  ├─ <span class="c3">座位配置</span>
+   │  │  ├─ <span class="c3">分配航线（简易选择器）</span>
+   │  │  └─ <span class="c4">转售退役/大修/申请替换 → L4 会议或确认</span>
+   │  └─ <span class="c4">+购买飞机 → L4 购机会议</span>
+   ├─ <span class="c1">L1 航线</span>
+   │  ├─ <span class="c2">点击航线 → 航线详情（RPM/竞争/盈利）</span>
+   │  └─ <span class="c3">+开通 / 战略RPM台 → L3 RPM → L4 开线会议</span>
+   ├─ <span class="c1">L1 运营部</span> → <span class="c3">航班环 / 计划草案</span> → <span class="c4">IRROPS危机</span>
+   ├─ <span class="c1">L1 市场部</span> → <span class="c3">FFP / 产品工坊 / 季节日历</span> → <span class="c4">价格战/合同弹窗</span>
+   ├─ <span class="c1">L1 财务部</span> → <span class="c3">对冲台 / 碳配额 / 预算编制</span> → <span class="c4">紧急融资 / 董事会投票</span>
+   ├─ <span class="c1">L1 战略部</span> → <span class="c3">RPM评估 / 立项</span> → <span class="c4">航权联盟谈判</span>
+   ├─ <span class="c1">L1 机务</span> → <span class="c4">AOG修复方案弹窗</span>
+   ├─ <span class="c1">L1 人力</span> → <span class="c3">工会谈判桌</span> → <span class="c4">招聘策略弹窗</span>
+   ├─ <span class="c1">L1 安全</span> → <span class="c4">深度调查 / 局方检查弹窗</span>
+   ├─ <span class="c1">L1 董事会</span> → <span class="c4">预算投票 / 续聘解雇</span>
+   └─ <span class="c0">常驻</span>：<span class="c2">AO头像→对话窗</span> · <span class="c2">设置</span> · <span class="c4">系统危机强制弹窗</span></div>
+  </section>
+
+  <section id="sec-clicks">
+    <div class="sec-title">C. 点击什么 → 跳到哪（总表） <span>可点击文字一览</span></div>
+    <div class="flow-note">黄色=玩家可见的可点击文案/控件；绿色=跳转目标页面。每个界面卡片下方也有同样格式的「本页点击表」。</div>
+    <div class="ia-box">
+      <h3>C1. 常驻壳 / 开局</h3>
+      <div class="flow-table-wrap">
+        <table class="click-map">
+          <thead><tr><th>所在页</th><th>可点击文字/控件</th><th>跳转到</th><th>层级</th></tr></thead>
+          <tbody>
+            <tr><td>主菜单</td><td class="clickable">新游戏</td><td class="to">玩家资料创建</td><td><span class="lv l0">L0</span>→L0</td></tr>
+            <tr><td>主菜单</td><td class="clickable">继续 / 读档</td><td class="to">存档列表 → 主页(L1)</td><td>L0→L1</td></tr>
+            <tr><td>主菜单</td><td class="clickable">设置</td><td class="to">设置/存档</td><td>L0→L2</td></tr>
+            <tr><td>主菜单</td><td class="clickable">飞行学院</td><td class="to">飞行学院教程库</td><td>L0→L2</td></tr>
+            <tr><td>玩家资料</td><td class="clickable">下一步 / 确认</td><td class="to">公司注册</td><td>L0→L0</td></tr>
+            <tr><td>公司注册</td><td class="clickable">确认注册</td><td class="to">董事会组建（抽卡）</td><td>L0→L0</td></tr>
+            <tr><td>董事会组建</td><td class="clickable">确认本届董事会</td><td class="to">年度目标确认</td><td>L0→L0</td></tr>
+            <tr><td>年度目标确认</td><td class="clickable">开始经营</td><td class="to">主页 + AO强制引导</td><td>L0→L1</td></tr>
+            <tr><td>任意游戏内页</td><td class="clickable">底部 Tab（主页/收件箱/…）</td><td class="to">对应 L1 一级页</td><td>L1↔L1</td></tr>
+            <tr><td>任意游戏内页</td><td class="clickable">🔔 消息铃铛</td><td class="to">消息中心</td><td>→L2</td></tr>
+            <tr><td>任意游戏内页</td><td class="clickable">右下角 AO 头像</td><td class="to">AO 对话窗</td><td>→L2</td></tr>
+            <tr><td>任意游戏内页</td><td class="clickable">⏸ 暂停 / 倍速</td><td class="to">时间状态切换（不换页）</td><td>壳</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:16px;">C2. 主页 / 收件箱 / 机队 / 航线</h3>
+      <div class="flow-table-wrap">
+        <table class="click-map">
+          <thead><tr><th>所在页</th><th>可点击文字/控件</th><th>跳转到</th><th>层级</th></tr></thead>
+          <tbody>
+            <tr><td>主页</td><td class="clickable">下一件待办事项</td><td class="to">对应邮件详情 或 决策会议</td><td>→L1/L4</td></tr>
+            <tr><td>主页</td><td class="clickable">航线统计 ▼</td><td class="to">展开面板 / 可进航线Tab</td><td>→L1</td></tr>
+            <tr><td>主页</td><td class="clickable">检修计划 ▼</td><td class="to">展开 / 可进机务Tab</td><td>→L1</td></tr>
+            <tr><td>主页</td><td class="clickable">现金跑道数字</td><td class="to">财务部</td><td>L1→L1</td></tr>
+            <tr><td>主页</td><td class="clickable">董事会满意度</td><td class="to">董事会</td><td>L1→L1</td></tr>
+            <tr><td>主页</td><td class="clickable">宏观指示灯</td><td class="to">宏观经济面板</td><td>→L2</td></tr>
+            <tr><td>主页</td><td class="clickable">竞争态势微件</td><td class="to">竞争态势 / AI航司</td><td>→L2</td></tr>
+            <tr><td>主页</td><td class="clickable">地图上航线/飞机</td><td class="to">航线详情弹层 或 飞机详情</td><td>→L2</td></tr>
+            <tr><td>收件箱</td><td class="clickable">左侧某封邮件</td><td class="to">右侧详情（同页）</td><td>L1内</td></tr>
+            <tr><td>收件箱详情</td><td class="clickable">批准开航</td><td class="to">开航生效+回主页/航线（或简会）</td><td>→状态/L4</td></tr>
+            <tr><td>收件箱详情</td><td class="clickable">发起会议</td><td class="to">CEO决策会议</td><td>→L4</td></tr>
+            <tr><td>收件箱详情</td><td class="clickable">暂缓</td><td class="to">关闭/标记暂缓（可留在收件箱）</td><td>L1</td></tr>
+            <tr><td>机队</td><td class="clickable">机型行 ▶ / 注册号</td><td class="to">飞机详情</td><td>→L2</td></tr>
+            <tr><td>机队</td><td class="clickable">+ 购买飞机</td><td class="to">购机决策会议</td><td>→L4</td></tr>
+            <tr><td>飞机详情</td><td class="clickable">座位配置</td><td class="to">座位配置页</td><td>→L3</td></tr>
+            <tr><td>飞机详情</td><td class="clickable">分配航线</td><td class="to">航班环/航线选择器</td><td>→L3</td></tr>
+            <tr><td>飞机详情</td><td class="clickable">转售/退役</td><td class="to">估价确认（L5）→ 回机队</td><td>→L5</td></tr>
+            <tr><td>飞机详情</td><td class="clickable">安排大修</td><td class="to">机务确认/预算确认</td><td>→L4/L5</td></tr>
+            <tr><td>飞机详情</td><td class="clickable">申请替换（新机）</td><td class="to">生成邮件 + 购机会议</td><td>→L4</td></tr>
+            <tr><td>航线</td><td class="clickable">列表中的航线行</td><td class="to">航线详情（RPM/竞争/盈利）</td><td>→L2</td></tr>
+            <tr><td>航线</td><td class="clickable">+ 开通新航线</td><td class="to">RPM评估台 或 开线会议</td><td>→L3/L4</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:16px;">C3. 七部门 / 董事会 → 子页 / 弹窗</h3>
+      <div class="flow-table-wrap">
+        <table class="click-map">
+          <thead><tr><th>所在页</th><th>可点击文字/控件</th><th>跳转到</th><th>层级</th></tr></thead>
+          <tbody>
+            <tr><td>运营部</td><td class="clickable">向CEO提交购机建议</td><td class="to">收件箱邮件 + 可开购机会议</td><td>→L1/L4</td></tr>
+            <tr><td>运营部</td><td class="clickable">航班环构建 / 计划草案</td><td class="to">航班环构建器</td><td>→L3</td></tr>
+            <tr><td>运营部</td><td class="clickable">IRROPS / 危机条目</td><td class="to">危机弹窗</td><td>→L4</td></tr>
+            <tr><td>市场部</td><td class="clickable">FFP管理</td><td class="to">FFP常旅客管理</td><td>→L3</td></tr>
+            <tr><td>市场部</td><td class="clickable">产品工坊</td><td class="to">产品工坊</td><td>→L3</td></tr>
+            <tr><td>市场部</td><td class="clickable">季节性日历</td><td class="to">旺季策略包编辑（L3内）</td><td>→L3</td></tr>
+            <tr><td>市场部</td><td class="clickable">价格战事件</td><td class="to">事件选项弹窗</td><td>→L4</td></tr>
+            <tr><td>财务部</td><td class="clickable">燃油/汇率对冲面板</td><td class="to">对冲工作台</td><td>→L3</td></tr>
+            <tr><td>财务部</td><td class="clickable">碳配额</td><td class="to">碳配额管理</td><td>→L3</td></tr>
+            <tr><td>财务部</td><td class="clickable">预算使用率 / 编制</td><td class="to">年度预算编制</td><td>→L3</td></tr>
+            <tr><td>财务部</td><td class="clickable">🚨 紧急融资</td><td class="to">紧急融资/破产保护</td><td>→L4</td></tr>
+            <tr><td>财务部</td><td class="clickable">宏观指示灯</td><td class="to">宏观经济面板</td><td>→L2</td></tr>
+            <tr><td>预算编制</td><td class="clickable">提交董事会审批</td><td class="to">董事会投票（L4）</td><td>→L4</td></tr>
+            <tr><td>战略部</td><td class="clickable">新航线评估 / RPM</td><td class="to">RPM评估台</td><td>→L3</td></tr>
+            <tr><td>RPM评估台</td><td class="clickable">提交开线 / 发起会议</td><td class="to">开线决策会议</td><td>→L4</td></tr>
+            <tr><td>机务部</td><td class="clickable">AOG记录 / 修复</td><td class="to">修复方案弹窗</td><td>→L4</td></tr>
+            <tr><td>机务部</td><td class="clickable">航材采购</td><td class="to">库存/订单确认</td><td>→L3/L5</td></tr>
+            <tr><td>人力部</td><td class="clickable">一键招聘 / 空缺行</td><td class="to">招聘策略弹窗</td><td>→L4</td></tr>
+            <tr><td>人力部</td><td class="clickable">工会状态 / 谈判</td><td class="to">工会谈判桌</td><td>→L3</td></tr>
+            <tr><td>安全部</td><td class="clickable">🔍 深度调查</td><td class="to">调查选项弹窗</td><td>→L4</td></tr>
+            <tr><td>董事会</td><td class="clickable">目标卡片 T-0x</td><td class="to">目标详情（侧栏/弹层）</td><td>→L2</td></tr>
+            <tr><td>董事会</td><td class="clickable">成员卡片</td><td class="to">成员详情（主张/派系提示）</td><td>→L2</td></tr>
+            <tr><td>董事会</td><td class="clickable">预算/豁免投票</td><td class="to">投票弹窗</td><td>→L4</td></tr>
+            <tr><td>财年末</td><td class="clickable">续聘成功选项</td><td class="to">保留董事会 / 重新组建</td><td>L4→L0/L1</td></tr>
+            <tr><td>决策会议</td><td class="clickable">批准 / 暂缓 / 拒绝</td><td class="to">生效并关闭；暂缓→补条件(L5)</td><td>L4→L5/回退</td></tr>
+            <tr><td>AO对话</td><td class="clickable">预设按钮「开航线/买飞机/…」</td><td class="to">对应 L1 或 L4</td><td>L2→L1/L4</td></tr>
+            <tr><td>AO对话</td><td class="clickable">去处理</td><td class="to">AO建议的目标页</td><td>→指定页</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 全局壳 ========== -->
+  <section id="sec-shell">
+    <div class="sec-title">〇、全局界面壳 <span>L0 常驻</span></div>
+    <div class="grid">
+      <div class="card shell">
+        <div class="name">🖥️ 主界面框架（常驻）</div>
+        <div class="meta">线框图核心：地图为舞台，UI 为覆层</div>
+        <div class="shell-layout">
+          <div class="shell-top">
+            <div>公司 LOGO</div><div>公司名称</div><div>CEO 名字</div>
+            <div>🔔 消息中心</div><div>🔍 搜索</div><div>📅 日期/星期</div>
+            <div>⏱ 1×/2×/4×/8× · 暂停</div><div>▶ 继续游戏</div>
+          </div>
+          <div class="shell-map">
+            <div class="ov">世界卫星地图（昼夜）</div>
+            <div class="ov">航线发光弧 + 飞机图标</div>
+            <div class="ov">枢纽光点</div>
+            <div class="ov">蓝色半透明数据覆层</div>
+            <div class="ov">右下角 AO 头像（绿/黄/红）</div>
+          </div>
+          <div class="shell-bot">
+            <div>🏠 主页</div><div>📬 收件箱</div><div>🛩 机队</div><div>🗺 航线</div>
+            <div>⚙️ 运营</div><div>📈 市场</div><div>💰 财务</div><div>🧭 战略🔒</div>
+            <div>🔧 机务</div><div>👥 人力</div><div>🛡 安全</div><div>🏛 董事会</div>
+          </div>
+        </div>
+        <ul style="margin-top:10px;">
+          <li><strong>导航</strong>：底部 Tab 切换整屏；无左侧主菜单（相对旧 FM24 草案已改）</li>
+          <li><strong>术语</strong>：专业词虚线下划线 → Tooltip（全称/释义/关联部门）</li>
+          <li><strong>暂停</strong>：边缘遮罩 +「已暂停」；飞机/进度冻结；消息中心只读</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 开局流 ========== -->
+  <section>
+    <div class="sec-title">一、开局与元流程 <span>L0</span></div>
+    <div class="flow-note">主菜单 → 建档 → 注册公司 → 组董事会 → AO 引导 → 首航闭环</div>
+    <div class="arrow-row">
+      <span class="a">主菜单</span><span class="arr">→</span>
+      <span class="a">玩家资料</span><span class="arr">→</span>
+      <span class="a">公司注册</span><span class="arr">→</span>
+      <span class="a">董事会组建</span><span class="arr">→</span>
+      <span class="a">年度目标确认</span><span class="arr">→</span>
+      <span class="a">AO 引导 / 首航</span>
+    </div>
+    <div class="grid">
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🎮 主菜单</div>
+        <div class="meta">游戏启动首屏</div>
+        <ul>
+          <li><strong>新游戏</strong>：进入建档流程</li>
+          <li><strong>继续 / 读档</strong>：最近存档 + 存档列表</li>
+          <li><strong>设置</strong>：语言、货币显示、音效、速度默认值、辅助选项</li>
+          <li><strong>飞行学院</strong>：图文教程库（可选，读完给幕僚经验）</li>
+          <li><strong>退出</strong></li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">👤 玩家资料创建</div>
+        <div class="meta">GDD 3.1 / 开局</div>
+        <ul>
+          <li>姓名 / 性别 / 年龄 / 国籍</li>
+          <li>教育背景 · 从业经历 · 特质</li>
+          <li>影响：初始航网偏好、外交倾向、幕僚生成</li>
+          <li>系统自动匹配私人幕僚（行政/财务/战略/公关）— MVP 合并为 AO「小航」入口</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🏢 公司注册</div>
+        <div class="meta">开局强制</div>
+        <ul>
+          <li>航司名称 · ICAO 三字码 · 主色/涂装</li>
+          <li>总部基地（如 SZX）· 本位币</li>
+          <li>初始资金 / 股东结构预览（映射董事会权重）</li>
+          <li>确认后生成第一届董事会候选权重</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🃏 董事会组建（抽卡）</div>
+        <div class="meta">GDD 第5–6章</div>
+        <ul>
+          <li>展示候选：头像、姓名、年龄、国籍、机构、性格、主张</li>
+          <li>隐藏：派系、策略标签、化学组合条件</li>
+          <li>固定 9 席（含玩家 CEO）· 按股东权重抽取</li>
+          <li>生成本财年目标清单 T-01~T-08（3–6 项浮动）</li>
+        </ul>
+        <div class="entry">出口 → 年度目标确认界面</div>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🎯 年度目标确认</div>
+        <div class="meta">财年开局</div>
+        <ul>
+          <li>列出本届董事会目标（类型/进度/关联董事）</li>
+          <li>显示派系分布与已知化学反应提示</li>
+          <li>确认开局 → 进入主页 + AO 强制引导</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 原图主界面 ========== -->
+  <section>
+    <div class="sec-title">二、底部 Tab 主界面 <span>L1 一级页为主 · 含 L2/L3 详情</span></div>
+    <div class="grid">
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🏠 主页 Dashboard</div>
+        <div class="meta">线框图中心页 · 控制中心</div>
+        <ul>
+          <li><strong>地图舞台</strong>：航线动画、飞机位置、枢纽</li>
+          <li><strong>KPI×4</strong>：现金跑道（月数+趋势）· 董事会满意度 · 机队规模+可用率 · 本季净利润</li>
+          <li><strong>覆层面板</strong>：下一件待办 · 航线统计▼ · 检修计划▼ · 员工满意度 · 媒体报道</li>
+          <li><strong>竞争态势微件</strong>：区域市占饼图入口（GDD21）</li>
+          <li><strong>宏观指示灯</strong>：扩张/收缩/危机（点进宏观面板）</li>
+          <li><strong>行动中心</strong>：待决策事件 → 会议/邮件</li>
+          <li><strong>底部快讯</strong>：最新邮件摘要滚动</li>
+          <li>PDP 应付倒计时（未来 6 个月飞机预付款）</li>
+        </ul>
+        <div class="entry">关联 → 收件箱 / 财务 / 董事会 / 消息中心 / AO</div>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">📬 收件箱</div>
+        <div class="meta">左列表 + 右详情</div>
+        <ul>
+          <li>按日期分组；未读红点；主题/发件人/时间</li>
+          <li>详情：正文、抄送部门、数据表、柱状图、前置进度甘特</li>
+          <li><strong>动态按钮</strong>：批准开航 · 发起会议 · 直接确认 · 暂缓</li>
+          <li>类型：航线申请、购机建议、预算追加、危机通报、董事会决议</li>
+          <li>开局样例：SZX↔PEK 航线申请（市场/竞对/运力/收益）</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">💬 航空事务官（AO）</div>
+        <div class="meta">小航 · 单人 AI 副驾驶</div>
+        <ul>
+          <li>开局全屏介绍：角色 · 三件事（引导/预警/答疑）· 界面速览</li>
+          <li>右下角常驻头像：绿正常 / 黄待阅 / 红紧急</li>
+          <li>对话窗：历史记录 + 预设按钮（开航线/买飞机/看报表/风险/效率）</li>
+          <li>输出：结论前置 + 1 建议 + 1 跳转；绝不自动执行</li>
+          <li>对接 GameState / Board / Time / Event 等系统</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🛩 机队</div>
+        <div class="meta">列表 · 购机入口</div>
+        <ul>
+          <li>汇总：总数 · 平均机龄 · 可用率%</li>
+          <li>按机型折叠：A330/A321/A320/B738… 数量▶</li>
+          <li>明细：注册号 · 座位 · 首飞日 · 机龄 · 维修/适航状态</li>
+          <li>+ 购买飞机 → 购机决策会议</li>
+          <li>点击飞机 → 飞机详情页</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">✈️ 飞机详情（履历）</div>
+        <div class="meta">机队二级页</div>
+        <ul>
+          <li>顶栏：注册号 · 机型 · 状态徽章 · 位置 · 机龄/退役进度</li>
+          <li>KPI：日利用率 · 燃油效率 · 距 C 检小时 · 月持有成本</li>
+          <li>Tab<strong>基本/财务</strong>：MSN、交付、采购方式、FH/FC、净值、累计营收</li>
+          <li>Tab<strong>维护</strong>：发动机、近次检修、6 月定检甘特、AOG 记录</li>
+          <li>Tab<strong>运营</strong>：执飞航线、近 30 天班次、客座率、利润、推荐航线 Top3</li>
+          <li>Tab<strong>日志</strong>：首航/大修/事故/转场时间轴</li>
+          <li>操作：分配航线 · 转售/退役 · 安排大修 · 申请替换 · <strong>座位配置</strong></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🪑 座位配置</div>
+        <div class="meta">飞机详情子页</div>
+        <ul>
+          <li>俯视座位图：F 紫 / C 红 / Y 蓝</li>
+          <li>各舱座位数 · 间距 · 票价系数滑块</li>
+          <li>总座位数实时重算；影响收益与重量</li>
+          <li>保存配置 / 恢复默认</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🗺 航线网络</div>
+        <div class="meta">地图 + 列表</div>
+        <ul>
+          <li>统计：总航线数 · 覆盖城市/国家</li>
+          <li>列表：OD · 机型 · 周班次 · 客座率 · 日利润</li>
+          <li>点击：RPM 评分 · 竞争分析 · 单航线盈利（含管理费分摊）</li>
+          <li>+ 开通新航线 → 开线会议 / 战略评估</li>
+          <li>地图高亮本公司航线；可进全屏航线图模式</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">⚙️ 运营部</div>
+        <div class="meta">OPS · 逐季解锁</div>
+        <ul>
+          <li>KPI：准点率 · 航班完成率 · 单班成本 · 日利用率 · 过站效率</li>
+          <li>运力饱和红条 +「向 CEO 提交购机建议」</li>
+          <li>近 7 天航班执行表</li>
+          <li><strong>计划草案</strong>：季节性加班 / 时刻槽倾向</li>
+          <li><strong>航班环构建</strong>：AI 方案选型或手动连班</li>
+          <li>IRROPS 入口：台风/AOG/罢工危机</li>
+          <li>负责人绩效 + 任命/副手</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">📈 市场销售部</div>
+        <div class="meta">MKT</div>
+        <ul>
+          <li>KPI：客座率 · RASK · 品牌净值 · 市场份额</li>
+          <li>航线收益 Top5 / Bottom5</li>
+          <li>定价策略：票价/折扣/预售</li>
+          <li>竞争雷达 · 价格战事件选项</li>
+          <li><strong>季节性日历</strong>：节日需求曲线 + 旺季策略包</li>
+          <li><strong>FFP</strong> · <strong>产品工坊</strong> · 大客户合同 · 渠道预算</li>
+          <li>品牌危机公关决策入口</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">💰 财务部</div>
+        <div class="meta">FIN · 现金命脉</div>
+        <ul>
+          <li>现金跑道大仪表 + 关键数字（净利润/营收/成本）</li>
+          <li>信用评级 AAA~D · WACC</li>
+          <li><strong>燃油/汇率对冲</strong>：比例 0–80% · 期限 3/6/12 月 · 盈亏</li>
+          <li>宏观指示灯 · PDP 应付</li>
+          <li>预算使用率进度条 · 追加预算申请</li>
+          <li>单航线盈利透视 · ERP 数据延迟提示</li>
+          <li>碳配额面板 · 燃油采购审批</li>
+          <li>🚨 紧急融资（跑道&lt;3 月解锁）</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🧭 战略发展部</div>
+        <div class="meta">STG · 第 3 财年解锁</div>
+        <ul>
+          <li>锁定态：倒计时 + 预告能力</li>
+          <li>RPM 深度评估（班次/机型/时刻三变量实时评分）</li>
+          <li>航权申请 · 联盟/联营谈判 · 洲际提案</li>
+          <li>新市场机会雷达 · 战略项目立项卡</li>
+          <li>亏损豁免申请（董事会投票）</li>
+          <li>黑天鹅应急预案 1–2 套</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🔧 机务工程部</div>
+        <div class="meta">MNT</div>
+        <ul>
+          <li>KPI：可用率 · 维修成本/小时 · 定检待办</li>
+          <li>未来 3 个月 C/D 检甘特图</li>
+          <li>AOG 历史 · 故障修复方案选择</li>
+          <li>航材库存 · 采购订单 · 断供策略</li>
+          <li>退租检 / 大修预算联动财务</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">👥 人力资源部</div>
+        <div class="meta">HR</div>
+        <ul>
+          <li>KPI：员工满意度 · 空缺率 · 总人数</li>
+          <li>关键空缺列表（紧急度 + 招聘策略选项）</li>
+          <li>薪酬/培训预算滑块 · 培训中心决策</li>
+          <li>工会状态 · <strong>谈判桌</strong>（让步/强硬/拖延）</li>
+          <li>人才档案 · 继任者计划 · 副手任命</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🛡 安全质量部</div>
+        <div class="meta">SAF</div>
+        <ul>
+          <li>安全评级 A/B/C/D + 升级进度</li>
+          <li>安全事件时间轴 · 合规状态</li>
+          <li>深度调查（级别/是否对外公布）</li>
+          <li>安全文化：惩罚 vs 鼓励报告</li>
+          <li>局方检查结果：申诉 / 接受处罚</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge upd">补齐</span>
+        <div class="name">🏛 董事会</div>
+        <div class="meta">治理层</div>
+        <ul>
+          <li>目标追踪器 T-01~T-08（进度/类型/状态）</li>
+          <li>9 人卡片：头像 · 派系标签 · 化学反应值</li>
+          <li>派系分布饼图 · 上财年评估结果</li>
+          <li>预算投票 · 重大采购/豁免投票入口</li>
+          <li>财年末：续聘成功 / 解雇 结局分支</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 弹窗会议 ========== -->
+  <section>
+    <div class="sec-title">三、决策会议与覆盖弹窗 <span>L4 · 内含 L5 确认</span></div>
+    <div class="grid">
+      <div class="card popup">
+        <span class="badge pop">弹窗</span>
+        <div class="name">🗣 CEO 决策会议</div>
+        <div class="meta">开航线 / 买飞机 · 全屏覆盖</div>
+        <ul>
+          <li>顶栏议题（如引进 1 架 A320neo）</li>
+          <li>五部门卡片：财务/运营/市场/人力/安全（红黄绿 + 量化意见）</li>
+          <li>底部：批准 · 暂缓（补条件）· 拒绝</li>
+          <li>首航：AO 快闪简化；其后重大投资强制完整会</li>
+        </ul>
+        <div class="entry">入口：收件箱「发起会议」· 机队+购机 · 航线+开线 · 运营部建议</div>
+      </div>
+      <div class="card popup new">
+        <span class="badge new">NEW</span>
+        <div class="name">🧾 年度预算编制 / 审批</div>
+        <div class="meta">GDD 15.9</div>
+        <ul>
+          <li>各部门建议预算上限草案</li>
+          <li>玩家调分配；总预算建议=现金 40%~60%</li>
+          <li>提交董事会投票（≥5 票）</li>
+          <li>通过后各部门按额度执行；超支另走追加申请</li>
+        </ul>
+      </div>
+      <div class="card popup new">
+        <span class="badge new">NEW</span>
+        <div class="name">👔 部门负责人任命</div>
+        <div class="meta">空缺时 3 选 1</div>
+        <ul>
+          <li>展示 3 名候选人（能力/风格/隐藏派系提示有限）</li>
+          <li>确认薪酬 · 影响部门效率 0.6~1.4</li>
+          <li>可任命副手（专长加成）</li>
+          <li>季度 Review：KPI/效率/忠诚度/幕僚建议</li>
+        </ul>
+      </div>
+      <div class="card popup new">
+        <span class="badge new">NEW</span>
+        <div class="name">🚨 危机 / IRROPS 弹窗</div>
+        <div class="meta">强制暂停可配</div>
+        <ul>
+          <li>类型：台风、AOG、空管罢工、机组超时、安全事故</li>
+          <li>倒计时决策 · 3~4 选项（成本/时间/效果预估）</li>
+          <li>紧急级：模态 + 必须决策；警告级限频</li>
+        </ul>
+      </div>
+      <div class="card popup new">
+        <span class="badge new">NEW</span>
+        <div class="name">💸 紧急融资 / 破产保护</div>
+        <div class="meta">跑道 &lt;3 / &lt;2 月</div>
+        <ul>
+          <li>银行贷款 · 股东增资 · 出售资产 · 过桥贷款 · 政府救助</li>
+          <li>破产倒计时：Chapter11 式重组选项</li>
+          <li>强制砍 50% 亏损航线等条件预览</li>
+        </ul>
+      </div>
+      <div class="card popup new">
+        <span class="badge new">NEW</span>
+        <div class="name">🏁 财年结算 / 续聘 / 解雇</div>
+        <div class="meta">节奏节点</div>
+        <ul>
+          <li>目标完成率结算</li>
+          <li>续聘成功：保留董事会 / 重新组建</li>
+          <li>未达标解雇：重开 / 读档 · 结局总结</li>
+          <li>第 3 财年：见习期总结，解锁全部功能</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 新增系统界面 ========== -->
+  <section>
+    <div class="sec-title">四、系统与外部生态界面 <span>L2 / L3 工作台</span></div>
+    <div class="grid">
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🔔 消息中心</div>
+        <div class="meta">右上角铃铛 · P0</div>
+        <ul>
+          <li>最近 200 条；按时间/类型/部门筛选</li>
+          <li>与收件箱互补：系统推送 vs 部门邮件</li>
+          <li>紧急无上限；警告每小时≤3；信息每日≤20</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🌍 宏观经济面板</div>
+        <div class="meta">GDD 第20章</div>
+        <ul>
+          <li>四阶段周期：繁荣/衰退等</li>
+          <li>GDP · 油价 · 汇率走势图</li>
+          <li>对本司成本/需求的传导摘要</li>
+          <li>入口：主页指示灯 / 财务部</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">แข่ง 竞争态势 / AI 航司</div>
+        <div class="meta">GDD 第21章</div>
+        <ul>
+          <li>区域市场份额饼图</li>
+          <li>竞对在核心航线的运力投放趋势</li>
+          <li>竞合：代码共享 / 联营提案事件</li>
+          <li>价格战响应选项回链市场部</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🎲 随机事件日志</div>
+        <div class="meta">统一事件引擎</div>
+        <ul>
+          <li>自然灾害 / 市场突变 / 连锁反应记录</li>
+          <li>进行中事件与历史回看</li>
+          <li>与危机弹窗、邮件互通</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🛢 对冲工作台</div>
+        <div class="meta">财务子界面</div>
+        <ul>
+          <li>燃油对冲 + 汇率对冲分栏</li>
+          <li>锁价量 · 到期日 · 盯市盈亏</li>
+          <li>套保比例/期限调节；教程链到飞行学院</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🛡 碳配额管理</div>
+        <div class="meta">财务碳面板</div>
+        <ul>
+          <li>累计排放 · 已购配额 · 碳负债</li>
+          <li>航线碳成本（EU ETS / CORSIA）</li>
+          <li>碳价参考与采购操作</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">💳 FFP 常旅客管理</div>
+        <div class="meta">市场子界面</div>
+        <ul>
+          <li>里程兑换规则滑块/开关</li>
+          <li>联名卡合作审批</li>
+          <li>与品牌净值联动预览</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🎁 产品工坊</div>
+        <div class="meta">市场子界面</div>
+        <ul>
+          <li>打包产品设计（票+酒店/升舱等）</li>
+          <li>预算与预期转化</li>
+          <li>确认上线 / 驳回</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🧮 新航线 RPM 评估台</div>
+        <div class="meta">战略子界面</div>
+        <ul>
+          <li>综合分绿/黄/红（≥70 / 40–69 / &lt;40）</li>
+          <li>调节周班次 · 机型 · 时刻 → 实时重算</li>
+          <li>纳入宏观与竞对参数</li>
+          <li>通过后进入开线会议</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🔗 航班环构建器</div>
+        <div class="meta">运营子界面 · 强制教程点</div>
+        <ul>
+          <li>从 AI 草案选择或手动连接航班</li>
+          <li>校验宵禁/噪音/CAT III/FTL</li>
+          <li>首次进入强制引导「连接 2 个航班」</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🤝 工会谈判桌</div>
+        <div class="meta">人力子界面</div>
+        <ul>
+          <li>诉求列表 · 让步/强硬/拖延</li>
+          <li>预估：满意度变化 · 成本 · 停飞风险</li>
+          <li>结果回写员工满意度与准点率</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">📼 历史回放</div>
+        <div class="meta">暗线系统 · 后期</div>
+        <ul>
+          <li>关键决策节点时间轴</li>
+          <li>「如果当时……」对比摘要</li>
+          <li>只读，不改存档</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">🎓 飞行学院</div>
+        <div class="meta">主菜单 / 帮助</div>
+        <ul>
+          <li>20+ 篇图文：报表、套保、RPM 等</li>
+          <li>阅读奖励幕僚经验</li>
+          <li>与强制教程（≤6 个硬锚点）互补</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <span class="badge new">NEW</span>
+        <div class="name">⚙️ 设置 / 存档</div>
+        <div class="meta">元系统</div>
+        <ul>
+          <li>F5/F9 快存快读；自动存档槽</li>
+          <li>语言 · 货币 · 色盲模式 · 字体缩放</li>
+          <li>新游戏+ / 清档（保留 API Key）</li>
+          <li>离线简报：再次上线时的世界摘要（若启用）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title">五、返回路径约定 <span>交互闭环</span></div>
+    <div class="card shell">
+      <ul>
+        <li><strong>L2/L3</strong>：左上角「← 返回」回到来源 L1（或飞机详情）</li>
+        <li><strong>L4 弹窗</strong>：点批准/拒绝/关闭后回到打开前的页面；不切换底部 Tab</li>
+        <li><strong>L5 确认</strong>：确认后关闭 L5，再关闭或保留 L4（按流程）</li>
+        <li><strong>AO「去处理」</strong>：跳到目标页，AO 窗可自动收起</li>
+        <li><strong>Esc</strong>：关闭当前最顶层弹窗（L5→L4→L2侧栏）</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    交互图文件：<code>Interface Planning/Airline_CEO__UI交互图 V1.0.html</code><br>
+    请先看顶部 <strong>A 层级 / B 架构树 / C 点击总表</strong>；下方每张卡片也有「本页可点击 → 跳转」。<br>
+    黄色批注框可直接打字；「导出全部批注」下载 txt。
+  </footer>
+</div>
+<script>
+(function () {
+  var KEY = 'airline_ceo_ui_anno_v1';
+
+  /* 页面层级 + 本页点击映射（按卡片标题关键词匹配） */
+  var PAGE_META = [
+    { match: '主界面框架', level: 'L0', clicks: [
+      ['底部 Tab 各图标文字', '对应 L1 一级页'],
+      ['🔔 消息铃铛', 'L2 消息中心'],
+      ['右下角 AO 头像', 'L2 AO 对话窗'],
+      ['⏸ 暂停 / 倍速', '时间状态切换（不换页）'],
+      ['设置入口（若有）', 'L2 设置/存档']
+    ]},
+    { match: '主菜单', level: 'L0', clicks: [
+      ['新游戏', 'L0 玩家资料创建'],
+      ['继续 / 读档', '存档列表 → L1 主页'],
+      ['设置', 'L2 设置/存档'],
+      ['飞行学院', 'L2 飞行学院'],
+      ['退出', '关闭游戏']
+    ]},
+    { match: '玩家资料', level: 'L0', clicks: [['下一步 / 确认', 'L0 公司注册']] },
+    { match: '公司注册', level: 'L0', clicks: [['确认注册', 'L0 董事会组建']] },
+    { match: '董事会组建', level: 'L0', clicks: [['确认本届董事会', 'L0 年度目标确认'], ['候选卡片', '展开主张详情（同页）']] },
+    { match: '年度目标确认', level: 'L0', clicks: [['开始经营', 'L1 主页 + AO 引导']] },
+    { match: '主页', level: 'L1', clicks: [
+      ['下一件待办事项', '收件箱邮件 或 L4 会议'],
+      ['现金跑道', 'L1 财务部'],
+      ['董事会满意度', 'L1 董事会'],
+      ['航线统计 ▼', '展开 / 可去航线 Tab'],
+      ['检修计划 ▼', '展开 / 可去机务 Tab'],
+      ['宏观指示灯', 'L2 宏观经济面板'],
+      ['竞争态势微件', 'L2 竞争态势'],
+      ['地图航线 / 飞机', '航线详情 或 L2 飞机详情']
+    ]},
+    { match: '收件箱', level: 'L1', clicks: [
+      ['左侧邮件行', '右侧详情（同页）'],
+      ['批准开航', '生效并更新航线 / 或简会'],
+      ['发起会议', 'L4 CEO 决策会议'],
+      ['暂缓', '标记暂缓，留在收件箱']
+    ]},
+    { match: '航空事务官', level: 'L2', clicks: [
+      ['预设：开航线 / 买飞机 / 看报表…', '对应 L1 或 L4'],
+      ['去处理', 'AO 指定目标页'],
+      ['关闭', '回到底层页面']
+    ]},
+    { match: '机队', level: 'L1', clicks: [
+      ['机型 ▶ / 注册号', 'L2 飞机详情'],
+      ['+ 购买飞机', 'L4 购机决策会议']
+    ]},
+    { match: '飞机详情', level: 'L2', clicks: [
+      ['座位配置', 'L3 座位配置'],
+      ['分配航线', 'L3 航线/航班环选择器'],
+      ['转售 / 退役', 'L5 确认 → 回机队'],
+      ['安排大修', 'L4/L5 预算确认'],
+      ['申请替换', '邮件 + L4 购机会议'],
+      ['← 返回', 'L1 机队']
+    ]},
+    { match: '座位配置', level: 'L3', clicks: [
+      ['保存配置', '写回飞机详情'],
+      ['恢复默认', '同页重置'],
+      ['← 返回', 'L2 飞机详情']
+    ]},
+    { match: '航线网络', level: 'L1', clicks: [
+      ['航线列表行', 'L2 航线详情（RPM/竞争/盈利）'],
+      ['+ 开通新航线', 'L3 RPM评估 或 L4 开线会议'],
+      ['地图航线', '同航线详情']
+    ]},
+    { match: '运营部', level: 'L1', clicks: [
+      ['向CEO提交购机建议', '收件箱 + 可开 L4 会议'],
+      ['航班环构建 / 计划草案', 'L3 航班环构建器'],
+      ['IRROPS / 危机', 'L4 危机弹窗'],
+      ['任命 / 绩效', 'L4 负责人任命或报告']
+    ]},
+    { match: '市场销售部', level: 'L1', clicks: [
+      ['FFP', 'L3 FFP 管理'],
+      ['产品工坊', 'L3 产品工坊'],
+      ['季节性日历', 'L3 旺季策略'],
+      ['价格战 / 合同', 'L4 事件弹窗']
+    ]},
+    { match: '财务部', level: 'L1', clicks: [
+      ['对冲面板', 'L3 对冲工作台'],
+      ['碳配额', 'L3 碳配额管理'],
+      ['预算编制 / 使用率', 'L3 年度预算编制'],
+      ['🚨 紧急融资', 'L4 紧急融资/破产'],
+      ['宏观指示灯', 'L2 宏观面板']
+    ]},
+    { match: '战略发展部', level: 'L1', clicks: [
+      ['RPM / 新航线评估', 'L3 RPM 评估台'],
+      ['航权 / 联盟', 'L4 谈判弹窗'],
+      ['立项 / 豁免', 'L4 董事会投票']
+    ]},
+    { match: '机务工程部', level: 'L1', clicks: [
+      ['AOG / 修复', 'L4 修复方案弹窗'],
+      ['航材采购', 'L3/L5 订单确认'],
+      ['定检条目', '飞机详情或排程详情']
+    ]},
+    { match: '人力资源部', level: 'L1', clicks: [
+      ['空缺 / 招聘', 'L4 招聘策略弹窗'],
+      ['工会 / 谈判', 'L3 工会谈判桌'],
+      ['人才档案', 'L2/L3 档案详情']
+    ]},
+    { match: '安全质量部', level: 'L1', clicks: [
+      ['深度调查', 'L4 调查选项弹窗'],
+      ['局方检查', 'L4 申诉/接受弹窗'],
+      ['事件时间轴条目', '事件详情']
+    ]},
+    { match: '董事会', level: 'L1', clicks: [
+      ['目标 T-0x', '目标详情侧栏'],
+      ['成员卡片', '成员详情'],
+      ['预算/豁免投票', 'L4 投票弹窗'],
+      ['财年结算入口', 'L4 续聘/解雇']
+    ]},
+    { match: '决策会议', level: 'L4', clicks: [
+      ['批准', '生效并关闭，回原页'],
+      ['暂缓', 'L5 补条件表单'],
+      ['拒绝', '关闭会议，标记搁置']
+    ]},
+    { match: '预算编制', level: 'L3', clicks: [
+      ['调整各部门预算', '同页'],
+      ['提交董事会审批', 'L4 董事会投票']
+    ]},
+    { match: '部门负责人任命', level: 'L4', clicks: [
+      ['选择候选人', '同页高亮'],
+      ['确认任命 / 薪酬', 'L5 确认 → 回部门页']
+    ]},
+    { match: '危机', level: 'L4', clicks: [
+      ['方案选项 A/B/C', '执行并关闭'],
+      ['倒计时结束默认项', '自动选默认方案']
+    ]},
+    { match: '紧急融资', level: 'L4', clicks: [
+      ['贷款/增资/卖资产…', 'L5 条款确认'],
+      ['申请破产保护', 'L5 重组条件勾选']
+    ]},
+    { match: '财年结算', level: 'L4', clicks: [
+      ['保留本届董事会', '新财年 L1 主页'],
+      ['重新组建', 'L0 董事会抽卡'],
+      ['重新开始 / 读档', 'L0 主菜单或存档']
+    ]},
+    { match: '消息中心', level: 'L2', clicks: [
+      ['消息行', '展开详情 / 跳转关联页'],
+      ['筛选标签', '同页过滤']
+    ]},
+    { match: '宏观经济', level: 'L2', clicks: [['关闭 / 返回', '来源页（主页或财务）']] },
+    { match: '竞争态势', level: 'L2', clicks: [
+      ['竞对卡片', '详情'],
+      ['联营提案', 'L4 事件弹窗']
+    ]},
+    { match: '随机事件', level: 'L2', clicks: [['进行中事件', 'L4 危机/选项弹窗']] },
+    { match: '对冲工作台', level: 'L3', clicks: [
+      ['确认套保', 'L5 确认 → 回财务'],
+      ['← 返回', 'L1 财务部']
+    ]},
+    { match: '碳配额', level: 'L3', clicks: [['购买配额', 'L5 确认'], ['← 返回', 'L1 财务部']] },
+    { match: 'FFP', level: 'L3', clicks: [['保存规则', '回市场部'], ['← 返回', 'L1 市场部']] },
+    { match: '产品工坊', level: 'L3', clicks: [['确认上线', '回市场部'], ['驳回', '同页']] },
+    { match: 'RPM', level: 'L3', clicks: [
+      ['调节班次/机型/时刻', '同页重算'],
+      ['提交开线 / 发起会议', 'L4 开线会议']
+    ]},
+    { match: '航班环', level: 'L3', clicks: [
+      ['选择 AI 方案 / 连班', '同页'],
+      ['确认排班', '回运营部']
+    ]},
+    { match: '工会谈判', level: 'L3', clicks: [
+      ['让步 / 强硬 / 拖延', '结算 → 回人力']
+    ]},
+    { match: '历史回放', level: 'L2', clicks: [['关闭', '来源页']] },
+    { match: '飞行学院', level: 'L2', clicks: [['某一篇教程', '文章详情'], ['返回', '主菜单或帮助']] },
+    { match: '设置 / 存档', level: 'L2', clicks: [
+      ['读档 / 存档槽', '加载或保存'],
+      ['返回游戏', '原 L1 页']
+    ]}
+  ];
+
+  function metaFor(name) {
+    for (var i = 0; i < PAGE_META.length; i++) {
+      if (name.indexOf(PAGE_META[i].match) !== -1) return PAGE_META[i];
+    }
+    return null;
+  }
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; }
+    catch (e) { return {}; }
+  }
+  function save(data) {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    var n = Object.keys(data).filter(function (k) {
+      return k !== '_global' && data[k] && String(data[k]).trim();
+    }).length;
+    var g = data._global && String(data._global).trim() ? 1 : 0;
+    var el = document.getElementById('annoStatus');
+    if (el) el.textContent = '已自动保存 · 界面批注 ' + n + ' 条' + (g ? ' + 全局' : '');
+  }
+
+  function cardKey(card, index) {
+    var nameEl = card.querySelector('.name');
+    return nameEl ? nameEl.textContent.replace(/\s+/g, ' ').trim() : ('card_' + index);
+  }
+
+  var data = load();
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+
+  cards.forEach(function (card, index) {
+    var key = cardKey(card, index);
+    var nameEl = card.querySelector('.name');
+    var meta = metaFor(key);
+
+    if (meta && nameEl && !nameEl.querySelector('.level-pill')) {
+      var pill = document.createElement('span');
+      pill.className = 'level-pill ' + meta.level;
+      pill.textContent = meta.level;
+      nameEl.insertBefore(pill, nameEl.firstChild);
+    }
+
+    if (meta && meta.clicks && meta.clicks.length) {
+      var clickBox = document.createElement('div');
+      clickBox.className = 'card-clicks';
+      var rows = meta.clicks.map(function (pair) {
+        return '<tr><td class="clk">' + pair[0] + '</td><td class="arrow">→</td><td class="dst">' + pair[1] + '</td></tr>';
+      }).join('');
+      clickBox.innerHTML = '<div class="ttl">本页可点击 → 跳转</div><table>' + rows + '</table>';
+      card.appendChild(clickBox);
+    }
+
+    var box = document.createElement('div');
+    box.className = 'card-note';
+    box.innerHTML =
+      '<div class="anno-label"><span>批注 / 待修改</span><span class="hint">点此输入</span></div>' +
+      '<textarea rows="3" placeholder="写这里：层级不对、点击应去哪、文案要改……"></textarea>';
+    var ta = box.querySelector('textarea');
+    ta.value = data[key] || '';
+    if (ta.value.trim()) card.classList.add('has-note');
+    ta.addEventListener('input', function () {
+      data[key] = ta.value;
+      if (ta.value.trim()) card.classList.add('has-note');
+      else card.classList.remove('has-note');
+      save(data);
+    });
+    card.appendChild(box);
+  });
+
+  var globalTa = document.getElementById('globalNote');
+  if (globalTa) {
+    globalTa.value = data._global || '';
+    globalTa.addEventListener('input', function () {
+      data._global = globalTa.value;
+      save(data);
+    });
+  }
+  save(data);
+
+  document.getElementById('btnToggleNotes').addEventListener('click', function () {
+    document.body.classList.toggle('hide-notes');
+  });
+
+  document.getElementById('btnClearNotes').addEventListener('click', function () {
+    if (!confirm('确定清空本页全部批注？此操作不可撤销。')) return;
+    data = {};
+    localStorage.removeItem(KEY);
+    document.querySelectorAll('.card-note textarea').forEach(function (ta) {
+      ta.value = '';
+      ta.closest('.card').classList.remove('has-note');
+    });
+    if (globalTa) globalTa.value = '';
+    save(data);
+  });
+
+  document.getElementById('btnExportNotes').addEventListener('click', function () {
+    var lines = [];
+    lines.push('Airline CEO · UI 交互图批注导出');
+    lines.push('导出时间：' + new Date().toLocaleString());
+    lines.push('');
+    lines.push('【全局修改意见】');
+    lines.push((data._global && data._global.trim()) || '（无）');
+    lines.push('');
+    lines.push('【各界面批注】');
+    cards.forEach(function (card, index) {
+      var key = cardKey(card, index);
+      var note = (data[key] || '').trim();
+      if (!note) return;
+      lines.push('');
+      lines.push('■ ' + key);
+      lines.push(note);
+    });
+    var filled = lines.some(function (l) { return l.indexOf('■ ') === 0; });
+    if (!filled && !(data._global && data._global.trim())) {
+      alert('还没有批注内容。请先在黄色框里写修改意见。');
+      return;
+    }
+    var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'UI交互图_批注_' + new Date().toISOString().slice(0, 10) + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+})();
+</script>
+</body>
+</html>
+
+

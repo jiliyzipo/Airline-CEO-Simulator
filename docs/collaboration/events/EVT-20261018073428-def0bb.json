@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018073428-def0bb",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 195,
+  "at": "2026-10-18T07:34:28.008Z",
+  "actor": "cursor",
+  "action": "review-finish",
+  "taskId": "C-COLLAB-FINAL",
+  "deliveryId": "DEL-20261018071756-010504",
+  "reviewId": "REV-20261018072743-74a233",
+  "parentEventId": null,
+  "summary": "review-finish passed",
+  "data": {
+    "status": "passed",
+    "issues": []
+  }
+}

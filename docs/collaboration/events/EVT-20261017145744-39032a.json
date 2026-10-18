@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261017145744-39032a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 57,
+  "at": "2026-10-17T14:57:44.944Z",
+  "actor": "cursor",
+  "action": "release",
+  "taskId": "C-DEMO",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "released C-DEMO",
+  "data": {}
+}

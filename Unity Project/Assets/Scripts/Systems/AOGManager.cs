@@ -20,7 +20,6 @@ namespace AirlineCEO.Systems
 
         [SerializeField] private AOGUI ui;
 
-        private float _timeScaleBeforePause = 1f;
         private bool _isShowing;
 
         /// <summary>危机结束后（玩家选定 1 或 2）。</summary>
@@ -75,8 +74,7 @@ namespace AirlineCEO.Systems
             if (_isShowing) return;
 
             _isShowing = true;
-            _timeScaleBeforePause = Time.timeScale <= 0f ? 1f : Time.timeScale;
-            Time.timeScale = 0f;
+            GameSpeed.Pause();
 
             if (ui == null)
                 ui = FindFirstObjectByType<AOGUI>(FindObjectsInactive.Include);
@@ -123,7 +121,7 @@ namespace AirlineCEO.Systems
             {
                 gs.aogAdvisorConsulted = true;
                 gs.aogChoice = 3;
-                gs.AddDecisionLog("AOG：呼叫机务顾问，听取建议后再决策。");
+                gs.AddDecisionLog("停飞：呼叫机务顾问，听取建议后再决策。");
                 if (ui != null)
                     ui.ShowAdvisorThenChoices();
                 // 顾问不恢复时间、不标记完成，须再选 1 或 2
@@ -161,10 +159,20 @@ namespace AirlineCEO.Systems
         {
             if (choice == 1)
             {
+                if (gs.cash < CostFerry)
+                {
+                    gs.AddDecisionLog($"停飞【调机备援】现金不足（需 {CostFerry:F0} 万，仅剩 {gs.cash:F0} 万），已自动转为延误维修。");
+                    // 回退到 choice 2 逻辑，但不再重复扣现金
+                    gs.boardSatisfaction = Mathf.Clamp(gs.boardSatisfaction - DelaySatisfactionPenalty, 0f, 100f);
+                    gs.onTimePercent = Mathf.Clamp(gs.onTimePercent - DelayOnTimePenalty, 40f, 100f);
+                    gs.AddDecisionLog(
+                        $"停飞【延误维修】现金不足调机，转为延误。准点率下降，董事会满意度 -{DelaySatisfactionPenalty:F0}。");
+                    return;
+                }
                 gs.cash -= CostFerry;
                 gs.yearNetProfit -= CostFerry;
                 gs.AddDecisionLog(
-                    $"AOG【调机备援】现金 -{CostFerry:F0} 万。航班准点，无旅客赔偿，董事会满意度不变。");
+                    $"停飞【调机备援】现金 -{CostFerry:F0} 万。航班准点，无旅客赔偿，董事会满意度不变。");
             }
             else // 2
             {
@@ -173,7 +181,7 @@ namespace AirlineCEO.Systems
                 gs.boardSatisfaction = Mathf.Clamp(gs.boardSatisfaction - DelaySatisfactionPenalty, 0f, 100f);
                 gs.onTimePercent = Mathf.Clamp(gs.onTimePercent - DelayOnTimePenalty, 40f, 100f);
                 gs.AddDecisionLog(
-                    $"AOG【延误维修】现金 -{CostDelayTotal:F0} 万（维修 {CostRepair:F0}+赔偿 {CostDelayComp:F0}）。" +
+                    $"停飞【延误维修】现金 -{CostDelayTotal:F0} 万（维修 {CostRepair:F0}+赔偿 {CostDelayComp:F0}）。" +
                     $"准点率下降，董事会满意度 -{DelaySatisfactionPenalty:F0}。");
             }
         }
@@ -182,9 +190,7 @@ namespace AirlineCEO.Systems
 
         private void ForceResumeTime()
         {
-            // 选完必须恢复；不依赖暂停前快照，避免卡在 0
-            Time.timeScale = 1f;
-            _timeScaleBeforePause = 1f;
+            GameSpeed.Resume();
         }
 
         #endregion

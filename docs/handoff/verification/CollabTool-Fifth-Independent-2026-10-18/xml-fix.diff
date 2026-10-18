@@ -1,0 +1,162 @@
+diff --git a/out/collab/DEL-20261018022444-a55ae4/tools/collab/lib/xml.mjs b/tools/collab/lib/xml.mjs
+index d98f300..b9bbd09 100644
+--- a/out/collab/DEL-20261018022444-a55ae4/tools/collab/lib/xml.mjs
++++ b/tools/collab/lib/xml.mjs
+@@ -6,9 +6,10 @@
+  * complete result. This parser only returns a tree when the whole byte string is
+  * one well-formed XML document.
+  *
+- * Deliberately unsupported (rejected, never silently ignored): DTD internal
+- * subsets, external entities, and anything else that would need a full XML
+- * implementation. Test result files produced by Unity/NUnit do not need them.
++ * Supported result-file subset: XML 1.0, ASCII markup names, declarations,
++ * comments, processing instructions, CDATA and predefined/numeric entities.
++ * DTDs and XML 1.1 are deliberately rejected. This is not a general-purpose
++ * validating XML processor. Test result files do not require those features.
+  */
+ 
+ const NAME_START = /[A-Za-z_:]/;
+@@ -18,6 +19,14 @@ function isWs(ch) {
+   return ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r';
+ }
+ 
++// XML 1.0 §2.2 Char (also applies to numeric character references).
++function isXmlChar(cp) {
++  return cp === 9 || cp === 10 || cp === 13 ||
++    (cp >= 0x20 && cp <= 0xd7ff) ||
++    (cp >= 0xe000 && cp <= 0xfffd) ||
++    (cp >= 0x10000 && cp <= 0x10ffff);
++}
++
+ function decodeEntities(raw, where) {
+   let out = '';
+   for (let i = 0; i < raw.length; i++) {
+@@ -36,13 +45,13 @@ function decodeEntities(raw, where) {
+     else if (ent === 'apos') out += "'";
+     else if (/^#\d+$/.test(ent)) {
+       const cp = Number(ent.slice(1));
+-      if (!Number.isSafeInteger(cp) || cp < 1 || cp > 0x10ffff) {
++      if (!Number.isSafeInteger(cp) || !isXmlChar(cp)) {
+         return { error: `invalid character reference &${ent}; in ${where}` };
+       }
+       out += String.fromCodePoint(cp);
+     } else if (/^#x[0-9a-fA-F]+$/.test(ent)) {
+       const cp = Number.parseInt(ent.slice(2), 16);
+-      if (!Number.isSafeInteger(cp) || cp < 1 || cp > 0x10ffff) {
++      if (!Number.isSafeInteger(cp) || !isXmlChar(cp)) {
+         return { error: `invalid character reference &${ent}; in ${where}` };
+       }
+       out += String.fromCodePoint(cp);
+@@ -65,6 +74,13 @@ export function parseXmlDocument(input) {
+   let s = input;
+   if (s.charCodeAt(0) === 0xfeff) s = s.slice(1);
+   if (s.trim().length === 0) return { ok: false, reason: 'document is empty', at: 0 };
++  for (let at = 0; at < s.length;) {
++    const cp = s.codePointAt(at);
++    if (!isXmlChar(cp)) {
++      return { ok: false, reason: `invalid XML 1.0 character U+${cp.toString(16)}`, at };
++    }
++    at += cp > 0xffff ? 2 : 1;
++  }
+ 
+   let i = 0;
+   const bad = (reason, at = i) => ({ ok: false, reason, at });
+@@ -83,36 +99,31 @@ export function parseXmlDocument(input) {
+     // i points at "<!--"
+     const end = s.indexOf('-->', i + 4);
+     if (end < 0) return bad('unterminated comment');
++    const body = s.slice(i + 4, end);
++    if (body.includes('--') || body.endsWith('-')) return bad('invalid double hyphen in comment');
+     i = end + 3;
+     return { ok: true };
+   };
+   const skipPi = () => {
+-    // i points at "<?"
+-    const end = s.indexOf('?>', i + 2);
++    const start = i;
++    i += 2;
++    const target = readName();
++    if (!target) return bad('processing instruction target expected');
++    const end = s.indexOf('?>', i);
+     if (end < 0) return bad('unterminated processing instruction');
++    const body = s.slice(i, end);
++    if (body.length && !isWs(body[0])) return bad('processing instruction data requires whitespace');
++    if (target.toLowerCase() === 'xml') {
++      if (start !== 0 || target !== 'xml') return bad('XML declaration must appear once at document start', start);
++      // XMLDecl: version first, optional encoding, then optional standalone.
++      const declaration = /^[ \t\r\n]+version[ \t\r\n]*=[ \t\r\n]*(["'])1\.0\1(?:[ \t\r\n]+encoding[ \t\r\n]*=[ \t\r\n]*(["'])[A-Za-z][A-Za-z0-9._-]*\2)?(?:[ \t\r\n]+standalone[ \t\r\n]*=[ \t\r\n]*(["'])(?:yes|no)\3)?[ \t\r\n]*$/;
++      if (!declaration.test(body)) return bad('invalid or unsupported XML 1.0 declaration', start);
++    }
+     i = end + 2;
+     return { ok: true };
+   };
+-  const skipDoctype = () => {
+-    // i points at "<!DOCTYPE"; no internal subset support (fail-closed).
+-    let j = i + 9;
+-    for (; j < s.length; j++) {
+-      const c = s[j];
+-      if (c === '[') return bad('DTD internal subsets are not supported', j);
+-      if (c === '>') {
+-        i = j + 1;
+-        return { ok: true };
+-      }
+-      if (c === '"' || c === "'") {
+-        const close = s.indexOf(c, j + 1);
+-        if (close < 0) return bad('unterminated DOCTYPE literal', j);
+-        j = close;
+-      }
+-    }
+-    return bad('unterminated DOCTYPE', i);
+-  };
+-
+-  const parseElement = () => {
++  const parseElement = (depth = 0) => {
++    if (depth >= 256) return bad('result XML exceeds supported element nesting depth (256)');
+     // i points at '<'
+     i++;
+     const name = readName();
+@@ -120,7 +131,9 @@ export function parseXmlDocument(input) {
+     const attrs = Object.create(null);
+     const labels = Object.create(null);
+     for (;;) {
++      const beforeWs = i;
+       skipWs();
++      const separated = i > beforeWs;
+       if (i >= s.length) return bad(`unterminated start tag <${name}>`);
+       if (s[i] === '>') {
+         i++;
+@@ -133,6 +146,7 @@ export function parseXmlDocument(input) {
+           node: { name, attrs, labels, children: [], text: '' },
+         };
+       }
++      if (!separated) return bad(`attribute in <${name}> must be preceded by whitespace`);
+       const attr = readName();
+       if (!attr) return bad(`malformed attribute in <${name}>`);
+       skipWs();
+@@ -193,13 +207,14 @@ export function parseXmlDocument(input) {
+         if (s.startsWith('<!', i)) {
+           return bad('unexpected markup declaration inside an element');
+         }
+-        const child = parseElement();
++        const child = parseElement(depth + 1);
+         if (!child.ok) return child;
+         node.children.push(child.node);
+         continue;
+       }
+       const next = s.indexOf('<', i);
+       const chunk = s.slice(i, next < 0 ? s.length : next);
++      if (chunk.includes(']]>')) return bad("']]>' is forbidden in ordinary character data");
+       const decoded = decodeEntities(chunk, `text of <${name}>`);
+       if (decoded.error) return bad(decoded.error);
+       text += decoded.value;
+@@ -222,9 +237,7 @@ export function parseXmlDocument(input) {
+       continue;
+     }
+     if (/^<!DOCTYPE/.test(s.slice(i, i + 9))) {
+-      const r = skipDoctype();
+-      if (!r.ok) return r;
+-      continue;
++      return bad('DOCTYPE declarations are unsupported in result XML');
+     }
+     break;
+   }

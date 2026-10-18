@@ -30,6 +30,7 @@ namespace AirlineCEO.UI
             host.transform.SetParent(canvasParent, false);
             UIFactory.ApplyAnchor(host.GetComponent<RectTransform>(), UIFactory.Fill);
             var ui = host.AddComponent<AOGUI>();
+            UIFactory.EnsureSortingCanvas(host, UITheme.SortBlockingModal);
             ui.Build(host.transform);
             host.SetActive(false);
             return ui;
@@ -48,7 +49,7 @@ namespace AirlineCEO.UI
             UIFactory.AddBorder(_crisisPanel, UITheme.Danger, new Vector2(2.5f, -2.5f));
 
             var title = UIFactory.Label(_crisisPanel.transform, "Title",
-                "✈️ AOG 危机：飞机突发故障！", 26, TextAlignmentOptions.Center,
+                "✈️ 停飞危机：飞机突发故障！", 26, TextAlignmentOptions.Center,
                 new UIFactory.Anchor(new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.97f), Vector2.zero, Vector2.zero),
                 UITheme.Danger, FontStyles.Bold);
 

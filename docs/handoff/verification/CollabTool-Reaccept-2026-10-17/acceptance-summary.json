@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ACCEPT-COLLAB-20261017-CODEX-02",
+  "date": "2026-10-17",
+  "actor": "codex",
+  "deliveryId": "DEL-20261017095048-cfd9dd",
+  "conclusion": "failed",
+  "scope": "Independent section 14 acceptance; fixtures run against delivery tools and current tools separately; no real Unity execution",
+  "toolSourceFingerprint": "bfb45c45ce205e84c592009aefe1c744379c85cc2c888515e337e574209967a0",
+  "sourceMatchesBetweenDeliveryAndWorkspace": true,
+  "developerTests": { "passed": 13, "failed": 0 },
+  "baseline24PerSubject": { "passed": 24, "failed": 0 },
+  "supplementalPerSubject": { "passed": 1, "failed": 11 },
+  "blockedRequirements": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"],
+  "findings": [
+    { "id": "RQ-01", "tests": ["S01", "S02", "S03"], "severity": "blocking", "summary": "Missing or failing actual results can still be accepted; invalid assertion counters accepted" },
+    { "id": "RQ-02", "tests": ["S04", "S12"], "severity": "blocking", "summary": "Deliver invalidates itself; verification-only tool tests alter implementation identity" },
+    { "id": "RQ-03", "tests": ["S05", "S06"], "severity": "blocking", "summary": "ProjectSettings changes and added snapshot source files bypass integrity validation" },
+    { "id": "RQ-04", "tests": ["S07"], "severity": "blocking", "summary": "Smoke finish removes resource lock owned by another review" },
+    { "id": "RQ-05", "tests": ["S08"], "severity": "blocking", "summary": "Running worker overwrites cancelled terminal review" },
+    { "id": "RQ-06", "tests": ["S09"], "severity": "blocking", "summary": "Sync task write outside state transaction overwrites successful claim" },
+    { "id": "RQ-07", "tests": ["S11"], "severity": "high", "summary": "Delivery, review, issue, event validators accept malformed field types" }
+  ],
+  "notExecuted": ["Real compilation and slot profiles", "Real isolated Unity profile", "Real client Hook integration and restart workflow", "Task-book completion gate integration"],
+  "evidence": ["current-baseline24-results.json", "delivery-baseline24-results.json", "current-supplemental-results.json", "delivery-supplemental-results.json", "delivery-integrity-inspection.json"],
+  "report": "../../CollabTool_IndependentReacceptance_2026-10-17.md",
+  "productionUnchanged": true,
+  "historicalDeliveryAndReviewUnchanged": true,
+  "newDeliveryUnchanged": true,
+  "gameTaskBookUnchanged": true,
+  "implementationFixedByAuditor": false
+}

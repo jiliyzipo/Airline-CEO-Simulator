@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "C-COLLAB-FINAL",
+  "title": "用户授权 Codex 完成协作工具 MVP 开发与交付",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "完成工具 C01–C12 的实现及开发自测，记录同作者验证的角色例外",
+    "默认手动 sync/ack 与前台 watch；可选 Hook 桥接，未验证原生接线如实提示",
+    "不改变游戏验收结论，不提交或推送"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "collab profile 在固定交付快照运行 developer、XML、closure、daily 套件；每套非零用例且失败为零"
+    },
+    {
+      "id": "AC2",
+      "text": "外部 baseline24、supplemental、boundary8 与 XML 闸门按同一快照复跑；终态调整保留更严格断言"
+    },
+    {
+      "id": "AC3",
+      "text": "中文用户流程、PowerShell 包装、独立验收与开发自测界限，以及手动 Hook 兜底有明确说明"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": null,
+  "createdAt": "2026-10-18T05:02:40.016Z",
+  "updatedAt": "2026-10-18T08:10:23.510Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "snapshotFiles": [
+    "docs/collaboration/PROTOCOL.md",
+    "docs/collaboration/README.md",
+    "docs/collaboration/OPERATOR_MANUAL_ZH.md",
+    "AGENTS.md"
+  ],
+  "freshnessNote": "Historical review REV-20261018072743-74a233 passed delivery DEL-20261018071756-010504; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261018072743-74a233"
+}

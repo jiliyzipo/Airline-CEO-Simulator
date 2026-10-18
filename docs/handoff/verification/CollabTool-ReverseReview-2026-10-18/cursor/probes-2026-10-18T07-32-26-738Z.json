@@ -1,0 +1,75 @@
+{
+  "at": "2026-10-18T07:32:26.738Z",
+  "subject": "out/collab/DEL-20261018071756-010504/tools/collab",
+  "work": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\cursor-probe-yGB42n",
+  "total": 6,
+  "passed": 5,
+  "failed": 1,
+  "results": [
+    {
+      "id": "P1",
+      "requirement": "unknown command and invalid config both exit non-zero",
+      "passed": true,
+      "detail": {
+        "unknown": 2,
+        "badConfig": 2
+      }
+    },
+    {
+      "id": "P2",
+      "requirement": "editing local config.json does not change the implementation fingerprint",
+      "passed": true,
+      "detail": {
+        "before": "efb3db6325dbe7c94c85e23a40bf37402ef442846a3c78f11935a4471b347b42",
+        "after": "efb3db6325dbe7c94c85e23a40bf37402ef442846a3c78f11935a4471b347b42"
+      }
+    },
+    {
+      "id": "P3",
+      "requirement": "taskbook-check refuses to complete without a recorded baseline",
+      "passed": true,
+      "detail": {
+        "code": 5,
+        "message": "task book not found: docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "baselineAbsent": true
+      }
+    },
+    {
+      "id": "P4",
+      "requirement": "two concurrent identical Hooks apply exactly once",
+      "passed": false,
+      "detail": {
+        "applied": 1,
+        "deduped": 0,
+        "codes": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "P5",
+      "requirement": "implementation change flips freshness to stale but keeps the historical passed verdict",
+      "passed": true,
+      "detail": {
+        "before": {
+          "s": "passed",
+          "f": "current"
+        },
+        "after": {
+          "s": "passed",
+          "f": "stale"
+        }
+      }
+    },
+    {
+      "id": "P6",
+      "requirement": "unauthorised Cursor is refused, and a grant for another delivery cannot be borrowed",
+      "passed": true,
+      "detail": {
+        "unauthorised": 7,
+        "borrowedGrant": 7
+      }
+    }
+  ]
+}

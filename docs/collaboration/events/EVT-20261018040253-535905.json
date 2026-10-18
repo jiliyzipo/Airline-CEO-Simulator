@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018040253-535905",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 164,
+  "at": "2026-10-18T04:02:53.329Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "reviewId": "REV-20261018030537-cc1568",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018030616-3028cb: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261018030616-3028cb",
+    "from": "fixed",
+    "to": "verified",
+    "note": "对交付快照 out/collab/DEL-20261018035835-766dc7 独立复验：XML 26/26；新增 xml-gate-audit 12/12（6 类非法 XML 在解析层与 finish 层均被拒绝，合法 NUnit/JSON 仍通过）"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018040308-a3b204",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 165,
+  "at": "2026-10-18T04:03:08.040Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "reviewId": "REV-20261018030537-cc1568",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018030616-3028cb: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261018030616-3028cb",
+    "from": "verified",
+    "to": "closed",
+    "note": "证据：docs/handoff/verification/CollabTool-C07-C12-2026-10-18/xml-gate-audit-delivery.results.json 与 xml-tests-delivery.txt"
+  }
+}

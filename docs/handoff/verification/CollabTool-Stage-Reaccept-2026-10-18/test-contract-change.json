@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-18T10:41:39.196Z",
+  "original": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\handoff\\verification\\CollabTool-Stage-Independent-2026-10-18\\stage-audit.mjs",
+  "originalSha256": "0688d2ad68b8c5c4f8455bf7ff6fa5b0410d185ea96c42a0cea9d0781412d179",
+  "subject": "out/collab/DEL-20261018102500-1304ad/tools/collab",
+  "subjectOnlySha256": "4bf5aeb88e1e7e4b0e75d220a444a3a322057503b012af18213a49b3121fa57b",
+  "reconciledSha256": "d89413993b7142b560ac1e3eb1d8a4c95d8ad9d321a32532010fe3f7a62d7cbc",
+  "reason": "SA03 forbids automatic approval of free-text ACs. SA05 must prove authorization independently, preserving not_run/failure without attestation, and a separate real CLI positive must supply explicit coverage.",
+  "strongerChecks": [
+    "SA05 must finish failed, not merely return any code other than 7",
+    "actor=cursor and independent=true",
+    "unattested coverage all not_run",
+    "CLI positive attestation.by plus authorization SHA256 and three explicit clauses"
+  ],
+  "fixtureActorsAreSynthetic": true,
+  "originalAuditUnmodified": true
+}

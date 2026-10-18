@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "grantedBy": "user",
+  "actor": "codex",
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "C-COLLAB-FINAL",
+  "actions": ["deliver"],
+  "statement": "2026-10-18 当前对话用户明确授权：授权你完成协调工具的全部开发工作。Codex 负责工具实现、测试、文档和交付；同作者复跑只能记开发自测，不能冒称另一方独立验收。",
+  "allowedRoots": ["tools/collab", "docs/collaboration/PROTOCOL.md", "docs/collaboration/README.md", "docs/collaboration/OPERATOR_MANUAL_ZH.md", "AGENTS.md"],
+  "constraints": ["不修改游戏业务与游戏任务书", "不提交或推送", "保留原有修改和历史记录", "不关闭用户 Unity 或删除其锁", "不修改全局客户端配置"]
+}

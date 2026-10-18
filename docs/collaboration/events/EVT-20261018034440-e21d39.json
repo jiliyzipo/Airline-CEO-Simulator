@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018034440-e21d39",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 119,
+  "at": "2026-10-18T03:44:40.231Z",
+  "actor": "cursor",
+  "action": "taskbook-baseline",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "taskbook-baseline T05",
+  "data": {
+    "results": [
+      {
+        "taskId": "T05",
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "clauseHash": "79981fa6ede06807433e9748dd843233a77ce990788c0c0567cdb02a9de4d37a",
+        "scheme": 2,
+        "previousHash": "1bfffc810edb200f03d8c142a6698247c767155a9c1bdeb6b68d9599aa5b92cf",
+        "previousScheme": null,
+        "changedSincePrevious": true,
+        "schemeUpgraded": true,
+        "totalChecked": false,
+        "subItems": 8
+      }
+    ]
+  }
+}

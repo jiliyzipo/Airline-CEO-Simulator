@@ -111,6 +111,8 @@ namespace AirlineCEO.Systems
             float monthsCash = UnityEngine.Random.Range(3f, 6f);
             float principal = Mathf.Max(80f, gs.monthlyBurnRate * monthsCash);
             float rate = UnityEngine.Random.Range(0.06f, 0.10f);
+            var macro = MacroEconomyManager.Instance;
+            if (macro != null) rate *= macro.GetLoanRateModifier();
             int term = 12;
             return CreateAmortizingLoan("bank", principal, rate, term, out message);
         }
@@ -128,6 +130,8 @@ namespace AirlineCEO.Systems
             float monthsCash = UnityEngine.Random.Range(1f, 3f);
             float principal = Mathf.Max(40f, gs.monthlyBurnRate * monthsCash);
             float rate = UnityEngine.Random.Range(0.20f, 0.28f);
+            var macro2 = MacroEconomyManager.Instance;
+            if (macro2 != null) rate *= macro2.GetLoanRateModifier();
             int term = 6;
             return CreateAmortizingLoan("bridge", principal, rate, term, out message);
         }
@@ -241,6 +245,7 @@ namespace AirlineCEO.Systems
             {
                 var L = gs.activeLoans[i];
                 if (L == null || L.type == "equity") continue;
+                NormalizeLegacyTakeoverRate(L);
                 if (L.monthsRemaining <= 0) continue;
                 int months = Mathf.Min(3, L.monthsRemaining);
                 due += L.monthlyPayment * months;
@@ -276,9 +281,9 @@ namespace AirlineCEO.Systems
 
             consecutiveDefaults = 0;
             gs.cash -= due;
-            gs.yearNetProfit -= due;
 
             var keep = new List<Loan>();
+            float interestExpense = 0f;
             for (int i = 0; i < gs.activeLoans.Count; i++)
             {
                 var L = gs.activeLoans[i];
@@ -292,6 +297,7 @@ namespace AirlineCEO.Systems
                 int months = Mathf.Min(3, L.monthsRemaining);
                 float pay = L.monthlyPayment * months;
                 float interestPart = L.remainingPrincipal * (L.interestRate / 12f) * months;
+                interestExpense += Mathf.Min(pay, interestPart);
                 float principalPart = Mathf.Max(0f, pay - interestPart);
                 L.remainingPrincipal = Mathf.Max(0f, L.remainingPrincipal - principalPart);
                 L.monthsRemaining -= months;
@@ -302,6 +308,8 @@ namespace AirlineCEO.Systems
             }
 
             gs.activeLoans = keep;
+            // Repaying principal reduces cash and debt; only financing interest reduces profit.
+            gs.yearNetProfit -= interestExpense;
             sb.Insert(0, $"本季偿还融资本息 {due:F1} 万。\n");
             gs.AddDecisionLog("财务：本季偿还融资本息 " + due.ToString("F1") + " 万。");
             gs.NotifyChanged();
@@ -346,12 +354,24 @@ namespace AirlineCEO.Systems
             {
                 var blob = JsonUtility.FromJson<LoanListSave>(json);
                 if (blob?.items != null)
+                {
                     gs.activeLoans = new List<Loan>(blob.items);
+                    foreach (var loan in gs.activeLoans) NormalizeLegacyTakeoverRate(loan);
+                }
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning("[LoanManager] 读档失败: " + e.Message);
             }
+        }
+
+        static void NormalizeLegacyTakeoverRate(Loan loan)
+        {
+            // Older generated takeover loans stored percentage points (e.g. 9.5),
+            // while all repayment formulas consume a fractional annual rate (0.095).
+            if (loan != null && loan.id == "L-TAKEOVER" && loan.createdAt == "接管前"
+                && loan.interestRate >= 6.5f && loan.interestRate <= 11.5f)
+                loan.interestRate /= 100f;
         }
 
         #endregion

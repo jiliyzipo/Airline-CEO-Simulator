@@ -1,0 +1,9 @@
+# NEXT_CURSOR
+
+- C-COLLAB-FINAL: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- C-DEMO: 按缺陷修复后重新 deliver。
+- C-ENG-COMPILE: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- C-ENG-SLOT: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- C-ENG-UNITY: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- C-ENG: 按缺陷修复后重新 deliver。
+- S01-COLLAB: 已交付，等待 Codex；不要自行勾选独立验收通过。

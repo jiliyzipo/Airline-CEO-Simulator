@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018035118-e6dd78",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 139,
+  "at": "2026-10-18T03:51:18.202Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018034551-e2de28",
+  "reviewId": "REV-20261018034555-87b436",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018034627-c975cb: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261018034627-c975cb",
+    "from": "verified",
+    "to": "closed",
+    "note": "复验通过后关闭"
+  }
+}

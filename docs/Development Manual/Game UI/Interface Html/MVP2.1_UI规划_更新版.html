@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airline CEO · MVP 2.1 UI/UX 规划（基于线框图框架）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #eef2f6;
+      font-family: 'Segoe UI', 'Noto Sans SC', system-ui, sans-serif;
+      padding: 30px 20px;
+      color: #1a2634;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px 45px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    h1 { font-size: 32px; font-weight: 700; border-left: 6px solid #1a5cff; padding-left: 18px; margin-bottom: 8px; color: #0b1a33; }
+    .subhead { font-size: 16px; color: #4a5b6e; margin-bottom: 30px; padding-left: 24px; border-bottom: 1px solid #e6ecf3; padding-bottom: 16px; }
+    h2 { font-size: 24px; font-weight: 600; margin: 40px 0 16px 0; color: #0b1a33; border-bottom: 2px solid #e6ecf3; padding-bottom: 8px; }
+    h3 { font-size: 20px; font-weight: 600; margin: 28px 0 12px 0; color: #1a2c44; }
+    h4 { font-size: 18px; font-weight: 600; margin: 20px 0 8px 0; color: #2a3f5a; }
+    p, li { font-size: 15px; line-height: 1.7; color: #253544; }
+    ul, ol { padding-left: 24px; margin: 10px 0 16px 0; }
+    li { margin-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0 28px 0; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    th { background: #eef2f7; font-weight: 600; padding: 12px 10px; text-align: left; border: 1px solid #d8e0e8; }
+    td { padding: 12px 10px; border: 1px solid #d8e0e8; vertical-align: top; background: white; }
+    .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 12px; margin-right: 6px; color: white; }
+    .badge-blue { background: #1a5cff; }
+    .badge-green { background: #1b8c4a; }
+    .badge-orange { background: #e68a2e; }
+    .badge-red { background: #c73e3e; }
+    .badge-gray { background: #6a7e94; }
+    .highlight-box {
+      background: #f8faff;
+      border-left: 4px solid #1a5cff;
+      padding: 16px 22px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+    .framework-box {
+      background: #0a1628;
+      color: #c8d6e5;
+      padding: 24px;
+      margin: 18px 0;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .framework-box h3 { color: #4da6ff; font-size: 18px; border: none; padding: 0; margin: 0 0 12px 0; }
+    .framework-box code { color: #7cb8ff; }
+    .wireframe-layout {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+      background: #0a1628;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 18px 0;
+      font-size: 12px;
+      color: #8899aa;
+    }
+    .wf-top { display: flex; gap: 10px; }
+    .wf-top > div {
+      flex: 1; padding: 8px 12px; background: #1a2c44; border: 1px solid #2a4a6a; border-radius: 4px; text-align: center;
+    }
+    .wf-map {
+      height: 300px;
+      background: linear-gradient(135deg, #0d2b4a 0%, #061a2e 100%);
+      border: 1px solid #2a4a6a;
+      border-radius: 6px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wf-map .wf-overlay {
+      position: absolute;
+      background: rgba(26,92,255,0.2);
+      border: 1px solid rgba(77,166,255,0.5);
+      border-radius: 4px;
+      padding: 8px 14px;
+      color: #aaccff;
+      font-size: 12px;
+    }
+    .wf-bottom { display: flex; gap: 6px; flex-wrap: wrap; }
+    .wf-bottom > div {
+      padding: 6px 14px; background: #1a2c44; border: 1px solid #2a4a6a; border-radius: 4px; color: #8899aa; font-size: 11px;
+    }
+    .screen-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .screen-card {
+      background: #f8faff;
+      border: 1px solid #d8e0e8;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .screen-card .screen-name { font-weight: 700; font-size: 15px; color: #1a5cff; margin-bottom: 8px; }
+    .screen-card ul { font-size: 13px; padding-left: 18px; }
+    .screen-card li { color: #4a5b6e; }
+    .note-red { color: #c73e3e; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Airline CEO Simulator · MVP 2.1</h1>
+  <div class="subhead">
+    <strong>UI/UX 交互与功能规划（基于 MVP 2.0 线框图框架）</strong><br>
+    版本：v2.1 · 更新日期：2026-08-07
+  </div>
+
+  <!-- ==================== 零、设计框架总览 ==================== -->
+  <h2>〇、设计框架总览（基于 MVP 2.0 线框图）</h2>
+
+  <div class="highlight-box">
+    <strong>核心设计语言：</strong>
+    参照用户手绘 MVP 2.0 线框图，游戏采用 <strong>底部 Tab 导航</strong>（非左侧菜单）、<strong>世界地图背景</strong>、<strong>蓝色半透明覆层区块</strong> 的信息架构。
+  </div>
+
+  <h3>整体布局结构</h3>
+  <div class="wireframe-layout">
+    <div style="margin-bottom:6px;color:#4da6ff;">▼ 顶部信息栏（固定）</div>
+    <div class="wf-top">
+      <div>公司 LOGO</div>
+      <div>公司名称</div>
+      <div>CEO 名字</div>
+    </div>
+    <div style="margin:8px 0 6px;color:#4da6ff;">▼ 主内容区 —— 世界地图背景 + 蓝色覆层数据面板</div>
+    <div class="wf-map" style="height:180px;">
+      <div class="wf-overlay" style="top:10%;left:10%;">下一件待办事项</div>
+      <div class="wf-overlay" style="top:25%;left:55%;">现金跑道（月数+趋势）</div>
+      <div class="wf-overlay" style="top:55%;left:15%;">航线统计 ▼</div>
+      <div class="wf-overlay" style="top:65%;left:60%;">检修计划 ▼</div>
+    </div>
+    <div style="margin:8px 0 6px;color:#4da6ff;">▼ 底部 Tab 导航栏（固定）</div>
+    <div class="wf-bottom">
+      <div>🏠 主页</div><div>📬 收件箱</div><div>🛩 机队</div><div>🗺 航线</div>
+      <div>⚙️ 运营部</div><div>📈 市场部</div><div>💰 财务部</div><div>🧭 战略部</div>
+      <div>🔧 机务部</div><div>👥 人力部</div><div>🛡 安全部</div><div>🏛 董事会</div>
+    </div>
+  </div>
+
+  <h3>关键设计规则</h3>
+  <table>
+    <thead><tr><th style="width:20%;">规则</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>无左侧菜单</strong></td><td><span class="note-red">导航不再使用左侧竖列菜单</span>，改为底部横向 Tab 栏。每个 Tab 切换整屏内容。</td></tr>
+      <tr><td><strong>顶部三要素</strong></td><td>顶部固定显示「公司LOGO + 公司名称 + CEO名字」三块白色标签，增强角色代入感。</td></tr>
+      <tr><td><strong>世界地图背景</strong></td><td>主屏幕以深色地球地图为底，蓝色航线连接城市枢纽。飞机图标沿航线飞行，营造全球化运营氛围。</td></tr>
+      <tr><td><strong>蓝色覆层面板</strong></td><td>核心数据以蓝色半透明矩形框浮于地图之上。带 <code>▼</code> 标记的表示可展开。面板通过虚线关联到对应底部部门 Tab。</td></tr>
+      <tr><td><strong>两栏详情</strong></td><td>收件箱、机队等二级页面采用「左侧列表 + 右侧详情」的双栏布局，信息层级清晰。</td></tr>
+      <tr><td><strong>深色科技风</strong></td><td>整体采用深蓝/深灰背景 + 亮蓝/亮白文字的配色方案，模拟航空驾驶舱/指挥中心风格。</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== 一、各界面详细规划 ==================== -->
+  <div class="highlight-box">
+    <strong>完整交互图：</strong>
+    请打开 <code>../Interface Planning/Airline_CEO_MVP2.1_UI交互图.html</code>
+    ——已按线框图框架补齐全部界面功能，并新增开局流、消息中心、宏观/竞争、危机弹窗、预算审批、FFP/产品工坊、RPM 评估台等页面（橙标 NEW）。
+  </div>
+
+  <h2>一、各界面详细规划（主界面 + 二级/弹窗）</h2>
+
+  <div class="screen-row">
+    <div class="screen-card">
+      <div class="screen-name">🏠 主页（Home）</div>
+      <ul>
+        <li>世界地图背景 + 航线动画</li>
+        <li>覆盖 4 块蓝色数据面板:<br>
+          ① 现金跑道（月数+趋势）<br>
+          ② 下一件待办事项<br>
+          ③ 航线统计 ▼<br>
+          ④ 检修计划 ▼</li>
+        <li>4 个 KPI 卡片横排: 董事会满意度 / 机队规模+可用率 / 本季净利润 / 市场趋势</li>
+        <li>员工满意度 + 媒体报道 两大主题区</li>
+        <li>底部"主页"Tab 高亮</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">📬 收件箱（Inbox）</div>
+      <ul>
+        <li><strong>左侧列表</strong>：按日期分组的邮件，含发件人 + 主题 + 未读标记</li>
+        <li><strong>右侧详情</strong>：选中邮件的完整内容，包含：
+          <ul>
+            <li>发件人 / 抄送</li>
+            <li>正文（如航线申请分析）</li>
+            <li>预估收益 vs 成本 柱状图</li>
+            <li>底部决策按钮（批准开航 / 发起会议 / 暂缓）</li>
+          </ul>
+        </li>
+        <li>部门邮件自动抄送相关人员</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🛩 机队（Fleet）</div>
+      <ul>
+        <li>顶部统计栏：总飞机数 / 平均机龄 / 可用率</li>
+        <li><strong>左侧机型列表</strong>：A330 / A321 / A320 / B738 / B737，每行带数量 + 展开箭头 ▶</li>
+        <li><strong>右侧明细表</strong>：注册号 / 座位数 / 首飞日 / 机龄</li>
+        <li>点击注册号进入飞机详情</li>
+        <li>右上角「+ 购买飞机」按钮</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🛩 飞机运行界面（Aircraft Detail）</div>
+      <ul>
+        <li>顶部：机型 / 编号 / 飞行总里程 / 飞行时长 筛选标签</li>
+        <li>飞机实物图（带航司涂装）</li>
+        <li><strong>4 块蓝色数据面板</strong>：
+          <ul>
+            <li>飞行基本信息（时长/里程/WiFi/餐食/首飞日/基地）</li>
+            <li>飞行记录（近30天执飞/计划班次）</li>
+            <li>检修信息（距A/B/C/D检天数 + 历史记录）</li>
+            <li>财务信息（购买金额/检修成本/月持有成本）</li>
+          </ul>
+        </li>
+        <li>底部操作：分配航线 / 转售退役 / 安排大修 / 申请替换</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🗺 航线（Routes）</div>
+      <ul>
+        <li>世界地图视图 + 公司航线高亮</li>
+        <li>航线列表（航线、执飞机型、周班次、客座率、日利润）</li>
+        <li>点击航线查看 RPM 评分 + 竞争分析</li>
+        <li>右上角「+ 开通新航线」按钮</li>
+        <li>覆盖城市数 + 总航线数统计</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">💬 航空事务官（AO 引导页）</div>
+      <ul>
+        <li>大型蓝色对话气泡覆盖地图</li>
+        <li>三段式介绍：<br>
+          ① 欢迎语 + 角色设定（25年飞行经验）<br>
+          ② 我能为您做三件事（主动预警 / 随时答疑 / 引导上手）<br>
+          ③ 界面功能速览表（一行一功能）</li>
+        <li>右下角常驻悬浮 AO 头像（绿/黄/红呼吸灯）</li>
+        <li>AO 不说话时不自动弹窗</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">💰 财务部（Finance）</div>
+      <ul>
+        <li>现金跑道大号油量表（环形仪表盘）</li>
+        <li>关键数字：本季净利润 / 总营收 / 总成本</li>
+        <li>燃油对冲面板（当前价 / 已锁吨数 / 到期日 / 盈亏状态）</li>
+        <li>宏观经济指示灯（扩张/收缩/危机）</li>
+        <li>「🚨 紧急融资」按钮（红底白字）</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">📈 市场销售部（Marketing）</div>
+      <ul>
+        <li>KPI：客座率 / RASK / 品牌净值 / 市场份额</li>
+        <li>航线收益排行 Top 5 / Bottom 5</li>
+        <li>定价策略调整（票价/折扣/预售策略）</li>
+        <li>竞争态势雷达图（本司 vs 竞对）</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">⚙️ 运营部（Operations）</div>
+      <ul>
+        <li>KPI：准点率 / 航班完成率 / 单班成本 / 日利用率</li>
+        <li>运力预警红条（运力不足时触发）</li>
+        <li>航班执行情况表（近7天）</li>
+        <li>「向CEO提交购机建议」快捷按钮</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🧭 战略发展部（Strategy）</div>
+      <ul>
+        <li><strong>第3财年解锁</strong>，提前显示锁定状态 + 倒计时</li>
+        <li>解锁后：RPM深度评估 / 航权申请 / 联盟谈判 / 洲际航线提案</li>
+        <li>新市场机会雷达图</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🔧 机务工程部（Engineering）</div>
+      <ul>
+        <li>KPI：机队可用率 / 维修成本/小时 / 定检待办数</li>
+        <li>未来3个月定检甘特图（C检/D检排程）</li>
+        <li>AOG 历史记录</li>
+        <li>航材库存提示</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">👥 人力资源部（HR）</div>
+      <ul>
+        <li>KPI：员工满意度 / 关键空缺数 / 总员工数</li>
+        <li>关键空缺岗位列表（含紧急度 + 一键招聘）</li>
+        <li>工会状态</li>
+        <li>薪酬方案管理</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🛡 安全质量部（Safety）</div>
+      <ul>
+        <li>安全评级大图标（A/B/C/D）+ 距下一级进度条</li>
+        <li>安全事件时间轴</li>
+        <li>合规状态面板</li>
+        <li>「🔍 深度调查」入口</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🏛 董事会（Board）</div>
+      <ul>
+        <li>常驻目标追踪器（T-01 ~ T-08）</li>
+        <li>9位成员卡片（头像 + 派系标签 + 化学反应数值）</li>
+        <li>上财年年度评估结果</li>
+        <li>派系分布饼图</li>
+      </ul>
+    </div>
+
+    <div class="screen-card">
+      <div class="screen-name">🪑 座位配置（Cabin Config）</div>
+      <ul>
+        <li>飞机俯视座位图（F舱紫色 / C舱红色 / Y舱蓝色）</li>
+        <li>右侧舱位信息栏：F舱 xx / C舱 xx / Y舱 xx</li>
+        <li>总座位数标签</li>
+        <li>各舱位调参滑块（座位数/间距/票价系数）</li>
+      </ul>
+    </div>
+
+    <div class="screen-card" style="border-color:#e6a23c;">
+      <div class="screen-name">🆕 开局流（主菜单→目标确认）</div>
+      <ul>
+        <li>主菜单：新游戏 / 读档 / 设置 / 飞行学院</li>
+        <li>玩家资料：姓名国籍教育经历特质</li>
+        <li>公司注册：名称·ICAO·基地·币种·股东预览</li>
+        <li>董事会抽卡：9席可见主张 / 隐藏派系</li>
+        <li>年度目标确认：T-01~T-08 后进入主页</li>
+      </ul>
+    </div>
+
+    <div class="screen-card" style="border-color:#e6a23c;">
+      <div class="screen-name">🆕 消息中心 / 宏观 / 竞争</div>
+      <ul>
+        <li>铃铛消息中心：200条，筛选，限频推送</li>
+        <li>宏观经济：周期·GDP·油价·汇率传导</li>
+        <li>竞争态势：区域市占、竞对运力、联营提案</li>
+        <li>随机事件日志：与危机弹窗互通</li>
+      </ul>
+    </div>
+
+    <div class="screen-card" style="border-color:#e6a23c;">
+      <div class="screen-name">🆕 子工作台与弹窗</div>
+      <ul>
+        <li>对冲工作台 · 碳配额 · FFP · 产品工坊</li>
+        <li>RPM 评估台 · 航班环构建器 · 工会谈判桌</li>
+        <li>预算编制/董事会审批 · 负责人任命3选1</li>
+        <li>IRROPS 危机 · 紧急融资/破产保护</li>
+        <li>财年续聘/解雇 · 见习期总结 · 历史回放</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== 二、决策会议机制 ==================== -->
+  <h2>二、CEO 决策会议（开航线 / 买飞机）</h2>
+  <div class="highlight-box">
+    <strong>触发方式：</strong> 由收件箱邮件中的「发起会议」按钮触发，或从运营部/机队页面的快捷入口触发。会议以<strong>全屏覆盖弹窗</strong>形式呈现。
+  </div>
+
+  <h3>会议面板布局</h3>
+  <ul>
+    <li><strong>顶部议题栏</strong>：蓝底白字，如「议题：关于引进 1 架 A320neo 的采购提案」</li>
+    <li><strong>中部 5 部门卡片</strong>（横排），每张卡含：
+      <ul>
+        <li>🔴 财务部：现金储备、负债率、融资成本</li>
+        <li>🟢 运营部：运力提升、日利用率改善</li>
+        <li>🟡 市场部：预估客座率、RPM 评分</li>
+        <li>🔴 人力资源部：飞行员/机务缺口、培训成本</li>
+        <li>🟢 安全质量部：适航合规评估</li>
+      </ul>
+    </li>
+    <li><strong>底部决策按钮</strong>：✅ 批准（推进）/ ⏸ 暂缓（补充条件）/ ❌ 拒绝（搁置）</li>
+  </ul>
+
+  <h3>快捷决策 vs 完整会议</h3>
+  <ul>
+    <li><strong>首航（强制简化）</strong>：AO 代为主持，玩家直接点击「确认首航计划」</li>
+    <li><strong>后续重大投资</strong>：必须走完整跨部门会商流程</li>
+  </ul>
+
+  <!-- ==================== 三、航空事务官（AO） ==================== -->
+  <h2>三、航空事务官（AO）—— 单人 AI 副驾驶</h2>
+
+  <h3>3.1 角色设定</h3>
+  <ul>
+    <li><strong>称呼</strong>：小航，25 年航空业经验虚拟形象。</li>
+    <li><strong>常驻位置</strong>：主界面<strong>右下角悬浮圆形头像</strong>，带呼吸光效：
+      <span class="badge badge-green">绿</span> 正常
+      <span class="badge badge-orange">黄</span> 有待阅建议
+      <span class="badge badge-red">红</span> 紧急预警
+    </li>
+  </ul>
+
+  <h3>3.2 三大交互模式</h3>
+  <table>
+    <thead><tr><th style="width:20%;">模式</th><th>触发</th><th>行为</th></tr></thead>
+    <tbody>
+      <tr><td><strong>新手引导（强制）</strong></td><td>开局自动弹出全屏 AO 介绍页</td><td>介绍角色 + 能力 + 界面布局，不可跳过但可关闭</td></tr>
+      <tr><td><strong>主动预警</strong></td><td>系统检测异常（现金<3月、AOG等）</td><td>头像变色 + 点击弹出预警建议</td></tr>
+      <tr><td><strong>被动问答</strong></td><td>玩家点击头像打开对话框</td><td>预设按钮问答（开航线/买飞机/看报表/风险提醒/运营效率）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 AO 对话窗</h3>
+  <ul>
+    <li>右下角弹出 360×480 对话框</li>
+    <li>历史对话记录 + 6 个预设快捷按钮</li>
+    <li>AO 回复：结论前置 + 1 个核心建议 + 1 个快捷跳转按钮</li>
+  </ul>
+
+  <!-- ==================== 四、开局邮件流程 ==================== -->
+  <h2>四、开局邮件示例：运营部申请开通「深圳 ↔ 北京首都」</h2>
+  <p>此邮件在收件箱中展示，采用<strong>左列表 + 右详情</strong>双栏布局。</p>
+
+  <div class="framework-box">
+    <h3>右侧详情面板内容</h3>
+    <p><strong>发件人：</strong>运营部 · 马格努斯 &nbsp;|&nbsp; <strong>抄送：</strong>战略发展部、市场销售部、财务部、人力资源部</p>
+    <p><strong>正文：</strong>尊敬的 CEO：我部申请开通 深圳宝安（SZX）—北京首都（PEK）航线。</p>
+    <br>
+    <p><strong>📊 为什么开？（分析模块）</strong></p>
+    <table style="font-size:12px;">
+      <tr><td style="color:#7cb8ff;">需求</td><td>国内 Top5 商务干线，日均 O&D 客流 2.8 万人次</td></tr>
+      <tr><td style="color:#7cb8ff;">市场机会</td><td>国航/南航/东航已运营，淡季客座率 76%，窗口期约 10%</td></tr>
+      <tr><td style="color:#7cb8ff;">盈利模式</td><td>平均单程票价 1,300 元，A320 日频次 3-4 班</td></tr>
+      <tr><td style="color:#7cb8ff;">预估收益</td><td>首年客座率 70%-82%，日均收入 120 万元，年化 4.5 亿元</td></tr>
+    </table>
+    <br>
+    <p><strong>📈 预估收益 vs 成本（月度）</strong>：柱状对比图</p>
+    <br>
+    <p><strong>📋 前置工作进度</strong>：甘特图显示航权/时刻申请(3周) / 航班环排班(1周) / 机组资质(1周) / 资金拨付(3天) / 定价+预售(2周)</p>
+    <br>
+    <p><strong>✅ 建议：</strong>若今日批准，约 4 周后可正式首航。</p>
+    <br>
+    <p>
+      <span class="badge badge-green">批准开航</span>
+      <span class="badge badge-orange">发起会议</span>
+      <span class="badge badge-gray">暂缓</span>
+    </p>
+  </div>
+
+  <!-- ==================== 五、底部 Tab 导航规范 ==================== -->
+  <h2>五、底部 Tab 导航规范</h2>
+  <table>
+    <thead><tr><th>Tab</th><th>图标</th><th>跳转界面</th><th>激活状态</th></tr></thead>
+    <tbody>
+      <tr><td>主页</td><td>🏠</td><td>主页 Dashboard</td><td>蓝色底 + 白色字</td></tr>
+      <tr><td>收件箱</td><td>📬</td><td>收件箱双栏</td><td>未读消息数红点角标</td></tr>
+      <tr><td>机队</td><td>🛩</td><td>机队列表 + 详情</td><td>蓝色底</td></tr>
+      <tr><td>航线</td><td>🗺</td><td>航线网络</td><td>蓝色底</td></tr>
+      <tr><td>运营部</td><td>⚙️</td><td>运营 KPI 面板</td><td>蓝色底</td></tr>
+      <tr><td>市场部</td><td>📈</td><td>市场销售 KPI</td><td>蓝色底</td></tr>
+      <tr><td>财务部</td><td>💰</td><td>财务仪表盘</td><td>蓝色底</td></tr>
+      <tr><td>战略部</td><td>🧭</td><td>战略发展（Y3锁）</td><td>蓝色底 + 🔒标记</td></tr>
+      <tr><td>机务部</td><td>🔧</td><td>机务工程甘特图</td><td>蓝色底</td></tr>
+      <tr><td>人力部</td><td>👥</td><td>人力资源面板</td><td>蓝色底</td></tr>
+      <tr><td>安全部</td><td>🛡</td><td>安全评级 + 日志</td><td>蓝色底</td></tr>
+      <tr><td>董事会</td><td>🏛</td><td>目标追踪 + 成员</td><td>蓝色底</td></tr>
+    </tbody>
+  </table>
+
+  <h2>六、设计原则与约束</h2>
+  <ul>
+    <li><span class="note-red">导航在底部，不在左侧</span>：所有主界面切换通过底部 Tab 栏完成。</li>
+    <li>世界地图为视觉锚点，不是可操作地图（MVP阶段）。</li>
+    <li>AI 建议不自动执行，AO 预警需玩家确认才跳转。</li>
+    <li>文案通俗化，专业术语配 Tooltip（Phase 14 已实现）。</li>
+    <li>深色主题 + 蓝白色系 = 航空驾驶舱风格。</li>
+    <li>弹窗全屏覆盖，底部有决策按钮而非灰色关闭键。</li>
+  </ul>
+
+  <div class="footer-note" style="margin-top:40px;border-top:1px solid #e0e7ef;padding-top:20px;font-size:14px;color:#6a7e94;text-align:center;">
+    本文档基于 MVP 2.0 线框图框架重写 · 整合 MVP 2.1 功能规划内容<br>
+    设计框架遵循用户手绘线框图：底部 Tab 导航 + 世界地图背景 + 蓝色覆层面板
+  </div>
+
+</div>
+</body>
+</html>

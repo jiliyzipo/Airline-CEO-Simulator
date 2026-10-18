@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018022608-cc542d",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "cancelled",
+  "profile": "smoke",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "ba52ba0daf508b52b3ab872d2a608465333409d0f569f103e6cc6fdde0157490",
+    "verification": "b69461ce854831b1629448525ab01544a518296aba817c86e0bfe050db076435",
+    "contract": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+  },
+  "snapshotPath": "out/collab/DEL-20261018022444-a55ae4",
+  "createdAt": "2026-10-18T02:26:08.831Z",
+  "updatedAt": "2026-10-18T02:27:19.506Z",
+  "runs": [
+    {
+      "at": "2026-10-18T02:27:12.277Z",
+      "finishedAt": "2026-10-18T02:27:12.361Z",
+      "runToken": "7d36e597e54ab138",
+      "profile": "smoke",
+      "deliveryId": "DEL-20261018022444-a55ae4",
+      "subjectImplementationFingerprint": "ba52ba0daf508b52b3ab872d2a608465333409d0f569f103e6cc6fdde0157490",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018022444-a55ae4",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018022608-cc542d/run-7d36e597e54ab138/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018022608-cc542d/run-7d36e597e54ab138/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018022608-cc542d/run-7d36e597e54ab138/stdout.txt",
+        "sha256": "f7128cb954a671c6558a76197df110d43f1af83cb323555e386247f18d7b84ad",
+        "bytes": 282,
+        "runToken": "7d36e597e54ab138"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018022608-cc542d/run-7d36e597e54ab138/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "7d36e597e54ab138"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T02:27:12.256Z",
+  "finishedAt": "2026-10-18T02:27:19.506Z",
+  "cancelReason": "developer-side smoke probe on canonical delivery; independent review still required"
+}

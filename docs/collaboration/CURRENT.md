@@ -1,0 +1,51 @@
+# CURRENT · Airline-CEO-Simulator
+
+生成时间：2026-10-18T10:50:44.373Z
+状态 revision：240
+Cursor 最近确认读取：revision 240 @ 2026-10-18T10:50:44.203Z
+Codex 最近确认读取：revision 240 @ 2026-10-18T10:46:09.579Z
+
+协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
+## 任务
+
+- **C-COLLAB-FINAL** 用户授权 Codex 完成协作工具 MVP 开发与交付 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261018072743-74a233 passed delivery DEL-20261018071756-010504; current workspace needs re-review.
+- **C-DEMO** 协作工具演示任务（专用验收，不改真实游戏任务结论） · 开发=rework · 检测=queued · freshness=stale · holder=-
+  - Latest delivery DEL-20261018035835-766dc7 review REV-20261018041820-9f4b26 failed.
+- **C-ENG-COMPILE** 编译入口串联（tools/semcheck 三道门真实执行） · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018033359-8f89f1 still applies to delivery DEL-20261018033139-af5cca.
+- **C-ENG-SLOT** slotcheck 入口串联（计数推导与汇总一致性） · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018033157-6550bc still applies to delivery DEL-20261018033145-e77a66.
+- **C-ENG-UNITY** 隔离 Unity 入口串联（EditMode 真实执行 + 占用策略） · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018033542-0f4993 still applies to delivery DEL-20261018033132-39a1e3.
+- **C-ENG** 工程入口串联验收（compile / slotcheck / 隔离 Unity） · 开发=rework · 检测=cancelled · freshness=current · holder=-
+  - Delivery matches current fingerprints; awaiting review.
+- **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261018103950-3b9460 still applies to delivery DEL-20261018102500-1304ad.
+- **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
+  - taskBookStatus=accepted
+- **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
+  - taskBookStatus=partial_open
+- **T03** 指令至起飞主链路 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
+  - taskBookStatus=partial_open
+- **T04** 经营账务与长线平衡 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
+  - taskBookStatus=partial_open
+- **T05** 时间策略交互体验 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
+  - taskBookStatus=partial_open
+- **T06** 文档与架构收口 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
+  - taskBookStatus=accepted
+
+## 最新交付
+
+- DEL-20261018102500-1304ad → S01-COLLAB @ 2026-10-18T10:25:00.552Z
+
+## 最新检测
+
+- REV-20261018103950-3b9460 → delivery DEL-20261018102500-1304ad status=passed · 独立检测角色 @ 2026-10-18T10:40:39.837Z
+
+## 开放缺陷
+
+- （无）
+
+本文件由 `node tools/collab/cli.mjs sync` 生成，请勿手工维护第二套状态。
+T01/T06 等只读引用的任务书状态见 taskBookStatus；不以本工具覆盖游戏任务书勾选。

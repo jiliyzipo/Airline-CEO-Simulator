@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 240,
+  "updatedAt": "2026-10-18T10:45:38.626Z",
+  "tasksIndex": {
+    "C-DEMO": {
+      "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
+      "devStatus": "rework",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T03:58:35.129Z"
+    },
+    "C-ENG": {
+      "title": "工程入口串联验收（compile / slotcheck / 隔离 Unity）",
+      "devStatus": "rework",
+      "reviewStatus": "cancelled",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T03:22:23.328Z"
+    },
+    "C-ENG-UNITY": {
+      "title": "隔离 Unity 入口串联（EditMode 真实执行 + 占用策略）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T03:58:08.971Z"
+    },
+    "C-ENG-COMPILE": {
+      "title": "编译入口串联（tools/semcheck 三道门真实执行）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T03:58:08.930Z"
+    },
+    "C-ENG-SLOT": {
+      "title": "slotcheck 入口串联（计数推导与汇总一致性）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T03:58:08.955Z"
+    },
+    "C-COLLAB-FINAL": {
+      "title": "用户授权 Codex 完成协作工具 MVP 开发与交付",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T05:02:40.016Z"
+    },
+    "S01-COLLAB": {
+      "title": "阶段 S01-COLLAB：Collab",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-18T09:31:41.179Z"
+    }
+  },
+  "lastDeliveryId": "DEL-20261018102500-1304ad",
+  "issueStatus": {
+    "ISSUE-20261018034627-c975cb": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "复验通过后关闭",
+      "at": "2026-10-18T03:51:18.194Z"
+    },
+    "ISSUE-20261018030616-3028cb": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "证据：docs/handoff/verification/CollabTool-C07-C12-2026-10-18/xml-gate-audit-delivery.results.json 与 xml-tests-delivery.txt",
+      "at": "2026-10-18T04:03:08.034Z"
+    },
+    "ISSUE-20261018041847-27c5bf": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Closed after verified independent Cursor REV-20261018072743-74a233 and Codex byte-binding audit. Replacement DEL-20261018071756-010504 resolves original C09/C10 defects; original failed DEL/REV retained. Formal tool checklist accepted within manual mode; native Hooks and game gates remain separate.",
+      "at": "2026-10-18T07:40:50.794Z"
+    },
+    "ISSUE-20261018095403-4c0790": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json",
+      "at": "2026-10-18T10:44:39.447Z"
+    },
+    "ISSUE-20261018095403-f4f17e": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json",
+      "at": "2026-10-18T10:44:08.884Z"
+    },
+    "ISSUE-20261018095403-f1e86c": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json",
+      "at": "2026-10-18T10:43:39.714Z"
+    },
+    "ISSUE-20261018095403-a7a8ab": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json",
+      "at": "2026-10-18T10:45:09.120Z"
+    },
+    "ISSUE-20261018095403-dd65a3": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json",
+      "at": "2026-10-18T10:45:38.624Z"
+    }
+  }
+}

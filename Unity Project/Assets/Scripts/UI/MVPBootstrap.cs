@@ -1,5 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using AirlineCEO.AI;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
@@ -19,13 +20,14 @@ namespace AirlineCEO.UI
     /// </summary>
     public class MVPBootstrap : MonoBehaviour
     {
-        private const float FirstFlightReward = 15f;
-        private const float FirstFlightSeconds = 5f;
+        private Button _openRouteBtn;
 
-        private TextMeshProUGUI _dateText;
         private TextMeshProUGUI _companyText;
-        private CashMeter _cashMeter;
-        private TextMeshProUGUI _statusText;
+        private TextMeshProUGUI _companySubText;   // 顶栏副标题：英文名 + CEO
+        private TextMeshProUGUI _logoText;          // LOGO 圆内的 IATA 码
+        private TextMeshProUGUI _localTimeText;     // 顶栏右上：本地日期时间
+        private TextMeshProUGUI _utcTimeText;       // 顶栏右上：UTC 时间 + 游戏财季
+        private TMP_InputField _searchInput;        // 顶栏搜索框（机场定位）
         private TextMeshProUGUI _popupText;
         private GameObject _popupRoot;
         private GameObject _progressRoot;
@@ -33,24 +35,18 @@ namespace AirlineCEO.UI
         private TextMeshProUGUI _progressLabel;
         private GameObject _settleRoot;
         private TextMeshProUGUI _settleText;
-        private Button _firstFlightBtn;
-        private TMP_InputField _originInput;
-        private TMP_InputField _destInput;
-        private TextMeshProUGUI _rpmResultText;
-        private Image _rpmLight;
         private TMP_InputField _chatInput;
         private TextMeshProUGUI _chatOutput;
         private Button _executeAdviceBtn;
         private TextMeshProUGUI _executeHintText;
-        private TextMeshProUGUI _opsHintText;
         private Transform _routeCardsRoot;
         private readonly List<GameObject> _routeCardInstances = new List<GameObject>();
         private AdvisorResponse _pendingAdvice;
         private bool _flightInProgress;
-        private bool _quarterInProgress;
-        private Button _advanceQuarterBtn;
-        private TextMeshProUGUI _hourglassText;
 
+        private OpsPanelUI _opsPanelUi;
+        private OpenRouteModalUI _openRouteModal;
+        private OpenRouteDecisionFlow _openRouteFlow;
         private GameObject _panelOps;
         private GameObject _panelMarket;
         private GameObject _panelBoard;
@@ -59,45 +55,194 @@ namespace AirlineCEO.UI
         private GameObject _panelFinance;
         private GameObject _panelFleet;
         private GameObject _panelAi;
+        private GameObject _panelStrategy;
+        private GameObject _panelMaintenance;
         private BoardTargetUI _boardTargetUi;
-        private HRUI _hrUi;
+        private HrPanelUI _hrPanelUi;
         private FinancePanelUI _financeUi;
         private FleetUI _fleetUi;
+        private MarketPanelUI _marketUi;
+        private StrategyPanelUI _strategyUi;
+        private MaintenancePanelUI _maintenanceUi;
         private FleetPurchaseUI _fleetPurchaseUi;
         private HedgeTutorialUI _hedgeTutorialUi;
-        private SafetyUI _safetyUi;
+        private EventLogUI _eventLogUi;
+        private SafetyPanelUI _safetyPanelUi;
         private VoteUI _voteUi;
         private AOGUI _aogUi;
         private ExpansionProposalUI _expansionUi;
-        private FloatingPanelChrome _chatChrome;
+        private AirlineCEO.UI.Shell.AdvisorModalUI _advisorModal;
         private QuarterResult _pendingBoardAnnounceResult;
-        private readonly List<Button> _navButtons = new List<Button>();
-        private readonly List<Image> _navImages = new List<Image>();
-        private int _activeNav;
+        private int _activeNav = -1;
+
+        /// <summary>底栏 Shell 切换时由 PrefabNavIntegration 调用。</summary>
+        public void HandleShellNavigation(string pageId)
+        {
+            int legacy = MapShellPageToLegacyNav(pageId);
+            if (legacy >= 0)
+            {
+                ShowNavPanel(legacy);
+                if (pageId.StartsWith("n19_", System.StringComparison.Ordinal))
+                    _maintenanceUi?.ShowSafetyTab();
+                if (pageId.StartsWith("n5_", System.StringComparison.Ordinal))
+                    _strategyUi?.ShowTargetsTab();
+                return;
+            }
+
+            // 无完整玩法页：隐藏旧中心面板，交给 Prefab 占位
+            HideAllLegacyCenterPanels();
+            _activeNav = -1;
+        }
+
+        public static int MapShellPageToLegacyNav(string pageId)
+        {
+            if (string.IsNullOrEmpty(pageId)) return -1;
+            if (pageId.StartsWith("n13_", System.StringComparison.Ordinal) || pageId == "n13_运营部") return 0;
+            if (pageId.StartsWith("n5_", System.StringComparison.Ordinal) || pageId == "n5_年度目标确认") return 8;
+            if (pageId.StartsWith("n14_", System.StringComparison.Ordinal) || pageId.Contains("市场")) return 1;
+            if (pageId.StartsWith("n20_", System.StringComparison.Ordinal) || pageId.Contains("董事会")) return 2;
+            if (pageId.StartsWith("n18_", System.StringComparison.Ordinal) || pageId.Contains("人力") || pageId.Contains("人员")) return 3;
+            if (pageId.StartsWith("n19_", System.StringComparison.Ordinal)) return 9;
+            if (pageId.StartsWith("n15_", System.StringComparison.Ordinal) || pageId.Contains("财务")) return 5;
+            if (pageId.StartsWith("n9_", System.StringComparison.Ordinal) || pageId == "n9_机队") return 6;
+            if (pageId.StartsWith("n16_", System.StringComparison.Ordinal) || pageId == "n16_战略发展部" || pageId.Contains("愿景")) return 8;
+            if (pageId.StartsWith("n17_", System.StringComparison.Ordinal) || pageId == "n17_机务工程部" || pageId.Contains("维护")) return 9;
+            // n12 航线网络走 Prefab / ShellRuntime，不再误映射到运营中心
+            return -1;
+        }
+
+        public void HideAllLegacyCenterPanels()
+        {
+            var panels = new[] { _panelOps, _panelMarket, _panelBoard, _panelHr, _panelSafety, _panelFinance, _panelFleet, _panelAi, _panelStrategy, _panelMaintenance };
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (panels[i] != null) panels[i].SetActive(false);
+            }
+        }
 
         private void Awake()
         {
             EnsureCoreSystems();
+            AppSettings.Load();
+            ModManager.LoadAll();
+            if (gameObject.GetComponent<KeyboardNav>() == null)
+                gameObject.AddComponent<KeyboardNav>();
             EnsureEventSystem();
             ChineseFontProvider.WarmupSampleChinese();
             BuildUI();
-            ShowNavPanel(1); // 默认「市场」= RPM
+            if (GetComponent<PrefabNavIntegration>() == null)
+                gameObject.AddComponent<PrefabNavIntegration>();
+            // Phase 1.4：不再默认进市场；由 SetupFlow 闸门后进主页
+            HideAllLegacyCenterPanels();
             RefreshHud();
 
             if (GameState.Instance != null)
                 GameState.Instance.OnStateChanged += RefreshHud;
+
+            if (TimeManager.Instance != null)
+            {
+                TimeManager.Instance.OnQuarterAdvanced -= OnQuarterAdvancedUi;
+                TimeManager.Instance.OnQuarterAdvanced += OnQuarterAdvancedUi;
+                TimeManager.Instance.OnYearEnded -= OnYearEndedUi;
+                TimeManager.Instance.OnYearEnded += OnYearEndedUi;
+                TimeManager.Instance.OnClockTick -= RefreshClock;
+                TimeManager.Instance.OnClockTick += RefreshClock;
+            }
+
+            StartCoroutine(ClockLoop());
+            RefreshClock();
+
+            var setup = GetComponent<AirlineCEO.UI.Setup.SetupFlowController>()
+                        ?? gameObject.AddComponent<AirlineCEO.UI.Setup.SetupFlowController>();
+            setup.Begin();
+        }
+
+        /// <summary>开局流完成后：刷新顶栏公司名，显示壳层，启动游戏时钟。</summary>
+        public void OnSetupCompleted()
+        {
+            RefreshHud();
+            // 向导结束：顾问停靠区上线（图标常驻右下角），但先保持面板收起，
+            // 由 TryStartAdvisorTutorial 决定是否自动展开。
+            _advisorModal?.SetDockVisible(true);
+            _advisorModal?.Hide();
+            // 顾问使用独立 sortingOrder，不被后打开的内容页盖住。
+            _advisorModal?.BringToFront();
+            TimeManager.SimulationEnabled = true;
+            TimeManager.Instance?.BeginPlaySession();
+            RefreshClock();
+            // 过渡业务（开局三架飞机的盈利设计）：铺常驻报价 + 投递运营部建议信
+            AirlineCEO.Logic.TransitionBusinessLogic.Bootstrap(GameState.Instance);
+            GameOverOverlay.Ensure(GetComponentInParent<Canvas>());
+            GameOverOverlay.ShowIfNeeded();
         }
 
         private void OnDestroy()
         {
             if (GameState.Instance != null)
                 GameState.Instance.OnStateChanged -= RefreshHud;
+            GameSpeed.OnLevelChanged -= OnSpeedChanged;
+            if (TimeManager.Instance != null)
+            {
+                TimeManager.Instance.OnQuarterAdvanced -= OnQuarterAdvancedUi;
+                TimeManager.Instance.OnYearEnded -= OnYearEndedUi;
+                TimeManager.Instance.OnClockTick -= RefreshClock;
+            }
             if (AOGManager.Instance != null)
                 AOGManager.Instance.OnAOGResolved -= OnAOGResolved;
             if (ExpansionProposalManager.Instance != null)
                 ExpansionProposalManager.Instance.OnProposalResolved -= OnExpansionResolved;
             if (DepartmentManager.Instance != null)
                 DepartmentManager.Instance.OnResignation -= OnDepartmentResignation;
+        }
+
+        bool _pausedForSettle;
+
+        void PauseForSettleIfNeeded()
+        {
+            if (GameSpeed.IsPaused) return; // 危机已停表，勿抢占 Resume 档
+            GameSpeed.Pause();
+            _pausedForSettle = true;
+        }
+
+        void ResumeAfterSettleIfNeeded()
+        {
+            if (!_pausedForSettle) return;
+            _pausedForSettle = false;
+            if (GameSpeed.IsPaused) GameSpeed.Resume();
+        }
+
+        void OnQuarterAdvancedUi(QuarterResult result)
+        {
+            if (result == null || !result.success) return;
+            RefreshHud();
+            RefreshClock();
+
+            // 年结投票由 OnYearEndedUi 处理（此时 result.yearEnd 尚为空）
+            if (!result.yearEnded && _settleRoot != null && _settleText != null)
+            {
+                PauseForSettleIfNeeded();
+                _settleText.text = ChineseFontProvider.Sanitize(result.message ?? "");
+                _settleRoot.SetActive(true);
+            }
+
+            if (result.pendingAOG)
+                AOGManager.Instance?.TryTriggerAOG();
+            if (result.pendingExpansionProposal)
+                ExpansionProposalManager.Instance?.TryTriggerProposal();
+            if (result.needsFinanceWarning && !string.IsNullOrEmpty(result.financeWarning))
+                PushFinanceWarningToChat(result.financeWarning);
+
+            TryAnnounceBoardTargets(GameState.Instance, result);
+
+            if (result.pendingDueMail)
+                GetComponent<PrefabNavIntegration>()?.SelectTab("n7_收件箱");
+        }
+
+        void OnYearEndedUi(YearEndResult yearEnd)
+        {
+            if (yearEnd == null) return;
+            PauseForSettleIfNeeded();
+            ShowVoteResult(yearEnd, "");
         }
 
         private void EnsureCoreSystems()
@@ -186,10 +331,82 @@ namespace AirlineCEO.UI
                 go.AddComponent<LoanManager>();
             }
 
+            if (FinanceManager.Instance == null)
+            {
+                var go = new GameObject("FinanceManager");
+                go.AddComponent<FinanceManager>();
+            }
+
             if (FleetManager.Instance == null)
             {
                 var go = new GameObject("FleetManager");
                 go.AddComponent<FleetManager>();
+            }
+
+            if (MktManager.Instance == null)
+            {
+                var go = new GameObject("MktManager");
+                go.AddComponent<MktManager>();
+            }
+
+            if (StrategyManager.Instance == null)
+            {
+                var go = new GameObject("StrategyManager");
+                go.AddComponent<StrategyManager>();
+            }
+
+            if (MaintenanceManager.Instance == null)
+            {
+                var go = new GameObject("MaintenanceManager");
+                go.AddComponent<MaintenanceManager>();
+            }
+
+            if (HrManager.Instance == null)
+            {
+                var go = new GameObject("HrManager");
+                go.AddComponent<HrManager>();
+            }
+
+            if (SafetyManager.Instance == null)
+            {
+                var go = new GameObject("SafetyManager");
+                go.AddComponent<SafetyManager>();
+            }
+
+            if (DecisionMeetingManager.Instance == null)
+            {
+                var go = new GameObject("DecisionMeetingManager");
+                go.AddComponent<DecisionMeetingManager>();
+            }
+
+            if (AIManager.Instance == null)
+            {
+                var go = new GameObject("AIManager");
+                go.AddComponent<AIManager>();
+            }
+
+            if (CompetitionManager.Instance == null)
+            {
+                var go = new GameObject("CompetitionManager");
+                go.AddComponent<CompetitionManager>();
+            }
+
+            if (RandomEventManager.Instance == null)
+            {
+                var go = new GameObject("RandomEventManager");
+                go.AddComponent<RandomEventManager>();
+            }
+
+            if (CargoManager.Instance == null)
+            {
+                var go = new GameObject("CargoManager");
+                go.AddComponent<CargoManager>();
+            }
+
+            if (MacroEconomyManager.Instance == null)
+            {
+                var go = new GameObject("MacroEconomyManager");
+                go.AddComponent<MacroEconomyManager>();
             }
         }
 
@@ -205,12 +422,27 @@ namespace AirlineCEO.UI
 #endif
         }
 
+        /// <summary>
+        /// 驾驶舱氛围底：仅底部一条色带（底栏后方），无左右侧栏色块。
+        /// </summary>
+        void BuildCockpitBackdrop(Transform parent)
+        {
+            const float bottomH = 84f;
+
+            var bottomBand = UIFactory.Panel(parent, "BottomStage",
+                new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(1f, 0f),
+                    new Vector2(0f, 0f), new Vector2(0f, bottomH)),
+                UITheme.PanelDeep, rounded: false);
+            bottomBand.GetComponent<Image>().raycastTarget = false;
+            UIFactory.AddBorder(bottomBand, UITheme.Border, new Vector2(0f, 1.5f));
+        }
+
         private void BuildUI()
         {
             var canvasGo = new GameObject("Cockpit_Canvas");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
+            canvas.sortingOrder = UITheme.SortMain;
             var scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -218,17 +450,14 @@ namespace AirlineCEO.UI
             canvasGo.AddComponent<GraphicRaycaster>();
 
             UIFactory.Panel(canvasGo.transform, "Background", UIFactory.Fill, UITheme.Bg, rounded: false);
-
-            // 轻微网格氛围
-            var grid = UIFactory.Panel(canvasGo.transform, "GridHint",
-                new UIFactory.Anchor(new Vector2(0.12f, 0.05f), new Vector2(1f, 0.9f), Vector2.zero, Vector2.zero),
-                new Color(0.1f, 0.2f, 0.35f, 0.18f), rounded: false);
-            grid.GetComponent<Image>().raycastTarget = false;
+            BuildCockpitBackdrop(canvasGo.transform);
 
             BuildTopBar(canvasGo.transform);
-            BuildLeftNav(canvasGo.transform);
             BuildCenterPanels(canvasGo.transform);
-            BuildChatBubble(canvasGo.transform);
+            _advisorModal = AirlineCEO.UI.Shell.AdvisorModalUI.Create(canvasGo.transform);
+            // 开局向导期间收起顾问停靠区（气泡图标 + 面板），避免浮在向导之上；
+            // OnSetupCompleted 里再打开。图标本身是画布级的，覆盖所有页面。
+            _advisorModal.SetDockVisible(false);
             BuildPopup(canvasGo.transform);
             BuildProgress(canvasGo.transform);
             BuildSettle(canvasGo.transform);
@@ -263,11 +492,6 @@ namespace AirlineCEO.UI
                 DepartmentManager.Instance.OnResignation -= OnDepartmentResignation;
                 DepartmentManager.Instance.OnResignation += OnDepartmentResignation;
             }
-
-            _hourglassText = UIFactory.Label(canvasGo.transform, "HourglassText", "", 22, TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.35f, 0.48f), new Vector2(0.72f, 0.58f), Vector2.zero, Vector2.zero),
-                UITheme.Warning);
-            _hourglassText.gameObject.SetActive(false);
         }
 
         private void BuildTopBar(Transform parent)
@@ -281,77 +505,242 @@ namespace AirlineCEO.UI
                 UITheme.TopBarTop, rounded: false);
             UIFactory.AddBorder(bar, UITheme.Border, new Vector2(0f, -1.5f));
 
-            // 左：公司
+            // —— 左：航司 LOGO + 中文名 / 英文名 + CEO ——（红字①②③④：LOGO/英文名/中文名/CEO名字）
+            var logo = UIFactory.Panel(bar.transform, "Logo",
+                new UIFactory.Anchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                    new Vector2(16f, -26f), new Vector2(68f, 26f)),
+                UITheme.Accent);
+            var logoImg = logo.GetComponent<Image>();
+            logoImg.sprite = UIFactory.CircleSprite;
+            logoImg.type = Image.Type.Simple;
+            _logoText = UIFactory.Label(logo.transform, "Code", "NV", 18, TextAlignmentOptions.Center,
+                UIFactory.Fill, Color.white, FontStyles.Bold);
+
             _companyText = UIFactory.Label(bar.transform, "Company",
-                ChineseFontProvider.CompanyPlanePrefix + " 天际航空 · CEO", 22, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.015f, 0), new Vector2(0.28f, 1), Vector2.zero, Vector2.zero),
+                "", 15, TextAlignmentOptions.BottomLeft,
+                new UIFactory.Anchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                    new Vector2(80f, -4f), new Vector2(400f, 30f)),
                 UITheme.TextPrimary, FontStyles.Bold);
+            _companyText.textWrappingMode = TextWrappingModes.NoWrap;
+            _companyText.overflowMode = TextOverflowModes.Truncate;
 
-            // 中：日期
-            _dateText = UIFactory.Label(bar.transform, "DateText", "第 1 年 Q1", 24, TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.28f, 0.15f), new Vector2(0.48f, 0.85f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, FontStyles.Bold);
-
-            _advanceQuarterBtn = UIFactory.Button(bar.transform, "AdvanceQuarterButton", "执行季度运营",
-                new UIFactory.Anchor(new Vector2(0.485f, 0.22f), new Vector2(0.62f, 0.78f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnAdvanceQuarterClicked, 15);
-
-            // 右：现金油量表
-            var meterPrefab = Resources.Load<GameObject>("UI/CashMeter");
-            if (meterPrefab != null)
-            {
-                var go = Object.Instantiate(meterPrefab, bar.transform);
-                go.name = "CashMeter";
-                var rt = go.GetComponent<RectTransform>();
-                UIFactory.ApplyAnchor(rt, new UIFactory.Anchor(new Vector2(0.63f, 0.08f), new Vector2(0.99f, 0.92f), Vector2.zero, Vector2.zero));
-                _cashMeter = go.GetComponent<CashMeter>();
-            }
-            if (_cashMeter == null)
-            {
-                _cashMeter = CashMeter.BuildRuntime(bar.transform,
-                    new UIFactory.Anchor(new Vector2(0.63f, 0.08f), new Vector2(0.99f, 0.92f), Vector2.zero, Vector2.zero));
-            }
-
-            _statusText = UIFactory.Label(bar.transform, "StatusText", "F5 存档 · F9 读档", 11, TextAlignmentOptions.BottomLeft,
-                new UIFactory.Anchor(new Vector2(0.015f, 0.02f), new Vector2(0.28f, 0.28f), Vector2.zero, Vector2.zero),
+            _companySubText = UIFactory.Label(bar.transform, "CompanySub",
+                "", 12, TextAlignmentOptions.TopLeft,
+                new UIFactory.Anchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                    new Vector2(80f, -30f), new Vector2(400f, -6f)),
                 UITheme.TextMuted);
+            _companySubText.textWrappingMode = TextWrappingModes.NoWrap;
+            _companySubText.overflowMode = TextOverflowModes.Truncate;
+
+            // —— 中：搜索框（放大镜 + 机场搜索，回车定位）——（红字⑦：搜索框）
+            BuildSearchBox(bar.transform);
+
+            // —— 右：图标按钮组 + 日期时间 ——（红字⑤⑥：帮助/设置；速度三键；⑧⑨：本地/UTC 时间）
+            BuildTopBarIcons(bar.transform);
+
+            // 快讯跑马灯已移除：全球航空动态统一进收件箱（未读角标提示）
         }
 
-        private void BuildLeftNav(Transform parent)
+        void BuildSearchBox(Transform bar)
         {
-            var nav = UIFactory.Panel(parent, "LeftNav",
-                new UIFactory.Anchor(new Vector2(0, 0), new Vector2(0, 1),
-                    new Vector2(12, 16), new Vector2(UITheme.LeftNavWidth, -UITheme.TopBarHeight - 8)),
-                UITheme.Glass);
-            UIFactory.AddBorder(nav, UITheme.Border, new Vector2(1.2f, -1.2f));
+            var box = UIFactory.Panel(bar, "SearchBox",
+                new UIFactory.Anchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(-170f, -18f), new Vector2(170f, 18f)),
+                new Color(0.05f, 0.10f, 0.20f, 0.92f));
+            box.GetComponent<Image>().sprite = UIFactory.RoundedSprite;
+            box.GetComponent<Image>().type = Image.Type.Sliced;
+            UIFactory.AddBorder(box, UITheme.Border, new Vector2(1f, -1f));
 
-            UIFactory.Label(nav.transform, "NavTitle", "驾驶舱", 14, TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.08f, 0.92f), new Vector2(0.92f, 0.98f), Vector2.zero, Vector2.zero),
+            // 放大镜图标
+            var icon = new GameObject("SearchIcon", typeof(RectTransform));
+            icon.transform.SetParent(box.transform, false);
+            var irt = icon.GetComponent<RectTransform>();
+            irt.anchorMin = irt.anchorMax = irt.pivot = new Vector2(0f, 0.5f);
+            irt.anchoredPosition = new Vector2(10f, 0f);
+            irt.sizeDelta = new Vector2(18f, 18f);
+            var iimg = icon.AddComponent<Image>();
+            iimg.sprite = UIFactory.SearchSprite;
+            iimg.type = Image.Type.Simple;
+            iimg.preserveAspect = true;
+            iimg.color = UITheme.TextMuted;
+            iimg.raycastTarget = false;
+
+            _searchInput = UIFactory.Input(box.transform, "SearchInput", "搜索机场（代码 / 名称，回车定位）…",
+                new UIFactory.Anchor(new Vector2(0.06f, 0.06f), new Vector2(0.98f, 0.94f), Vector2.zero, Vector2.zero));
+            _searchInput.onSubmit.AddListener(new UnityEngine.Events.UnityAction<string>(OnSearchSubmit));
+        }
+
+        void OnSearchSubmit(string query)
+        {
+            _searchInput.DeactivateInputField();
+
+            // 闸门：开局（新游戏）或读档完成后才允许搜机场。
+            // 顶栏（含这个 SearchBox）在向导期整体隐藏，所以正常情况下这里根本点不到 ——
+            // 但这句不是冗余：回车会 `SelectTab("n6_主页_Dashboard")`，是**绕过开局向导直接进局内**的路子，
+            // 一旦顶栏哪天被单独打开（或搜索框被挪出 TopBar），只有这层闸门挡得住。
+            if (!AirportSearchAllowedFor(GetComponent<PrefabNavIntegration>()))
+                return;
+
+            if (AirlineCEO.Data.AirportCatalog.TryResolve(query, out var ap))
+            {
+                // 先回主页（同步构建地图），再定位机场
+                GetComponent<PrefabNavIntegration>()?.SelectTab("n6_主页_Dashboard");
+                if (MapWidget.FocusAirport(ap.code))
+                    return;
+            }
+            ToastTop($"未找到机场：{query}");
+        }
+
+        /// <summary>
+        /// 机场搜索的可用口径：`PrefabNavIntegration.GameplayReady` 为真，即开局 / 读档完成。
+        /// 抽成静态以便测试直接钉住这个口径（不必把整套 MVPBootstrap 跑起来）。
+        /// </summary>
+        public static bool AirportSearchAllowedFor(PrefabNavIntegration nav)
+            => nav != null && nav.GameplayReady;
+
+        TextMeshProUGUI _toastTopText;
+        void ToastTop(string msg)
+        {
+            if (_toastTopText == null) return;
+            _toastTopText.text = msg ?? "";
+            if (_toastFadeCo != null) StopCoroutine(_toastFadeCo);
+            _toastFadeCo = StartCoroutine(FadeTopToast());
+        }
+
+        Coroutine _toastFadeCo;
+        System.Collections.IEnumerator FadeTopToast()
+        {
+            yield return new WaitForSeconds(2.5f);
+            if (_toastTopText != null) _toastTopText.text = "";
+        }
+
+        /// <summary>顶栏时间区右边距（设计像素）：保证文字不贴窗口右边缘。</summary>
+        const float TopTimeRightMargin = 48f;
+
+        /// <summary>
+        /// 顶栏右侧文字定位：以「右边缘 = 栏右侧 − rightMargin、竖直中点 = 栏中线 + centerY」显式锚定。
+        /// 用 pivot(1, 0.5) + anchoredPosition，与图标组同一写法，不依赖 anchorMin==anchorMax 时 offsetMax 的语义。
+        /// </summary>
+        static void PlaceTopRightText(TextMeshProUGUI text, float width, float height, float centerY)
+        {
+            if (text == null) return;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            var rt = text.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
+            rt.pivot = new Vector2(1f, 0.5f);
+            rt.sizeDelta = new Vector2(width, height);
+            rt.anchoredPosition = new Vector2(-TopTimeRightMargin, centerY);
+        }
+
+        void BuildTopBarIcons(Transform bar)
+        {
+            const float IconPx = 40f;
+            const float Gap = 6f;
+            // 右起基准：先放时间区（最右），图标组紧邻其左
+            // 时间区：游戏本地时 / 游戏 UTC · 财年季日（随倍速推进）
+            _localTimeText = UIFactory.Label(bar, "LocalTime", "--年--月--日  星期-  --:--", 14, TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                    new Vector2(-360f, 2f), new Vector2(-16f, 30f)),
+                UITheme.TextPrimary, FontStyles.Bold);
+            _utcTimeText = UIFactory.Label(bar, "UtcTime", "UTC --:--", 12, TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                    new Vector2(-360f, -30f), new Vector2(-16f, -4f)),
                 UITheme.TextMuted);
 
-            // 0运营 1市场 2董事会 3人事 4安全 5财务 6机队 7AI
-            string[] labels = { "运营", "市场", "董事会", "👤 人事", "安全", "财务", "✈️ 机队", "AI 顾问" };
-            float top = 0.90f;
-            float h = 0.055f;
-            float gap = 0.008f;
-            for (int i = 0; i < labels.Length; i++)
+            // 时间区定位改用「右边缘 = 栏右侧 − TopTimeRightMargin」的显式锚定（与下方图标组同一种写法）。
+            // 原先只靠 offsetMax.x = -16 定右边距，实机下日期文字会顶到窗口右边缘被切掉（末位字符只剩左半），
+            // 且标签框宽度不足时右对齐文字还会继续往右溢。这里把框加宽并留足边距，两种情况都能兜住。
+            PlaceTopRightText(_localTimeText, 420f, 30f, 16f);
+            PlaceTopRightText(_utcTimeText, 420f, 26f, -15f);
+
+            // 搜索失败提示（挂在时间区左侧，定时淡出）
+            _toastTopText = UIFactory.Label(bar, "SearchToast", "", 13, TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                    new Vector2(-520f, 2f), new Vector2(-370f, 30f)),
+                UITheme.Warning);
+            _toastTopText.textWrappingMode = TextWrappingModes.NoWrap;
+            _toastTopText.overflowMode = TextOverflowModes.Overflow;
+
+            // 图标组：帮助 / 设置 / 1× / 2× / 3×；编辑器另加开发档「1分=1日」
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            int count = 6;
+#else
+            int count = 5;
+#endif
+            float width = count * IconPx + (count - 1) * Gap;
+            var icons = new GameObject("TopIcons", typeof(RectTransform));
+            icons.transform.SetParent(bar, false);
+            var rt = icons.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0.5f);
+            rt.anchoredPosition = new Vector2(-380f, 0f); // 为完整日期时间让位
+            rt.sizeDelta = new Vector2(width, IconPx);
+
+            // 像素布局：第 i 个按钮（从左到右），左锚 + 偏移
+            void IconBtn(string name, Sprite sprite, int i, UnityEngine.Events.UnityAction onClick)
             {
-                int index = i;
-                float yMax = top - i * (h + gap);
-                float yMin = yMax - h;
-                var btn = UIFactory.Button(nav.transform, $"Nav_{labels[i]}", labels[i],
-                    new UIFactory.Anchor(new Vector2(0.1f, yMin), new Vector2(0.9f, yMax), Vector2.zero, Vector2.zero),
-                    UITheme.NavIdle, () => ShowNavPanel(index), 17);
-                _navButtons.Add(btn);
-                _navImages.Add(btn.GetComponent<Image>());
+                float x = i * (IconPx + Gap);
+                var btn = UIFactory.IconButton(icons.transform, name, sprite,
+                    new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(0f, 0f),
+                        new Vector2(x, 0f), new Vector2(x + IconPx, IconPx)),
+                    UITheme.PanelDeep, onClick, UITheme.TextPrimary);
+                _speedIconTints[name] = btn.transform.Find("Icon").GetComponent<Image>();
+            }
+
+            IconBtn("Help", UIFactory.HelpSprite, 0, () => ToggleAdvisorPanel());
+            IconBtn("Settings", UIFactory.GearSprite, 1, () =>
+            {
+                GetComponent<PrefabNavIntegration>()?.OpenSubPage("n40_设置_存档");
+            });
+            IconBtn("Speed1", UIFactory.FastForwardSprite(1), 2, () => SetGameSpeed(GameSpeed.L1));
+            IconBtn("Speed2", UIFactory.FastForwardSprite(2), 3, () => SetGameSpeed(GameSpeed.L2));
+            IconBtn("Speed3", UIFactory.FastForwardSprite(3), 4, () => SetGameSpeed(GameSpeed.L3));
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            IconBtn("SpeedDev", UIFactory.FastForwardSprite(3), 5, () => SetGameSpeed(GameSpeed.DevDay));
+            var devIcon = icons.transform.Find("SpeedDev");
+            if (devIcon != null)
+            {
+                UIFactory.Label(devIcon, "DevMark", "日", 10, TextAlignmentOptions.BottomRight,
+                    UIFactory.Fill, UITheme.Warning, FontStyles.Bold);
+            }
+#endif
+
+            // 选中态高亮：监听速度变化
+            GameSpeed.OnLevelChanged -= OnSpeedChanged;
+            GameSpeed.OnLevelChanged += OnSpeedChanged;
+            OnSpeedChanged(GameSpeed.Level);
+        }
+
+        readonly Dictionary<string, Image> _speedIconTints = new Dictionary<string, Image>();
+
+        void OnSpeedChanged(int level)
+        {
+            string active = "";
+            if (level == GameSpeed.L1) active = "Speed1";
+            else if (level == GameSpeed.L2) active = "Speed2";
+            else if (level == GameSpeed.L3) active = "Speed3";
+            else if (level == GameSpeed.DevDay) active = "SpeedDev";
+
+            foreach (var kv in _speedIconTints)
+            {
+                if (kv.Value == null) continue;
+                // 帮助/设置不参与倍速高亮
+                if (kv.Key == "Help" || kv.Key == "Settings")
+                {
+                    kv.Value.color = UITheme.TextPrimary;
+                    continue;
+                }
+                kv.Value.color = kv.Key == active
+                    ? new Color(0.45f, 0.85f, 1f, 1f)      // 选中：亮蓝
+                    : new Color(0.5f, 0.58f, 0.66f, 0.75f); // 未选：灰
             }
         }
 
         private void BuildCenterPanels(Transform parent)
         {
+            // 全宽：无左侧导航；底部留给 Shell 底栏 + 状态栏（快讯条已移除，不留 TickerHeight）
             var center = UIFactory.Panel(parent, "CenterHost",
                 new UIFactory.Anchor(new Vector2(0, 0), new Vector2(1, 1),
-                    new Vector2(UITheme.LeftNavWidth + 28, 20), new Vector2(-28, -UITheme.TopBarHeight - 12)),
+                    new Vector2(20, 118), new Vector2(-20, -UITheme.TopBarHeight - 12)),
                 new Color(0, 0, 0, 0), rounded: false);
             center.GetComponent<Image>().raycastTarget = false;
 
@@ -359,98 +748,49 @@ namespace AirlineCEO.UI
             _panelMarket = BuildMarketPanel(center.transform);
             _boardTargetUi = BoardTargetUI.Build(center.transform);
             _panelBoard = _boardTargetUi.gameObject;
-            _hrUi = HRUI.Build(center.transform);
-            _panelHr = _hrUi.gameObject;
-            _safetyUi = SafetyUI.Build(center.transform);
-            _panelSafety = _safetyUi.gameObject;
+            _hrPanelUi = HrPanelUI.Build(center.transform);
+            _panelHr = _hrPanelUi.gameObject;
+            _safetyPanelUi = SafetyPanelUI.Build(center.transform);
+            _panelSafety = _safetyPanelUi.gameObject;
             _financeUi = FinancePanelUI.Build(center.transform);
             _panelFinance = _financeUi.gameObject;
             _fleetUi = FleetUI.Build(center.transform);
             _panelFleet = _fleetUi.gameObject;
             _panelAi = BuildAiHelpPanel(center.transform);
+            _panelStrategy = BuildStrategyPanel(center.transform);
+            _panelMaintenance = BuildMaintenancePanel(center.transform);
+
+            _eventLogUi = EventLogUI.Build(center.transform,
+                new UIFactory.Anchor(new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.88f), Vector2.zero, Vector2.zero));
+            if (_eventLogUi != null)
+                _eventLogUi.gameObject.SetActive(false);
         }
 
         private GameObject BuildOpsPanel(Transform parent)
         {
-            var panel = UIFactory.Panel(parent, "Panel_Ops", UIFactory.Fill, UITheme.Panel);
-            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
-
-            UIFactory.Label(panel.transform, "Title", "运营中心 · 航线与首航", 22, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, FontStyles.Bold);
-
-            _opsHintText = UIFactory.Label(panel.transform, "Hint", "完成第一班飞行，入账 15 万美元", 15, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.82f), new Vector2(0.7f, 0.9f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-
-            _firstFlightBtn = UIFactory.Button(panel.transform, "FirstFlightButton", "确认首航",
-                new UIFactory.Anchor(new Vector2(0.72f, 0.84f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnFirstFlightClicked, 18);
-
-            UIFactory.Label(panel.transform, "RoutesTitle", "已开通航线", 16, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.74f), new Vector2(0.5f, 0.82f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-
-            var listHost = UIFactory.Panel(panel.transform, "RouteList",
-                new UIFactory.Anchor(new Vector2(0.03f, 0.04f), new Vector2(0.97f, 0.74f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep);
-            var vlg = listHost.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(12, 12, 12, 12);
-            vlg.spacing = 10;
-            vlg.childAlignment = TextAnchor.UpperCenter;
-            vlg.childControlHeight = false;
-            vlg.childControlWidth = true;
-            vlg.childForceExpandHeight = false;
-            vlg.childForceExpandWidth = true;
-            _routeCardsRoot = listHost.transform;
-
-            return panel;
+            _opsPanelUi = OpsPanelUI.Build(parent, OnOpenRouteClicked);
+            _openRouteBtn = _opsPanelUi.OpenRouteButton;
+            _routeCardsRoot = _opsPanelUi.RouteCardsRoot;
+            _opsPanelUi.Refresh();
+            return _opsPanelUi.gameObject;
         }
 
         private GameObject BuildMarketPanel(Transform parent)
         {
-            var panel = UIFactory.Panel(parent, "Panel_Market", UIFactory.Fill, UITheme.Panel);
-            UIFactory.AddBorder(panel, UITheme.Border, new Vector2(1f, -1f));
+            _marketUi = MarketPanelUI.Build(parent);
+            return _marketUi.gameObject;
+        }
 
-            UIFactory.Label(panel.transform, "Title", "市场 · RPM 航线分析", 22, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, FontStyles.Bold);
+        private GameObject BuildStrategyPanel(Transform parent)
+        {
+            _strategyUi = StrategyPanelUI.Build(parent);
+            return _strategyUi.gameObject;
+        }
 
-            UIFactory.Label(panel.transform, "Sub", "输入出发/到达城市，评估综合得分与日利润", 14, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.03f, 0.84f), new Vector2(0.7f, 0.9f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-
-            UIFactory.Label(panel.transform, "OriginLabel", "出发", 16, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.05f, 0.7f), new Vector2(0.18f, 0.8f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-            _originInput = UIFactory.Input(panel.transform, "OriginInput", "北京",
-                new UIFactory.Anchor(new Vector2(0.2f, 0.7f), new Vector2(0.55f, 0.8f), Vector2.zero, Vector2.zero));
-
-            UIFactory.Label(panel.transform, "DestLabel", "到达", 16, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.05f, 0.56f), new Vector2(0.18f, 0.66f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-            _destInput = UIFactory.Input(panel.transform, "DestInput", "伦敦",
-                new UIFactory.Anchor(new Vector2(0.2f, 0.56f), new Vector2(0.55f, 0.66f), Vector2.zero, Vector2.zero));
-
-            UIFactory.Button(panel.transform, "AnalyzeButton", "分析航线",
-                new UIFactory.Anchor(new Vector2(0.6f, 0.7f), new Vector2(0.82f, 0.8f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnAnalyzeRpm, 16);
-
-            _rpmLight = UIFactory.Panel(panel.transform, "RpmLight",
-                new UIFactory.Anchor(new Vector2(0.85f, 0.7f), new Vector2(0.94f, 0.8f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted).GetComponent<Image>();
-
-            var resultBox = UIFactory.Panel(panel.transform, "ResultBox",
-                new UIFactory.Anchor(new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.5f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep);
-            _rpmResultText = UIFactory.Label(resultBox.transform, "RpmResult",
-                "点击「分析航线」查看综合评定与红绿灯", 17,
-                TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextPrimary);
-            var rt = _rpmResultText.GetComponent<RectTransform>();
-            rt.offsetMin = new Vector2(16, 12);
-            rt.offsetMax = new Vector2(-16, -12);
-
-            return panel;
+        private GameObject BuildMaintenancePanel(Transform parent)
+        {
+            _maintenanceUi = MaintenancePanelUI.Build(parent);
+            return _maintenanceUi.gameObject;
         }
 
         private GameObject BuildAiHelpPanel(Transform parent)
@@ -463,11 +803,9 @@ namespace AirlineCEO.UI
                 UITheme.TextPrimary, FontStyles.Bold);
 
             UIFactory.Label(panel.transform, "Body",
-                "右下角悬浮气泡即 Neural Command。\n\n" +
-                "· 输入「分析航线」获取开通建议\n" +
-                "· 出现「执行建议」后需手动确认才会改现金\n" +
-                "· API 超时自动切本地容灾，不影响试玩\n\n" +
-                "字体验收：马格努斯·林德格伦 · 北京 → 伦敦",
+                "点右下角的对话气泡（或顶栏 ? 键）打开航空顾问面板。\n\n" +
+                "新开局约 2 秒后会自动弹出开局引导（深圳—北京航线）。\n" +
+                "也可随时再次打开继续或回顾引导。",
                 16, TextAlignmentOptions.TopLeft,
                 new UIFactory.Anchor(new Vector2(0.05f, 0.2f), new Vector2(0.95f, 0.85f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
@@ -475,106 +813,138 @@ namespace AirlineCEO.UI
             return panel;
         }
 
-        private void BuildChatBubble(Transform parent)
+        /// <summary>顶栏「顾问」：开关居中顾问弹窗（开局引导 S0–S6）。</summary>
+        public void ToggleAdvisorPanel()
         {
-            ChatBubble bubble = null;
-            var prefab = Resources.Load<GameObject>("UI/ChatBubble");
-            GameObject panel;
-            if (prefab != null)
+            _advisorModal?.Toggle();
+        }
+
+        /// <summary>关闭顾问弹窗。</summary>
+        public void HideAdvisorPanel()
+        {
+            _advisorModal?.Hide();
+        }
+
+        /// <summary>开局进入主页后延迟唤起顾问引导。</summary>
+        public void TryStartAdvisorTutorial(float delaySeconds = 0.5f)
+        {
+            _advisorModal?.TryAutoStartAfterDelay(delaySeconds);
+        }
+
+        void SetGameSpeed(int level)
+        {
+            if (level == GameSpeed.Paused) return; // 正式 UI 不设暂停
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+            if (level == GameSpeed.DevDay) return;
+#endif
+            if (GameState.Instance != null)
+                GameState.Instance.AddDecisionLog($"游戏速度：{GameSpeed.Label(level)}");
+            GameSpeed.Set(level);
+        }
+
+        /// <summary>进入游戏 / 读档：默认 1×，不改游戏日历。</summary>
+        public void ApplyStartingModeSpeed()
+        {
+            TimeManager.Instance?.BeginPlaySession();
+        }
+
+        // 快讯跑马灯已移除：全球航空动态进收件箱，未读数由底栏收件箱 Tab 角标提示。
+        // 每秒刷新顶栏时钟（游戏本地 + 游戏 UTC）。
+        System.Collections.IEnumerator ClockLoop()
+        {
+            var wait = new WaitForSecondsRealtime(0.5f);
+            while (true)
             {
-                panel = Object.Instantiate(prefab, parent);
-                panel.name = "ChatBubble";
-                UIFactory.ApplyAnchor(panel.GetComponent<RectTransform>(),
-                    new UIFactory.Anchor(new Vector2(0.62f, 0.03f), new Vector2(0.985f, 0.36f), Vector2.zero, Vector2.zero));
-                bubble = panel.GetComponent<ChatBubble>();
+                RefreshClock();
+                yield return wait;
             }
-            else
+        }
+
+        void RefreshClock()
+        {
+            if (_localTimeText == null || _utcTimeText == null) return;
+            var gs = GameState.Instance;
+            if (gs == null)
             {
-                bubble = ChatBubble.BuildRuntime(parent,
-                    new UIFactory.Anchor(new Vector2(0.62f, 0.03f), new Vector2(0.985f, 0.36f), Vector2.zero, Vector2.zero));
-                panel = bubble.gameObject;
+                _localTimeText.text = "--:--";
+                _utcTimeText.text = "UTC --:--";
+                return;
             }
 
-            if (bubble != null && bubble.BodyText != null)
-                _chatOutput = bubble.BodyText;
-            else
-            {
-                _chatOutput = UIFactory.Label(panel.transform, "ChatOutput",
-                    "战略顾问：输入「分析航线」后，可点「执行建议」真正开通。", 14,
-                    TextAlignmentOptions.TopLeft,
-                    new UIFactory.Anchor(new Vector2(0.04f, 0.36f), new Vector2(0.96f, 0.86f), Vector2.zero, Vector2.zero),
-                    new Color(0.82f, 0.9f, 0.86f));
-            }
-
-            _executeAdviceBtn = UIFactory.Button(panel.transform, "ExecuteAdviceButton", "执行建议",
-                new UIFactory.Anchor(new Vector2(0.04f, 0.22f), new Vector2(0.42f, 0.34f), Vector2.zero, Vector2.zero),
-                UITheme.Success, OnExecuteAdvice, 14);
-            _executeAdviceBtn.gameObject.SetActive(false);
-
-            _executeHintText = UIFactory.Label(panel.transform, "ExecuteHint", "", 12, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.44f, 0.22f), new Vector2(0.96f, 0.34f), Vector2.zero, Vector2.zero),
-                UITheme.Warning);
-
-            _chatInput = UIFactory.Input(panel.transform, "ChatInput", "输入指令…",
-                new UIFactory.Anchor(new Vector2(0.04f, 0.04f), new Vector2(0.68f, 0.18f), Vector2.zero, Vector2.zero));
-
-            UIFactory.Button(panel.transform, "SendButton", "发送",
-                new UIFactory.Anchor(new Vector2(0.72f, 0.04f), new Vector2(0.96f, 0.18f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnChatSend, 15);
-
-            // 默认圆形图标；点击展开/收拢对话，图标可拖动
-            _chatChrome = FloatingPanelChrome.Attach(panel, "Neural Command · 战略顾问");
+            _localTimeText.text = gs.GameLocalDateTimeLabel;
+            _utcTimeText.text = $"UTC {gs.GameUtcClockLabel}";
+            MapWidget.RefreshLivePlanes();
         }
 
         private void ShowNavPanel(int index)
         {
+            int prev = _activeNav;
             _activeNav = index;
-            // 0运营 1市场 2董事会 3人事 4安全 5财务 6机队 7AI
-            if (_panelOps != null) _panelOps.SetActive(index == 0);
-            if (_panelMarket != null) _panelMarket.SetActive(index == 1);
-            if (_panelBoard != null) _panelBoard.SetActive(index == 2);
-            if (_panelHr != null) _panelHr.SetActive(index == 3);
-            if (_panelSafety != null) _panelSafety.SetActive(index == 4);
-            if (_panelFinance != null) _panelFinance.SetActive(index == 5);
-            if (_panelFleet != null) _panelFleet.SetActive(index == 6);
-            if (_panelAi != null) _panelAi.SetActive(index == 7);
 
-            // 进人事时收拢为图标，避免挡住列表
+            // Phase 14：页签切换淡入动效（先隐藏旧 → 显示新 → 淡入）
+            var panels = new[] { _panelOps, _panelMarket, _panelBoard, _panelHr, _panelSafety, _panelFinance, _panelFleet, _panelAi, _panelStrategy, _panelMaintenance };
+            if (prev >= 0 && prev < panels.Length && panels[prev] != null)
+            {
+                StartCoroutine(CrossfadeOut(panels[prev], () =>
+                {
+                    if (index >= 0 && index < panels.Length && panels[index] != null)
+                    {
+                        panels[index].SetActive(true);
+                        StartCoroutine(CrossfadeIn(panels[index]));
+                    }
+                }));
+            }
+            else if (index >= 0 && index < panels.Length && panels[index] != null)
+            {
+                panels[index].SetActive(true);
+                StartCoroutine(CrossfadeIn(panels[index]));
+            }
+
+            // 隐藏其他面板
+            for (int i = 0; i < panels.Length; i++)
+            {
+                if (i != index && i != prev && panels[i] != null)
+                    panels[i].SetActive(false);
+            }
+
+            // 进人事时收拢为图标（面板向右下角收起，气泡图标保留），避免挡住列表
             if (index == 3)
-                _chatChrome?.CollapseIfExpanded();
+                _advisorModal?.Hide();
 
             if (index == 2 && _boardTargetUi != null)
                 _boardTargetUi.Refresh();
-            if (index == 3 && _hrUi != null)
-                _hrUi.Refresh();
-            if (index == 4 && _safetyUi != null)
-                _safetyUi.Refresh();
+            if (index == 3 && _hrPanelUi != null)
+                _hrPanelUi.OnOpened();
+            if (index == 4 && _safetyPanelUi != null)
+                _safetyPanelUi.OnOpened();
             if (index == 5 && _financeUi != null)
                 _financeUi.OnOpened();
             if (index == 6 && _fleetUi != null)
                 _fleetUi.Refresh();
-
-            for (int i = 0; i < _navImages.Count; i++)
-            {
-                if (_navImages[i] == null) continue;
-                _navImages[i].color = i == index ? UITheme.NavActive : UITheme.NavIdle;
-                var hover = _navImages[i].GetComponent<UIHoverBrighten>();
-                if (hover != null) hover.RefreshBase();
-            }
+            if (index == 0 && _opsPanelUi != null)
+                _opsPanelUi.Refresh();
+            if (index == 1 && _marketUi != null)
+                _marketUi.OnOpened();
+            if (index == 8 && _strategyUi != null)
+                _strategyUi.OnOpened();
+            if (index == 9 && _maintenanceUi != null)
+                _maintenanceUi.OnOpened();
         }
 
         private void BuildPopup(Transform parent)
         {
             _popupRoot = UIFactory.Panel(parent, "Popup",
-                new UIFactory.Anchor(new Vector2(0.28f, 0.35f), new Vector2(0.72f, 0.68f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.20f, 0.14f), new Vector2(0.80f, 0.86f), Vector2.zero, Vector2.zero),
                 new Color(0.05f, 0.1f, 0.18f, 0.97f)).gameObject;
             UIFactory.AddBorder(_popupRoot, UITheme.Accent, new Vector2(2f, -2f));
-            _popupText = UIFactory.Label(_popupRoot.transform, "PopupText", "开发中", 22, TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.92f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary);
+
+            _popupText = UIFactory.ScrollableLabel(_popupRoot.transform, "PopupText",
+                new UIFactory.Anchor(new Vector2(0.04f, 0.16f), new Vector2(0.96f, 0.95f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, 15, TextAlignmentOptions.TopLeft);
+
             UIFactory.Button(_popupRoot.transform, "PopupClose", "关闭",
-                new UIFactory.Anchor(new Vector2(0.35f, 0.08f), new Vector2(0.65f, 0.26f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => _popupRoot.SetActive(false), 16);
+                new UIFactory.Anchor(new Vector2(0.32f, 0.03f), new Vector2(0.68f, 0.13f), Vector2.zero, Vector2.zero),
+                UIFactory.ModalButton, () => _popupRoot.SetActive(false), 16);
             _popupRoot.SetActive(false);
         }
 
@@ -604,17 +974,21 @@ namespace AirlineCEO.UI
         private void BuildSettle(Transform parent)
         {
             _settleRoot = UIFactory.Panel(parent, "SettlePopup",
-                new UIFactory.Anchor(new Vector2(0.3f, 0.35f), new Vector2(0.7f, 0.68f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.24f, 0.22f), new Vector2(0.76f, 0.78f), Vector2.zero, Vector2.zero),
                 new Color(0.05f, 0.14f, 0.12f, 0.97f)).gameObject;
             UIFactory.AddBorder(_settleRoot, UITheme.Success, new Vector2(2f, -2f));
 
-            _settleText = UIFactory.Label(_settleRoot.transform, "SettleText", "首航成功！赚了 15 万", 24, TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.06f, 0.32f), new Vector2(0.94f, 0.92f), Vector2.zero, Vector2.zero),
-                UITheme.Success);
+            _settleText = UIFactory.ScrollableLabel(_settleRoot.transform, "SettleText",
+                new UIFactory.Anchor(new Vector2(0.05f, 0.20f), new Vector2(0.95f, 0.94f), Vector2.zero, Vector2.zero),
+                UITheme.Success, 18, TextAlignmentOptions.Top);
 
             UIFactory.Button(_settleRoot.transform, "SettleClose", "确认",
-                new UIFactory.Anchor(new Vector2(0.32f, 0.08f), new Vector2(0.68f, 0.26f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, () => _settleRoot.SetActive(false), 16);
+                new UIFactory.Anchor(new Vector2(0.32f, 0.04f), new Vector2(0.68f, 0.16f), Vector2.zero, Vector2.zero),
+                UIFactory.ModalButton, () =>
+                {
+                    _settleRoot.SetActive(false);
+                    ResumeAfterSettleIfNeeded();
+                }, 16);
 
             _settleRoot.SetActive(false);
         }
@@ -624,27 +998,23 @@ namespace AirlineCEO.UI
             var gs = GameState.Instance;
             if (gs == null) return;
 
-            if (_dateText != null) _dateText.text = gs.DateLabel;
-
-            float months = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
-            if (_cashMeter != null)
-                _cashMeter.SetImmediate(gs.cash, months, gs.monthlyRevenue);
+            // 顶栏：公司中文名（主）/ 英文名 + CEO（副）/ LOGO IATA 码
+            if (_companyText != null)
+            {
+                string co = string.IsNullOrEmpty(gs.companyNameZh) ? "天际航空" : gs.companyNameZh;
+                _companyText.text = ChineseFontProvider.CompanyPlanePrefix + " " + co;
+            }
+            if (_companySubText != null)
+            {
+                string en = string.IsNullOrEmpty(gs.companyNameEn) ? "" : gs.companyNameEn + " · ";
+                string ceo = string.IsNullOrEmpty(gs.ceoDisplayName) ? "CEO" : gs.ceoDisplayName;
+                _companySubText.text = $"{en}CEO {ceo}";
+            }
+            if (_logoText != null)
+                _logoText.text = string.IsNullOrEmpty(gs.companyIata) ? "NV" : gs.companyIata;
+            RefreshClock();
 
             RebuildRouteCards(gs);
-
-            if (_firstFlightBtn != null)
-            {
-                var label = _firstFlightBtn.GetComponentInChildren<TextMeshProUGUI>();
-                if (gs.firstFlightCompleted)
-                {
-                    _firstFlightBtn.interactable = false;
-                    if (label != null) label.text = "首航已完成";
-                    if (_opsHintText != null) _opsHintText.text = "首航已完成，继续开通航线与季度运营";
-                }
-            }
-
-            if (_statusText != null && SaveManager.Instance != null)
-                _statusText.text = SaveManager.Instance.LastStatus;
 
             if (BoardManager.Instance != null)
             {
@@ -656,18 +1026,30 @@ namespace AirlineCEO.UI
 
             if (_boardTargetUi != null && _activeNav == 2)
                 _boardTargetUi.Refresh();
-            if (_hrUi != null && _activeNav == 3)
-                _hrUi.Refresh();
-            if (_safetyUi != null && _activeNav == 4)
-                _safetyUi.Refresh();
+            if (_hrPanelUi != null && _activeNav == 3)
+                _hrPanelUi.Refresh();
+            if (_safetyPanelUi != null && _activeNav == 4)
+                _safetyPanelUi.Refresh();
             if (_financeUi != null && _activeNav == 5)
                 _financeUi.Refresh();
             if (_fleetUi != null && _activeNav == 6)
                 _fleetUi.Refresh();
+            if (_marketUi != null && _activeNav == 1)
+                _marketUi.Refresh();
+            if (_strategyUi != null && _activeNav == 8)
+                _strategyUi.Refresh();
+            if (_maintenanceUi != null && _activeNav == 9)
+                _maintenanceUi.Refresh();
         }
 
         private void RebuildRouteCards(GameState gs)
         {
+            if (_opsPanelUi != null)
+            {
+                _opsPanelUi.Refresh();
+                return;
+            }
+
             if (_routeCardsRoot == null) return;
 
             for (int i = 0; i < _routeCardInstances.Count; i++)
@@ -717,132 +1099,22 @@ namespace AirlineCEO.UI
             }
         }
 
-        private void OnFirstFlightClicked()
+        private void OnOpenRouteClicked()
         {
             var gs = GameState.Instance;
-            if (gs == null || gs.firstFlightCompleted || _flightInProgress) return;
-            StartCoroutine(FirstFlightRoutine());
-        }
-
-        private void OnAdvanceQuarterClicked()
-        {
-            if (_quarterInProgress || _flightInProgress) return;
-            var gs = GameState.Instance;
-            if (gs != null && gs.gameOver)
+            if (gs == null || _flightInProgress) return;
+            if (gs.gameOver)
             {
-                ShowErrorPopup("游戏已结束\n" + (gs.gameOverReason ?? "董事会已解雇 CEO。"));
-                return;
-            }
-            if (TimeManager.Instance == null)
-            {
-                ShowPopup("TimeManager 未就绪");
-                return;
-            }
-
-            StartCoroutine(AdvanceQuarterRoutine());
-        }
-
-        private IEnumerator AdvanceQuarterRoutine()
-        {
-            _quarterInProgress = true;
-            if (_advanceQuarterBtn != null)
-                _advanceQuarterBtn.interactable = false;
-
-            var gs = GameState.Instance;
-            float cashBefore = gs != null ? gs.cash : 0f;
-            string dateBefore = gs != null ? gs.DateLabel : "";
-
-            if (_hourglassText != null)
-            {
-                _hourglassText.gameObject.SetActive(true);
-                _hourglassText.text = "⏳ 季度运营结算中…";
-            }
-
-            if (_progressRoot != null)
-            {
-                _progressRoot.SetActive(true);
-                _progressFill.fillAmount = 0f;
-                _progressLabel.text = "沙漏转动…";
-            }
-
-            float duration = 1.6f;
-            float t = 0f;
-            string[] sand = { "⏳", "⌛", "⏳", "⌛" };
-            int frame = 0;
-            while (t < duration)
-            {
-                t += Time.deltaTime;
-                float p = Mathf.Clamp01(t / duration);
-                if (_progressFill != null) _progressFill.fillAmount = p;
-                if (_hourglassText != null)
-                    _hourglassText.text = $"{sand[frame % sand.Length]} 结算中 {Mathf.RoundToInt(p * 100)}%";
-                if (_progressLabel != null)
-                    _progressLabel.text = $"季度推进… {Mathf.CeilToInt(duration - t)}s";
-                if (Mathf.FloorToInt(t * 6f) != frame)
-                    frame = Mathf.FloorToInt(t * 6f);
-                yield return null;
-            }
-
-            var result = TimeManager.Instance.AdvanceQuarter();
-
-            if (gs != null && _cashMeter != null)
-            {
-                float months = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
-                _cashMeter.AnimateTo(gs.cash, months, gs.monthlyRevenue, 0.75f);
-                yield return new WaitForSeconds(0.75f);
-            }
-
-            if (_progressRoot != null) _progressRoot.SetActive(false);
-            if (_hourglassText != null) _hourglassText.gameObject.SetActive(false);
-
-            RefreshHud();
-
-            if (result != null && result.success)
-            {
-                string tip =
-                    $"{dateBefore} → {gs.DateLabel}\n" +
-                    $"收入 {result.quarterIncome:F0} − 支出 {result.quarterExpense:F0} = " +
-                    $"{(result.netChange >= 0 ? "+" : "")}{result.netChange:F0} 万\n" +
-                    $"现金 {cashBefore:F0} → {result.cashAfter:F0} 万";
-                if (!string.IsNullOrEmpty(result.eventText))
-                    tip += "\n" + result.eventText;
-
-                if (result.yearEnded && result.yearEnd != null && result.yearEnd.showSettlementPopup)
-                {
-                    ShowVoteResult(result.yearEnd, tip);
-                }
-                else if (result.isBankruptWarning)
-                {
-                    ShowErrorPopup("破产警告\n" + tip + "\n现金已为负，请尽快融资或削减成本！");
-                }
-                else if (result.pendingAOG || result.pendingExpansionProposal)
-                {
-                    // 事件弹窗优先；董事会目标公告延后
-                    _pendingBoardAnnounceResult = result;
-                }
+                if (gs.gameOverVictory)
+                    ShowVictoryPopup(gs.lastLegacyScore, gs.lastLegacyGrade);
                 else
-                {
-                    ShowPopup("季度运营完成\n" + tip);
-                    TryAnnounceBoardTargets(gs, result);
-                }
-
-                if (result.needsFinanceWarning && !string.IsNullOrEmpty(result.financeWarning))
-                    PushFinanceWarningToChat(result.financeWarning);
-
-                // 结算动画结束后再弹事件（避免与 WaitForSeconds 冲突）
-                if (result.pendingAOG && AOGManager.Instance != null)
-                    AOGManager.Instance.TriggerAOG();
-                else if (result.pendingExpansionProposal && ExpansionProposalManager.Instance != null)
-                    ExpansionProposalManager.Instance.TriggerProposal();
-            }
-            else
-            {
-                ShowErrorPopup(result != null ? result.message : "季度推进失败");
+                    ShowErrorPopup("游戏已结束\n" + (gs.gameOverReason ?? "董事会已解雇 CEO。"));
+                return;
             }
 
-            if (_advanceQuarterBtn != null)
-                _advanceQuarterBtn.interactable = true;
-            _quarterInProgress = false;
+            OpsPanelUI.OpenShellTab("n12_航线网络");
+            var net = FindFirstObjectByType<NetworkPanelUI>();
+            net?.ShowOpenRouteTab();
         }
 
         private void OnAOGResolved(int choice)
@@ -850,8 +1122,8 @@ namespace AirlineCEO.UI
             RefreshHud();
             var gs = GameState.Instance;
             string tip = choice == 1
-                ? "AOG 已处置：调机备援，现金 -20 万，航班准点。"
-                : "AOG 已处置：延误维修，现金 -15 万，满意度与准点率下降。";
+                ? "停飞已处置：调机备援，现金 -20 万，航班准点。"
+                : "停飞已处置：延误维修，现金 -15 万，满意度与准点率下降。";
             ShowPopup(tip);
 
             // 若与进入 Q2 的董事会目标公告叠在一起，危机结束后再播报
@@ -865,11 +1137,10 @@ namespace AirlineCEO.UI
 
         private void OnDepartmentResignation(string deptCode, string name)
         {
-            if (_hrUi != null)
-                _hrUi.ShowResignation(deptCode, name);
-            else
-                Debug.Log($"[HR] 离职：{name} @ {deptCode}");
+            AppointmentContext.DeptCode = deptCode;
+            ShowPopup($"离职事件\n\n{name}（{DepartmentCatalog.DisplayName(deptCode)}）\n因忠诚度过低主动辞职。\n该部门现已空缺，进入任命流程。");
             RefreshHud();
+            GetComponent<PrefabNavIntegration>()?.OpenSubPage("n23_部门负责人任命");
         }
 
         private void OnExpansionResolved(int choice)
@@ -899,18 +1170,24 @@ namespace AirlineCEO.UI
         {
             if (_voteUi != null)
             {
-                // 把季度财务摘要附在投票正文后
+                // 把季度财务摘要附在投票正文后，带清晰标题与分隔
                 if (!string.IsNullOrEmpty(quarterTip))
-                    yearEnd.voteBody = (yearEnd.voteBody ?? "") + "\n\n" + quarterTip;
+                    yearEnd.voteBody = (yearEnd.voteBody ?? "")
+                        + "\n\n———————————————\n■ 本季财务总结\n" + quarterTip;
 
                 _voteUi.Show(yearEnd, () =>
                 {
+                    ResumeAfterSettleIfNeeded();
                     RefreshHud();
-                    if (yearEnd.gameOver)
+                    if (yearEnd.victory)
+                    {
+                        ShowVictoryPopup(yearEnd);
+                    }
+                    else if (yearEnd.gameOver)
                     {
                         ShowErrorPopup("Game Over\n" + (yearEnd.voteBody ?? yearEnd.message));
-                        if (_advanceQuarterBtn != null)
-                            _advanceQuarterBtn.interactable = false;
+                        GameOverOverlay.Ensure(GetComponentInParent<Canvas>());
+                        GameOverOverlay.ShowIfNeeded();
                     }
                     else if (_boardTargetUi != null && _activeNav == 2)
                     {
@@ -926,6 +1203,12 @@ namespace AirlineCEO.UI
 
         private void ShowYearEndSettlement(YearEndResult yearEnd, string quarterTip)
         {
+            if (yearEnd.victory)
+            {
+                ShowVictoryPopup(yearEnd);
+                return;
+            }
+
             string body =
                 $"年度结算（第 {yearEnd.finishedYear} 年）· {yearEnd.voteTitle}\n" +
                 $"完成率 {yearEnd.completionRate:F0}%（{yearEnd.targetsCompleted}/{yearEnd.targetsTotal}）\n" +
@@ -935,6 +1218,45 @@ namespace AirlineCEO.UI
                 ShowErrorPopup(body);
             else
                 ShowPopup(body);
+            if (yearEnd.gameOver && !yearEnd.victory)
+            {
+                GameOverOverlay.Ensure(GetComponentInParent<Canvas>());
+                GameOverOverlay.ShowIfNeeded();
+            }
+        }
+
+        /// <summary>光荣退休胜利结算弹窗：评分卡 + 解锁奖励。</summary>
+        private void ShowVictoryPopup(YearEndResult yearEnd)
+        {
+            var legacy = yearEnd.legacy;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("🏆 光荣退休");
+            sb.AppendLine($"执掌航空 {yearEnd.finishedYear} 个财年，功成身退。\n");
+
+            if (legacy != null)
+            {
+                sb.AppendLine($"  遗产评级  {legacy.grade}  （总分 {legacy.total:F0}）");
+                sb.AppendLine("———————————————");
+                sb.AppendLine($"  市值表现（40%）  {legacy.marketCapScore:F0}  · 市值 {legacy.marketCapWan:F0} 万美元");
+                sb.AppendLine($"  安全飞行（30%）  {legacy.safetyScore:F0}  · 累计 {legacy.totalFlightHours:F0} FH");
+                sb.AppendLine($"  航线覆盖（20%）  {legacy.coverageScore:F0}  · {legacy.coveredAirports} 机场 / {legacy.coveredCountries} 国 / {legacy.coveredContinents} 洲");
+                sb.AppendLine($"  董事会满意度（10%） {legacy.satisfactionScore:F0}");
+            }
+
+            sb.AppendLine("\n" + (yearEnd.legacyUnlockText ?? ""));
+            ShowPopup(sb.ToString());
+        }
+
+        /// <summary>已在游戏结束时（如点击已通关的入口）回显遗产评级。</summary>
+        private void ShowVictoryPopup(float score, string grade)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("🏆 游戏已通关");
+            sb.AppendLine("光荣退休 · 遗产已结算。");
+            if (!string.IsNullOrEmpty(grade))
+                sb.AppendLine($"\n  遗产评级  {grade}  （总分 {score:F0}）");
+            sb.AppendLine("\n已解锁：传奇模式 · 新游戏+ · 快速模式");
+            ShowPopup(sb.ToString());
         }
 
         private void TryAnnounceBoardTargets(GameState gs, QuarterResult result)
@@ -978,88 +1300,6 @@ namespace AirlineCEO.UI
                 _executeHintText.color = UITheme.Danger;
                 _executeHintText.text = "建议：暂缓扩张（满意度+2）";
             }
-        }
-
-        private IEnumerator FirstFlightRoutine()
-        {
-            _flightInProgress = true;
-            if (_firstFlightBtn != null) _firstFlightBtn.interactable = false;
-            _progressRoot.SetActive(true);
-            _progressFill.fillAmount = 0f;
-
-            float t = 0f;
-            while (t < FirstFlightSeconds)
-            {
-                t += Time.deltaTime;
-                float p = Mathf.Clamp01(t / FirstFlightSeconds);
-                _progressFill.fillAmount = p;
-                _progressLabel.text = $"起飞中… {Mathf.CeilToInt((FirstFlightSeconds - t))}s";
-                yield return null;
-            }
-
-            _progressRoot.SetActive(false);
-
-            var gs = GameState.Instance;
-            float cashBefore = gs.cash;
-            gs.firstFlightCompleted = true;
-            gs.AddCash(FirstFlightReward);
-            gs.yearNetProfit += FirstFlightReward;
-
-            if (_cashMeter != null)
-            {
-                float monthsBefore = CashRunnelCalculator.GetRunwayMonths(cashBefore, gs.EffectiveMonthlyBurn);
-                float monthsAfter = CashRunnelCalculator.GetRunwayMonths(gs.cash, gs.EffectiveMonthlyBurn);
-                _cashMeter.SetImmediate(cashBefore, monthsBefore, gs.monthlyRevenue);
-                _cashMeter.AnimateTo(gs.cash, monthsAfter, gs.monthlyRevenue, 0.55f);
-            }
-
-            _settleText.text = $"首航成功！\n本班结算赚了 {FirstFlightReward:F0} 万美元\n当前现金：{gs.cash:F0} 万";
-            _settleRoot.SetActive(true);
-            _flightInProgress = false;
-
-            if (_dateText != null) _dateText.text = gs.DateLabel;
-            RebuildRouteCards(gs);
-            if (_firstFlightBtn != null)
-            {
-                _firstFlightBtn.interactable = false;
-                var label = _firstFlightBtn.GetComponentInChildren<TextMeshProUGUI>();
-                if (label != null) label.text = "首航已完成";
-            }
-            if (_opsHintText != null) _opsHintText.text = "首航已完成，继续开通航线与季度运营";
-        }
-
-        private void OnAnalyzeRpm()
-        {
-            string origin = _originInput != null ? _originInput.text.Trim() : "";
-            string dest = _destInput != null ? _destInput.text.Trim() : "";
-
-            bool isPekLhr =
-                (origin.Contains("北京") || origin.ToUpperInvariant().Contains("PEK")) &&
-                (dest.Contains("伦敦") || dest.ToUpperInvariant().Contains("LHR") || dest.ToUpperInvariant().Contains("LON"));
-
-            var input = new RPMCalculator.RPMInput
-            {
-                distance = isPekLhr ? 8150f : 4500f,
-                fuelPricePerTon = GameState.Instance != null ? GameState.Instance.fuelPricePerTon : 850f,
-                competitorSupply = isPekLhr ? 0.65f : 0.4f,
-                demandMultiplier = 1.2f,
-                brandEquity = 55f
-            };
-
-            var output = RPMCalculator.Calculate(input);
-            _rpmResultText.text =
-                $"{origin} → {dest}\n" +
-                $"综合评定 {output.score} 分（{output.rating}）\n" +
-                $"日收入 {output.dailyRevenue:F2} / 成本 {output.dailyCost:F2}\n" +
-                $"日利润 {output.dailyProfit:F2} 万美元" +
-                (isPekLhr ? "" : "\n（非预设 OD，使用简化参数）");
-
-            _rpmLight.color = output.rating switch
-            {
-                "绿" => UITheme.Success,
-                "黄" => UITheme.Warning,
-                _ => UITheme.Danger
-            };
         }
 
         private void OnChatSend()
@@ -1171,7 +1411,7 @@ namespace AirlineCEO.UI
                     _executeHintText.text = "已执行";
                 }
                 if (_chatOutput != null)
-                    _chatOutput.text = (_chatOutput.text ?? "") + $"\n\n✅ {result.message}";
+                    _chatOutput.text = (_chatOutput.text ?? "") + "\n\n" + ChineseFontProvider.Sanitize("✅ " + result.message);
                 var action = SuggestedActionParser.Parse(advice.suggestedAction);
                 // 已开通 / 开通成功：都收起「执行建议」，避免误以为还能再掷航权
                 if (action == SuggestedAction.OpenRoute)
@@ -1186,26 +1426,178 @@ namespace AirlineCEO.UI
                 if (_executeHintText != null)
                 {
                     _executeHintText.color = UITheme.Danger;
-                    _executeHintText.text = result.message;
+                    _executeHintText.text = ChineseFontProvider.Sanitize(result.message);
                 }
                 ShowErrorPopup(result.message);
                 // 航权被拒：保留「执行建议」，可立刻再点重试
             }
         }
 
-        private void ShowErrorPopup(string message)
+        public void ShowErrorPopup(string message)
         {
-            _popupText.color = UITheme.Danger;
-            _popupText.text = message;
+            ApplyPopupText(message, UITheme.Danger);
             _popupRoot.SetActive(true);
         }
 
         private void ShowPopup(string message)
         {
-            if (_popupText != null)
-                _popupText.color = UITheme.TextPrimary;
-            _popupText.text = message;
+            ApplyPopupText(message, UITheme.TextPrimary);
             _popupRoot.SetActive(true);
+
+            // Phase 14：弹窗淡入 + 轻微上滑动效
+            var cg = _popupRoot.GetComponent<CanvasGroup>();
+            if (cg == null) cg = _popupRoot.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            var rt = _popupRoot.GetComponent<RectTransform>();
+            var targetPos = rt.anchoredPosition;
+            rt.anchoredPosition = targetPos + new Vector2(0, -20f);
+            StartCoroutine(AnimatePopupGeneric(cg, rt, targetPos));
+        }
+
+        private System.Collections.IEnumerator AnimatePopupGeneric(CanvasGroup cg, RectTransform rt, Vector2 targetPos)
+        {
+            float dur = 0.35f;
+            float t = 0f;
+            Vector2 from = rt.anchoredPosition;
+            while (t < dur)
+            {
+                t += Time.unscaledDeltaTime;
+                float p = t / dur;
+                p = 1f - (1f - p) * (1f - p);
+                cg.alpha = Mathf.Lerp(0f, 1f, p);
+                rt.anchoredPosition = Vector2.Lerp(from, targetPos, p);
+                yield return null;
+            }
+            cg.alpha = 1f;
+            rt.anchoredPosition = targetPos;
+        }
+
+        private void ApplyPopupText(string message, Color color)
+        {
+            if (_popupText == null) return;
+            _popupText.color = color;
+            _popupText.text = ChineseFontProvider.Sanitize(message);
+            Canvas.ForceUpdateCanvases();
+            var scroll = _popupText.GetComponentInParent<ScrollRect>();
+            if (scroll != null) scroll.verticalNormalizedPosition = 1f;
+        }
+
+        private string BuildQuarterPopupText(QuarterResult result, float cashBefore,
+            string dateBefore, GameState gs)
+        {
+            var sb = new System.Text.StringBuilder();
+
+            // ── 标题 ──
+            sb.AppendLine($"<b>{dateBefore} → {gs.DateLabel}</b>");
+            sb.AppendLine();
+
+            // ── ■ 财务概况 ──
+            sb.AppendLine("■ 财务概况");
+            float operatingMargin = result.quarterIncome - result.quarterExpense;
+            sb.AppendLine(
+                $"  航班及联盟收入 {result.quarterIncome:F0} − 日常支出 {result.quarterExpense:F0} = " +
+                $"{(operatingMargin >= 0 ? "+" : "")}{operatingMargin:F0} 万（已按实际记账）");
+            sb.AppendLine($"  基础结算追加入账 {(result.netChange >= 0 ? "+" : "")}{result.netChange:F0} 万；其他专项见事件明细");
+            sb.AppendLine($"  现金 {cashBefore:F0} → {result.cashAfter:F0} 万");
+
+            // ── ■ 🚨 紧急（亮黄色）──
+            if (!string.IsNullOrEmpty(result.urgentEventText))
+            {
+                sb.AppendLine();
+                sb.AppendLine($"<color=#FFD600>■ 🚨 紧急</color>");
+                foreach (var line in result.urgentEventText.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        sb.AppendLine($"<color=#FFD600>  ▸ {line.Trim()}</color>");
+                }
+            }
+
+            // ── ■ 📋 随机事件 ──
+            if (!string.IsNullOrEmpty(result.randomEventText))
+            {
+                sb.AppendLine();
+                sb.AppendLine("■ 📋 随机事件");
+                foreach (var line in result.randomEventText.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        sb.AppendLine($"  {line.Trim()}");
+                }
+            }
+
+            // ── ■ 📋 AI 竞对动态 ──
+            if (!string.IsNullOrEmpty(result.aiEventText))
+            {
+                sb.AppendLine();
+                sb.AppendLine("■ 📋 AI 竞对动态");
+                foreach (var line in result.aiEventText.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        sb.AppendLine($"  {line.Trim()}");
+                }
+            }
+
+            // ── ■ 📋 其他运营记录 ──
+            if (!string.IsNullOrEmpty(result.otherEventText))
+            {
+                sb.AppendLine();
+                sb.AppendLine("■ 📋 其他运营记录");
+                foreach (var line in result.otherEventText.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        sb.AppendLine($"  {line.Trim()}");
+                }
+            }
+
+            // ── Phase 13：■ 🌐 宏观经济展望（每年 Q1 出现）──
+            if (!string.IsNullOrEmpty(result.macroEventText))
+            {
+                sb.AppendLine();
+                sb.AppendLine("■ 🌐 宏观经济展望");
+                foreach (var line in result.macroEventText.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        sb.AppendLine($"  {line.Trim()}");
+                }
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        // Phase 14：页签切换淡出
+        private System.Collections.IEnumerator CrossfadeOut(GameObject panel, System.Action onDone)
+        {
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = panel.AddComponent<CanvasGroup>();
+            float duration = 0.15f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                cg.alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                yield return null;
+            }
+            cg.alpha = 0f;
+            panel.SetActive(false);
+            cg.alpha = 1f; // reset for next show
+            onDone?.Invoke();
+        }
+
+        private System.Collections.IEnumerator CrossfadeIn(GameObject panel)
+        {
+            var cg = panel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = panel.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            float duration = 0.3f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = elapsed / duration;
+                t = 1f - (1f - t) * (1f - t);
+                cg.alpha = Mathf.Lerp(0f, 1f, t);
+                yield return null;
+            }
+            cg.alpha = 1f;
         }
     }
 }

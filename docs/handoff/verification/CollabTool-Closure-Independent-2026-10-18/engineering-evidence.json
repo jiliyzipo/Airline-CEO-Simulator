@@ -1,0 +1,94 @@
+[
+  {
+    "review": "REV-20261018033542-0f4993",
+    "delivery": "DEL-20261018033132-39a1e3",
+    "profile": "unity-editmode",
+    "status": "passed",
+    "started": "2026-10-18T03:35:49.038Z",
+    "finished": "2026-10-18T03:39:12.527Z",
+    "exitCode": 0,
+    "assertions": {
+      "total": 25,
+      "failed": 0,
+      "skipped": 0
+    },
+    "bindings": [
+      {
+        "kind": "stdout",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "stderr",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      }
+    ],
+    "resultFile": {
+      "path": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018033132-39a1e3\\Unity Project\\Logs\\Tasks20261017_41321854c837843d.xml",
+      "hashMatches": true,
+      "producedByRun": true,
+      "beforeExists": false
+    }
+  },
+  {
+    "review": "REV-20261018033359-8f89f1",
+    "delivery": "DEL-20261018033139-af5cca",
+    "profile": "compile",
+    "status": "passed",
+    "started": "2026-10-18T03:34:03.912Z",
+    "finished": "2026-10-18T03:34:08.01Z",
+    "exitCode": 0,
+    "assertions": {
+      "total": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "bindings": [
+      {
+        "kind": "stdout",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "stderr",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      }
+    ],
+    "resultFile": null
+  },
+  {
+    "review": "REV-20261018033157-6550bc",
+    "delivery": "DEL-20261018033145-e77a66",
+    "profile": "slot",
+    "status": "passed",
+    "started": "2026-10-18T03:34:59.786Z",
+    "finished": "2026-10-18T03:35:06.181Z",
+    "exitCode": 0,
+    "assertions": {
+      "total": 371,
+      "failed": 0,
+      "skipped": 0
+    },
+    "bindings": [
+      {
+        "kind": "stdout",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      },
+      {
+        "kind": "stderr",
+        "exists": true,
+        "hashMatches": true,
+        "bytesMatch": true
+      }
+    ],
+    "resultFile": null
+  }
+]

@@ -1,0 +1,562 @@
+
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"><title>Airline_CEO_顾问开局引导线</title>
+      <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #eef2f6;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      padding: 30px 20px;
+      color: #1a2634;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px 45px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      border-left: 6px solid #1a5cff;
+      padding-left: 18px;
+      margin-bottom: 8px;
+      color: #0b1a33;
+    }
+    .subhead {
+      font-size: 16px;
+      color: #4a5b6e;
+      margin-bottom: 30px;
+      padding-left: 24px;
+      border-bottom: 1px solid #e6ecf3;
+      padding-bottom: 16px;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 40px 0 16px 0;
+      color: #0b1a33;
+      border-bottom: 2px solid #e6ecf3;
+      padding-bottom: 8px;
+    }
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 28px 0 12px 0;
+      color: #1a2c44;
+    }
+    h4 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 20px 0 8px 0;
+      color: #2a3f5a;
+    }
+    p, li {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #253544;
+    }
+    ul, ol { padding-left: 24px; margin: 10px 0 16px 0; }
+    li { margin-bottom: 6px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 28px 0;
+      font-size: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    th {
+      background: #eef2f7;
+      font-weight: 600;
+      padding: 12px 10px;
+      text-align: left;
+      border: 1px solid #d8e0e8;
+    }
+    td {
+      padding: 12px 10px;
+      border: 1px solid #d8e0e8;
+      vertical-align: top;
+      background: white;
+    }
+    .badge {
+      display: inline-block;
+      background: #1a5cff;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 12px;
+      margin-right: 6px;
+    }
+    .badge-green { background: #1b8c4a; }
+    .badge-orange { background: #e68a2e; }
+    .badge-red { background: #c73e3e; }
+    .badge-gray { background: #6a7e94; }
+    .badge-yellow { background: #d4a017; }
+    .highlight-box {
+      background: #f8faff;
+      border-left: 4px solid #1a5cff;
+      padding: 16px 22px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 10px 0 20px 0;
+    }
+    .btn-download {
+      display: inline-block;
+      background: #1a5cff;
+      color: white !important;
+      padding: 14px 34px;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 30px;
+      transition: background 0.2s;
+      box-shadow: 0 4px 10px rgba(26,92,255,0.25);
+    }
+    .btn-download:hover { background: #0e4ad0; }
+    .footer-note {
+      margin-top: 40px;
+      border-top: 1px solid #e0e7ef;
+      padding-top: 20px;
+      font-size: 14px;
+      color: #6a7e94;
+      text-align: center;
+    }
+    .dialog-bubble {
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 10px 0 16px 20px;
+      border-left: 4px solid #1a5cff;
+      font-style: italic;
+      color: #0b1a33;
+    }
+    .dialog-bubble .speaker {
+      font-weight: 700;
+      color: #1a5cff;
+      font-style: normal;
+    }
+    .tech-spec {
+      background: #f8faff;
+      border: 1px solid #d8e0e8;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .tech-spec table { margin: 6px 0 0 0; font-size: 13px; }
+    .tech-spec table td, .tech-spec table th { padding: 6px 8px; }
+    .step-card {
+      background: #fafcfe;
+      border: 1px solid #e0e7ef;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .step-card .step-num {
+      display: inline-block;
+      background: #1a5cff;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 2px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .dept-card {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 8px;
+      margin: 4px 6px 4px 0;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .dept-card.green { background: #e6f7ed; color: #1b7a3a; border: 1px solid #b8e0cc; }
+    .dept-card.yellow { background: #fff8e6; color: #a67c00; border: 1px solid #f0dca0; }
+    .dept-card.red { background: #fde8e8; color: #b33a3a; border: 1px solid #f0c0c0; }
+    @media (max-width: 700px) {
+      .container { padding: 20px; }
+      .grid-2col { grid-template-columns: 1fr; }
+      .step-card { padding: 14px; }
+    }
+  </style>
+      </head>
+      <body>
+        <div class="container">
+
+  <h1>✈️ 航空顾问 · 开局引导线</h1>
+  <div class="subhead">
+    <strong>完整对话脚本 + 弹窗触发指令</strong><br>
+    版本：v1.1 ｜ 更新日期：2026-08-13 ｜ 适用场景：玩家完成公司注册后首次进入主界面<br>
+    核心机制：动态称呼玩家姓名 · 角色统一为“航空顾问” · RPM 附通俗解释
+  </div>
+
+  <!-- ==================== 引导步骤总览 ==================== -->
+  <h2>📋 引导步骤总览</h2>
+  <table>
+    <thead><tr><th style="width:8%;">步骤</th><th style="width:22%;">触发时机</th><th style="width:22%;">弹窗类型</th><th>核心动作</th></tr></thead>
+    <tbody>
+      <tr><td><strong>S0</strong></td><td>进入主界面后 2 秒</td><td>顾问全屏对话</td><td>展示市场机会</td></tr>
+      <tr><td><strong>S1</strong></td><td>玩家点击“查看机会”</td><td>顾问全屏对话 + RPM 卡片</td><td>展示航线评估数据</td></tr>
+      <tr><td><strong>S2</strong></td><td>玩家点击“发起决策会议”</td><td>精简会议弹窗（模态）</td><td>展示 3 部门意见</td></tr>
+      <tr><td><strong>S3</strong></td><td>玩家点击“批准开航”</td><td>顾问引导气泡</td><td>跳转机队 + 高亮</td></tr>
+      <tr><td><strong>S4</strong></td><td>玩家点击“分配飞机”</td><td>排班确认弹窗</td><td>确认/调整班次</td></tr>
+      <tr><td><strong>S5</strong></td><td>玩家点击“确认排班”</td><td>首航动画 + 结算弹窗</td><td>展示首航成果</td></tr>
+      <tr><td><strong>S6</strong></td><td>玩家关闭结算弹窗</td><td>顾问全屏对话</td><td>留下钩子，引导继续</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== S0 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S0 · 顾问开场：展示机会</div>
+    <p><strong>触发条件：</strong> 玩家完成公司注册，首次进入 <code>L1 主页</code> 后 <strong>2 秒</strong></p>
+    <p><strong>弹窗类型：</strong> 顾问全屏对话（遮罩层 + 右下角顾问头像放大 + 对话框居中）</p>
+
+    <h4>🎙️ 顾问对话内容：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“<strong>[玩家姓名]</strong>，您好。我是您的<strong>航空顾问</strong>，负责在您运营过程中提供信息分析和决策建议。”</p>
+      <p>“刚才市场部送来一份紧急情报——<strong>深圳至北京</strong>航线近期需求激增，日均 O&amp;D 客流超过 <strong>2.5 万人次</strong>。这条线是目前国内最赚钱的商务干线之一，竞对客座率已达到 <strong>89%</strong>。”</p>
+      <p>“我初步测算了一下，如果我们现在切入，<strong>预估日利润在 15～18 万元之间</strong>，投资回收期约 <strong>8～10 个月</strong>。”</p>
+      <p>“您要看一下详细评估吗？”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S0_OPPORTUNITY</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>顾问全屏对话（半透明遮罩，顾问头像放大至 120px，对话框居中）</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>左侧 顾问头像（圆形）+ 右侧对话气泡（白底，圆角 16px，最大宽度 560px）</td></tr>
+        <tr><td><strong>动态文本</strong></td><td><code>[玩家姓名]</code> 从 <code>GameState.PlayerName</code> 读取</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge">查看详细评估</span>（主按钮，蓝色）→ 触发 <strong>S1</strong><br>• <span class="badge badge-gray">稍后再说</span>（次按钮，灰色）→ 关闭弹窗，顾问头像变为黄色待阅状态</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>航线名称、客流、客座率、预估日利润、回收期从 <code>RouteData</code> / <code>RPMCalculator</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>市场部图标微闪，示意“情报来源”</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“查看详细评估”后关闭本弹窗，立即触发 <strong>S1</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S1 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S1 · 展示 RPM 评估数据</div>
+    <p><strong>触发条件：</strong> 玩家在 S0 中点击“查看详细评估”</p>
+    <p><strong>弹窗类型：</strong> 顾问全屏对话 + 嵌入式 RPM 评估卡</p>
+
+    <h4>🎙️ 顾问对话内容：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“这是 RPM 系统给出的综合评估。——<strong>RPM 的全称是‘航线盈利预测模型’</strong>，简单说，就是系统综合了客流、成本、竞争等因素后，<strong>自动算出一条航线值不值得开的评分</strong>，您把它理解成‘开线推荐指数’就行。”</p>
+      <p>“<strong>深圳宝安（SZX）→ 北京首都（PEK）</strong>”</p>
+      <p>“<strong>需求热度：</strong> 高（日均客流 2.5 万，旺季系数 1.3）”<br>
+      “<strong>成本压力：</strong> 中等（航程 2.5 小时，燃油成本可控）”<br>
+      “<strong>准入壁垒：</strong> 中等（国航、南航已运营，但仍有时刻窗口）”</p>
+      <p>“<strong>综合评分：86 分（绿色，强烈推荐）</strong>”<br>
+      “<strong>预估日利润：16.2 万元</strong>”<br>
+      “<strong>预估首年客座率：81%</strong>”</p>
+      <p>“财务部、运营部、市场部已经初步交换过意见。<strong>要不要召集一个简短的决策会议，听听各部门的具体看法？</strong>”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S1_RPM_CARD</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>顾问全屏对话 + 嵌入式卡片</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>上半部：顾问对话气泡（文字）；下半部：RPM 评估卡片（白底，圆角 12px，含需求/成本/准入三色进度条 + 综合评分 + 预估利润）</td></tr>
+        <tr><td><strong>动态文本</strong></td><td><code>[玩家姓名]</code> 仅用于开头称呼，后续“您”保持尊称</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge">发起决策会议</span>（主按钮，蓝色）→ 触发 <strong>S2</strong><br>• <span class="badge badge-gray">暂缓</span>（次按钮，灰色）→ 关闭弹窗</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>航线名称、三色进度条数值、综合评分、预估日利润、首年客座率从 <code>RPMCalculator</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>综合评分 86 用大号字体 + 绿色高亮显示</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“发起决策会议”后关闭本弹窗，<strong>自动打开收件箱</strong>并触发 <strong>S2</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S2 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S2 · 精简决策会议（收件箱弹窗）</div>
+    <p><strong>触发条件：</strong> S1 中点击“发起决策会议”→ 自动打开收件箱 → <strong>延迟 0.5 秒</strong> 弹出会议弹窗</p>
+    <p><strong>弹窗类型：</strong> 模态弹窗（居中，模拟“会议桌”风格）</p>
+
+    <h4>📧 邮件预览（收件箱自动高亮显示）：</h4>
+    <div class="highlight-box">
+      <p><strong>发件人：</strong> 战略发展部 · 阿米特·辛格<br>
+      <strong>主题：</strong> 【紧急提案】关于开通深圳—北京首都航线的建议<br>
+      <strong>正文摘要：</strong> 我部已完成 RPM 评估，综合评分 86 分（绿色），建议尽快启动开航程序。各部门意见汇总如下，请 CEO 决策。</p>
+    </div>
+
+    <h4>🎙️ 顾问会议主持：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“<strong>[玩家姓名]</strong>，各部门已经提交了意见。财务部、运营部、市场部都来了，<strong>我给您快速过一遍——</strong>”</p>
+    </div>
+
+    <h4>📊 会议弹窗内容（三部门意见卡片）：</h4>
+    <table>
+      <thead><tr><th style="width:15%;">部门</th><th style="width:35%;">意见摘要</th><th style="width:30%;">数据支撑</th><th style="width:20%;">状态</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>💰 财务部</strong></td>
+          <td>“当前现金储备 500 万，开航需 300 万启动资金。<strong>占比较高，建议审慎评估回本周期。</strong>”</td>
+          <td>启动资金 300 万 / 现金储备 500 万 / 回本周期 8 个月</td>
+          <td><span class="dept-card yellow">🟡 审慎</span></td>
+        </tr>
+        <tr>
+          <td><strong>⚙️ 运营部</strong></td>
+          <td>“现有 1 架 A320 日闲置 3.5 小时，<strong>可完美覆盖该航线时刻</strong>，无需新增运力。”</td>
+          <td>闲置时间 3.5h / 可用飞机 1 架</td>
+          <td><span class="dept-card green">🟢 支持</span></td>
+        </tr>
+        <tr>
+          <td><strong>📈 市场部</strong></td>
+          <td>“预估首年客座率 81%，日利润 16.2 万，<strong>建议立即切入，抢占窗口期</strong>。”</td>
+          <td>预估客座率 81% / 日利润 16.2 万</td>
+          <td><span class="dept-card green">🟢 强烈支持</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>🎙️ 顾问总结：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“三部门意见：<strong>运营和市场强烈支持，财务建议审慎</strong>。综合来看，我认为这个机会值得抓住——但最终决定权在您手上，<strong>[玩家姓名]</strong>。”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S2_MEETING</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>模态弹窗（居中，模拟会议桌风格，宽 680px）</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>顶部：议题 + 发件人信息；中部：三部门意见卡片（横向排列）；底部：顾问总结 + 决策按钮</td></tr>
+        <tr><td><strong>动态文本</strong></td><td>会议主持和总结中的 <code>[玩家姓名]</code> 从 <code>GameState.PlayerName</code> 读取</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge badge-green">批准开航</span>（主按钮，绿色）→ 触发 <strong>S3</strong><br>• <span class="badge badge-gray">暂缓</span>（次按钮，灰色）→ 关闭弹窗<br>• <span class="badge badge-red">拒绝</span>（次按钮，红色）→ 关闭弹窗</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>部门意见文本、数据数值从各 <code>Manager</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>部门卡片悬停时轻微放大；财务部卡片带“⚠️ 建议审慎”小标签</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“批准开航”后关闭本弹窗，触发 <strong>S3</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S3 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S3 · 机队分配（跳转引导）</div>
+    <p><strong>触发条件：</strong> S2 中点击“批准开航”</p>
+    <p><strong>弹窗类型：</strong> 顾问引导气泡（右下角顾问头像弹出气泡，不遮罩全屏）</p>
+
+    <h4>🎙️ 顾问对话内容：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“决策已生效，<strong>[玩家姓名]</strong>。航线已进入待执行列表。”</p>
+      <p>“下一步需要为该航线<strong>分配一架飞机</strong>。我推荐使用闲置的 <strong>A320-200（注册号 B-2026）</strong>，它目前有足够的日利用率窗口。”</p>
+      <p>“请前往 <strong>【机队】</strong> 页面，系统会自动为您高亮推荐这架飞机。”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S3_FLEET_GUIDE</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>顾问引导气泡（右下角顾问头像弹出，半透明背景箭头指向左侧菜单“机队”）</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>小型气泡（宽 320px），含顾问头像缩略图 + 文字 + 一个按钮</td></tr>
+        <tr><td><strong>动态文本</strong></td><td><code>[玩家姓名]</code> 从 <code>GameState.PlayerName</code> 读取</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge">去机队</span>（主按钮，蓝色）→ 跳转至 <code>L1 机队</code> 页面</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>推荐飞机注册号、机型从 <code>FleetManager.GetRecommendedAircraft()</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>左侧菜单“机队”按钮高亮闪烁；进入机队页面后，推荐飞机的卡片自动高亮（金色边框）</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“去机队”后关闭气泡，<strong>页面跳转至 L1 机队</strong>，并触发 <strong>S4</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S4 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S4 · 排班确认</div>
+    <p><strong>触发条件：</strong> 玩家在机队页面点击高亮飞机的“分配至深圳-北京”按钮</p>
+    <p><strong>弹窗类型：</strong> 轻量级确认弹窗（居中，半透明遮罩）</p>
+
+    <h4>🎙️ 顾问对话内容：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“飞机已选定！运营部已根据该飞机的闲置窗口，自动生成了排班方案：”</p>
+      <p>“<strong>航线：</strong> 深圳 → 北京首都”<br>
+      “<strong>执飞机型：</strong> A320-200（B-2026）”<br>
+      “<strong>班次：</strong> 每周一、三、五执飞，每日 1 班”<br>
+      “<strong>起飞时刻：</strong> 08:00（深圳）→ 10:30（北京）”</p>
+      <p>“您可以直接确认，也可以调整班次或时刻。”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S4_SCHEDULE_CONFIRM</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>轻量级确认弹窗（居中，半透明遮罩，宽 480px）</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>顶部：顾问头像 + 对话文字；中部：排班方案摘要（表格样式）；底部：操作按钮</td></tr>
+        <tr><td><strong>动态文本</strong></td><td>无需 <code>[玩家姓名]</code>，使用“您”</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge">确认排班</span>（主按钮，蓝色）→ 触发 <strong>S5</strong><br>• <span class="badge badge-gray">调整班次</span>（次按钮，灰色）→ 打开简易排班编辑器（同弹窗内展开）</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>航线、机型、注册号、班次、时刻从 <code>RouteManager</code> / <code>FleetManager</code> / <code>ScheduleManager</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>排班方案以卡片形式展示，带飞机图标和时间轴示意</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“确认排班”后关闭本弹窗，<strong>触发 S5</strong>（首航动画）</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S5 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S5 · 首航动画 + 结算弹窗</div>
+    <p><strong>触发条件：</strong> S4 中点击“确认排班”</p>
+    <p><strong>弹窗类型：</strong> 全屏动画（飞机起飞 → 飞行弧线 → 降落）→ 结算弹窗</p>
+
+    <h4>✈️ 首航动画（约 5 秒）：</h4>
+    <table>
+      <thead><tr><th style="width:15%;">阶段</th><th style="width:55%;">画面内容</th><th style="width:30%;">时长</th></tr></thead>
+      <tbody>
+        <tr><td>① 起飞</td><td>飞机从深圳宝安机场起飞，镜头跟随</td><td>1.5s</td></tr>
+        <tr><td>② 巡航</td><td>飞机在云层上方飞行，航线弧线从深圳延伸至北京</td><td>2.0s</td></tr>
+        <tr><td>③ 降落</td><td>飞机降落在北京首都机场，镜头拉远</td><td>1.5s</td></tr>
+      </tbody>
+    </table>
+
+    <h4>🎙️ 顾问首航成功播报（同步于动画最后 1 秒）：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“<strong>首航成功，[玩家姓名]！</strong> B-2026 已安全降落在北京首都国际机场。”</p>
+    </div>
+
+    <h4>📊 结算弹窗内容：</h4>
+    <table>
+      <thead><tr><th style="width:25%;">数据项</th><th style="width:25%;">数值</th><th style="width:25%;">状态</th></tr></thead>
+      <tbody>
+        <tr><td><strong>航线收入</strong></td><td>18.4 万元</td><td>🟢</td></tr>
+        <tr><td><strong>航线成本</strong></td><td>12.2 万元</td><td>🟢</td></tr>
+        <tr><td><strong>净利润</strong></td><td><strong>6.2 万元</strong></td><td>🟢 绿色高亮</td></tr>
+        <tr><td><strong>客座率</strong></td><td><strong>89%</strong></td><td>🟢 高于预期（预期 81%）</td></tr>
+        <tr><td><strong>董事会满意度</strong></td><td>+5</td><td>🟢 上升</td></tr>
+        <tr><td><strong>现金跑道</strong></td><td>+0.3 个月</td><td>🟢 改善</td></tr>
+      </tbody>
+    </table>
+
+    <h4>🎙️ 顾问弹窗内总结：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“首航表现超出预期！客座率 <strong>89%</strong>，净利润 <strong>6.2 万元</strong>，董事会满意度上升 <strong>5 点</strong>，<strong>[玩家姓名]</strong>。”</p>
+      <p>“您已经成功完成了第一条航线的全流程——从发现机会到决策、执行、收获成果。”</p>
+      <p>“<strong>感觉如何？要不要趁热打铁，再开一条线？</strong>”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S5_FLIGHT_RESULT</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>全屏动画（首航）+ 结算弹窗（动画结束后弹出，居中，宽 560px）</td></tr>
+        <tr><td><strong>动画资源</strong></td><td>飞机起飞/巡航/降落（可用 Unity Timeline 或预渲染视频，MVP 可用简单 2D 弧线 + 飞机图标位移）</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>顶部：🎉 首航成功标题 + 顾问头像；中部：数据卡片（6 项 KPI）；底部：顾问总结 + 按钮</td></tr>
+        <tr><td><strong>动态文本</strong></td><td>播报和总结中的 <code>[玩家姓名]</code> 从 <code>GameState.PlayerName</code> 读取</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge badge-green">再开一条线！</span>（主按钮，绿色）→ 触发 <strong>S6</strong><br>• <span class="badge badge-gray">先看看其他系统</span>（次按钮，灰色）→ 关闭弹窗，进入自由探索</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>收入、成本、净利润、客座率、满意度、现金跑道从 <code>GameState</code> / <code>RouteManager</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>净利润 6.2 万用大号绿色字体 + 数字跳动动画；董事会满意度 +5 带绿色上升箭头</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>点击“再开一条线！”→ 触发 <strong>S6</strong>；点击“先看看其他系统”→ 顾问变为“待命”状态，玩家自由探索</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== S6 ==================== -->
+  <div class="step-card">
+    <div class="step-num">步骤 S6 · 结尾钩子（引导继续）</div>
+    <p><strong>触发条件：</strong> S5 中点击“再开一条线！”</p>
+    <p><strong>弹窗类型：</strong> 顾问全屏对话（同 S0/S1 风格）</p>
+
+    <h4>🎙️ 顾问对话内容：</h4>
+    <div class="dialog-bubble">
+      <p><span class="speaker">航空顾问：</span></p>
+      <p>“太好了，<strong>[玩家姓名]</strong>！我刚扫描了一下市场，发现 <strong>成都至上海</strong> 航线也有不错的机会。”</p>
+      <p>“<strong>预估日利润：12.8 万元</strong>”<br>
+      “<strong>综合评分：79 分（绿色，推荐）</strong>”<br>
+      “<strong>竞对情况：</strong> 目前只有 2 家航司运营，时刻窗口充足。”</p>
+      <p>“这一次，您可以<strong>独立完成全部决策流程</strong>——我会在右下角随时待命，但不会主动弹出建议了。”</p>
+      <p>“需要我先打开 RPM 评估页面吗？”</p>
+    </div>
+
+    <h4>🖥️ 弹窗技术规格：</h4>
+    <div class="tech-spec">
+      <table>
+        <tbody><tr><th style="width:22%;">参数</th><th>规格</th></tr>
+        <tr><td><strong>弹窗ID</strong></td><td><code>TUTORIAL_S6_NEXT_HOOK</code></td></tr>
+        <tr><td><strong>弹窗类型</strong></td><td>顾问全屏对话</td></tr>
+        <tr><td><strong>对话框布局</strong></td><td>同 S0/S1，顾问头像 + 对话气泡 + 新航线迷你评估卡</td></tr>
+        <tr><td><strong>动态文本</strong></td><td>对话中 <code>[玩家姓名]</code> 从 <code>GameState.PlayerName</code> 读取</td></tr>
+        <tr><td><strong>按钮配置</strong></td><td>• <span class="badge">打开 RPM 评估</span>（主按钮，蓝色）→ 跳转至 <code>L3 RPM评估台</code>，玩家进入半自由探索<br>• <span class="badge badge-gray">先熟悉一下界面</span>（次按钮，灰色）→ 关闭弹窗，顾问进入待命状态</td></tr>
+        <tr><td><strong>数据绑定</strong></td><td>新航线名称、预估利润、综合评分、竞对数量从 <code>RouteManager</code> / <code>RPMCalculator</code> 读取</td></tr>
+        <tr><td><strong>特殊效果</strong></td><td>顾问头像变为“待命”状态（绿色常亮），示意“我在这里，但不会主动打扰”</td></tr>
+        <tr><td><strong>后续动作</strong></td><td>引导结束。玩家进入自由探索模式，顾问仅在被点击时或紧急预警时弹出</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ==================== 异常处理 ==================== -->
+  <h2>🔄 异常处理与边界情况</h2>
+  <table>
+    <thead><tr><th style="width:35%;">场景</th><th>处理方式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>玩家在 S0 点击“稍后再说”</strong></td><td>顾问头像变为黄色待阅状态，左侧菜单“顾问”按钮显示红点。玩家可随时点击顾问重新唤起引导</td></tr>
+      <tr><td><strong>玩家在 S2 点击“暂缓”或“拒绝”</strong></td><td>顾问弹出：“明白，决策已记录。您可以随时在收件箱中重新调出该提案。”引导中断，玩家进入自由探索</td></tr>
+      <tr><td><strong>玩家在 S4 点击“调整班次”</strong></td><td>弹窗内展开简易排班编辑器（可选时段：早/中/晚；可选班次：每周 3/5/7 班）。调整后点击确认触发 S5</td></tr>
+      <tr><td><strong>机队无可用飞机</strong></td><td>S3 中顾问提示：“机队暂时没有可用飞机。建议先购买一架 A320 或租赁运力。”跳转至购机流程（精简版）</td></tr>
+      <tr><td><strong>现金不足以支付启动资金</strong></td><td>S2 财务部卡片变为红色：“⚠️ 现金储备不足，建议暂缓或申请融资。”决策按钮中“批准开航”变为灰色，需先完成融资</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== 技术汇总 ==================== -->
+  <h2>📊 技术实现汇总表（供 Cursor 开发参考）</h2>
+  <table>
+    <thead><tr><th style="width:16%;">弹窗ID</th><th style="width:20%;">触发条件</th><th style="width:18%;">弹窗类型</th><th style="width:18%;">关键按钮</th><th>后续动作</th></tr></thead>
+    <tbody>
+      <tr><td><code>TUTORIAL_S0_OPPORTUNITY</code></td><td>进入主页后 2s</td><td>顾问全屏对话</td><td>查看详细评估</td><td>触发 S1</td></tr>
+      <tr><td><code>TUTORIAL_S1_RPM_CARD</code></td><td>点击“查看详细评估”</td><td>顾问全屏 + 卡片</td><td>发起决策会议</td><td>触发 S2</td></tr>
+      <tr><td><code>TUTORIAL_S2_MEETING</code></td><td>点击“发起决策会议”</td><td>模态弹窗（会议桌）</td><td>批准开航</td><td>触发 S3</td></tr>
+      <tr><td><code>TUTORIAL_S3_FLEET_GUIDE</code></td><td>点击“批准开航”</td><td>顾问引导气泡</td><td>去机队</td><td>跳转 L1 机队 + 触发 S4</td></tr>
+      <tr><td><code>TUTORIAL_S4_SCHEDULE_CONFIRM</code></td><td>点击飞机“分配”按钮</td><td>轻量级确认弹窗</td><td>确认排班</td><td>触发 S5</td></tr>
+      <tr><td><code>TUTORIAL_S5_FLIGHT_RESULT</code></td><td>点击“确认排班”</td><td>全屏动画 + 结算弹窗</td><td>再开一条线</td><td>触发 S6</td></tr>
+      <tr><td><code>TUTORIAL_S6_NEXT_HOOK</code></td><td>点击“再开一条线”</td><td>顾问全屏对话</td><td>打开 RPM 评估</td><td>引导结束，自由探索</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== 开发备注 ==================== -->
+  <h2>✅ 开发备注</h2>
+  <ul>
+    <li><strong>顾问对话系统：</strong> 建议使用 <code>AdvisorDialogueManager</code> 统一管理所有引导弹窗，支持队列播放和中断恢复。</li>
+    <li><strong>状态机：</strong> 使用 <code>TutorialState</code> 枚举记录玩家当前所处的引导步骤，确保断线/重登后能恢复。</li>
+    <li><strong>数据读取：</strong> 所有弹窗中的数值（利润、客座率、评分等）从 <code>GameState</code> / <code>RPMCalculator</code> 实时读取，<strong>不硬编码</strong>。</li>
+    <li><strong>动态姓名：</strong> 所有 <code>[玩家姓名]</code> 占位符统一从 <code>GameState.PlayerName</code> 读取，确保显示一致性。</li>
+    <li><strong>角色名称：</strong> 全文档统一使用 <strong>“航空顾问”</strong>，不再出现“事务官”或“小航”。</li>
+    <li><strong>RPM 解释：</strong> 在 S1 中固定插入通俗解释，帮助新手理解该系统的用途。</li>
+    <li><strong>首航动画：</strong> MVP 阶段可使用 2D 简化版本（飞机图标沿贝塞尔曲线移动 + 粒子效果），复杂 3D 版本可延后。</li>
+    <li><strong>跳过引导：</strong> 提供“跳过引导”按钮（隐藏于对话框右上角“...”菜单），点击后直接进入自由探索模式。</li>
+  </ul>
+
+  <!-- ==================== 下载按钮 ==================== -->
+  <div style="text-align:center;">
+    
+  </div>
+  <div class="footer-note">
+    Airline CEO Simulator · 航空顾问开局引导线 完整对话脚本 + 弹窗触发指令<br>
+    版本 v1.1 ｜ 可用于 Cursor 开发参考、需求评审或团队同步
+  </div>
+
+</div>
+      </body>
+      </html>
+    

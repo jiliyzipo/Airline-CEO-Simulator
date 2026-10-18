@@ -10,6 +10,12 @@ namespace AirlineCEO.Logic
     /// </summary>
     public static class OpsEconomics
     {
+        /// <summary>
+        /// 一个「班次」包含的航段数：本作所有航线都是**一个往返**（去程 + 回程），故为 2。
+        /// 「周班次」「日班次」一律指往返圈数 —— 日利用率、效率乘数、盈亏平衡都必须按 2 段计。
+        /// </summary>
+        public const int RoundTripSectors = 2;
+
         public struct ScheduleMetrics
         {
             public float blockHoursPerFlight;
@@ -47,7 +53,12 @@ namespace AirlineCEO.Logic
         {
             float block = BlockHours(distanceKm);
             float dailyFlights = Math.Max(0.1f, weeklyFlights / 7f);
-            float utilHours = block * dailyFlights;
+            // 日利用率按「一圈 = 去 + 回两段」计（★2026-10-14 第十次问询统一口径）。
+            // 旧版只算一段轮挡，于是同一条往返航线出现两个「日利用率」：
+            //   班次模型（一圈 2 段 ÷ 7 天）→ FRA–ATL 4 班/周 = 9.96h/日（贴着 10h 目标）
+            //   本函数（单段 × 班次 ÷ 7）  → 同一条线 = 4.98h/日（效率乘数因此被压在 0.80）
+            // 两处用同一个 `TargetDailyUtilizationHours` 常数却差一倍，故统一为「一圈 2 段」。
+            float utilHours = block * RoundTripSectors * dailyFlights;
             float turn = EstimateTurnMinutes(aircraftType, groundStaffAssigned);
 
             // 利用率相对目标的效率：过低浪费，过高挤兑

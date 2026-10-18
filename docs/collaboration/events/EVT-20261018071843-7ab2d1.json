@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018071843-7ab2d1",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 190,
+  "at": "2026-10-18T07:18:43.825Z",
+  "actor": "codex",
+  "action": "review-cancel",
+  "taskId": "C-COLLAB-FINAL",
+  "deliveryId": null,
+  "reviewId": "REV-20261018071821-7f263c",
+  "parentEventId": null,
+  "summary": "cancelled REV-20261018071821-7f263c",
+  "data": {}
+}

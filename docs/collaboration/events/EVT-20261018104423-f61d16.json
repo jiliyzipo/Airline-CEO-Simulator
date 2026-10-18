@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018104423-f61d16",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 235,
+  "at": "2026-10-18T10:44:23.510Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018095403-4c0790: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261018095403-4c0790",
+    "from": "fixed",
+    "to": "verified",
+    "note": "Independent reacceptance REV-20261018103950-3b9460, final DEL DEL-20261018102500-1304ad:132/132 and reconciled boundary7/7; legacy SA05 contract conflict preserved and split into no-attestation refusal plus explicit CLI attestation positive. Proof docs/handoff/verification/CollabTool-Stage-Reaccept-2026-10-18/verified-evidence.json"
+  }
+}

@@ -1,0 +1,473 @@
+{
+  "CONTENT_REV": "20260810a",
+  "STORAGE_KEY": "airline_ceo_ui_board_v3_noted_20260809",
+  "catalog_count": 56,
+  "edge_count": 94,
+  "screens": [
+    {
+      "id": "n0_主界面框架_常驻",
+      "level": "L0",
+      "title": "🖥️ 主界面框架（常驻）",
+      "badge": "框架",
+      "n_items": 9,
+      "n_clicks": 4
+    },
+    {
+      "id": "n1_主菜单",
+      "level": "L0",
+      "title": "🎮 主菜单",
+      "badge": "NEW",
+      "n_items": 6,
+      "n_clicks": 5
+    },
+    {
+      "id": "n2_玩家资料创建",
+      "level": "L0",
+      "title": "👤 玩家资料创建",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 1
+    },
+    {
+      "id": "n3_公司注册",
+      "level": "L0",
+      "title": "🏢 公司注册",
+      "badge": "NEW",
+      "n_items": 8,
+      "n_clicks": 1
+    },
+    {
+      "id": "n4_董事会组建_抽卡",
+      "level": "L0",
+      "title": "🃏 董事会组建（抽卡）",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 2
+    },
+    {
+      "id": "n5_年度目标确认",
+      "level": "L0",
+      "title": "🎯 年度目标确认",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 1
+    },
+    {
+      "id": "n6_主页_Dashboard",
+      "level": "L1",
+      "title": "🏠 主页 Dashboard",
+      "badge": "补齐",
+      "n_items": 8,
+      "n_clicks": 8
+    },
+    {
+      "id": "n7_收件箱",
+      "level": "L1",
+      "title": "📬 收件箱",
+      "badge": "补齐",
+      "n_items": 7,
+      "n_clicks": 4
+    },
+    {
+      "id": "n8_航空事务官_AO",
+      "level": "L2",
+      "title": "💬 航空事务官（AO）",
+      "badge": "补齐",
+      "n_items": 5,
+      "n_clicks": 3
+    },
+    {
+      "id": "n9_机队",
+      "level": "L1",
+      "title": "🛩 机队",
+      "badge": "补齐",
+      "n_items": 9,
+      "n_clicks": 3
+    },
+    {
+      "id": "n10_飞机详情_履历",
+      "level": "L2",
+      "title": "✈️ 飞机详情（履历）",
+      "badge": "补齐",
+      "n_items": 11,
+      "n_clicks": 6
+    },
+    {
+      "id": "n11_座位配置",
+      "level": "L3",
+      "title": "🪑 载客量配置",
+      "badge": "补齐",
+      "n_items": 4,
+      "n_clicks": 3
+    },
+    {
+      "id": "n12_航线网络",
+      "level": "L1",
+      "title": "🗺 航线网络",
+      "badge": "补齐",
+      "n_items": 10,
+      "n_clicks": 4
+    },
+    {
+      "id": "n13_运营部",
+      "level": "L1",
+      "title": "⚙️ 运营部",
+      "badge": "补齐",
+      "n_items": 9,
+      "n_clicks": 7
+    },
+    {
+      "id": "n14_市场销售部",
+      "level": "L1",
+      "title": "📈 市场销售部",
+      "badge": "补齐",
+      "n_items": 10,
+      "n_clicks": 8
+    },
+    {
+      "id": "n15_财务部",
+      "level": "L1",
+      "title": "💰 财务部",
+      "badge": "补齐",
+      "n_items": 8,
+      "n_clicks": 5
+    },
+    {
+      "id": "n16_战略发展部",
+      "level": "L1",
+      "title": "🧭 战略发展部",
+      "badge": "补齐",
+      "n_items": 6,
+      "n_clicks": 3
+    },
+    {
+      "id": "n17_机务工程部",
+      "level": "L1",
+      "title": "🔧 机务工程部",
+      "badge": "补齐",
+      "n_items": 5,
+      "n_clicks": 3
+    },
+    {
+      "id": "n18_人力资源部",
+      "level": "L1",
+      "title": "👥 人力资源部",
+      "badge": "补齐",
+      "n_items": 5,
+      "n_clicks": 3
+    },
+    {
+      "id": "n19_安全质量部",
+      "level": "L1",
+      "title": "🛡 安全质量部",
+      "badge": "补齐",
+      "n_items": 5,
+      "n_clicks": 3
+    },
+    {
+      "id": "n20_董事会",
+      "level": "L1",
+      "title": "🏛 董事会",
+      "badge": "补齐",
+      "n_items": 5,
+      "n_clicks": 4
+    },
+    {
+      "id": "n21_CEO_决策会议",
+      "level": "L4",
+      "title": "🗣 CEO 决策会议",
+      "badge": "弹窗",
+      "n_items": 4,
+      "n_clicks": 3
+    },
+    {
+      "id": "n22_年度预算编制_审批",
+      "level": "L3",
+      "title": "🧾 年度预算编制 / 审批",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 2
+    },
+    {
+      "id": "n23_部门负责人任命",
+      "level": "L4",
+      "title": "👔 部门负责人任命",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 2
+    },
+    {
+      "id": "n24_危机_IRROPS_弹窗",
+      "level": "L4",
+      "title": "🚨 危机 / IRROPS 弹窗",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n25_紧急融资_破产保护",
+      "level": "L4",
+      "title": "💸 紧急融资 / 破产保护",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n26_财年结算_续聘_解雇",
+      "level": "L4",
+      "title": "🏁 财年结算 / 续聘 / 解雇",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 3
+    },
+    {
+      "id": "n27_消息中心",
+      "level": "L2",
+      "title": "🔔 消息中心",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n28_宏观经济面板",
+      "level": "L2",
+      "title": "🌍 宏观经济面板",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 1
+    },
+    {
+      "id": "n29_竞争态势_AI_航司",
+      "level": "L2",
+      "title": "แข่ง 竞争态势 / AI 航司",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 2
+    },
+    {
+      "id": "n30_随机事件日志",
+      "level": "L2",
+      "title": "🎲 随机事件日志",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 1
+    },
+    {
+      "id": "n31_对冲工作台",
+      "level": "L3",
+      "title": "🛢 对冲工作台",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n32_碳配额管理",
+      "level": "L3",
+      "title": "🛡 碳配额管理",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n33_FFP_常旅客管理",
+      "level": "L3",
+      "title": "💳 FFP 常旅客管理",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n34_产品工坊",
+      "level": "L3",
+      "title": "🎁 产品工坊",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n35_新航线_RPM_评估台",
+      "level": "L3",
+      "title": "🧮 新航线 RPM 评估台",
+      "badge": "NEW",
+      "n_items": 4,
+      "n_clicks": 2
+    },
+    {
+      "id": "n36_航班环构建器",
+      "level": "L3",
+      "title": "🔗 航班环构建器",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n37_工会谈判桌",
+      "level": "L3",
+      "title": "🤝 工会谈判桌",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 1
+    },
+    {
+      "id": "n38_历史回放",
+      "level": "L2",
+      "title": "📼 历史回放",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 1
+    },
+    {
+      "id": "n39_飞行学院",
+      "level": "L2",
+      "title": "🎓 飞行学院",
+      "badge": "NEW",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n40_设置_存档",
+      "level": "L2",
+      "title": "⚙️ 设置 / 存档",
+      "badge": "NEW",
+      "n_items": 5,
+      "n_clicks": 2
+    },
+    {
+      "id": "n41_单航线",
+      "level": "L2",
+      "title": "📍 单航线",
+      "badge": "新建",
+      "n_items": 7,
+      "n_clicks": 3
+    },
+    {
+      "id": "n42_航班周总计划",
+      "level": "L2",
+      "title": "📅 航班周总计划",
+      "badge": "新建",
+      "n_items": 5,
+      "n_clicks": 3
+    },
+    {
+      "id": "n43_航班详细计划",
+      "level": "L2",
+      "title": "🧾 航班详细计划",
+      "badge": "新建",
+      "n_items": 7,
+      "n_clicks": 3
+    },
+    {
+      "id": "n44_航线收益分析",
+      "level": "L2",
+      "title": "💹 航线收益分析",
+      "badge": "新建",
+      "n_items": 6,
+      "n_clicks": 8
+    },
+    {
+      "id": "n49_航班定价",
+      "level": "L2",
+      "title": "💵 航班定价",
+      "badge": "新建",
+      "n_items": 15,
+      "n_clicks": 10
+    },
+    {
+      "id": "n45_单航线定价详情",
+      "level": "L3",
+      "title": "🎯 单航线定价详情",
+      "badge": "新建",
+      "n_items": 6,
+      "n_clicks": 2
+    },
+    {
+      "id": "n46_动态定价算法",
+      "level": "L3",
+      "title": "🤖 动态定价算法面板",
+      "badge": "新建",
+      "n_items": 7,
+      "n_clicks": 3
+    },
+    {
+      "id": "n47_收益管理仪表盘",
+      "level": "L3",
+      "title": "📈 收益管理仪表盘",
+      "badge": "新建",
+      "n_items": 6,
+      "n_clicks": 2
+    },
+    {
+      "id": "n48_辅助收入管理",
+      "level": "L3",
+      "title": "💳 辅助收入管理",
+      "badge": "新建",
+      "n_items": 6,
+      "n_clicks": 1
+    },
+    {
+      "id": "n50_外部环境分析",
+      "level": "L3",
+      "title": "🚄 外部环境分析",
+      "badge": "新建",
+      "n_items": 3,
+      "n_clicks": 2
+    },
+    {
+      "id": "n55_季节性日历",
+      "level": "L2",
+      "title": "🗓️ 季节性日历 · 需求预测与旺季策略",
+      "badge": "新建",
+      "n_items": 15,
+      "n_clicks": 10
+    },
+    {
+      "id": "n56_航季对比详情",
+      "level": "L3",
+      "title": "🔄 航季对比 · 夏秋 vs 冬春",
+      "badge": "新建",
+      "n_items": 5,
+      "n_clicks": 1
+    },
+    {
+      "id": "n57_旺季策略配置器",
+      "level": "L3",
+      "title": "🚀 旺季策略配置器 · [节日名称]",
+      "badge": "新建",
+      "n_items": 4,
+      "n_clicks": 3
+    },
+    {
+      "id": "n58_历史趋势分析",
+      "level": "L3",
+      "title": "📈 季节性历史趋势",
+      "badge": "新建",
+      "n_items": 4,
+      "n_clicks": 1
+    },
+    {
+      "id": "n59_旺季影响预测弹窗",
+      "level": "L4",
+      "title": "📊 旺季影响预测",
+      "badge": "弹窗",
+      "n_items": 5,
+      "n_clicks": 1
+    }
+  ],
+  "attachments": [
+    "Airline_CEO_L2_竞争雷达_设计文档.docx",
+    "L1 市场销售部.docx",
+    "L2 季节性日历.docx",
+    "L3 动态定价算法面板.docx",
+    "L3 单航线定价详情.docx",
+    "L3 历史趋势分析.docx",
+    "L3 收益管理仪表盘.docx",
+    "L3 旺季策略配置器.docx",
+    "L3 竞对详情.docx",
+    "L3 航季对比详情.docx",
+    "L3 辅助收入管理.docx",
+    "季节性页面归属对照表.docx",
+    "航班定价.docx",
+    "航线收益分析.docx",
+    "页面间连线建议.docx"
+  ]
+}

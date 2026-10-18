@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AirlineCEO.Data;
+using AirlineCEO.Logic;
 using AirlineCEO.Systems;
 using TMPro;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace AirlineCEO.UI
         private Transform _candidateSlotA;
         private Transform _candidateSlotB;
         private string _pendingDept;
-        private readonly List<ExecutiveData> _pendingCandidates = new List<ExecutiveData>();
+        private readonly List<PersonnelData> _pendingCandidates = new List<PersonnelData>();
 
         private GameObject _confirmRoot;
         private TextMeshProUGUI _confirmText;
@@ -45,7 +46,7 @@ namespace AirlineCEO.UI
                 UITheme.TextPrimary, FontStyles.Bold);
 
             // 化学反应加成在后台生效，不向玩家展示配方（自行摸索）
-            UIFactory.Label(panel, "Hint", "任命各部门负责人，关注效率与忠诚度变化。", 14,
+            UIFactory.Label(panel, "Hint", "任命各部门总监，关注效率与忠诚度变化。", 14,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.03f, 0.84f), new Vector2(0.97f, 0.9f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
@@ -221,7 +222,7 @@ namespace AirlineCEO.UI
                 LayoutRebuilder.ForceRebuildLayoutImmediate(contentRt);
         }
 
-        private GameObject BuildDeptCard(string code, DepartmentRuntime dept, ExecutiveData head)
+        private GameObject BuildDeptCard(string code, DepartmentRuntime dept, PersonnelData head)
         {
             // 槽位高度含少量底部空隙，行距适中、七行更易一屏看完
             const float SlotH = 92f;
@@ -246,7 +247,7 @@ namespace AirlineCEO.UI
             UIFactory.AddBorder(row, UITheme.Border, new Vector2(1.2f, -1.2f));
 
             bool vacant = head == null;
-            string headLine = vacant ? "负责人：空缺" : $"负责人：{head.fullName}";
+            string headLine = vacant ? "总监：空缺" : $"总监：{head.fullName}";
             float eff = dept != null ? dept.efficiency : 0f;
             float loy = dept != null ? dept.loyalty : 0f;
 
@@ -259,8 +260,11 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.02f, 0.12f), new Vector2(0.26f, 0.48f), Vector2.zero, Vector2.zero),
                 vacant ? UITheme.Warning : UITheme.TextMuted);
 
+            float staffLift = TrainingGrowthLogic.DeptStaffLift(GameState.Instance, code);
+            string effCap = vacant ? "—" : (staffLift > 0.001f ? $"{eff:F2}（培训+{staffLift:F2}）" : $"{eff:F2}");
+
             BuildBar(row.transform, "EffBar", "效率", vacant ? 0f : (eff - 0.7f) / 0.6f,
-                vacant ? "—" : $"{eff:F2}",
+                effCap,
                 new UIFactory.Anchor(new Vector2(0.28f, 0.52f), new Vector2(0.68f, 0.9f), Vector2.zero, Vector2.zero),
                 UITheme.Accent);
 
@@ -338,7 +342,7 @@ namespace AirlineCEO.UI
             _candidateRoot.transform.SetAsLastSibling();
         }
 
-        private void FillCandidateSlot(Transform slot, ExecutiveData exec)
+        private void FillCandidateSlot(Transform slot, PersonnelData exec)
         {
             for (int i = slot.childCount - 1; i >= 0; i--)
                 Destroy(slot.GetChild(i).gameObject);
@@ -365,9 +369,7 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.05f, 0.48f), new Vector2(0.95f, 0.58f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
-            string traits = exec.traits != null && exec.traits.Length > 0
-                ? string.Join(" / ", exec.traits)
-                : "—";
+            string traits = string.IsNullOrEmpty(exec.traitsCsv) ? "—" : exec.traitsCsv;
             UIFactory.Label(slot, "Traits", $"能力：{traits}\n核心加成 {exec.efficiencyBonus:F2}", 13,
                 TextAlignmentOptions.Top,
                 new UIFactory.Anchor(new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.48f), Vector2.zero, Vector2.zero),
@@ -395,14 +397,14 @@ namespace AirlineCEO.UI
             }
         }
 
-        private void ConfirmReplace(string code, ExecutiveData head, DepartmentRuntime dept)
+        private void ConfirmReplace(string code, PersonnelData head, DepartmentRuntime dept)
         {
             var gs = GameState.Instance;
             float salary = dept != null ? dept.salary : (head != null ? head.baseSalary : 0f);
             float sev = DepartmentManager.CalcSeverance(salary, gs != null ? gs.quarter : 1);
-            string name = head != null ? head.fullName : "负责人";
+            string name = head != null ? head.fullName : "总监";
             _confirmText.text =
-                $"更换负责人？\n\n将遣散 {name}\n遣散费约 {sev:F0} 万美元\n（年薪×剩余季度/4×0.5）\n部门将变为空缺。";
+                $"更换总监？\n\n将遣散 {name}\n遣散费约 {sev:F0} 万美元\n（年薪×剩余季度/4×0.5）\n部门将变为空缺。";
             _confirmAction = () =>
             {
                 DepartmentManager.Instance?.Dismiss(code);

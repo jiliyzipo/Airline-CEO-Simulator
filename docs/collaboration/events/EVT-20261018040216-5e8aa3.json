@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018040216-5e8aa3",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 162,
+  "at": "2026-10-18T04:02:16.762Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "reviewId": "REV-20261018030537-cc1568",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018030616-3028cb: open -> fixing",
+  "data": {
+    "issueId": "ISSUE-20261018030616-3028cb",
+    "from": "open",
+    "to": "fixing",
+    "note": "Cursor 已按授权在 DEL-20261018035835-766dc7 交付 XML 解析器修复与 26 项专项测试"
+  }
+}

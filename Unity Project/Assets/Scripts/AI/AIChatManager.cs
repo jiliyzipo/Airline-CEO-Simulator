@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 using AirlineCEO.Logic;
+using AirlineCEO.Systems;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -47,6 +48,80 @@ namespace AirlineCEO.AI
         }
 
         public void SetConfig(DeepSeekConfig cfg) => config = cfg;
+
+        /// <summary>运营改班：只要模型返回的 JSON 文本，不写入顾问 LastAdvice。</summary>
+        public void AskRawJson(string systemPrompt, string userPrompt, Action<string> onComplete)
+        {
+            if (IsBusy)
+            {
+                onComplete?.Invoke(null);
+                return;
+            }
+            StartCoroutine(AskRawJsonRoutine(systemPrompt, userPrompt, onComplete));
+        }
+
+        IEnumerator AskRawJsonRoutine(string systemPrompt, string userPrompt, Action<string> onComplete)
+        {
+            IsBusy = true;
+            string apiKey = config != null ? config.ResolveApiKey() : PlayerPrefs.GetString(DeepSeekConfig.PlayerPrefsKey, "");
+            int timeout = config != null ? Mathf.Max(1, config.timeoutSeconds) : 3;
+            string endpoint = config != null && !string.IsNullOrEmpty(config.endpoint)
+                ? config.endpoint
+                : DeepSeekConfig.DefaultEndpoint;
+            string model = config != null && !string.IsNullOrEmpty(config.model)
+                ? config.model
+                : DeepSeekConfig.DefaultModel;
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                onComplete?.Invoke(null);
+                IsBusy = false;
+                yield break;
+            }
+
+            string body = BuildRequestJson(model, systemPrompt, userPrompt);
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(body);
+            using (var req = new UnityWebRequest(endpoint, UnityWebRequest.kHttpVerbPOST))
+            {
+                req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                req.downloadHandler = new DownloadHandlerBuffer();
+                req.SetRequestHeader("Content-Type", "application/json");
+                req.SetRequestHeader("Authorization", "Bearer " + apiKey);
+                req.timeout = timeout;
+                WebRequestGuard.Track(req);
+                try { yield return req.SendWebRequest(); }
+                finally { WebRequestGuard.Untrack(req); }
+                string json = null;
+                if (req.result == UnityWebRequest.Result.Success)
+                {
+                    TryExtractContentJson(req.downloadHandler.text, out json);
+                }
+                onComplete?.Invoke(json);
+            }
+            IsBusy = false;
+        }
+
+        static bool TryExtractContentJson(string apiRaw, out string json)
+        {
+            json = null;
+            try
+            {
+                var wrapper = JsonUtility.FromJson<DeepSeekChatResponse>(apiRaw);
+                string content = null;
+                if (wrapper?.choices != null && wrapper.choices.Length > 0)
+                    content = wrapper.choices[0]?.message?.content;
+                if (string.IsNullOrWhiteSpace(content))
+                    content = ExtractJsonObject(apiRaw);
+                else
+                    content = ExtractJsonObject(content);
+                json = string.IsNullOrWhiteSpace(content) ? null : content;
+                return json != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         /// <summary>异步咨询；完成回调到主线程。</summary>
         public void Ask(string playerInput, Action<AdvisorResponse> onComplete)
@@ -105,7 +180,9 @@ namespace AirlineCEO.AI
                 req.SetRequestHeader("Authorization", "Bearer " + apiKey);
                 req.timeout = timeout;
 
-                yield return req.SendWebRequest();
+                WebRequestGuard.Track(req);
+                try { yield return req.SendWebRequest(); }
+                finally { WebRequestGuard.Untrack(req); }
 
                 bool ok = req.result == UnityWebRequest.Result.Success;
                 if (!ok)
@@ -291,7 +368,7 @@ namespace AirlineCEO.AI
             if (string.IsNullOrEmpty(input)) return "none";
             if (input.Contains("现金") || input.Contains("跑道") || input.Contains("流动性"))
                 return "check_cash";
-            if (input.Contains("首航")) return "first_flight";
+            if (input.Contains("开通航线") || input.Contains("开航") || input.Contains("首航")) return "open_route";
             if (input.Contains("航线") || input.Contains("北京") || input.Contains("伦敦"))
                 return "open_route";
             return "none";

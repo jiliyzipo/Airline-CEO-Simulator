@@ -1,0 +1,119 @@
+{
+  "at": "2026-10-18T10:41:55.516Z",
+  "subject": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018102500-1304ad\\tools\\collab",
+  "fixtureRoot": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr",
+  "total": 6,
+  "passed": 5,
+  "failed": 1,
+  "results": [
+    {
+      "id": "SA01",
+      "title": "预检会把执行中已被改写的快照标为 ready",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 324,
+      "severity": "major",
+      "passed": true,
+      "expected": "stage-close preflight must reject mutated delivery inputs and must not publish a ready handoff",
+      "actual": {
+        "preflightOk": false,
+        "handoffStatus": "preflight-failed",
+        "independentIntegrityCode": 5
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\1"
+    },
+    {
+      "id": "SA02",
+      "title": "Unity预检绕过另一review持有的工具资源锁",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 343,
+      "severity": "blocker",
+      "passed": true,
+      "expected": "Unity preflight must check/acquire the shared Unity review lease immediately before spawn; held lease returns 4 without execution",
+      "actual": {
+        "executed": false,
+        "code": 4,
+        "preflightOk": null,
+        "usedRealUnity": false
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\2"
+    },
+    {
+      "id": "SA03",
+      "title": "自动证据将机器结果未覆盖的自定义验收条件写成 passed",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 881,
+      "severity": "blocker",
+      "passed": true,
+      "expected": "criteria without a trusted machine mapping or explicit reviewer verification must stay not_run/blocked; machine counters alone cannot mark every AC passed",
+      "actual": {
+        "status": "failed",
+        "coverage": [
+          {
+            "id": "AC1",
+            "result": "not_run",
+            "evidence": "profile=smoke runToken=b5f4fac1a2a39824 counters={\"total\":2,\"failed\":0,\"skipped\":0} | no machine mapping"
+          }
+        ],
+        "requiredArtifactExists": false
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\3"
+    },
+    {
+      "id": "SA04",
+      "title": "同一DEL已有正在执行的阶段检测时仍可再次启动并执行",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 903,
+      "severity": "major",
+      "passed": true,
+      "expected": "stage-review needs a delivery-level claim/lease so retries or two reviewers cannot create two active reviews and run the same delivery twice",
+      "actual": {
+        "executions": 1,
+        "workerResults": [
+          {
+            "code": 0,
+            "output": "fatal: not a git repository (or any of the parent directories): .git\n{\"ok\":true,\"deliveryId\":\"DEL-20261018104148-de6f1f\",\"reviewId\":\"REV-20261018104148-1521f9\",\"status\":\"passed\",\"profile\":\"smoke\",\"counters\":{\"total\":2,\"failed\":0,\"skipped\":0},\"issues\":[],\"freshness\":\"current\",\"nextCommand\":null,\"report\":\"交付：DEL-20261018104148-de6f1f\\n检测：REV-20261018104148-1521f9 → passed\\nprofile：smoke\\n断言：total=2 failed=0 skipped=0\\n\\n该阶段检测通过。\",\"exitCode\":0}\n"
+          },
+          {
+            "code": 3,
+            "output": "{\"error\":\"delivery DEL-20261018104148-de6f1f already has an active stage review (codex@Jiliy pid=54524); refusing to execute it twice\",\"exitCode\":3}\n"
+          }
+        ],
+        "reviewCount": 1
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\4"
+    },
+    {
+      "id": "SA05",
+      "title": "stage-review宣称支持限定Cursor授权但仍被默认角色表拦截",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 908,
+      "severity": "major",
+      "passed": false,
+      "expected": "an explicitly scoped reverse-review grant accepted by review-* must also work through the documented stage-review route",
+      "actual": {
+        "lowerLevelAccepted": true,
+        "stageCode": null,
+        "status": "failed"
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\5"
+    },
+    {
+      "id": "SA06",
+      "title": "正常阶段自动化正例仍可完整运行",
+      "file": "tools/collab/lib/stage.mjs",
+      "line": 903,
+      "severity": "minor",
+      "passed": true,
+      "expected": "normal machine-only happy path remains usable",
+      "actual": {
+        "status": "passed",
+        "counters": {
+          "total": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      },
+      "fixture": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-80xMSr\\6"
+    }
+  ]
+}

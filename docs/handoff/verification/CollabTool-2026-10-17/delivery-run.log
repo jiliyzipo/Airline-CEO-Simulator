@@ -1,0 +1,25 @@
+PASS P01: Developer supplied tests run in disposable clone, not real project
+PASS P02: Cursor cannot publish review-finish
+PASS P03: Repeated init preserves existing task and state bytes
+FAIL N01: Malformed types and empty acceptance objects must be rejected
+FAIL N02: Review executes fixed snapshot A rather than edited workspace B
+FAIL N03: Review must reject evidence missing subject fingerprint and real result
+FAIL N04: Required criterion not_run prevents passed
+FAIL N05: Only-skipped assertions prevent passed
+FAIL N06: Finished review cannot be overwritten by another finish
+FAIL N07: Finalization rechecks current code and does not mark changed workspace current
+FAIL N08: Operational state changes do not mutate acceptance-contract fingerprint
+FAIL N09: Demo generated events and CURRENT do not affect implementation fingerprint
+FAIL N10: Unity Assets/Tests changes belong to verification fingerprint
+FAIL N11: Normal non-demo delivery creates snapshot without overlapping-root mismatch
+FAIL N12: Unread/missing ack prevents claim of current revision
+FAIL N13: Snapshot content tampering is detected before review command
+PASS N14: Failed process plus forged success cannot overwrite earlier failed report
+FAIL N15: Repeated no-change sync leaves revision and contract stable
+FAIL N16: Failed review task status agrees with recorded failed run
+FAIL N17: Concurrent different-task claims do not lose shared state revision
+FAIL N18: Unity process inspection fails closed if PowerShell cannot be started
+FAIL N19: Newly failed latest delivery is not paired with an old passed review
+PASS P04: Source mutation during snapshot copy is rejected without publishing mixed snapshot
+FAIL N20: Interrupted review is recoverable rather than left running indefinitely
+SUMMARY 5/24 conformance checks passed; 19 failed

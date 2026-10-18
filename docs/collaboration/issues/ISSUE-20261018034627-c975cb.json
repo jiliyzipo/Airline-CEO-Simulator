@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018034627-c975cb",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018034551-e2de28",
+  "reviewId": "REV-20261018034555-87b436",
+  "title": "C12 演练：本次交付未覆盖失败退回与 stale 展示",
+  "repro": "按 C-DEMO 的三条 AC 逐条对照本次交付的 run 记录与任务状态。",
+  "expected": "一次交付内覆盖 claim/deliver/review 全链路、失败退回、以及实现变化后的待复验展示。",
+  "actual": "本次交付只覆盖了主链路，缺失败退回与 stale 两项。",
+  "evidence": "docs/handoff/verification/CollabTool-C07-C12-2026-10-18/drill-evidence-1.json",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T03:46:27.191Z"
+}

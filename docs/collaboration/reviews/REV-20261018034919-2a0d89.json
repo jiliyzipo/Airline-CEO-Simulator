@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018034919-2a0d89",
+  "deliveryId": "DEL-20261018034913-0a6e9f",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "smoke",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "d04f52b7aa29b166fd457d3ca03d9e12bfa1a40b5e2b11f4246f4148444939fc",
+    "verification": "1ef0f0ede06f177ddcaa424164b49a619a3e5bb8e940db7776bd5479aa012d45",
+    "contract": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+  },
+  "snapshotPath": "out/collab/DEL-20261018034913-0a6e9f",
+  "createdAt": "2026-10-18T03:49:19.325Z",
+  "updatedAt": "2026-10-18T03:50:59.964Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:49:26.582Z",
+      "finishedAt": "2026-10-18T03:49:26.668Z",
+      "runToken": "809fe735a69b196e",
+      "profile": "smoke",
+      "deliveryId": "DEL-20261018034913-0a6e9f",
+      "subjectImplementationFingerprint": "d04f52b7aa29b166fd457d3ca03d9e12bfa1a40b5e2b11f4246f4148444939fc",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018034913-0a6e9f",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018034919-2a0d89/run-809fe735a69b196e/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018034919-2a0d89/run-809fe735a69b196e/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018034919-2a0d89/run-809fe735a69b196e/stdout.txt",
+        "sha256": "f47fc8992f237287c93cf4be3e8db095b848c1b80030f8a6067da962015e95ea",
+        "bytes": 282,
+        "runToken": "809fe735a69b196e"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018034919-2a0d89/run-809fe735a69b196e/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "809fe735a69b196e"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 809fe735a69b196e（out/collab/DEL-20261018034913-0a6e9f）exitCode=0；smoke profile stdout 为合法 JSON 且全部检查 ok。claim 时故意用过期 ack，工具以退出码 3 拒绝并给出 currentRevision=128，说明 CAS 生效。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "第一次交付 REV-20261018034555-87b436 判 failed 并生成缺陷 ISSUE-20261018034627-c975cb；随后 issue-update open→fixing（cursor）→fixed（cursor）进入修复；本次新交付复验通过。旧报告保持 failed 不可改写（review-finish 对终态返回冲突）。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "实测：修改 tools/collab/adapters/README.md 后 sync+status 显示 C-DEMO freshness=stale；按字节恢复原文件后再次 sync+status 回到 current。历史 passed 报告 REV-20261017065756-f1940a 仍为 passed，不被覆盖；旧 passed 对当前代码的适用性由 freshness 表达。"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:49:26.560Z",
+  "assertions": {
+    "total": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-C07-C12-2026-10-18/drill-evidence-2.json",
+  "finishedAt": "2026-10-18T03:50:59.964Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "809fe735a69b196e",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018034913-0a6e9f"
+  }
+}

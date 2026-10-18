@@ -1,0 +1,71 @@
+FAIL adjacent attributes: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL CDATA terminator in text: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":"]]>"}}
+
+true !== false
+
+FAIL double hyphen in comment: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL comment ends in hyphen: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL raw control character: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":"\u0001"}}
+
+true !== false
+
+FAIL decimal control reference: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":"\u0001"}}
+
+true !== false
+
+FAIL hex surrogate reference: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":"\ud800"}}
+
+true !== false
+
+FAIL noncharacter reference: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":"￾"}}
+
+true !== false
+
+FAIL misplaced XML declaration: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL declaration after whitespace: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL invalid declaration content: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL duplicate XML declaration: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL reserved PI target: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL empty PI target: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+FAIL unvalidated doctype rejected: {"ok":true,"root":{"name":"test-run","attrs":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"labels":{"total":"1","passed":"1","failed":"0","skipped":"0","result":"Passed"},"children":[],"text":""}}
+
+true !== false
+
+PASS truncated document
+PASS nested tag mismatch
+PASS duplicate root
+PASS valid single quoted attributes
+PASS valid Unicode and entities
+PASS valid encoded text terminator
+PASS valid CDATA
+PASS valid declaration
+PASS valid PI and comments
+PASS valid attribute whitespace
+SUMMARY 10/25 XML gates passed; 15 failed; source=C:\Users\jiliy\Airline-CEO-Simulator\out\collab\DEL-20261018022444-a55ae4\tools\collab

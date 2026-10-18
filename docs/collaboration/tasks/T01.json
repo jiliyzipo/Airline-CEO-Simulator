@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "T01",
+  "title": "R42 交割后加班失败",
+  "revision": 1,
+  "devStatus": "todo",
+  "reviewStatus": "not_run",
+  "freshness": "unknown",
+  "holder": null,
+  "scope": [
+    "任务书已验收；协作工具只作引用"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "REF",
+      "text": "以任务书原文为准；本文件仅为协作索引"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "readOnlyReference": true,
+  "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+  "createdAt": "2026-10-17T06:57:07.703Z",
+  "updatedAt": "2026-10-18T03:57:38.033Z",
+  "freshnessNote": "taskBookStatus=accepted",
+  "taskBookStatus": "accepted",
+  "staleForReviewId": null
+}

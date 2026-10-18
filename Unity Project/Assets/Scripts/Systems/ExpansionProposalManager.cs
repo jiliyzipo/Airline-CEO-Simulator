@@ -79,7 +79,7 @@ namespace AirlineCEO.Systems
             if (_isShowing) return;
 
             _isShowing = true;
-            Time.timeScale = 0f;
+            GameSpeed.Pause();
 
             if (ui == null)
                 ui = FindFirstObjectByType<ExpansionProposalUI>(FindObjectsInactive.Include);
@@ -152,6 +152,17 @@ namespace AirlineCEO.Systems
                 return false;
             }
 
+            // Phase 15：扩张前检查机队是否有可用飞机
+            if (FleetManager.Instance != null)
+            {
+                FleetManager.Instance.EnsureStarterFleet();
+                if (!FleetManager.Instance.HasSpareAircraftForNewRoute(gs))
+                {
+                    Debug.LogWarning("[ExpansionProposal] 机队无可用飞机，扩张被阻止。");
+                    return false;
+                }
+            }
+
             gs.cash -= cost;
             gs.yearNetProfit -= cost;
             gs.boardSatisfaction = Mathf.Clamp(gs.boardSatisfaction + AcceptSatisfactionBonus, 0f, 100f);
@@ -222,7 +233,7 @@ namespace AirlineCEO.Systems
 
         private static void ForceResumeTime()
         {
-            Time.timeScale = 1f;
+            GameSpeed.Resume();
         }
 
         #endregion

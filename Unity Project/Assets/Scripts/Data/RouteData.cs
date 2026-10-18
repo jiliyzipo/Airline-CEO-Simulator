@@ -10,11 +10,19 @@ namespace AirlineCEO.Data
     [Serializable]
     public class RouteData
     {
+        /// <summary>
+        /// 「接管前」哨兵值：接管局的既有航线开航时间未知，统一写这个值。
+        /// 与 <see cref="GameState.DateLabel"/>（第 N 年 QX）不是同一种东西，展示层必须区分，
+        /// 否则会出现「开通：接管前」这种把非日期塞进日期位的文案。
+        /// </summary>
+        public const string OpenedBeforeTakeover = "接管前";
+
         public string routeId;
         public string origin;
         public string destination;
         public string stopover; // 经停机场 IATA，可空
         public float dailyProfit;   // 万美元/日（全部班次合计）
+        /// <summary>开航时间。接管局的既有航线写哨兵值 <see cref="OpenedBeforeTakeover"/>（不是真实日期）。</summary>
         public string openedDate;
         public int score;
         public string rating;
@@ -45,6 +53,12 @@ namespace AirlineCEO.Data
         public bool hasPreDirective;
         public List<RouteFlight> preDirectiveFlights = new List<RouteFlight>();
         public int preDirectiveRevision;
+        /// <summary>
+        /// 已就「无机可派 · 停飞」呈报过 CEO（同一轮停飞只报一次，复航时复位）。
+        /// 仅供 <see cref="AirlineCEO.Systems.LiveClockSimulator"/> 的提示去重，不参与任何计算；
+        /// 老存档缺该字段时为 false —— 正好让存量问题在下次停飞时被如实报到。
+        /// </summary>
+        public bool groundedNoticed;
 
         /// <summary>该航线上的全部班次（一架飞机在一个时段执飞 = 一班）。</summary>
         public List<RouteFlight> flights = new List<RouteFlight>();
@@ -61,6 +75,13 @@ namespace AirlineCEO.Data
         /// 不变量：各班次 dailyProfit 之和 == 毛贡献，而 <see cref="dailyProfit"/> == 毛贡献 − 固定成本。
         /// </summary>
         public float GrossDailyProfit => dailyProfit + FixedDailyCostWan;
+
+        /// <summary>
+        /// 本航线的**经停停站时间**（分钟；无经停为 0）。它计入班期跨度（`arrTime`）——
+        /// 飞机在经停站落地再起飞的那一段地面时间是航程的一部分，不是免费的。
+        /// </summary>
+        public int StopoverGroundMinutes =>
+            string.IsNullOrWhiteSpace(stopover) ? 0 : AirlineCEO.Logic.OpsRotationParams.StopoverGroundMinutes;
 
         /// <summary>确保 flights 非空（老存档/旧数据回填首班）。</summary>
         public void EnsureFlights()
@@ -93,7 +114,7 @@ namespace AirlineCEO.Data
             if (flights.Count != 1 || flights[0] == null) return;
             if (string.IsNullOrEmpty(depTime) || string.IsNullOrEmpty(arrTime)) return;
 
-            int phys = OpsRotationParams.BlockMinutes(distanceKm);
+            int phys = OpsRotationParams.BlockMinutes(distanceKm) + StopoverGroundMinutes;
             int span = LiveClockLogic.BlockMinutes(depTime, arrTime, distanceKm);
             if (span <= 0 || span >= 24 * 60 / 2) return;
             int tol = OpsRotationParams.ScheduleSpanToleranceMinutes;
@@ -198,6 +219,20 @@ namespace AirlineCEO.Data
         /// <summary>班次数（无 flights 时按 1 班计）。</summary>
         public int FlightCount => (flights != null && flights.Count > 0) ? flights.Count : 1;
 
+        /// <summary>本航线是否有执飞机（接管局的机队缺口会造成无飞机的航线）。</summary>
+        public bool HasAircraft => !string.IsNullOrEmpty(registration);
+
+        /// <summary>
+        /// 「机号 + 机型」展示文案。无执飞机时**不得报机型**：机型字段的兜底值（A320neo）
+        /// 会让界面写出「未分配 A320neo 在飞 7,409 km 的 FRA–ATL」这种自相矛盾的行。
+        /// </summary>
+        public string AircraftLabel => HasAircraft
+            ? registration + (string.IsNullOrEmpty(aircraftType) ? "" : " " + aircraftType)
+            : UnassignedAircraftLabel;
+
+        /// <summary>无机航线的统一文案（接管局机队缺口 / 待复航）。</summary>
+        public const string UnassignedAircraftLabel = "运力不足 · 待复航";
+
         /// <summary>某注册号是否执飞本航线任一班。</summary>
         public bool IsFlownBy(string reg)
         {
@@ -208,6 +243,51 @@ namespace AirlineCEO.Data
                 if (string.Equals(flights[i].registration, reg, StringComparison.OrdinalIgnoreCase))
                     return true;
             return false;
+        }
+
+        /// <summary>
+        /// 把「文案 / 链接里的航线键」解析成在营航线。三档，**不猜**：
+        /// <list type="number">
+        /// <item>精确 <c>routeId</c>（如 <c>FRA-ATL-3</c>）—— 各页面点进来时用的键；</item>
+        /// <item>机场对（如 <c>FRA-ATL</c>，取前两段；**正反两个方向都认**）——
+        ///   正文里由 <see cref="AirlineCEO.Logic.TermNavMap"/> 包出来的航线链接走这一档
+        ///   （链接只有机场两字码，拿不到序号）；</item>
+        /// <item>都不是 → <c>null</c>。调用方须如实说「未选择航线 / 该航线不在运营」，
+        ///   **绝不退而给第一条** —— 那会让「点 FRA—ATL 却打开 FRA—LHR」（2026-10-13 CEO 报障）重演。</item>
+        /// </list>
+        /// </summary>
+        public static RouteData FindByKey(IList<RouteData> routes, string key)
+        {
+            if (routes == null || string.IsNullOrEmpty(key)) return null;
+            string k = key.Trim();
+
+            // ① 精确 routeId
+            for (int i = 0; i < routes.Count; i++)
+            {
+                var r = routes[i];
+                if (r != null && string.Equals(r.routeId, k, StringComparison.OrdinalIgnoreCase)) return r;
+            }
+
+            // ② 机场对：取键的前两段（"FRA-ATL" 与 "FRA-ATL-3-ATL" 这类拼接都能认出来）
+            string[] parts = k.Split('-');
+            if (parts.Length < 2 || parts[0].Length != 3 || parts[1].Length != 3) return null;
+            string o = parts[0].ToUpperInvariant();
+            string d = parts[1].ToUpperInvariant();
+            for (int i = 0; i < routes.Count; i++)
+            {
+                var r = routes[i];
+                if (r == null) continue;
+                if (string.Equals(r.origin, o, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(r.destination, d, StringComparison.OrdinalIgnoreCase)) return r;
+            }
+            for (int i = 0; i < routes.Count; i++)
+            {
+                var r = routes[i];
+                if (r == null) continue;
+                if (string.Equals(r.origin, d, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(r.destination, o, StringComparison.OrdinalIgnoreCase)) return r;
+            }
+            return null;
         }
 
         // ——————————————— R4 跨夜班归属（双口径） ———————————————
@@ -273,7 +353,9 @@ namespace AirlineCEO.Data
             return n;
         }
 
-        /// <summary>值勤日口径的每周班次（跨夜班挪到报到所在星期后加总）。</summary>
+        /// <summary>值勤日口径的每周班次（跨夜班挪到报到所在星期后加总）。
+        /// 与 <see cref="WeeklyFlightsDeparture"/> 的周合计**恒等** —— 两条口径只是把同一批班次
+        /// 归到不同的星期，总量不变（见 <see cref="AddWeeklyFlights"/>）；差异要看星期分布（<see cref="WeekdayOpsDuty"/>）。</summary>
         public int WeeklyFlightsDuty()
         {
             var duty = WeekdayOpsDuty();
@@ -303,12 +385,7 @@ namespace AirlineCEO.Data
             if (flights == null || flights.Count == 0)
             {
                 var days = FlightScheduleFormat.DaysOf(daysOfWeek, weeklyFlights);
-                for (int i = 0; i < 7; i++)
-                {
-                    if (!days[i]) continue;
-                    if (depCounts != null) depCounts[i]++;
-                    if (dutyCounts != null) dutyCounts[i]++;
-                }
+                AddWeeklyFlights(days, 0, weeklyFlights > 0 ? weeklyFlights : CountMarkedDays(days), depCounts, dutyCounts);
                 return;
             }
             for (int i = 0; i < flights.Count; i++)
@@ -319,14 +396,70 @@ namespace AirlineCEO.Data
                 int report = ReportMinutesOf(f);
                 int dep = DepartureMinutesOf(f);
                 int shift = OpsRotationParams.DutyDayOf(report) - OpsRotationParams.DepartureDayOf(report, dep);
-                for (int d = 0; d < 7; d++)
-                {
-                    if (!days[d]) continue;
-                    if (depCounts != null) depCounts[d]++;
-                    if (dutyCounts != null) dutyCounts[(d + shift + 7) % 7]++;
-                }
+                AddWeeklyFlights(days, shift, FlightScheduleFormat.WeeklyOf(f), depCounts, dutyCounts);
             }
         }
+
+        /// <summary>
+        /// 把一个「班次列表条目」代表的每周班次按班期天数摊到周一~周日（离港日落在原星期，
+        /// 值勤日按 <paramref name="dutyShift"/> 平移）。两侧只是**归组用的星期**不同，
+        /// 每条班次在两边各计一次，故两侧周合计数**必然相等** —— 差异只体现在分布，不在总量。
+        ///
+        /// 一个条目可能代表多于一班/日：接管局的既有航线经 <see cref="SyncFlightsFromPrimary"/>
+        /// 压成单条目后写的是「25 班/周 · 每日」，即 25 班摊在 7 天上。此时按 N/D 均摊、
+        /// 余数分给靠前的几天（25/7 → 4,4,4,4,3,3,3）。若像旧实现那样「每天只 +1」，
+        /// 值勤口径会常年少报（接管界面因此出现「离港25/值勤7班/周」这种量纲不等的数字）。
+        /// </summary>
+        static void AddWeeklyFlights(bool[] days, int dutyShift, int weeklyCount, int[] depCounts, int[] dutyCounts)
+        {
+            if (days == null) return;
+            int dayCount = CountMarkedDays(days);
+            if (dayCount <= 0 || weeklyCount <= 0 || (depCounts == null && dutyCounts == null)) return;
+            int per = weeklyCount / dayCount;   // 每天的基数班次
+            int rem = weeklyCount % dayCount;   // 余数：分给靠前的几天，保证合计精确等于 weeklyCount
+            int seen = 0;
+            for (int d = 0; d < 7; d++)
+            {
+                if (!days[d]) continue;
+                int n = per + (seen < rem ? 1 : 0);
+                seen++;
+                if (n <= 0) continue;
+                if (depCounts != null) depCounts[d] += n;
+                if (dutyCounts != null) dutyCounts[((d + dutyShift) % 7 + 7) % 7] += n;
+            }
+        }
+
+        static int CountMarkedDays(bool[] days)
+        {
+            int n = 0;
+            for (int i = 0; i < days.Length; i++) if (days[i]) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// 开航时间文案。接管局的既有航线写的是哨兵值 <see cref="OpenedBeforeTakeover"/>，**不是日期**；
+        /// 若与「第 N 年 QX」共用同一句式（如统一写成「开通：X」），就会把非日期塞进日期位，含义不明。
+        /// </summary>
+        public static string OpenedText(string openedDate)
+        {
+            if (string.IsNullOrEmpty(openedDate)) return "开航时间未知";
+            return openedDate == OpenedBeforeTakeover ? openedDate + "已开航" : openedDate + " 开航";
+        }
+
+        /// <summary>
+        /// 每周班次一行式（航线卡片/呈报）。两侧合计恒等时只报一个数字；若真要并报，
+        /// 每个数字各自带单位，避免「离港25/值勤7班/周」这种把两个不同量纲并列的写法。
+        /// </summary>
+        public string WeeklyLine()
+        {
+            int wd = WeeklyFlightsDeparture();
+            if (wd <= 0) return "未排班";
+            int wu = WeeklyFlightsDuty();
+            return wd == wu ? $"{wd} 班/周" : $"离港 {wd} 班/周 · 值勤 {wu} 班/周";
+        }
+
+        /// <summary>可复现「接管界面航线卡片」那一行的自检文案（需求侧数字见 RouteGravityModel.FormatOneLine）。</summary>
+        public string CardHeadline() => $"{OpenedText(openedDate)} · {WeeklyLine()}";
 
         /// <summary>R14：离港日与值勤日两套周班次（班期一并标出）。</summary>
         public string DualWeeklyLine()
@@ -335,7 +468,12 @@ namespace AirlineCEO.Data
             int wu = WeeklyFlightsDuty();
             string depDays = FlightScheduleFormat.DaysSummary(WeekdayOpsDeparture());
             string dutyDays = FlightScheduleFormat.DaysSummary(WeekdayOpsDuty());
-            return $"离港日 每日 {FlightCount} 班／周 {wd} 班（{depDays}）　｜　值勤日 每日 {FlightCount} 班／周 {wu} 班（{dutyDays}）";
+            // ★「每个执飞日」而不是「每日」：这半边说的是**有班的那天**各飞几班（per operating day），
+            // 不是「天天都飞」。旧文案写「离港日 每日 1 班／周 4 班（周一/三/五/日）」，
+            // 与同一行的「周 4 班（周一/三/五/日）」自相矛盾，CEO 当场读成「每日一班」
+            // 并质问「为何又说只能排周一三五日」（2026-10-14 第九次报障）。
+            return $"离港日 每个执飞日 {FlightCount} 班 · 周 {wd} 班（{depDays}）"
+                 + $"　｜　值勤日 每个值勤期 {FlightCount} 班 · 周 {wu} 班（{dutyDays}）";
         }
 
         /// <summary>

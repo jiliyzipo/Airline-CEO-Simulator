@@ -1,0 +1,298 @@
+{
+  "at": "2026-10-18T07:27:13.728Z",
+  "deliveryId": "DEL-20261018071756-010504",
+  "snapshot": "out/collab/DEL-20261018071756-010504",
+  "apply": true,
+  "backupRoot": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z",
+  "entries": [
+    {
+      "path": "AGENTS.md",
+      "expected": "9aecb61c64e19c2c9ca35e46ba232b70f0f8f6d55f1fa9176f5d87651b5e04d5",
+      "before": "91382e963ca8e7d7067d4a9f7c78cf5212e2f5fefa5cb11ce01c1c40e27d2b09",
+      "action": "restore",
+      "after": "9aecb61c64e19c2c9ca35e46ba232b70f0f8f6d55f1fa9176f5d87651b5e04d5",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/AGENTS.md",
+      "restored": true
+    },
+    {
+      "path": "docs/collaboration/OPERATOR_MANUAL_ZH.md",
+      "expected": "7258cd695bafff0c8f45655cae04c578d33a33c60800350cbb2d0e60383b10d9",
+      "before": "17b49df9ee269adf5a9a0c47dbfe670abf87fefa6ca3ae558a907bb97e672e86",
+      "action": "restore",
+      "after": "7258cd695bafff0c8f45655cae04c578d33a33c60800350cbb2d0e60383b10d9",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/docs/collaboration/OPERATOR_MANUAL_ZH.md",
+      "restored": true
+    },
+    {
+      "path": "docs/collaboration/PROTOCOL.md",
+      "expected": "990916925723923b01775c301906e260c9e5cf9d14cd6a94692cd55cd2ca3f5d",
+      "before": "64bd0f1c0eef00915c001db6f2d8e3f582ec131cde4ae3ce57cde58c49b16a3b",
+      "action": "restore",
+      "after": "990916925723923b01775c301906e260c9e5cf9d14cd6a94692cd55cd2ca3f5d",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/docs/collaboration/PROTOCOL.md",
+      "restored": true
+    },
+    {
+      "path": "docs/collaboration/README.md",
+      "expected": "0b593553baea111bdefe17a3062d0b0d117c2b06a7d227b387c6a15140ead89b",
+      "before": "01791ba5bd284ca21dbf62e405f4676d67695bda7d6c76f2f04ce3974eb43377",
+      "action": "restore",
+      "after": "0b593553baea111bdefe17a3062d0b0d117c2b06a7d227b387c6a15140ead89b",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/docs/collaboration/README.md",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/adapters/client-hook.mjs",
+      "expected": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9",
+      "before": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/adapters/codex-hooks.json.example",
+      "expected": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f",
+      "before": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/adapters/codex-hooks.toml.example",
+      "expected": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5",
+      "before": "f193bdd44caa91e2c0f35846581582fa17d0b5a19b04c797d08431553fec4fb3",
+      "action": "restore",
+      "after": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/adapters/codex-hooks.toml.example",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/adapters/cursor-hooks.json.example",
+      "expected": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732",
+      "before": "45e55ff3bfa2fd02788e2ef10ecf9771148ce0aa740961d5ed1bfedf56354c65",
+      "action": "restore",
+      "after": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/adapters/cursor-hooks.json.example",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/adapters/README.md",
+      "expected": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f",
+      "before": "5dbf99f64556571a35824ca0794ce74e59d1ba2ca3b7747ea8b9a34fd7b711e7",
+      "action": "restore",
+      "after": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/adapters/README.md",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/cli.mjs",
+      "expected": "95c25995221ea0d5ebe816a9309a1b5aca14606b13c405f95528143573a466a4",
+      "before": "1bfb6295a054adc846e403c751623db78c462b4ec8df19d597e1d5ffc75e3fc1",
+      "action": "restore",
+      "after": "95c25995221ea0d5ebe816a9309a1b5aca14606b13c405f95528143573a466a4",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/cli.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/Collab.ps1",
+      "expected": "e48b5e6d7ab1d0d4391c1e51ea7ef686c6e072cdea317199b27f502afdc2196a",
+      "before": "081e05b07f663509620b9e09ae19597c8ac08c469948e2ffdf8879a4b6787b9d",
+      "action": "restore",
+      "after": "e48b5e6d7ab1d0d4391c1e51ea7ef686c6e072cdea317199b27f502afdc2196a",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/Collab.ps1",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/config.example.json",
+      "expected": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09",
+      "before": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/lib/authorization.mjs",
+      "expected": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069",
+      "before": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/lib/commands.mjs",
+      "expected": "4349768279043fe92c81e93b4c81f26c9e8d575e142dab510c518c8351e29a57",
+      "before": "e7e11191530e208a4ae9d6da0bddbbe8e90dfc9c9945b6a94bd9c712b966d395",
+      "action": "restore",
+      "after": "4349768279043fe92c81e93b4c81f26c9e8d575e142dab510c518c8351e29a57",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/commands.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/exit.mjs",
+      "expected": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+      "before": "43ec851873a2b05b4b9823b96efd6f082486452e9a62f5c4c37c9f898c946bbd",
+      "action": "restore",
+      "after": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/exit.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/fingerprint.mjs",
+      "expected": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4",
+      "before": "635f00900fa0c461c86dcf42cebde207358ac23b4a3923efe78d33b13e7fb9be",
+      "action": "restore",
+      "after": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/fingerprint.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/hooks.mjs",
+      "expected": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608",
+      "before": "ccc8a688e95c173fa3fb85754fa7c72d8035d56ceaaaa3675ab1ecf1c10a9234",
+      "action": "restore",
+      "after": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/hooks.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/io.mjs",
+      "expected": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab",
+      "before": "796b2a49f678d9c6250ccf2aac8d56746367295d55488302b3d42fb81a0b506a",
+      "action": "restore",
+      "after": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/io.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/paths.mjs",
+      "expected": "fd09373d5c0cc7b0b41d76e82b90e30389fa1badd3a6575ae8d1e84ce835890b",
+      "before": "cccac0e5a596a2563fddca410ee098c65a19c530ba4a88282ce4825e3c4f8ba3",
+      "action": "restore",
+      "after": "fd09373d5c0cc7b0b41d76e82b90e30389fa1badd3a6575ae8d1e84ce835890b",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/paths.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/roots.mjs",
+      "expected": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9",
+      "before": "e4d5b7ad0a290877e602caf1e475bb8097bcd0642f9c994bd7b4fa3f0b49cc3a",
+      "action": "restore",
+      "after": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/roots.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/schemas.mjs",
+      "expected": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677",
+      "before": "a47d18c411d7aa664ef94be4b6c4512f24a7a0b49ea20aec103aabef188ec54e",
+      "action": "restore",
+      "after": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/schemas.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/snapshot.mjs",
+      "expected": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+      "before": "fee6fd52e529cc0b6e62bd2595cf2582fc68e5c3300b9f4c1e9de231b2926a88",
+      "action": "restore",
+      "after": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/snapshot.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/state.mjs",
+      "expected": "2f32a31889ff5601c44481421cb4c426264c3c1a86d02f531cdb997c215f04ba",
+      "before": "4af9af88334075d96e7e4c0d1b3656c1eb2347179e7e07fec47c178bc54c649e",
+      "action": "restore",
+      "after": "2f32a31889ff5601c44481421cb4c426264c3c1a86d02f531cdb997c215f04ba",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/state.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/taskbook.mjs",
+      "expected": "a4b69a9f6d44784e0d3ba89648bc6a8231811d477e000a3a4164656f118bcb4d",
+      "before": "ef78ec3b4b93f4001398a42c50c48460ca9763c0b4d0bc052069eaf42203e247",
+      "action": "restore",
+      "after": "a4b69a9f6d44784e0d3ba89648bc6a8231811d477e000a3a4164656f118bcb4d",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/taskbook.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/lib/watch.mjs",
+      "expected": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164",
+      "before": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/lib/xml.mjs",
+      "expected": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c",
+      "before": "7d9232130710cfad34db661d6b7299d2680fe296ac2310fcf87d979dddc9c077",
+      "action": "restore",
+      "after": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/lib/xml.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/scripts/repair-task-state.mjs",
+      "expected": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1",
+      "before": "133efb42295d8fc081d33b47fa9dac765036ec5243fbd1264d658036cf28e642",
+      "action": "restore",
+      "after": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/scripts/repair-task-state.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/tests/closure.test.mjs",
+      "expected": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20",
+      "before": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/tests/collab.test.mjs",
+      "expected": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a",
+      "before": "c94a9f54c47d03423b159cc183759c0bea3e331d7b157a9e1071e9de39655cb8",
+      "action": "restore",
+      "after": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/tests/collab.test.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/tests/daily.test.mjs",
+      "expected": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483",
+      "before": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/tests/reverse-review.test.mjs",
+      "expected": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747",
+      "before": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/tests/run-all.mjs",
+      "expected": "d07e108def97d783db979c24d717e1f61578ab2bd63eef5b255e4729bc05afcc",
+      "before": "d07e108def97d783db979c24d717e1f61578ab2bd63eef5b255e4729bc05afcc",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/tests/smoke-profile.mjs",
+      "expected": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+      "before": "80c72fdeacba12ef3ccb81d2e7531897adeb31fa5f277e64302608edeffeacb8",
+      "action": "restore",
+      "after": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+      "backup": ".collab-local/tmp/quarantine/workspace-drift-2026-10-18T07-27-13-725Z/tools/collab/tests/smoke-profile.mjs",
+      "restored": true
+    },
+    {
+      "path": "tools/collab/tests/stale-marker.txt",
+      "expected": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+      "before": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+      "action": "identical"
+    },
+    {
+      "path": "tools/collab/tests/xml.test.mjs",
+      "expected": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51",
+      "before": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51",
+      "action": "identical"
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "identical": 11,
+    "restored": 24,
+    "corruptSource": 0
+  },
+  "workspaceMatchesDelivery": true
+}

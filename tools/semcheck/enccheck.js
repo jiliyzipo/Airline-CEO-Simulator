@@ -27,7 +27,7 @@ const EXTENSIONS = new Set(['.cs', '.md']);
 // 若纳入扫描会把「已被修复的证据」当成新事故反复报警）。
 const EXCLUDED_DIRS = new Set([
   '.git', '.vs', '.idea', '.cursor',
-  'node_modules', 'Library', 'Temp', 'obj', 'bin', 'Logs', 'UserSettings',
+  'node_modules', 'Library', 'Temp', 'obj', 'bin', 'Logs', 'UserSettings', 'Builds', 'out',
   'recover',
 ]);
 

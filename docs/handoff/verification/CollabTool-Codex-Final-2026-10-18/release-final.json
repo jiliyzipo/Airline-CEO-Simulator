@@ -1,0 +1,137 @@
+{
+  "deliveryId": "DEL-20261018051637-e21eae",
+  "reviewId": "REV-20261018051650-e59d57",
+  "independent": false,
+  "assessment": "developer-self-check",
+  "toolTests": {
+    "profile": "collab",
+    "assertionsTotal": 98,
+    "assertionsFailed": 0,
+    "assertionsSkipped": 0,
+    "suites": [
+      {
+        "file": "collab.test.mjs",
+        "exitCode": 0,
+        "passed": 38,
+        "failed": 0,
+        "spawnError": null
+      },
+      {
+        "file": "xml.test.mjs",
+        "exitCode": 0,
+        "passed": 26,
+        "failed": 0,
+        "spawnError": null
+      },
+      {
+        "file": "closure.test.mjs",
+        "exitCode": 0,
+        "passed": 13,
+        "failed": 0,
+        "spawnError": null
+      },
+      {
+        "file": "daily.test.mjs",
+        "exitCode": 0,
+        "passed": 21,
+        "failed": 0,
+        "spawnError": null
+      }
+    ],
+    "evidenceDirectory": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\collab-suite-4lA2FN",
+    "ok": true
+  },
+  "externalTests": {
+    "date": "2026-10-18T05:24:16.338Z",
+    "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018051637-e21eae\\tools\\collab",
+    "label": "stable-final-e21eae",
+    "suites": [
+      {
+        "id": "developer-tests",
+        "exitCode": 0,
+        "ok": true,
+        "counts": null,
+        "passLines": 38,
+        "failLines": 0,
+        "script": ".collab-local/devtests-stable-final-e21eae-1792301056256/tools/collab/tests/collab.test.mjs",
+        "cwd": ".collab-local/devtests-stable-final-e21eae-1792301056256",
+        "resultsPath": null
+      },
+      {
+        "id": "baseline24",
+        "exitCode": 0,
+        "ok": true,
+        "counts": {
+          "total": 24,
+          "passed": 24,
+          "failed": 0
+        },
+        "passLines": 24,
+        "failLines": 0,
+        "script": "docs/handoff/verification/CollabTool-Codex-Final-2026-10-18/baseline24-recovery.mjs",
+        "cwd": "",
+        "resultsPath": ".collab-local/acceptance-20261017/stable-final-e21eae-baseline24/results.json"
+      },
+      {
+        "id": "supplemental",
+        "exitCode": 0,
+        "ok": true,
+        "counts": {
+          "total": 12,
+          "passed": 12,
+          "failed": 0
+        },
+        "passLines": 12,
+        "failLines": 0,
+        "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+        "cwd": "",
+        "resultsPath": ".collab-local/reaccept-20261017/stable-final-e21eae-supplemental/2026-10-18T05-24-51-922Z/results.json"
+      },
+      {
+        "id": "boundary8",
+        "exitCode": 0,
+        "ok": true,
+        "counts": {
+          "total": 8,
+          "passed": 8,
+          "failed": 0
+        },
+        "passLines": 8,
+        "failLines": 0,
+        "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/edge8-terminal.mjs",
+        "cwd": "",
+        "resultsPath": ".collab-local/reaccept-20261017/stable-final-e21eae-boundary8/2026-10-18T05-25-07-150Z/results.json"
+      }
+    ],
+    "failedSuites": 0
+  },
+  "xmlGate": {
+    "passed": 12,
+    "failed": 0,
+    "total": 12
+  },
+  "allDevelopmentChecksPassed": true,
+  "scripts": [
+    {
+      "path": "verify-release.mjs",
+      "sha256": "1d1941bb59f4db9bc4750eefc9fdfc5df41324744b3a466284f25d33d3d92b79"
+    },
+    {
+      "path": "run-external.mjs",
+      "sha256": "f7ca363d0cc894e45cdfd79ebe3886541fea5c994e218857a296c45efa1199ce"
+    },
+    {
+      "path": "baseline24-recovery.mjs",
+      "sha256": "aeef2a57fc4aee0b88d63a93267a45176c97b20055daaca1d9fba9d7a04dd689"
+    }
+  ],
+  "retainedFailures": [
+    "final-delivery-e21eae/release-verification.json",
+    "docs/collaboration/reviews/REV-20261018050608-1af4d2.json"
+  ],
+  "notes": [
+    "Native client Hooks not enabled or verified; manual sync/ack and foreground watch implemented.",
+    "Original N20 kill timing failure retained; revised fixture requires actual command marker plus interrupted reason.",
+    "No Unity run, game edits, commit, push or historical record overwrites."
+  ]
+}

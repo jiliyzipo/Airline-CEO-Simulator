@@ -1,0 +1,181 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "name": "node",
+      "ok": true,
+      "detail": "v24.18.0"
+    },
+    {
+      "name": "repoRoot",
+      "ok": true,
+      "detail": "C:\\Users\\jiliy\\Airline-CEO-Simulator"
+    },
+    {
+      "name": "config",
+      "ok": true,
+      "detail": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab\\config.json"
+    },
+    {
+      "name": "collaborationRoot",
+      "ok": true,
+      "detail": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration"
+    },
+    {
+      "name": "localTmpWritable",
+      "ok": true,
+      "detail": "read-only access check: C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\tmp"
+    },
+    {
+      "name": "unityOccupancyCheck",
+      "ok": true,
+      "detail": "no Unity.exe detected"
+    },
+    {
+      "name": "tools/semcheck/run.js",
+      "ok": true,
+      "detail": "tools/semcheck/run.js"
+    },
+    {
+      "name": "tools/regression/export-baseline.js",
+      "ok": true,
+      "detail": "tools/regression/export-baseline.js"
+    },
+    {
+      "name": "tools/slotcheck/slotcheck.csproj",
+      "ok": true,
+      "detail": "tools/slotcheck/slotcheck.csproj"
+    },
+    {
+      "name": "hooksAdaptersPresent",
+      "ok": true,
+      "detail": "hooks enabled in config — verify client wiring separately"
+    },
+    {
+      "name": "hooksAdapter",
+      "ok": true,
+      "detail": "enabled · applied=5 deduped=2 · native wiring unverified; use manual sync or watch"
+    },
+    {
+      "name": "taskBookMapping",
+      "ok": true,
+      "detail": "6 mapped (6 with baseline)"
+    }
+  ],
+  "warnings": [
+    "hooks.enabled=true but no project client hook config found; native events are unverified. Manual CLI (sync/deliver/review-*) is unaffected and remains the authoritative loop.",
+    "Native client Hook loading/trust is unverified. CLI applied/deduped counters only verify CLI behavior; manual sync/ack and watch remain authoritative."
+  ],
+  "prerequisites": {
+    "dotnet": {
+      "available": true,
+      "version": "8.0.423",
+      "requiredFor": [
+        "compile",
+        "slot"
+      ]
+    },
+    "unity": {
+      "editorVersion": "6000.3.21f1",
+      "editorPath": "C:/Program Files/Unity 6000.3.21f1/Editor/Unity.exe",
+      "editorCandidates": [
+        "C:/Program Files/Unity 6000.3.21f1/Editor/Unity.exe",
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.21f1\\Editor\\Unity.exe"
+      ],
+      "editorExists": true,
+      "requiredFor": [
+        "unity-editmode",
+        "unity-playmode"
+      ]
+    },
+    "generatedProjects": [
+      {
+        "path": "tools/semcheck/semcheck.csproj",
+        "exists": true,
+        "references": 352,
+        "missingReferences": []
+      },
+      {
+        "path": "tools/semcheck/semcheck_tests.csproj",
+        "exists": true,
+        "references": 350,
+        "missingReferences": []
+      }
+    ],
+    "note": "Read-only checks; importing Unity, generating csproj and restoring .NET dependencies are separate operations. Missing engineering prerequisites do not imply the Node-only collab profile failed."
+  },
+  "hookCapability": {
+    "configEnabled": true,
+    "clientConfigsFound": [],
+    "verified": false,
+    "clients": {
+      "cursor": {
+        "mode": "manual",
+        "reason": "Project Hooks are optional and not natively verified; use sync/ack and foreground watch.",
+        "configFound": false,
+        "nativeVerified": false,
+        "cliAppliedDoesNotProveNativeTrigger": true
+      },
+      "codex": {
+        "mode": "manual",
+        "reason": "Native Hooks require project configuration and client trust; neither is inferred from CLI counters. Use sync/ack and foreground watch.",
+        "configFound": false,
+        "nativeVerified": false,
+        "cliAppliedDoesNotProveNativeTrigger": true
+      }
+    },
+    "counters": {
+      "applied": 5,
+      "deduped": 2
+    },
+    "manualFallback": "Hooks are optional: sync/deliver/review-* work without them."
+  },
+  "taskBook": {
+    "path": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+    "mapped": [
+      {
+        "taskId": "T01",
+        "totalChecked": true,
+        "subItems": "8/8",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      },
+      {
+        "taskId": "T02",
+        "totalChecked": false,
+        "subItems": "8/8",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      },
+      {
+        "taskId": "T03",
+        "totalChecked": false,
+        "subItems": "8/9",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      },
+      {
+        "taskId": "T04",
+        "totalChecked": false,
+        "subItems": "7/9",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      },
+      {
+        "taskId": "T05",
+        "totalChecked": false,
+        "subItems": "4/8",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      },
+      {
+        "taskId": "T06",
+        "totalChecked": true,
+        "subItems": "7/7",
+        "baselineRecorded": true,
+        "clauseChanged": false
+      }
+    ]
+  },
+  "exitCode": 0
+}

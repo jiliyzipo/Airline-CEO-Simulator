@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AirlineCEO.Data;
+using AirlineCEO.Logic;
 using UnityEngine;
 
 namespace AirlineCEO.Systems
@@ -81,9 +82,9 @@ namespace AirlineCEO.Systems
                 return false;
             }
 
-            if (ratio > 0.5f + 0.001f)
+            if (ratio > 0.8f + 0.001f)
             {
-                message = "MVP 对冲比例上限为 50%。";
+                message = "对冲比例上限为 80%。";
                 return false;
             }
 
@@ -216,6 +217,19 @@ namespace AirlineCEO.Systems
                 float qQty = c.quantity / quarters;
                 float pnlUsd = SettleContractUsd(c, quarterAvgPrice, qQty);
                 float pnlWan = pnlUsd / 10000f;
+
+                // 见习期软保护（第 2 财年）：燃油对冲亏损上限锁定 20%（占单季对冲名义量价值）
+                float capRatio = ProgressionGate.HedgeLossCapRatio(gs.year);
+                if (capRatio > 0f && pnlWan < 0f)
+                {
+                    float notionalWan = qQty * c.lockPrice / 10000f;
+                    float maxLossWan = notionalWan * capRatio;
+                    if (-pnlWan > maxLossWan)
+                    {
+                        pnlWan = -maxLossWan;
+                    }
+                }
+
                 totalPnlWan += pnlWan;
                 c.monthsRemaining -= 3;
 
@@ -229,6 +243,11 @@ namespace AirlineCEO.Systems
 
             gs.hedgeContracts = keep;
             gs.cash += totalPnlWan;
+            if (gs.cash < 0f)
+            {
+                sb.AppendLine($"⚠ 对冲结算后现金为负数（{gs.cash:F1} 万），已归零。");
+                gs.cash = 0f;
+            }
             gs.yearNetProfit += totalPnlWan;
 
             if (Mathf.Abs(totalPnlWan) > 0.001f)

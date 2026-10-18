@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ACCEPT-COLLAB-20261018-CODEX-04",
+  "date": "2026-10-18",
+  "actor": "codex",
+  "deliveryId": "DEL-20261017150657-dd9483",
+  "conclusion": "failed",
+  "codexAcknowledgedRevision": 69,
+  "toolSourceFingerprint": "3f24a449533486f82dd926dff2a6c998d7cdd621564d01ba7743ec36d582aa89",
+  "sourceMatchesBetweenDeliveryAndWorkspace": true,
+  "perSubject": {
+    "developerTests": { "passed": 19, "failed": 0 },
+    "baseline24": { "passed": 24, "failed": 0 },
+    "supplemental12": { "passed": 12, "failed": 0 },
+    "boundary8": { "passed": 8, "failed": 0 },
+    "fourthAcceptance6": { "passed": 2, "failed": 4, "testErrors": 0 }
+  },
+  "verifiedSemantics": {
+    "validJsonCanExplicitlyPass": true,
+    "unknownOutputTerminalBlocked": true,
+    "blockedExitCode": 6,
+    "blockedRepeatFinishExitCode": 3,
+    "blockedFreshnessAfterSync": "unknown"
+  },
+  "findings": [
+    { "id": "FR-01", "tests": ["F03", "F06"], "severity": "blocking", "summary": "Actual delivery contains unlisted generated files; manifest-only reconstruction cannot pass default smoke because protocol input is absent" },
+    { "id": "FR-02", "tests": ["F04"], "severity": "blocking", "summary": "Stdout result contents are not hash-bound; replacing failed output after execution can yield passed" },
+    { "id": "FR-03", "tests": ["F05"], "severity": "blocking", "summary": "Truncated NUnit XML is accepted as a complete passed result" }
+  ],
+  "incompleteRequirements": ["C07", "C09", "C10", "C12"],
+  "cleanGitCheckoutVerified": false,
+  "realUnityExecuted": false,
+  "implementationModified": false,
+  "productionUnchanged": true,
+  "originalRecordsUnchanged": true,
+  "report": "../../CollabTool_IndependentFourthAcceptance_2026-10-18.md",
+  "evidence": ["delivery-final.results.json", "current-final.results.json", "snapshot-inventory.json"]
+}

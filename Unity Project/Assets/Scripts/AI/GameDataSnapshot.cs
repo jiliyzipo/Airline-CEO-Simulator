@@ -17,16 +17,16 @@ namespace AirlineCEO.AI
             float effectiveBurn = gs != null ? gs.EffectiveMonthlyBurn : burn;
             float runway = CashRunnelCalculator.GetRunwayMonths(cash, effectiveBurn);
             string date = gs != null ? gs.DateLabel : "第 1 年 Q1";
-            bool firstFlight = gs != null && gs.firstFlightCompleted;
             float satisfaction = gs != null ? gs.boardSatisfaction : 50f;
+            var macro = MacroEconomyManager.Instance;
 
             PekLhrRpm = RPMCalculator.Calculate(new RPMCalculator.RPMInput
             {
                 distance = 8150f,
                 fuelPricePerTon = gs != null ? gs.fuelPricePerTon : 850f,
                 competitorSupply = 0.65f,
-                demandMultiplier = 1.2f,
-                brandEquity = 55f
+                demandMultiplier = (macro != null ? macro.GetDemandMultiplier("leisure") : 1f) * 1.2f,
+                brandEquity = gs != null ? gs.brandAwareness : 55f
             });
 
             var sb = new StringBuilder();
@@ -38,7 +38,7 @@ namespace AirlineCEO.AI
             sb.AppendLine($"已开通航线数：{(gs != null ? gs.activeRoutes.Count : 0)}");
             sb.AppendLine($"{CashRunnelCalculator.FormatPlayerLabel(runway)}");
             sb.AppendLine($"董事会满意度：{satisfaction:F0}");
-            sb.AppendLine($"首航完成：{(firstFlight ? "是" : "否")}");
+            sb.AppendLine($"已开通航线：{(gs != null && gs.activeRoutes != null && gs.activeRoutes.Count > 0 ? "是" : "否")}");
             sb.AppendLine($"机队规模（MVP）：1（示意）");
             sb.AppendLine(
                 $"北京-伦敦航线评估：综合分 {PekLhrRpm.score}（{ToPlainRating(PekLhrRpm.rating)}），" +

@@ -1,0 +1,16 @@
+{
+  "delivery": "DEL-20261017095048-cfd9dd",
+  "snapshotEntryCount": 29,
+  "deliveryFingerprint": "576f5bc5cc37450015f00cbfb1cfe4853c770c438d0c61ac8bd9b4e6fa6cf1f9",
+  "snapshotMismatches": [],
+  "currentChangedExpectedEntries": [
+    "docs/collaboration/README.md:changed",
+    "docs/collaboration/tasks/C-DEMO.json:changed",
+    "docs/collaboration/tasks/T01.json:changed",
+    "docs/collaboration/tasks/T02.json:changed",
+    "docs/collaboration/tasks/T03.json:changed",
+    "docs/collaboration/tasks/T04.json:changed",
+    "docs/collaboration/tasks/T05.json:changed",
+    "docs/collaboration/tasks/T06.json:changed"
+  ]
+}

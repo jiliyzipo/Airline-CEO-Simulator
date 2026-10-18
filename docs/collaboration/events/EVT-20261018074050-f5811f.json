@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018074050-f5811f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 198,
+  "at": "2026-10-18T07:40:50.803Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "reviewId": "REV-20261018041820-9f4b26",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018041847-27c5bf: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261018041847-27c5bf",
+    "from": "verified",
+    "to": "closed",
+    "note": "Closed after verified independent Cursor REV-20261018072743-74a233 and Codex byte-binding audit. Replacement DEL-20261018071756-010504 resolves original C09/C10 defects; original failed DEL/REV retained. Formal tool checklist accepted within manual mode; native Hooks and game gates remain separate."
+  }
+}

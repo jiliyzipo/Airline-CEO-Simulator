@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018095403-f1e86c",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "title": "SA01 预检会把执行中已被改写的快照标为 ready",
+  "repro": "node docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/stage-audit.mjs ; subject=DEL-20261018093335-80f2f4; case=SA01; fixture=C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-2WX9Qv\\1",
+  "expected": "stage-close preflight must reject mutated delivery inputs and must not publish a ready handoff",
+  "actual": "{\"preflightOk\":true,\"handoffStatus\":\"ready\",\"independentIntegrityCode\":5}",
+  "evidence": "docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/results-2026-10-18T09-54-03-314Z.json#SA01",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T09:54:03.962Z"
+}

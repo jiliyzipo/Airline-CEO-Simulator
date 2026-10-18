@@ -5,7 +5,6 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <OutputType>Library</OutputType>
-    <AssemblyName>SemCheck</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -16,6 +15,7 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <DebugType>none</DebugType>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <AssemblyName>SemCheck</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

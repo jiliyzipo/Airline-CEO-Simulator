@@ -71,12 +71,14 @@ namespace AirlineCEO.Systems
             return d;
         }
 
-        public ExecutiveData GetHead(string deptCode)
+        public const float DeputyEfficiencyMult = 1.075f;
+
+        public PersonnelData GetHead(string deptCode)
         {
             var d = GetDept(deptCode);
-            if (d == null || string.IsNullOrEmpty(d.headId) || DataBase.Instance == null)
-                return null;
-            return DataBase.Instance.GetExecutive(d.headId);
+            if (d == null || string.IsNullOrEmpty(d.headId)) return null;
+            PersonnelGenerator.EnsurePool(GameState.Instance);
+            return PersonnelGenerator.Find(GameState.Instance, d.headId);
         }
 
         public bool IsAppointed(string deptCode)
@@ -85,88 +87,289 @@ namespace AirlineCEO.Systems
             return d != null && !string.IsNullOrEmpty(d.headId);
         }
 
-        public List<ExecutiveData> GetCandidates(string deptCode, int count = 2)
+        public List<PersonnelData> GetCandidates(string deptCode, int count = 2)
         {
-            var pool = new List<ExecutiveData>();
-            if (DataBase.Instance == null) return pool;
-            var all = DataBase.Instance.Executives;
-            for (int i = 0; i < all.Count; i++)
-            {
-                var e = all[i];
-                if (e == null) continue;
-                if (!string.Equals(e.department, deptCode, StringComparison.OrdinalIgnoreCase)) continue;
-                if (_removedIds.Contains(e.id)) continue;
-                // 已被其他部门任命的不出现
-                if (IsHeadSomewhere(e.id)) continue;
-                pool.Add(e);
-            }
-
-            // 打乱取前 count
+            var pool = GetAvailableHeads(deptCode);
             for (int i = 0; i < pool.Count; i++)
             {
                 int j = UnityEngine.Random.Range(i, pool.Count);
                 (pool[i], pool[j]) = (pool[j], pool[i]);
             }
-
             if (pool.Count > count)
                 pool.RemoveRange(count, pool.Count - count);
             return pool;
         }
 
-        private bool IsHeadSomewhere(string execId)
+        public bool IsOccupied(string personId)
         {
+            if (string.IsNullOrEmpty(personId)) return false;
             foreach (var kv in _depts)
             {
-                if (string.Equals(kv.Value.headId, execId, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(kv.Value.headId, personId, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (string.Equals(kv.Value.deputyId, personId, StringComparison.OrdinalIgnoreCase))
                     return true;
             }
             return false;
         }
 
+        private bool IsHeadSomewhere(string execId) => IsOccupied(execId);
+
+        public string DisplayName(string personId)
+        {
+            var p = PersonnelGenerator.Find(GameState.Instance, personId);
+            return p != null ? p.fullName : personId;
+        }
+
+        public PersonnelData GetDeputy(string deptCode)
+        {
+            var d = GetDept(deptCode);
+            if (d == null || string.IsNullOrEmpty(d.deputyId)) return null;
+            return PersonnelGenerator.Find(GameState.Instance, d.deputyId);
+        }
+
+        public List<PersonnelData> GetDeputyCandidates(string deptCode)
+        {
+            var list = new List<PersonnelData>();
+            var gs = GameState.Instance;
+            PersonnelGenerator.EnsurePool(gs);
+            if (gs?.staffPool == null) return list;
+            for (int i = 0; i < gs.staffPool.Count; i++)
+            {
+                var p = gs.staffPool[i];
+                if (p == null) continue;
+                if (!string.Equals(p.department, deptCode, StringComparison.OrdinalIgnoreCase)) continue;
+                if (p.rank != "副手" && p.rank != "主管") continue;
+                if (p.onMarket) continue;
+                if (IsOccupied(p.id)) continue;
+                list.Add(p);
+            }
+            return list;
+        }
+
+        public bool AppointDeputy(string deptCode, string personnelId)
+        {
+            var gs = GameState.Instance;
+            var dept = GetDept(deptCode);
+            var p = PersonnelGenerator.Find(gs, personnelId);
+            if (gs == null || dept == null || p == null) return false;
+            if (!string.Equals(p.department, deptCode, StringComparison.OrdinalIgnoreCase)) return false;
+            if (!string.IsNullOrEmpty(dept.deputyId)) return false;
+            if (IsOccupied(personnelId)) return false;
+
+            dept.deputyId = personnelId;
+            RecalcEfficiency(dept);
+            gs.AddDecisionLog($"人事：任命 {p.fullName} 为{DepartmentCatalog.DisplayName(deptCode)}副总监（年薪 {p.baseSalary:F0} 万，效率 +7.5%）。");
+            gs.NotifyChanged();
+            OnDepartmentsChanged?.Invoke();
+            return true;
+        }
+
+        public float DismissDeputy(string deptCode, float severanceMult = 1f)
+        {
+            var gs = GameState.Instance;
+            var dept = GetDept(deptCode);
+            if (gs == null || dept == null || string.IsNullOrEmpty(dept.deputyId)) return 0f;
+            var p = PersonnelGenerator.Find(gs, dept.deputyId);
+            string name = p != null ? p.fullName : dept.deputyId;
+            float severance = (p != null ? p.baseSalary * 0.15f : 2f) * Mathf.Max(0f, severanceMult);
+            if (gs.cash < severance) { severance = gs.cash; gs.cash = 0f; }
+            else gs.cash -= severance;
+            gs.yearNetProfit -= severance;
+            dept.deputyId = "";
+            RecalcEfficiency(dept);
+            if (p != null) p.onMarket = true;
+            gs.AddDecisionLog($"人事：解聘副总监 {name}（{DepartmentCatalog.DisplayName(deptCode)}），遣散费 {severance:F1} 万。");
+            gs.NotifyChanged();
+            OnDepartmentsChanged?.Invoke();
+            return severance;
+        }
+
+        public bool HireFromMarket(string personId)
+        {
+            var gs = GameState.Instance;
+            if (gs == null || string.IsNullOrEmpty(personId)) return false;
+            PersonnelGenerator.EnsurePool(gs);
+            var p = PersonnelGenerator.Find(gs, personId);
+            if (p == null || !StaffRecruitment.CanCeoHire(p)) return false;
+            return Appoint(p.department, personId);
+        }
+
+        public float TerminateContract(string personId, bool mutual = false)
+        {
+            if (string.IsNullOrEmpty(personId)) return 0f;
+            float scale = mutual ? 0.5f : 1f;
+            foreach (var kv in _depts)
+            {
+                if (string.Equals(kv.Value.headId, personId, StringComparison.OrdinalIgnoreCase))
+                    return Dismiss(kv.Key, scale);
+            }
+            return 0f;
+        }
+
+        /// <summary>新开局：只自动任命各部门总监；副总监及以下由人力招聘后报 CEO 审批。</summary>
+        public void ResetForNewGame()
+        {
+            EnsureDepartments();
+            _removedIds.Clear();
+            _activeChemistry.Clear();
+            foreach (var kv in _depts)
+            {
+                kv.Value.headId = "";
+                kv.Value.deputyId = "";
+                kv.Value.loyalty = 0f;
+                kv.Value.salary = 0f;
+                kv.Value.efficiency = 0f;
+                kv.Value.kpiBonus = 0f;
+                kv.Value.kpiMetLastQuarter = false;
+            }
+        }
+
+        public List<PersonnelData> GetAvailableHeads(string deptCode) => GetAvailableExecutives(deptCode);
+
+        public List<PersonnelData> GetAvailableExecutives(string deptCode)
+        {
+            var pool = new List<PersonnelData>();
+            var gs = GameState.Instance;
+            PersonnelGenerator.EnsurePool(gs);
+            if (gs?.staffPool == null) return pool;
+            for (int i = 0; i < gs.staffPool.Count; i++)
+            {
+                var p = gs.staffPool[i];
+                if (p == null || p.rank != "负责人") continue;
+                if (!string.Equals(p.department, deptCode, StringComparison.OrdinalIgnoreCase)) continue;
+                if (_removedIds.Contains(p.id) || IsOccupied(p.id)) continue;
+                pool.Add(p);
+            }
+            return pool;
+        }
+
+        public void BootstrapOpeningTeam()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+
+            ResetForNewGame();
+            gs.staffPool = new List<PersonnelData>();
+            gs.staffBootstrapped = false;
+            PersonnelGenerator.EnsurePool(gs);
+
+            EnsureKeyAppointments();
+
+            gs.staffBootstrapped = true;
+            StaffRecruitment.Reset(gs);
+            StaffRecruitment.EnsureVacancies(gs);
+            PersonnelGenerator.SyncOccupiedFlags(gs);
+            // 投机候选池开局即播种一次：否则新局要等到下一个「1 日 / 16 日」才有人，
+            // 开局第一周的职业介绍所会只有总监候选人（2026-10-11）。
+            TalentMarket.EnsureSeeded(gs);
+            RefreshChemistry();
+            OnDepartmentsChanged?.Invoke();
+        }
+
+        /// <summary>各部门总监、副总监必须有人；缺人则从编制池任命或生成。</summary>
+        public void EnsureKeyAppointments()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+            PersonnelGenerator.EnsurePool(gs);
+            PersonnelGenerator.FillMissingKeyStaff(gs);
+
+            for (int i = 0; i < DepartmentCatalog.Codes.Length; i++)
+            {
+                string code = DepartmentCatalog.Codes[i];
+                if (!IsAppointed(code))
+                {
+                    var available = GetAvailableHeads(code);
+                    if (available.Count == 0)
+                    {
+                        var created = PersonnelGenerator.CreateEmployedHead(gs, code);
+                        if (created != null) available.Add(created);
+                    }
+                    if (available.Count > 0)
+                        Appoint(code, available[0].id);
+                }
+
+                var dept = GetDept(code);
+                if (dept == null || !string.IsNullOrEmpty(dept.deputyId)) continue;
+                PersonnelData deputy = null;
+                if (gs.staffPool != null)
+                {
+                    for (int s = 0; s < gs.staffPool.Count; s++)
+                    {
+                        var p = gs.staffPool[s];
+                        if (p == null || p.onMarket || IsOccupied(p.id)) continue;
+                        if (!string.Equals(p.department, code, StringComparison.OrdinalIgnoreCase)) continue;
+                        if (p.rank != "副手") continue;
+                        deputy = p;
+                        break;
+                    }
+                }
+                if (deputy != null)
+                    AppointDeputy(code, deputy.id);
+            }
+        }
+
+        public void NotifyRosterChanged() => OnDepartmentsChanged?.Invoke();
+
         #endregion
 
         #region Appoint / Replace
 
-        public bool Appoint(string deptCode, string executiveId)
+        public bool Appoint(string deptCode, string personId)
         {
             var gs = GameState.Instance;
-            var exec = DataBase.Instance != null ? DataBase.Instance.GetExecutive(executiveId) : null;
-            if (gs == null || exec == null) return false;
-            if (!string.Equals(exec.department, deptCode, StringComparison.OrdinalIgnoreCase)) return false;
-            if (_removedIds.Contains(executiveId)) return false;
+            PersonnelGenerator.EnsurePool(gs);
+            var person = PersonnelGenerator.Find(gs, personId);
+            if (gs == null || person == null) return false;
+            if (!string.Equals(person.department, deptCode, StringComparison.OrdinalIgnoreCase)) return false;
+            if (_removedIds.Contains(personId)) return false;
+            if (person.rank != "负责人") return false;
 
             var dept = GetDept(deptCode);
             if (dept == null) return false;
             if (!string.IsNullOrEmpty(dept.headId)) return false;
 
-            dept.headId = executiveId;
-            dept.loyalty = exec.loyalty;
-            dept.salary = exec.baseSalary;
+            person.onMarket = false;
+            person.rank = "负责人";
+            person.jobTitle = StaffEstablishment.HeadTitle;
+            dept.headId = personId;
+            dept.loyalty = person.loyalty;
+            dept.salary = person.baseSalary;
             dept.kpiBonus = 0f;
             dept.kpiMetLastQuarter = false;
             RecalcEfficiency(dept);
             RefreshChemistry();
 
-            gs.AddDecisionLog($"人事：任命 {exec.fullName} 为{DepartmentCatalog.DisplayName(deptCode)}负责人（年薪 {dept.salary:F0} 万）。");
+            gs.AddDecisionLog($"人事：任命 {person.fullName} 为{DepartmentCatalog.DisplayName(deptCode)}{StaffEstablishment.HeadTitle}（年薪 {dept.salary:F0} 万）。");
             gs.NotifyChanged();
             OnDepartmentsChanged?.Invoke();
             return true;
         }
 
         /// <summary>更换：先遣散再空缺（由 UI 随后打开任命）。</summary>
-        public float Dismiss(string deptCode)
+        public float Dismiss(string deptCode, float severanceMult = 1f)
         {
             var gs = GameState.Instance;
             var dept = GetDept(deptCode);
             if (gs == null || dept == null || string.IsNullOrEmpty(dept.headId)) return 0f;
 
-            var exec = DataBase.Instance?.GetExecutive(dept.headId);
-            string name = exec != null ? exec.fullName : dept.headId;
-            float severance = CalcSeverance(dept.salary, gs.quarter);
-            gs.cash -= severance;
+            var person = PersonnelGenerator.Find(gs, dept.headId);
+            string name = person != null ? person.fullName : dept.headId;
+            float severance = CalcSeverance(dept.salary, gs.quarter) * Mathf.Max(0f, severanceMult);
+            // Phase 15：现金不足时遣散费按现金归零处理
+            if (gs.cash < severance)
+            {
+                severance = gs.cash;
+                gs.cash = 0f;
+            }
+            else
+            {
+                gs.cash -= severance;
+            }
             gs.yearNetProfit -= severance;
 
-            _removedIds.Add(dept.headId);
+            if (person != null) person.onMarket = true;
             dept.headId = "";
             dept.loyalty = 0f;
             dept.efficiency = 0f;
@@ -207,21 +410,25 @@ namespace AirlineCEO.Systems
                 return;
             }
 
-            var exec = DataBase.Instance?.GetExecutive(dept.headId);
-            if (exec == null)
+            var person = HeadPerson(dept);
+            if (person == null)
             {
                 dept.efficiency = MinEfficiency;
                 return;
             }
 
-            float cultureFit = GetCultureFit(exec.nationality);
-            float core = exec.efficiencyBonus * 0.5f
+            float cultureFit = GetCultureFit(person.nationality);
+            float core = person.efficiencyBonus * 0.5f
                          + (dept.loyalty / 100f) * 0.3f
                          + cultureFit * 0.2f;
+            float staffLift = TrainingGrowthLogic.DeptStaffLift(GameState.Instance, dept.deptCode);
             float eff = 0.7f + 0.3f * core;
             eff += dept.kpiBonus;
+            eff += staffLift;
             // 化学反应加成
             eff *= GetChemistryMultiplier(dept.deptCode);
+            if (!string.IsNullOrEmpty(dept.deputyId))
+                eff *= DeputyEfficiencyMult;
             dept.efficiency = Mathf.Clamp(eff, MinEfficiency, MaxEfficiency);
         }
 
@@ -281,14 +488,23 @@ namespace AirlineCEO.Systems
             }
         }
 
+        PersonnelData HeadPerson(DepartmentRuntime dept)
+        {
+            if (dept == null || string.IsNullOrEmpty(dept.headId)) return null;
+            return PersonnelGenerator.Find(GameState.Instance, dept.headId);
+        }
+
         private void RecalcEfficiencyRaw(DepartmentRuntime dept)
         {
-            var exec = DataBase.Instance?.GetExecutive(dept.headId);
-            if (exec == null) { dept.efficiency = MinEfficiency; return; }
-            float cultureFit = GetCultureFit(exec.nationality);
-            float core = exec.efficiencyBonus * 0.5f + (dept.loyalty / 100f) * 0.3f + cultureFit * 0.2f;
-            float eff = 0.7f + 0.3f * core + dept.kpiBonus;
+            var person = HeadPerson(dept);
+            if (person == null) { dept.efficiency = MinEfficiency; return; }
+            float cultureFit = GetCultureFit(person.nationality);
+            float core = person.efficiencyBonus * 0.5f + (dept.loyalty / 100f) * 0.3f + cultureFit * 0.2f;
+            float staffLift = TrainingGrowthLogic.DeptStaffLift(GameState.Instance, dept.deptCode);
+            float eff = 0.7f + 0.3f * core + dept.kpiBonus + staffLift;
             eff *= GetChemistryMultiplier(dept.deptCode);
+            if (!string.IsNullOrEmpty(dept.deputyId))
+                eff *= DeputyEfficiencyMult;
             dept.efficiency = Mathf.Clamp(eff, MinEfficiency, MaxEfficiency);
         }
 
@@ -377,22 +593,22 @@ namespace AirlineCEO.Systems
             {
                 var d = kv.Value;
                 if (string.IsNullOrEmpty(d.headId)) continue;
-                var exec = DataBase.Instance?.GetExecutive(d.headId);
-                if (exec == null) continue;
+                var person = HeadPerson(d);
+                if (person == null) continue;
 
                 if (d.kpiMetLastQuarter) d.loyalty += 5f;
                 else d.loyalty -= 10f;
 
-                // 薪酬相对要求：MVP 以 baseSalary 为要求，当前 salary 对比
-                float req = exec.baseSalary;
+                float req = person.baseSalary;
                 if (d.salary >= req * 1.10f) d.loyalty += 5f;
                 else if (d.salary <= req * 0.90f) d.loyalty -= 10f;
 
                 d.loyalty = Mathf.Clamp(d.loyalty, 0f, 100f);
+                person.loyalty = d.loyalty;
                 RecalcEfficiencyRaw(d);
 
                 if (d.loyalty < ResignLoyaltyThreshold)
-                    resignList.Add((d.deptCode, exec.fullName));
+                    resignList.Add((d.deptCode, person.fullName));
             }
 
             for (int i = 0; i < resignList.Count; i++)
@@ -414,7 +630,8 @@ namespace AirlineCEO.Systems
             var d = GetDept(deptCode);
             if (d == null || string.IsNullOrEmpty(d.headId)) return;
             string id = d.headId;
-            _removedIds.Add(id);
+            var person = PersonnelGenerator.Find(GameState.Instance, id);
+            if (person != null) person.onMarket = true;
             d.headId = "";
             d.loyalty = 0f;
             d.efficiency = 0f;
@@ -434,8 +651,8 @@ namespace AirlineCEO.Systems
             var d = GetDept(deptCode);
             if (d == null || string.IsNullOrEmpty(d.headId)) return;
             d.loyalty = 20f;
-            var exec = DataBase.Instance?.GetExecutive(d.headId);
-            string name = exec != null ? exec.fullName : d.headId;
+            var person = HeadPerson(d);
+            string name = person != null ? person.fullName : d.headId;
             ForceResign(deptCode, name, fireEvent: true);
             GameState.Instance?.NotifyChanged();
             OnDepartmentsChanged?.Invoke();
@@ -457,6 +674,7 @@ namespace AirlineCEO.Systems
                 {
                     deptCode = d.deptCode,
                     headId = d.headId ?? "",
+                    deputyId = d.deputyId ?? "",
                     loyalty = d.loyalty,
                     salary = d.salary,
                     efficiency = d.efficiency,
@@ -484,6 +702,7 @@ namespace AirlineCEO.Systems
             foreach (var kv in _depts)
             {
                 kv.Value.headId = "";
+                kv.Value.deputyId = "";
                 kv.Value.loyalty = 0f;
                 kv.Value.efficiency = 0f;
                 kv.Value.kpiBonus = 0f;
@@ -509,6 +728,7 @@ namespace AirlineCEO.Systems
                         var d = GetDept(s.deptCode);
                         if (d == null) continue;
                         d.headId = s.headId ?? "";
+                        d.deputyId = s.deputyId ?? "";
                         d.loyalty = s.loyalty;
                         d.salary = s.salary;
                         d.efficiency = s.efficiency;
@@ -535,6 +755,7 @@ namespace AirlineCEO.Systems
     {
         public string deptCode;
         public string headId = "";
+        public string deputyId = "";
         public float loyalty;
         public float salary;
         public float efficiency;

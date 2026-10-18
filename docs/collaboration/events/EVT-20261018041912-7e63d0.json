@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018041912-7e63d0",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 170,
+  "at": "2026-10-18T04:19:12.111Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "reviewId": "REV-20261018041820-9f4b26",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018041847-27c5bf: open -> fixing",
+  "data": {
+    "issueId": "ISSUE-20261018041847-27c5bf",
+    "from": "open",
+    "to": "fixing",
+    "note": "Independent audit reproduced closure gate and concurrent Hook defects; repairing under user authorization."
+  }
+}

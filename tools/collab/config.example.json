@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "collaborationRoot": "docs/collaboration",
+  "localRoot": ".collab-local",
+  "snapshotRoot": "out/collab",
+  "fingerprintPolicyVersion": 2,
+  "taskBook": {
+    "path": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+    "mappingNote": "Explicit taskId mapping only. Demo/engineering tasks (C-DEMO, C-ENG) are judged on collaboration records; T01-T06 stay authoritative in the task book and are never checked by the tool unless the gate passes.",
+    "tasks": {
+      "T01": {
+        "sectionHeading": "## 4. T01 · R42 交割后加班失败",
+        "itemPrefix": "T01"
+      },
+      "T02": {
+        "sectionHeading": "## 5. T02 · 可复现开发基线",
+        "itemPrefix": "T02",
+        "requiresCleanCheckout": true
+      },
+      "T03": {
+        "sectionHeading": "## 6. T03 · 主链路集成回归",
+        "itemPrefix": "T03"
+      },
+      "T04": {
+        "sectionHeading": "## 7. T04 · 经营账务与长线平衡",
+        "itemPrefix": "T04"
+      },
+      "T05": {
+        "sectionHeading": "## 8. T05 · 当前时间策略下的交互体验",
+        "itemPrefix": "T05"
+      },
+      "T06": {
+        "sectionHeading": "## 9. T06 · 文档与架构收口",
+        "itemPrefix": "T06"
+      }
+    },
+    "completionTasks": [
+      "T01",
+      "T02",
+      "T03",
+      "T04",
+      "T05",
+      "T06"
+    ],
+    "toolClauses": {
+      "path": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md",
+      "sectionHeading": "## 14. MVP 交付与验收清单",
+      "note": "Read-only progress: only Codex fills these during independent acceptance."
+    }
+  },
+  "profiles": {
+    "collab": {
+      "kind": "node",
+      "command": ["node", "tools/collab/tests/run-all.mjs"],
+      "resultKind": "json",
+      "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+    },
+    "compile": {
+      "kind": "node",
+      "command": [
+        "node",
+        "tools/semcheck/run.js"
+      ],
+      "resultKind": "semcheck",
+      "runOutputs": [
+        "tools/semcheck/semcheck_report.txt"
+      ],
+      "description": "Semantic compile checks; resultKind=semcheck enforces the two assembly gates plus the encoding gate; semcheck_report.txt is a declared run output, not a delivery input"
+    },
+    "slot": {
+      "kind": "dotnet",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tools/slotcheck/slotcheck.csproj",
+        "-c",
+        "Release"
+      ],
+      "resultKind": "slotcheck",
+      "description": "Slot logic assertions; resultKind=slotcheck derives counters from [PASS]/[FAIL] lines and the SLOTCHECK summary"
+    },
+    "smoke": {
+      "kind": "node",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "resultKind": "json",
+      "description": "Collab tool smoke profile for demo reviews"
+    },
+    "unity-editmode": {
+      "kind": "powershell",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "{runToken}"
+      ],
+      "resultKind": "nunit",
+      "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+      "description": "Real Unity EditMode tests in the isolated snapshot; refuses to run unless companyName=AirlineCEORegression; {runToken} makes the result path unique per execution"
+    },
+    "unity-playmode": {
+      "kind": "powershell",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "PlayMode",
+        "-RunName",
+        "{runToken}"
+      ],
+      "resultKind": "nunit",
+      "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+      "description": "Real Unity PlayMode tests in the isolated snapshot; {runToken} makes the result path unique per execution"
+    }
+  },
+  "unityOccupiedPolicy": "wait-user-close",
+  "hooks": {
+    "enabled": true,
+    "clients": {
+      "cursor": {"mode": "manual", "reason": "Project Hooks are optional and not natively verified; use sync/ack and foreground watch."},
+      "codex": {"mode": "manual", "reason": "Native Hooks require project configuration and client trust; neither is inferred from CLI counters. Use sync/ack and foreground watch."}
+    },
+    "debounceMs": 2000,
+    "dedupeWindowMs": 60000
+  },
+  "demoTaskId": "C-DEMO",
+  "demoSnapshotRoots": [
+    "tools/collab"
+  ],
+  "demoSnapshotFiles": [
+    "docs/collaboration/PROTOCOL.md"
+  ]
+}

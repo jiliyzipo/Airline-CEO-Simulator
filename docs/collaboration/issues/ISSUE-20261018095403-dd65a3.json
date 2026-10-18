@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018095403-dd65a3",
+  "taskId": "S01-COLLAB",
+  "deliveryId": "DEL-20261018093335-80f2f4",
+  "reviewId": "REV-20261018095357-18f7dd",
+  "title": "SA05 stage-review宣称支持限定Cursor授权但仍被默认角色表拦截",
+  "repro": "node docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/stage-audit.mjs ; subject=DEL-20261018093335-80f2f4; case=SA05; fixture=C:\\Users\\jiliy\\AppData\\Local\\Temp\\codex-stage-independent-2WX9Qv\\5",
+  "expected": "an explicitly scoped reverse-review grant accepted by review-* must also work through the documented stage-review route",
+  "actual": "{\"lowerLevelAccepted\":true,\"stageCode\":7,\"status\":null}",
+  "evidence": "docs/handoff/verification/CollabTool-Stage-Independent-2026-10-18/results-2026-10-18T09-54-03-314Z.json#SA05",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-18T09:54:03.986Z"
+}

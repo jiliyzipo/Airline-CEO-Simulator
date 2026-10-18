@@ -6,7 +6,7 @@ using UnityEngine;
 namespace AirlineCEO.Systems
 {
     /// <summary>
-    /// Phase 5：管理 12 名董事满意度，并在财年初始生成年度目标。
+    /// Phase 5：管理董事满意度，并在财年初始生成年度目标。
     /// </summary>
     public class BoardManager : MonoBehaviour
     {
@@ -84,15 +84,26 @@ namespace AirlineCEO.Systems
             }
 
             EnsureMemberSatisfaction();
-            var ids = DataBase.Instance != null
-                ? DataBase.Instance.GetBoardMemberIds()
-                : new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L" };
+            var db = DataBase.Instance;
+            // 优先用 n4 抽卡选座选出的董事；未选（空/读档缺字段）则回退全库
+            var ids = new List<string>();
+            if (gs.boardMemberIds != null && gs.boardMemberIds.Count > 0)
+            {
+                ids.AddRange(gs.boardMemberIds);
+            }
+            else if (db != null)
+            {
+                ids = db.GetBoardMemberIds();
+            }
+            if (ids.Count == 0)
+                ids = new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q" };
 
             gs.currentTargets = TargetGenerator.Generate(ids, fiscalYear);
             gs.targetsFiscalYear = fiscalYear;
             gs.yearNetProfit = 0f;
             gs.yearStartCash = gs.cash;
             gs.boardTargetsAnnounced = false;
+            // 新年目标需重新确认；不清零 confirmedYear 以免误把旧年当成已确认
 
             UpdateSimulatedKpis(gs);
             TargetGenerator.RefreshProgress(gs.currentTargets, gs);
@@ -135,10 +146,23 @@ namespace AirlineCEO.Systems
                 memberSatisfaction[keys[i]] = Mathf.Clamp(memberSatisfaction[keys[i]] + delta, 0f, 100f);
         }
 
+        public bool ConfirmAnnualGoals()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return false;
+            EnsureAnnualTargets();
+            if (gs.currentTargets == null || gs.currentTargets.Count == 0) return false;
+            gs.annualGoalsConfirmedYear = gs.year;
+            gs.AddDecisionLog($"愿景：确认第 {gs.year} 财年年度目标。");
+            gs.NotifyChanged();
+            return true;
+        }
+
         /// <summary>进入新年时重新生成目标（续聘成功或见习保护后调用）。</summary>
         public void OnNewFiscalYearStarted(int newYear)
         {
             GenerateTargetsForYear(newYear);
+            InboxManager.MaybeOfferAnnualGoals(GameState.Instance);
         }
     }
 }

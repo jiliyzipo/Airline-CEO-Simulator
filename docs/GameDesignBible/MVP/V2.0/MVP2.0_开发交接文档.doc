@@ -1,0 +1,376 @@
+
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>MVP2.0_开发交接文档</title>
+                <!--[if gte mso 9]>
+                <xml>
+                    <w:WordDocument>
+                        <w:View>Print</w:View>
+                        <w:Zoom>100</w:Zoom>
+                    </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { background: #ffffff; color: #1e2a3a; font-family: 'Segoe UI', Arial, sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 30px; line-height: 1.6; }
+                    h1, h2, h3, h4 { color: #0b1a33; margin-top: 1.8em; border-bottom: 1px solid #e0e7ef; padding-bottom: 0.3em; }
+                    h1 { font-size: 2.2em; border-bottom: 3px solid #1a5cff; text-align: center; }
+                    h2 { font-size: 1.7em; border-bottom-width: 2px; }
+                    h3 { font-size: 1.3em; border-bottom: none; }
+                    h4 { font-size: 1.1em; border-bottom: none; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #d0d8e0; padding: 10px 14px; vertical-align: top; }
+                    th { background: #eef3f8; }
+                    .footnote { background: #f0f6ff; border-left: 5px solid #1a5cff; padding: 12px 20px; margin: 20px 0; }
+                    .status-done { color: #00a854; font-weight: 700; }
+                    .status-pending { color: #ff8c00; font-weight: 700; }
+                    .highlight-box { background: #f7faff; border: 1px solid #c0d0e0; padding: 14px 18px; margin: 12px 0; }
+                    .flow-chart { background: #f7faff; border: 1px solid #d0d8e0; padding: 16px 20px; font-family: monospace; font-size: 0.9rem; line-height: 1.8; margin: 16px 0; }
+                    .doc-ref { background: #f7faff; border: 1px solid #d0d8e0; padding: 12px 16px; margin: 8px 0; }
+                    .doc-ref .title { font-weight: 700; color: #0b1a33; }
+                    .doc-ref .path { color: #5a6a7a; font-family: monospace; font-size: 0.9rem; }
+                    .doc-ref .desc { color: #5a6a7a; font-size: 0.9rem; }
+                    ul, ol { padding-left: 24px; margin: 12px 0; }
+                    li { margin: 5px 0; }
+                    hr { border: 0; border-top: 2px dashed #d0d8e0; margin: 40px 0; }
+                    .footer { margin-top: 50px; border-top: 1px solid #d0d8e0; padding-top: 20px; font-size: 0.9rem; color: #5a6a7a; text-align: center; }
+                    .download-btn { display: none; }
+                    .btn-wrapper { display: none; }
+                    .badge { display: inline-block; color: white; padding: 2px 12px; border-radius: 20px; font-size: 0.7rem; margin-right: 4px; }
+                    .badge-done { background: #00a854; }
+                    .badge-pending { background: #ff8c00; }
+                </style>
+            </head>
+            <body>
+                
+
+    <div class="btn-wrapper">
+        <button class="download-btn" onclick="downloadWord()">📥 下载 Word 文档 (.doc)</button>
+    </div>
+
+    <h1>✈️ Airline CEO Simulator · MVP 2.0 开发交接文档</h1>
+    <p style="text-align:center; font-size:1.05rem; color:#2a3a4a;">
+        <strong>适用于新对话 AI 快速接管项目</strong> · 生成日期 2026-08-05
+    </p>
+
+    <div class="footnote">
+        <strong>📌 文档用途：</strong> 本页整合了 MVP 开发的全部背景、已完成工作、当前文档体系、下一步任务和技术架构，供新对话的 AI 快速理解项目全貌并无缝接替开发。
+    </div>
+
+    <hr>
+
+    <h2>一、项目概况</h2>
+
+    <h3>1.1 游戏定位</h3>
+    <ul>
+        <li><strong>名称：</strong> Airline CEO Simulator</li>
+        <li><strong>类型：</strong> 航空 CEO 模拟经营游戏（单机 PC，Unity 2022.3 LTS）</li>
+        <li><strong>核心体验：</strong> “你是一家航空公司的CEO。董事会每年给你定目标，七大部门听你指挥，但现金跑道永远不够长。你的任务：在退休前不被解雇，也不让公司破产。”</li>
+        <li><strong>MVP 目标：</strong> 验证核心玩法循环（15分钟、30分钟、1小时、2小时体验节点），为完整版奠定基础</li>
+    </ul>
+
+    <h3>1.2 三大支柱</h3>
+    <ul>
+        <li><strong>① 年度考核压力：</strong> 董事会生成目标 → 财年结算 → 续聘/解雇</li>
+        <li><strong>② 现金流生死线：</strong> 现金跑道仪表盘 + 燃油对冲 + 破产保护</li>
+        <li><strong>③ 七部门协同运营：</strong> 7部门独立KPI + 跨部门联动 + 21人候选池</li>
+    </ul>
+
+    <hr>
+
+    <h2>二、已完成工作总结（Phase 1～15）</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:15%;">Phase</th>
+                <th style="width:40%;">核心产出</th>
+                <th style="width:20%;">对应 GDD 章节</th>
+                <th style="width:25%;">状态</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>数据层</td><td>数据模型 + DataBase（含 21 负责人 + 12 董事）</td><td>第 2、4 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>逻辑层</td><td>RPMCalculator / CashRunnelCalculator / ChemistryMatcher</td><td>第 7 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>核心 UI</td><td>首航任务 + 现金跑道 + 基础 HUD</td><td>第 3、7 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>AI 接口</td><td>DeepSeek + 本地容灾（NeuralCommand）</td><td>第 13 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 1</td><td>AI 执行建议（ActionExecutor）</td><td>第 13.3 节</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 2</td><td>财年心跳（TimeManager）</td><td>第 2 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 3</td><td>航空驾驶舱 UI（深空蓝 HUD + CashMeter）</td><td>第 11 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 4</td><td>中文字体 TMP（NotoSansSC）</td><td>第 11 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 5</td><td>董事会目标生成器（BoardManager + TargetGenerator）</td><td>第 5 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 6</td><td>年度结算与续聘投票（YearEndEvaluator + VoteUI）</td><td>第 4 章</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>Phase 7</td><td>安全事件与航权系统（Safety* + RouteRight*）</td><td>第 7.6、7.7 节</td><td><span class="status-done">✅ 完成</span></td></tr>
+            <tr><td>AOG 危机</td><td>脚本化 AOG（调机/延误/顾问）</td><td>第 7.2 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>扩张提案</td><td>战略性扩张（接受/暂缓/拒绝）</td><td>第 7.7 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 8</td><td>部门管理/任命（DepartmentManager + HRUI）</td><td>第 6 章</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 9</td><td>燃油对冲 + 紧急融资 + 财务顾问引导</td><td>第 7.4 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 10</td><td>机队管理（购买/退役/机龄老化）</td><td>第 11、16 章</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 11</td><td>AI 竞争对手（4 家 AI + ASK 份额 + 代码共享）</td><td>第 9.2 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 12</td><td>随机事件引擎（30+ 事件 + 连锁 + 油价互斥）</td><td>第 9.3 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 13</td><td>宏观经济引擎（三阶段 + 传导）</td><td>第 9.1 节</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td>Phase 14</td><td>UI/UX 打磨（Tooltip / 动画 / 机型图标）</td><td>第 10、11 章</td><td><span class="status-done">✅ 已验收</span></td></tr>
+            <tr><td><strong>Phase 15</strong></td><td><strong>跨部门联动测试与优化</strong></td><td><strong>第 8 章</strong></td><td><span class="status-pending">⬜ 待开始</span></td></tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>三、当前文档体系（给 AI 的参考资料）</h2>
+
+    <div class="doc-ref">
+        <div class="title">📄 MVP GDD v1.3</div>
+        <div class="path">路径：<code>docs/GameDesignBible/MVP/Airline_CEO_Simulator_MVP_GDD_v1.3.docx</code></div>
+        <div class="desc">游戏设计圣经，定义核心体验、机制、部门、化学反应、目标清单等。所有功能的“为什么”。</div>
+    </div>
+
+    <div class="doc-ref">
+        <div class="title">📄 开发路线图 v1.8</div>
+        <div class="path">路径：<code>docs/GameDesignBible/MVP/Airline_CEO_Dev_Roadmap_v1.8.md</code></div>
+        <div class="desc">当前进度总览：Phase 1～14 已验收，Phase 15 待开发，发布准备待启动。</div>
+    </div>
+
+    <div class="doc-ref">
+        <div class="title">📄 技术任务书 v1.7</div>
+        <div class="path">路径：<code>docs/Development Manual/Airline_CEO_Dev_Task_v1.7.md</code></div>
+        <div class="desc">面向 Cursor 的施工蓝图，包含所有已验收阶段的详细文件和逻辑说明。</div>
+    </div>
+
+    <div class="doc-ref">
+        <div class="title">📄 各 Phase 开发计划（HTML）</div>
+        <div class="path">路径：<code>docs/Development Manual/PhaseXX_*.html</code></div>
+        <div class="desc">每个 Phase 的完整开发指令、任务清单、验证条件，可供 Cursor 直接使用。</div>
+    </div>
+
+    <hr>
+
+    <h2>四、下一步任务：Phase 15 跨部门联动测试</h2>
+
+    <div class="footnote" style="background: #eaf3ff; border-left-color: #1a5cff;">
+        <strong>🎯 Phase 15 目标：</strong> 在所有功能独立完成的基础上，执行全链路联动测试，确保系统之间数据流转正确、数值平衡合理、文案一致。
+    </div>
+
+    <h3>4.1 5 条核心测试链路</h3>
+    <ul>
+        <li><strong>链路 1：</strong> 开通航线 → 机队可用飞机检查 → 扣启动资金 → 月收入更新 → 现金跑道变化</li>
+        <li><strong>链路 2：</strong> AI 竞对进攻 → 品牌净值下降 → 客座率下降 → 收入下降</li>
+        <li><strong>链路 3：</strong> 燃油对冲 → 油价波动 → 季度结算 → 现金变化</li>
+        <li><strong>链路 4：</strong> 安全事件 → 安全评级下降 → 董事会满意度下降 → 年度目标完成率受影响</li>
+        <li><strong>链路 5：</strong> 宏观经济周期变化 → 需求系数变化 → RPM 变化 → 竞对行为变化</li>
+    </ul>
+
+    <h3>4.2 关键验收标准</h3>
+    <ul>
+        <li>所有链路无 Bug，数据流转正确，Console 无红字</li>
+        <li>数值平衡合理（玩家 3～5 财年内有压力但非绝望）</li>
+        <li>文案统一（单位、时间、状态颜色一致，术语有 Tooltip）</li>
+        <li>边界情况不崩溃（现金=0、机队为空、航线为空）</li>
+        <li>修复日志完整（<code>Phase15_FixLog.md</code>）</li>
+    </ul>
+
+    <h3>4.3 开始 Phase 15 的提示词模板</h3>
+    <div class="highlight-box">
+        <pre style="margin:0; background:transparent; border:none; padding:0; font-family:monospace; font-size:0.9rem; white-space:pre-wrap;">请严格按 Airline_CEO_Dev_Task_v1.7.md 第 2.23 节（Phase 15 跨部门联动测试）开工，
+并对照 Airline_CEO_Dev_Roadmap_v1.8.md。
+不要重复实现已完成的 Phase 1～14。工程根目录是 Unity Project/。
+
+请依次执行 5 条核心链路测试，记录并修复所有 Bug，完成后更新路线图状态。
+        </pre>
+    </div>
+
+    <hr>
+
+    <h2>五、技术架构速览</h2>
+
+    <h3>5.1 工程结构</h3>
+    <table>
+        <thead>
+            <tr><th>文件夹</th><th>命名空间</th><th>内容</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>Data/</code></td><td><code>AirlineCEO.Data</code></td><td>数据模型 + DataBase + RouteData + AIAirline + TermData</td></tr>
+            <tr><td><code>Logic/</code></td><td><code>AirlineCEO.Logic</code></td><td>RPM / CashRunnel / ChemistryMatcher / TargetGenerator / YearEndEvaluator</td></tr>
+            <tr><td><code>Systems/</code></td><td><code>AirlineCEO.Systems</code></td><td>GameState / SaveManager / TimeManager / BoardManager / AIManager / CompetitionManager / FleetManager / HedgeManager / LoanManager / SafetyEventManager / RouteRightManager / RandomEventManager / MacroEconomyManager / ActionExecutor / DepartmentManager / TooltipManager</td></tr>
+            <tr><td><code>UI/</code></td><td><code>AirlineCEO.UI</code></td><td>MVPBootstrap / CompetitionUI / FleetUI / FinancePanelUI / BoardTargetUI / VoteUI / AOGUI / ExpansionProposalUI / HRUI / EventLogUI / MacroEconomyUI / TermTooltip</td></tr>
+            <tr><td><code>AI/</code></td><td><code>AirlineCEO.AI</code></td><td>AIChatManager / DeepSeekConfig / NeuralCommandMatcher</td></tr>
+            <tr><td><code>Editor/</code></td><td><code>AirlineCEO.Editor</code></td><td>SetupMVPScene / 各 Phase Debug 菜单 / ClearGameSaveMenu</td></tr>
+        </tbody>
+    </table>
+
+    <h3>5.2 核心数据流</h3>
+    <div class="flow-chart">
+GameState（全局状态）
+    ├── 现金 / 月烧 / 油价 / GDP / 经济阶段
+    ├── 航线列表（RouteData）
+    ├── 机队列表（Aircraft）
+    ├── AI 列表（AIAirline）
+    ├── 董事会目标 / 满意度
+    ├── 安全评级 / 事件日志
+    ├── 对冲合约 / 贷款
+    └── 随机事件状态
+
+TimeManager（季度心跳）
+    └── 每季度触发：
+        ├── AI 状态更新（AIManager）
+        ├── 竞争计算（CompetitionManager）
+        ├── 随机事件（RandomEventManager）
+        ├── 对冲结算（HedgeManager）
+        ├── 贷款还款（LoanManager）
+        ├── 机队老化（FleetManager）
+        └── 年度结算（BoardManager / YearEndEvaluator）
+
+UI 层 → 读取 GameState 显示，通过 MVPBootstrap 组装
+    </div>
+
+    <hr>
+
+    <h2>六、关键数据与公式</h2>
+
+    <h3>6.1 经济锚点（MVP 基准）</h3>
+    <ul>
+        <li>初始现金：500 万美元</li>
+        <li>月固定支出：80 万美元（机队维护、工资等）</li>
+        <li>窄体机 A320neo：1.1 亿美元</li>
+        <li>宽体机 B787-9：2.5 亿美元</li>
+        <li>燃油基准价：850 美元/吨</li>
+        <li>开航线启动资金：300 万美元</li>
+        <li>首航收入：15 万美元</li>
+    </ul>
+
+    <h3>6.2 董事会考核</h3>
+    <ul>
+        <li>目标数量：3～4 项/年（含保底：净利润 + 客座率）</li>
+        <li>续聘线（普通难度）：完成率 ≥ 60%</li>
+        <li>见习保护：第 1～3 财年未达标 → 再给一年机会</li>
+    </ul>
+
+    <h3>6.3 AI 竞对</h3>
+    <ul>
+        <li>初始 4 家：云翼（全服务）、青鸾（低成本）、银燕（区域）、北辰（货运）</li>
+        <li>四态：稳态 → 进攻 → 防御 → 垂死挣扎 → 破产 → 2 年重生</li>
+    </ul>
+
+    <hr>
+
+    <h2>七、Unity 菜单速查</h2>
+    <div class="highlight-box">
+        <pre style="margin:0; background:transparent; border:none; padding:0; font-family:monospace; font-size:0.9rem; white-space:pre-wrap;">AirlineCEO 菜单：
+├── Run Logic Self Tests
+├── Batch Create Data Assets
+├── Setup MVP Scene Objects
+├── Create DeepSeek Config Asset / Set DeepSeek API Key
+├── Create UI Prefabs / Generate Chinese TMP Font Asset
+├── 清档 Clear Save
+├── Debug/
+│   ├── Force AOG Crisis
+│   ├── Force Expansion Proposal
+│   ├── Force Cash Crisis / Force Fuel Spike +20%
+│   ├── Force AI Expansion / Kill AI Competitor / Propose Code Share
+│   ├── Force Random Event / Force Chain
+│   └── Force Boom / Force Recession / Force Recovery
+└── Debug/移除北京-伦敦航线（复测航权）
+        </pre>
+    </div>
+
+    <hr>
+
+    <h2>八、开发原则</h2>
+    <ul>
+        <li><strong>先功能后美观：</strong> 核心玩法优先，UI 精修在 Phase 14 已完成</li>
+        <li><strong>AI 建议须玩家点「执行建议」才改状态：</strong> 不自动执行任何操作</li>
+        <li><strong>玩家文案通俗化：</strong> 避免专业术语堆砌，首次出现用 Tooltip 解释</li>
+        <li><strong>存档兼容：</strong> F5/F9 正常，清档只删游戏进度，保留 API Key</li>
+        <li><strong>Console 无红字：</strong> 所有功能验收时 Console 必须干净</li>
+    </ul>
+
+    <hr>
+
+    <div class="footnote" style="background: #eaf3ff; border-left-color: #1a5cff;">
+        <p><strong>✅ 交接清单：</strong></p>
+        <ul style="margin:8px 0 0 20px;">
+            <li>✅ 项目定位与核心体验已明确</li>
+            <li>✅ Phase 1～14 全部完成并验收</li>
+            <li>✅ Phase 15 任务与验收标准已定义</li>
+            <li>✅ 文档体系完整（GDD + 路线图 + 任务书）</li>
+            <li>✅ 技术架构与数据流已说明</li>
+            <li>✅ Unity 菜单与开发原则已列出</li>
+        </ul>
+        <p style="margin-top:12px;"><strong>📌 新对话第一步：</strong> 复制 Phase 15 的提示词模板（§4.3），让 Cursor 开始执行跨部门联动测试。</p>
+    </div>
+
+    <hr>
+
+    <div class="footer">
+        <p>📅 生成日期：2026-08-05 · 版本：交接 v1.0</p>
+        <p style="margin-top:4px;">📄 对照：<code>Airline_CEO_Dev_Roadmap_v1.8.md</code> · <code>Airline_CEO_Dev_Task_v1.7.md</code></p>
+    </div>
+
+    <script>
+        function downloadWord() {
+            var content = document.documentElement.outerHTML;
+            var fullHtml = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset="utf-8">
+                <title>MVP2.0_开发交接文档</title>
+                <!--[if gte mso 9]>
+                <xml>
+                    <w:WordDocument>
+                        <w:View>Print</w:View>
+                        <w:Zoom>100</w:Zoom>
+                    </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { background: #ffffff; color: #1e2a3a; font-family: 'Segoe UI', Arial, sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 30px; line-height: 1.6; }
+                    h1, h2, h3, h4 { color: #0b1a33; margin-top: 1.8em; border-bottom: 1px solid #e0e7ef; padding-bottom: 0.3em; }
+                    h1 { font-size: 2.2em; border-bottom: 3px solid #1a5cff; text-align: center; }
+                    h2 { font-size: 1.7em; border-bottom-width: 2px; }
+                    h3 { font-size: 1.3em; border-bottom: none; }
+                    h4 { font-size: 1.1em; border-bottom: none; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #d0d8e0; padding: 10px 14px; vertical-align: top; }
+                    th { background: #eef3f8; }
+                    .footnote { background: #f0f6ff; border-left: 5px solid #1a5cff; padding: 12px 20px; margin: 20px 0; }
+                    .status-done { color: #00a854; font-weight: 700; }
+                    .status-pending { color: #ff8c00; font-weight: 700; }
+                    .highlight-box { background: #f7faff; border: 1px solid #c0d0e0; padding: 14px 18px; margin: 12px 0; }
+                    .flow-chart { background: #f7faff; border: 1px solid #d0d8e0; padding: 16px 20px; font-family: monospace; font-size: 0.9rem; line-height: 1.8; margin: 16px 0; }
+                    .doc-ref { background: #f7faff; border: 1px solid #d0d8e0; padding: 12px 16px; margin: 8px 0; }
+                    .doc-ref .title { font-weight: 700; color: #0b1a33; }
+                    .doc-ref .path { color: #5a6a7a; font-family: monospace; font-size: 0.9rem; }
+                    .doc-ref .desc { color: #5a6a7a; font-size: 0.9rem; }
+                    ul, ol { padding-left: 24px; margin: 12px 0; }
+                    li { margin: 5px 0; }
+                    hr { border: 0; border-top: 2px dashed #d0d8e0; margin: 40px 0; }
+                    .footer { margin-top: 50px; border-top: 1px solid #d0d8e0; padding-top: 20px; font-size: 0.9rem; color: #5a6a7a; text-align: center; }
+                    .download-btn { display: none; }
+                    .btn-wrapper { display: none; }
+                    .badge { display: inline-block; color: white; padding: 2px 12px; border-radius: 20px; font-size: 0.7rem; margin-right: 4px; }
+                    .badge-done { background: #00a854; }
+                    .badge-pending { background: #ff8c00; }
+                </style>
+            </head>
+            <body>
+                ${document.body.innerHTML.replace(/<div class="btn-wrapper">.*?<\/div>/, '')}
+            </body>
+            </html>`;
+            var blob = new Blob([fullHtml], { type: 'application/msword' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'MVP2.0_开发交接文档.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+    </script>
+
+
+
+            </body>
+            </html>

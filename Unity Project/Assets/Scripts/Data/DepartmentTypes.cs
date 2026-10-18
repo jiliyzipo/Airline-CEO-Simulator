@@ -30,7 +30,7 @@ namespace AirlineCEO.Data
             return code switch
             {
                 "OPS" => new[] { "准点率 ≥ 85%", "航班完成率 ≥ 95%", "单班成本可控" },
-                "MNT" => new[] { "机队可用率 ≥ 90%", "维修预算不超支", "AOG 次数少" },
+                "MNT" => new[] { "机队可用率 ≥ 90%", "维修预算不超支", "停飞次数少" },
                 "MKT" => new[] { "客座率 ≥ 75%", "票价策略有效", "品牌口碑稳定" },
                 "FIN" => new[] { "现金不为负", "跑道 ≥ 3 个月", "成本可控" },
                 "HR" => new[] { "员工满意度", "关键岗位满编", "罢工风险低" },
@@ -46,6 +46,7 @@ namespace AirlineCEO.Data
     {
         public string deptCode;
         public string headId;
+        public string deputyId;
         public float loyalty;
         public float salary;
         public float efficiency;

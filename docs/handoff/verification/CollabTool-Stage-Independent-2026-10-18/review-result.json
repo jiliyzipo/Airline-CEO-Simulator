@@ -1,0 +1,46 @@
+{
+  "started": {
+    "reviewId": "REV-20261018095357-18f7dd",
+    "deliveryId": "DEL-20261018093335-80f2f4",
+    "profile": "independent-stage",
+    "status": "queued",
+    "note": "review-start does not execute tests; bound to delivery snapshot"
+  },
+  "runResult": {
+    "reviewId": "REV-20261018095357-18f7dd",
+    "exitCode": 0,
+    "status": "running",
+    "cancelledDuringRun": false,
+    "runToken": "a91aad8f08fbc223",
+    "stdoutPath": ".collab-local/logs/REV-20261018095357-18f7dd/run-a91aad8f08fbc223/stdout.txt",
+    "stderrPath": ".collab-local/logs/REV-20261018095357-18f7dd/run-a91aad8f08fbc223/stderr.txt",
+    "externalExitCode": 0,
+    "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018093335-80f2f4",
+    "resultFile": null
+  },
+  "result": {
+    "reviewId": "REV-20261018095357-18f7dd",
+    "status": "failed",
+    "issues": [
+      "ISSUE-20261018095403-f1e86c",
+      "ISSUE-20261018095403-f4f17e",
+      "ISSUE-20261018095403-4c0790",
+      "ISSUE-20261018095403-a7a8ab",
+      "ISSUE-20261018095403-dd65a3"
+    ],
+    "freshness": "current",
+    "revision": 213,
+    "machineResult": {
+      "parsed": null,
+      "counters": {
+        "total": 6,
+        "failed": 5,
+        "skipped": 0
+      },
+      "unverified": false,
+      "reason": "machine result reports 5 failed assertion(s)"
+    }
+  },
+  "evidenceFile": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\handoff\\verification\\CollabTool-Stage-Independent-2026-10-18\\REV-20261018095357-18f7dd.evidence.json",
+  "auditResultFile": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\handoff\\verification\\CollabTool-Stage-Independent-2026-10-18\\results-2026-10-18T09-54-03-314Z.json"
+}

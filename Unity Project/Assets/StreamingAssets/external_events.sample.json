@@ -1,0 +1,34 @@
+{
+  "_readme": "外部事件 JSON 契约示例（Airline CEO Simulator）。用法：把 external_events.sample.json 或某个 http(s) JSON 地址填进「AirlineCEO/外部数据源」窗口的地址栏即可。字段含义：id 去重键（可留空，会按标题+来源生成）；title/content/source 为内容；publishedAt 现实发布时间（仅用于推算相对间隔，不会进游戏）；category 用于分类（市场/监管/季节/行业）；effectType 为空表示只作内容、不改数值；expired=true 表示过期消息，接收即生效。",
+  "events": [
+    {
+      "id": "sample_ndrc_fuel",
+      "category": "市场",
+      "title": "发改委调整成品油价格",
+      "content": "国家发展改革委决定，自2026年9月12日零时起，国内汽、柴油价格每吨分别上调 260 元和 250 元。",
+      "source": "发改委",
+      "publishedAt": "2026-09-11T15:00:00Z",
+      "effectType": "fuelAbs",
+      "effectValue": 26
+    },
+    {
+      "id": "sample_typhoon_swa",
+      "category": "季节",
+      "title": "台风将影响粤东机场",
+      "content": "今年第14号台风预计3天后登陆粤东，汕头机场可能短时关闭。",
+      "source": "中央气象台",
+      "publishedAt": "2026-09-11T10:00:00Z",
+      "effectType": "freezeFlights",
+      "affectedRegion": "SWA",
+      "durationHours": 48
+    },
+    {
+      "id": "sample_rss_style_news",
+      "category": "行业",
+      "title": "某航司宣布开通与本公司枢纽重叠的洲际新航线",
+      "content": "",
+      "source": "航空周刊",
+      "publishedAt": "2026-09-11T08:00:00Z"
+    }
+  ]
+}

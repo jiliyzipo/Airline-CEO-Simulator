@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261017065838-3a2211",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 21,
+  "at": "2026-10-17T06:58:38.028Z",
+  "actor": "system",
+  "action": "sync",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "sync revision=21",
+  "data": {
+    "freshness": [
+      {
+        "taskId": "C-DEMO",
+        "freshness": "stale",
+        "note": "Historical review REV-20261017065756-f1940a passed delivery DEL-20261017065745-c9b348; current workspace needs re-review.",
+        "implementationFingerprint": "fb0bb0b564f4aa3dda91ca2da8bde304a98637463e7df5ee1916bb51e2fd619b"
+      },
+      {
+        "taskId": "T01",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      },
+      {
+        "taskId": "T02",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      },
+      {
+        "taskId": "T03",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      },
+      {
+        "taskId": "T04",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      },
+      {
+        "taskId": "T05",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      },
+      {
+        "taskId": "T06",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": "df43604ccd5c9efc924bdfc7af2985285ce7686a4a1d2fe4ebe445798ae9b99f"
+      }
+    ]
+  }
+}

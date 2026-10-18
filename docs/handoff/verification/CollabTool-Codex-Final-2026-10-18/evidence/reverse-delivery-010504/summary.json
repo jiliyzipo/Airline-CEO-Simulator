@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18T07:18:37.715Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504\\tools\\collab",
+  "label": "reverse-delivery-010504",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 38,
+      "failLines": 0,
+      "script": ".collab-local/devtests-reverse-delivery-010504-1792307917567/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-reverse-delivery-010504-1792307917567",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 24,
+        "passed": 24,
+        "failed": 0
+      },
+      "passLines": 24,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Codex-Final-2026-10-18/baseline24-recovery.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/reverse-delivery-010504-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "passLines": 12,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/reverse-delivery-010504-supplemental/2026-10-18T07-19-13-875Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "passLines": 8,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/edge8-terminal.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/reverse-delivery-010504-boundary8/2026-10-18T07-19-31-573Z/results.json"
+    }
+  ],
+  "failedSuites": 0
+}

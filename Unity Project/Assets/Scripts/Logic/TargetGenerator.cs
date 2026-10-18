@@ -10,11 +10,6 @@ namespace AirlineCEO.Logic
     /// </summary>
     public static class TargetGenerator
     {
-        public const float GuaranteeNetProfit = 50f;      // 万美元（验收示例）
-        public const float GuaranteeLoadFactor = 75f;     // %
-        public const float DefaultSafety = 80f;           // 安全指数门槛
-        public const int DefaultRouteCount = 1;           // 至少开通 N 条
-
         /// <summary>生成本财年目标清单（3～4 项）。</summary>
         public static List<BoardTarget> Generate(List<string> boardIds, int fiscalYear)
         {
@@ -22,13 +17,14 @@ namespace AirlineCEO.Logic
             var list = new List<BoardTarget>();
             var used = new HashSet<BoardTargetType>();
 
-            // 化学反应 → 偏好目标类型（简化映射）
+            // 化学反应 → 对应 CEO 目标编号（T-01~T-23）
             for (int i = 0; i < chem.Count && list.Count < 4; i++)
             {
-                var t = MapChemistryToType(chem[i]);
-                if (used.Contains(t)) continue;
-                used.Add(t);
-                list.Add(MakeTarget(t, isGuarantee: false, source: chem[i], fiscalYear, list.Count));
+                var def = TargetCatalog.GetByChemistry(chem[i]);
+                var type = def != null ? def.type : BoardTargetType.NetProfit;
+                if (used.Contains(type)) continue;
+                used.Add(type);
+                list.Add(MakeTarget(type, isGuarantee: false, source: chem[i], fiscalYear, list.Count, def));
             }
 
             // 保底：净利润 + 客座率
@@ -54,36 +50,11 @@ namespace AirlineCEO.Logic
             if (used.Contains(type) || list.Count >= 4) return;
             used.Add(type);
             bool guarantee = type == BoardTargetType.NetProfit || type == BoardTargetType.LoadFactor;
-            list.Add(MakeTarget(type, guarantee, guarantee ? "保底" : "补足", fiscalYear, list.Count));
-        }
-
-        private static BoardTargetType MapChemistryToType(string chemId)
-        {
-            // 粗映射：冲突/成本向 → 利润；服务/体验 → 客座；安全向 → 安全；扩张向 → 航线
-            switch (chemId)
-            {
-                case "B-01":
-                case "B-09":
-                case "B-13":
-                case "B-16":
-                    return BoardTargetType.NetProfit;
-                case "B-05":
-                case "B-11":
-                case "B-14":
-                    return BoardTargetType.RouteExpansion;
-                case "B-07":
-                case "B-08":
-                case "B-15":
-                    return BoardTargetType.Safety;
-                case "B-03":
-                case "B-12":
-                default:
-                    return BoardTargetType.LoadFactor;
-            }
+            list.Add(MakeTarget(type, guarantee, guarantee ? "保底" : "补足", fiscalYear, list.Count, null));
         }
 
         private static BoardTarget MakeTarget(BoardTargetType type, bool isGuarantee, string source,
-            int fiscalYear, int index)
+            int fiscalYear, int index, TargetDef def)
         {
             float threshold;
             string unit;
@@ -91,23 +62,23 @@ namespace AirlineCEO.Logic
             switch (type)
             {
                 case BoardTargetType.NetProfit:
-                    threshold = GuaranteeNetProfit;
+                    threshold = BoardEconomics.GuaranteeNetProfit;
                     unit = "万";
                     title = $"净利润 ≥ {threshold:F0} 万";
                     break;
                 case BoardTargetType.LoadFactor:
-                    threshold = GuaranteeLoadFactor;
+                    threshold = BoardEconomics.GuaranteeLoadFactor;
                     unit = "%";
                     title = $"客座率 ≥ {threshold:F0}%";
                     break;
                 case BoardTargetType.Safety:
-                    threshold = DefaultSafety;
+                    threshold = BoardEconomics.DefaultSafety;
                     unit = "";
                     title = $"安全指数 ≥ {threshold:F0}";
                     break;
                 case BoardTargetType.RouteExpansion:
                 default:
-                    threshold = DefaultRouteCount;
+                    threshold = BoardEconomics.DefaultRouteCount;
                     unit = "条";
                     title = $"开通航线 ≥ {threshold:F0} 条";
                     break;
@@ -123,7 +94,9 @@ namespace AirlineCEO.Logic
                 unit = unit,
                 isGuarantee = isGuarantee,
                 completed = false,
-                sourceNote = source
+                sourceNote = source,
+                targetId = def != null ? def.id : "",
+                difficulty = def != null ? def.difficulty : ""
             };
         }
 

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6be4b635bda45a5419a63b10aed82df6, type: 3}
+  m_Name: "n14_\u5E02\u573A\u9500\u552E\u90E8"
+  m_EditorClassIdentifier: AirlineCEO.Runtime::AirlineCEO.Data.UIConfig
+  pageId: "n14_\u5E02\u573A\u9500\u552E\u90E8"
+  title: "\u5E02\u573A\u9500\u552E\u90E8"
+  level: L1
+  parentId: "n0_\u4E3B\u754C\u9762\u6846\u67B6_\u5E38\u9A7B"
+  tabGroup: mkt
+  badgeSource: dept.mkt
+  badge: Phase1
+  meta: "MKT \xB7 Prefab L1"
+  prefab: {fileID: 2906761623587522455, guid: f021cc1539f92154895a33ea1465f0ae, type: 3}

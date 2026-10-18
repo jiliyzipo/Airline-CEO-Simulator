@@ -15,11 +15,18 @@ namespace AirlineCEO.Logic
     public static class SeasonReviewLogic
     {
         public const int MaxWavesPerRoute = 4;
-        /// <summary>日利用率低于该值（小时）且日利为正 → 建议加密。</summary>
+        /// <summary>
+        /// 日利用率低于该值（小时）且日利为正 → 建议加密。
+        /// 口径（★2026-10-14 统一）：**执飞日当天**的轮挡小时 = 每段轮挡 × 2 段 × 每日波次。
+        /// </summary>
         public const float LowUtilHours = 4.0f;
         /// <summary>日利低于该值（万/日）→ 建议减到 1 班。</summary>
         public const float TrimProfitWan = 0.2f;
-        /// <summary>日利用率高于该值（小时）→ 建议减班避险。</summary>
+        /// <summary>
+        /// 日利用率高于该值（小时）→ 建议减班避险。同一口径（执飞日当天、一圈 2 段）：
+        /// 洲际线一天一圈 = 17.4h（FRA–ATL 8.72h × 2）→ 超过 13h，故复核会提示减班 ——
+        /// 这与「单机日利用率目标 10h」是同一条建议口径，不是硬闸门。
+        /// </summary>
         public const float TrimUtilHours = 13.0f;
         public const int MaxProposalsPerKind = 3;
 
@@ -137,7 +144,9 @@ namespace AirlineCEO.Logic
                     waves = r.FlightCount,
                     profit = r.dailyProfit
                 };
-                line.util = OpsEconomics.BlockHours(r.distanceKm > 0 ? r.distanceKm : 1000f) * Math.Max(1, r.FlightCount);
+                // 口径与 OpsEconomics 一致：一圈 = 去 + 回两段（★2026-10-14 统一，旧版漏算回程一半）
+                line.util = OpsEconomics.BlockHours(r.distanceKm > 0 ? r.distanceKm : 1000f)
+                            * OpsEconomics.RoundTripSectors * Math.Max(1, r.FlightCount);
                 var sb = new StringBuilder();
                 for (int f = 0; f < r.flights.Count; f++)
                 {

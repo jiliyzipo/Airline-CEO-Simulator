@@ -1,0 +1,135 @@
+{
+  "at": "2026-10-18T07:19:55.101Z",
+  "subject": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504\\tools\\collab",
+  "label": "delivery-010504",
+  "entries": [
+    {
+      "id": "all",
+      "exitCode": 0,
+      "error": null,
+      "stdoutSha256": "f660a583a5e9f9a5f405dac219c1b8d92c918ce3989d2c9028ae9ce5b808f244",
+      "counts": {
+        "profile": "collab",
+        "assertionsTotal": 112,
+        "assertionsFailed": 0,
+        "assertionsSkipped": 0,
+        "suites": [
+          {
+            "file": "collab.test.mjs",
+            "exitCode": 0,
+            "passed": 38,
+            "failed": 0,
+            "spawnError": null
+          },
+          {
+            "file": "xml.test.mjs",
+            "exitCode": 0,
+            "passed": 26,
+            "failed": 0,
+            "spawnError": null
+          },
+          {
+            "file": "closure.test.mjs",
+            "exitCode": 0,
+            "passed": 13,
+            "failed": 0,
+            "spawnError": null
+          },
+          {
+            "file": "daily.test.mjs",
+            "exitCode": 0,
+            "passed": 21,
+            "failed": 0,
+            "spawnError": null
+          },
+          {
+            "file": "reverse-review.test.mjs",
+            "exitCode": 0,
+            "passed": 14,
+            "failed": 0,
+            "spawnError": null
+          }
+        ],
+        "evidenceDirectory": "C:\\Users\\jiliy\\AppData\\Local\\Temp\\collab-suite-WBKvbx",
+        "ok": true
+      }
+    },
+    {
+      "id": "external",
+      "exitCode": 0,
+      "error": null,
+      "stdoutSha256": "f2a6bc863fd40c2f8a178b5c6088e404eca862f14bc6b72aa3bfa5174ded1353",
+      "summary": {
+        "date": "2026-10-18T07:18:37.715Z",
+        "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504\\tools\\collab",
+        "label": "reverse-delivery-010504",
+        "suites": [
+          {
+            "id": "developer-tests",
+            "exitCode": 0,
+            "ok": true,
+            "counts": null,
+            "passLines": 38,
+            "failLines": 0,
+            "script": ".collab-local/devtests-reverse-delivery-010504-1792307917567/tools/collab/tests/collab.test.mjs",
+            "cwd": ".collab-local/devtests-reverse-delivery-010504-1792307917567",
+            "resultsPath": null
+          },
+          {
+            "id": "baseline24",
+            "exitCode": 0,
+            "ok": true,
+            "counts": {
+              "total": 24,
+              "passed": 24,
+              "failed": 0
+            },
+            "passLines": 24,
+            "failLines": 0,
+            "script": "docs/handoff/verification/CollabTool-Codex-Final-2026-10-18/baseline24-recovery.mjs",
+            "cwd": "",
+            "resultsPath": ".collab-local/acceptance-20261017/reverse-delivery-010504-baseline24/results.json"
+          },
+          {
+            "id": "supplemental",
+            "exitCode": 0,
+            "ok": true,
+            "counts": {
+              "total": 12,
+              "passed": 12,
+              "failed": 0
+            },
+            "passLines": 12,
+            "failLines": 0,
+            "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+            "cwd": "",
+            "resultsPath": ".collab-local/reaccept-20261017/reverse-delivery-010504-supplemental/2026-10-18T07-19-13-875Z/results.json"
+          },
+          {
+            "id": "boundary8",
+            "exitCode": 0,
+            "ok": true,
+            "counts": {
+              "total": 8,
+              "passed": 8,
+              "failed": 0
+            },
+            "passLines": 8,
+            "failLines": 0,
+            "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/edge8-terminal.mjs",
+            "cwd": "",
+            "resultsPath": ".collab-local/reaccept-20261017/reverse-delivery-010504-boundary8/2026-10-18T07-19-31-573Z/results.json"
+          }
+        ],
+        "failedSuites": 0
+      }
+    },
+    {
+      "id": "xml-gate",
+      "exitCode": 0,
+      "error": null,
+      "stdoutSha256": "21e7c4cc90c4732ccdde6bf1425a76283076a132b42a981dad899d75997664e8"
+    }
+  ],
+  "allPassed": true
+}

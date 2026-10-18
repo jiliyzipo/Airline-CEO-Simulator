@@ -1,0 +1,8 @@
+{
+  "description": "Optional sync only. Review and trust in /hooks; no automatic acknowledgement or testing.",
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "node tools/collab/adapters/client-hook.mjs codex SessionStart", "timeout": 30}]}],
+    "PostToolUse": [{"matcher": "apply_patch|Edit|Write", "hooks": [{"type": "command", "command": "node tools/collab/adapters/client-hook.mjs codex PostToolUse", "timeout": 30}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "node tools/collab/adapters/client-hook.mjs codex Stop", "timeout": 30}]}]
+  }
+}

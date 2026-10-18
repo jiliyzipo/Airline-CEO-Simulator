@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261017151144-baa0d6",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 69,
+  "at": "2026-10-17T15:11:44.835Z",
+  "actor": "system",
+  "action": "sync",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "sync revision=69",
+  "data": {
+    "freshness": [
+      {
+        "taskId": "C-DEMO",
+        "freshness": "current",
+        "note": "Delivery matches current fingerprints; awaiting review.",
+        "implementationFingerprint": "efdddc5f2a11639ad3454a21b6092114b8d692f244bc0b4f2e475e82d28fdd1c",
+        "verificationFingerprint": "3f24a449533486f82dd926dff2a6c998d7cdd621564d01ba7743ec36d582aa89",
+        "pairedDeliveryId": "DEL-20261017150657-dd9483",
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T01",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T02",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T03",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T04",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T05",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T06",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": "799d6bef7a5411769a50ec26cf7f40735f9971d26f97cdd6f9b84042bc98a146",
+        "verificationFingerprint": "bbf2a90a0ec576bdd44abe7c80b644572e485d19f3c1cfc410286b4fe94badf9",
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      }
+    ]
+  }
+}

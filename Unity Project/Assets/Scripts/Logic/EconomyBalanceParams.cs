@@ -162,6 +162,24 @@ namespace AirlineCEO.Logic
         public const float UtilizationEfficiencyPerHour = 0.04f;
         /// <summary>周班次相对 7 班的规模效率弹性（边际递减）。</summary>
         public const float WeeklyFrequencyElasticity = 0.85f;
+
+        // —— 班次模型（RouteFrequencyModel）：由 需求 × 枢纽规模 × 机型 × 航距 推每周班次 1–28 ——
+        /// <summary>客源强度放大系数：把「两端吞吐几何均值 × OD 吸引力 × 距离衰减」映射为单向日客流人数。</summary>
+        public const float FreqDemandPaxScale = 10f;
+        /// <summary>距离衰减尺度（km）：航距每增加该值，需求约按 1/(1+d/尺度) 递减。</summary>
+        public const float FreqDemandDecayKm = 3500f;
+        /// <summary>城市经济目录缺失时的默认年吞吐（百万），避免需求侧凭空归零。</summary>
+        public const float FreqUnknownPaxMillion = 20f;
+        /// <summary>城市经济目录缺失时的默认 OD 吸引力（0–100）。</summary>
+        public const float FreqUnknownOdIndex = 60f;
+        /// <summary>目的地分带：此航距以内视为「短程」（本洲高频网）。</summary>
+        public const float FreqBandNearKm = 3000f;
+        /// <summary>目的地分带：此航距以内视为「中程」，以上为「远程」（洲际低频）。</summary>
+        public const float FreqBandMidKm = 6000f;
+        /// <summary>每周班次下限。</summary>
+        public const int FreqMinWeekly = 1;
+        /// <summary>每周班次上限（4 波/日 × 7 日）。</summary>
+        public const int FreqMaxWeekly = 28;
         /// <summary>基准过站时间（分钟）。</summary>
         public const float BaseTurnMinutes = 50f;
         /// <summary>地勤每缺 1 人增加的过站分钟。</summary>

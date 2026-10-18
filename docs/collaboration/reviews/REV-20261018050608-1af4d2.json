@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018050608-1af4d2",
+  "deliveryId": "DEL-20261018050538-fe84c9",
+  "taskId": "C-COLLAB-FINAL",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.2.0",
+  "independent": false,
+  "reviewKind": "developer-self-check",
+  "subjectFingerprints": {
+    "implementation": "1d5d9426de4039ccac057295d209b2362c7680038865cd979c2b57bc6f13233f",
+    "verification": "4619ab1a980d4171964970f28104de9b65b529601e2b2b63549f9a12131ab7a2",
+    "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+  },
+  "snapshotPath": "out/collab/DEL-20261018050538-fe84c9",
+  "createdAt": "2026-10-18T05:06:08.448Z",
+  "updatedAt": "2026-10-18T05:12:58.142Z",
+  "runs": [
+    {
+      "at": "2026-10-18T05:12:20.862Z",
+      "finishedAt": "2026-10-18T05:12:58.142Z",
+      "runToken": "e4c5816f7766e02f",
+      "profile": "collab",
+      "deliveryId": "DEL-20261018050538-fe84c9",
+      "subjectImplementationFingerprint": "1d5d9426de4039ccac057295d209b2362c7680038865cd979c2b57bc6f13233f",
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018050538-fe84c9",
+      "exitCode": 1,
+      "stdoutPath": ".collab-local/logs/REV-20261018050608-1af4d2/run-e4c5816f7766e02f/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018050608-1af4d2/run-e4c5816f7766e02f/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018050608-1af4d2/run-e4c5816f7766e02f/stdout.txt",
+        "sha256": "d451f205e17ac8e599bec9e106eea8a7cd9bd713ea2e58d2ba6d3de4980f7c3d",
+        "bytes": 539,
+        "runToken": "e4c5816f7766e02f"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018050608-1af4d2/run-e4c5816f7766e02f/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "e4c5816f7766e02f"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T05:12:20.832Z",
+  "finishedAt": "2026-10-18T05:12:58.142Z"
+}

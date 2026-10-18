@@ -1,0 +1,19 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "9af30cf63cb24136b711b920c18a9644a9cae6452c94099e7b24f0888144182d",
+  "summary": "slot profile executed the real tools/slotcheck/slotcheck.csproj inside the isolated delivery snapshot; 371 [PASS], 0 [FAIL], summary line SLOTCHECK OK, exit code 0, detail counters agree with the summary.",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 940c78cb5a0bf932 in out/collab/DEL-20261018033145-e77a66: 371 [PASS] / 0 [FAIL], SLOTCHECK OK, external exit code 0. Post-run snapshot integrity verified (only bin/obj build artifacts appeared)."
+    }
+  ],
+  "assertionsTotal": 371,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "notes": [
+    "Detail line counts and the SLOTCHECK summary agree, so the result is not a truncated/garbled pass.",
+    "No game code was modified, Unity was not started, nothing was committed or pushed."
+  ]
+}

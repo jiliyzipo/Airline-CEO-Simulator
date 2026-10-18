@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18T05:01:17.846Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "label": "codex-final-development-current-20261018",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 38,
+      "failLines": 0,
+      "script": ".collab-local/devtests-codex-final-development-current-20261018-1792299677755/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-codex-final-development-current-20261018-1792299677755",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 24,
+        "passed": 24,
+        "failed": 0
+      },
+      "passLines": 24,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/baseline24-terminal.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/codex-final-development-current-20261018-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 1,
+      "ok": false,
+      "counts": {
+        "total": 12,
+        "passed": 11,
+        "failed": 1
+      },
+      "passLines": 11,
+      "failLines": 1,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-final-development-current-20261018-supplemental/2026-10-18T05-01-50-776Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "passLines": 8,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Closure-Independent-2026-10-18/edge8-terminal.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/codex-final-development-current-20261018-boundary8/2026-10-18T05-02-06-205Z/results.json"
+    }
+  ],
+  "failedSuites": 1
+}

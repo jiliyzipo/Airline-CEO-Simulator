@@ -1,0 +1,433 @@
+{
+  "date": "2026-10-18T07:19:13.211Z",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\acceptance-20261017\\reverse-delivery-010504-baseline24\\runs\\2026-10-18T07-18-42-980Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504\\tools\\collab",
+  "scope": "Independent acceptance of explicitly selected tool source; all behavioral fixtures are disposable; no Unity or production code execution",
+  "sourceFingerprint": "efb3db6325dbe7c94c85e23a40bf37402ef442846a3c78f11935a4471b347b42",
+  "sourceEntries": [
+    {
+      "path": "tools/collab/adapters/client-hook.mjs",
+      "bytes": 2186,
+      "sha256": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9"
+    },
+    {
+      "path": "tools/collab/adapters/codex-hooks.json.example",
+      "bytes": 589,
+      "sha256": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f"
+    },
+    {
+      "path": "tools/collab/adapters/codex-hooks.toml.example",
+      "bytes": 556,
+      "sha256": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5"
+    },
+    {
+      "path": "tools/collab/adapters/cursor-hooks.json.example",
+      "bytes": 333,
+      "sha256": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732"
+    },
+    {
+      "path": "tools/collab/adapters/README.md",
+      "bytes": 2224,
+      "sha256": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f"
+    },
+    {
+      "path": "tools/collab/cli.mjs",
+      "bytes": 4932,
+      "sha256": "95c25995221ea0d5ebe816a9309a1b5aca14606b13c405f95528143573a466a4"
+    },
+    {
+      "path": "tools/collab/Collab.ps1",
+      "bytes": 7942,
+      "sha256": "e48b5e6d7ab1d0d4391c1e51ea7ef686c6e072cdea317199b27f502afdc2196a"
+    },
+    {
+      "path": "tools/collab/config.example.json",
+      "bytes": 4934,
+      "sha256": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09"
+    },
+    {
+      "path": "tools/collab/lib/authorization.mjs",
+      "bytes": 3630,
+      "sha256": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069"
+    },
+    {
+      "path": "tools/collab/lib/commands.mjs",
+      "bytes": 102615,
+      "sha256": "4349768279043fe92c81e93b4c81f26c9e8d575e142dab510c518c8351e29a57"
+    },
+    {
+      "path": "tools/collab/lib/exit.mjs",
+      "bytes": 378,
+      "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08"
+    },
+    {
+      "path": "tools/collab/lib/fingerprint.mjs",
+      "bytes": 10346,
+      "sha256": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4"
+    },
+    {
+      "path": "tools/collab/lib/hooks.mjs",
+      "bytes": 8113,
+      "sha256": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608"
+    },
+    {
+      "path": "tools/collab/lib/io.mjs",
+      "bytes": 6506,
+      "sha256": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab"
+    },
+    {
+      "path": "tools/collab/lib/paths.mjs",
+      "bytes": 2634,
+      "sha256": "fd09373d5c0cc7b0b41d76e82b90e30389fa1badd3a6575ae8d1e84ce835890b"
+    },
+    {
+      "path": "tools/collab/lib/roots.mjs",
+      "bytes": 1634,
+      "sha256": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9"
+    },
+    {
+      "path": "tools/collab/lib/schemas.mjs",
+      "bytes": 13516,
+      "sha256": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677"
+    },
+    {
+      "path": "tools/collab/lib/snapshot.mjs",
+      "bytes": 3919,
+      "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca"
+    },
+    {
+      "path": "tools/collab/lib/state.mjs",
+      "bytes": 21125,
+      "sha256": "2f32a31889ff5601c44481421cb4c426264c3c1a86d02f531cdb997c215f04ba"
+    },
+    {
+      "path": "tools/collab/lib/taskbook.mjs",
+      "bytes": 24449,
+      "sha256": "a4b69a9f6d44784e0d3ba89648bc6a8231811d477e000a3a4164656f118bcb4d"
+    },
+    {
+      "path": "tools/collab/lib/watch.mjs",
+      "bytes": 6207,
+      "sha256": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164"
+    },
+    {
+      "path": "tools/collab/lib/xml.mjs",
+      "bytes": 9987,
+      "sha256": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c"
+    },
+    {
+      "path": "tools/collab/scripts/repair-task-state.mjs",
+      "bytes": 746,
+      "sha256": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1"
+    },
+    {
+      "path": "tools/collab/tests/closure.test.mjs",
+      "bytes": 11680,
+      "sha256": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20"
+    },
+    {
+      "path": "tools/collab/tests/collab.test.mjs",
+      "bytes": 34316,
+      "sha256": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a"
+    },
+    {
+      "path": "tools/collab/tests/daily.test.mjs",
+      "bytes": 16612,
+      "sha256": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483"
+    },
+    {
+      "path": "tools/collab/tests/reverse-review.test.mjs",
+      "bytes": 12069,
+      "sha256": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747"
+    },
+    {
+      "path": "tools/collab/tests/run-all.mjs",
+      "bytes": 1778,
+      "sha256": "d07e108def97d783db979c24d717e1f61578ab2bd63eef5b255e4729bc05afcc"
+    },
+    {
+      "path": "tools/collab/tests/smoke-profile.mjs",
+      "bytes": 759,
+      "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c"
+    },
+    {
+      "path": "tools/collab/tests/stale-marker.txt",
+      "bytes": 20,
+      "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1"
+    },
+    {
+      "path": "tools/collab/tests/xml.test.mjs",
+      "bytes": 3227,
+      "sha256": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51"
+    }
+  ],
+  "referencedDelivery": "DEL-20261017065745-c9b348",
+  "referencedReview": "REV-20261017065756-f1940a",
+  "total": 24,
+  "passed": 24,
+  "failed": 0,
+  "results": [
+    {
+      "id": "P01",
+      "requirement": "Developer supplied tests run in disposable clone, not real project",
+      "passed": true,
+      "exitCode": 0,
+      "output": "ok - schema rejects developer independentReviewPassed\nok - schema rejects codex claim via role gate\nok - task requires acceptanceCriteria\nok - file lock is exclusive\nok - file lock does not steal a lock whose payload is still being written\nok - nunit parser requires every counter attribute\nok - nunit parser rejects roots concealing failed cases\nok - nunit parser accepts a real Unity-shaped result\nok - nunit parser requires a complete XML document, not just a root tag\nok - nunit parser handles nested suites, comments and CDATA\nok - nunit parser still refuses valid documents that report failures\nok - slotcheck adapter derives counters and verifies its summary\nok - semcheck adapter requires all three gates\nok - atomic write replaces file\nok - fingerprint classify detects impl change\nok - report-only entries do not change hash when empty list stable\nok - doctor runs\nok - init is idempotent\nok - status and sync work after init\nok - ack CAS fails on wrong revision\nok - cursor cannot review-finish\nok - second claim of held task conflicts\nok - task book mapping finds one total clause and its sub-items\nok - task book mapping refuses an ambiguous total clause\nok - completion gate blocks until sub-items are checked, then checks the total clause\nok - clause edited after baseline is reported and never silently checked\nok - a baseline recorded under an older hash scheme is re-recorded, not reported as an edit\nok - defect status has one source: role-gated transitions recorded in shared state\nok - clean checkout requirement blocks T02-style totals even when everything else passes\nok - hook applies once and suppresses the duplicate event\nok - hook preserves rapid distinct edits and dedupes only the same file version\nok - disabled hooks never apply work and say so\nok - hook payload tolerates a Windows BOM but still rejects garbage\nok - freshness compares the task-declared roots and staleness keeps the passed verdict\nok - task-declared snapshot roots take precedence over the demo roots\nok - generated run output is allowed inside a snapshot but source edits are not\nok - profile run outputs normalize but may never declare source or traverse\nok - declared run output is tolerated in a snapshot, every other stray file is not\n\nall tests passed\n"
+    },
+    {
+      "id": "P02",
+      "requirement": "Cursor cannot publish review-finish",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 7,
+        "error": "actor=cursor is not allowed to run review-finish"
+      }
+    },
+    {
+      "id": "P03",
+      "requirement": "Repeated init preserves existing task and state bytes",
+      "passed": true
+    },
+    {
+      "id": "N01",
+      "requirement": "Malformed types and empty acceptance objects must be rejected",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 2,
+        "error": "task.schemaVersion must be number 1"
+      }
+    },
+    {
+      "id": "N02",
+      "requirement": "Review executes fixed snapshot A rather than edited workspace B",
+      "passed": true,
+      "actual": "snapshot-A",
+      "expected": "snapshot-A",
+      "snapshot": "out\\collab\\DEL-20261018071850-616196\\src\\model.cs"
+    },
+    {
+      "id": "N03",
+      "requirement": "Review must reject evidence missing subject fingerprint and real result",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "evidence.failed must be a non-negative integer (got undefined)"
+      }
+    },
+    {
+      "id": "N04",
+      "requirement": "Required criterion not_run prevents passed",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "required criterion AC3 not passed (got not_run)"
+      }
+    },
+    {
+      "id": "N05",
+      "requirement": "Only-skipped assertions prevent passed",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "cannot pass when all assertions are skipped"
+      }
+    },
+    {
+      "id": "N06",
+      "requirement": "Finished review cannot be overwritten by another finish",
+      "passed": true,
+      "hashChanged": false,
+      "observation": {
+        "accepted": false,
+        "exitCode": 3,
+        "error": "review REV-20261018071855-bc325e is immutable terminal status=blocked"
+      }
+    },
+    {
+      "id": "N07",
+      "requirement": "Finalization rechecks current code and does not mark changed workspace current",
+      "passed": true,
+      "actual": {
+        "reviewStatus": "blocked",
+        "freshness": "unknown"
+      }
+    },
+    {
+      "id": "N08",
+      "requirement": "Operational state changes do not mutate acceptance-contract fingerprint",
+      "passed": true,
+      "before": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043",
+      "after": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+    },
+    {
+      "id": "N09",
+      "requirement": "Demo generated events and CURRENT do not affect implementation fingerprint",
+      "passed": true,
+      "before": "68cd252ff2fe8d3e40262f88ba366c5c5b02e5b7352762fbae83d47ba3426784",
+      "after": "68cd252ff2fe8d3e40262f88ba366c5c5b02e5b7352762fbae83d47ba3426784"
+    },
+    {
+      "id": "N10",
+      "requirement": "Unity Assets/Tests changes belong to verification fingerprint",
+      "passed": true,
+      "implementationChanged": false,
+      "verificationChanged": true
+    },
+    {
+      "id": "N11",
+      "requirement": "Normal non-demo delivery creates snapshot without overlapping-root mismatch",
+      "passed": true,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "deliveryId": "DEL-20261018071901-03092a",
+          "taskId": "C-DEMO",
+          "snapshotPath": "out/collab/DEL-20261018071901-03092a",
+          "implementationFingerprint": "aef3b72b4ce479a3671d720540b3ee24c00942c3dd99fa56062d994e210438b5",
+          "revision": 2
+        }
+      }
+    },
+    {
+      "id": "N12",
+      "requirement": "Unread/missing ack prevents claim of current revision",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 3,
+        "error": "ack current revision 1 before claim (actor=cursor)"
+      }
+    },
+    {
+      "id": "N13",
+      "requirement": "Snapshot content tampering is detected before review command",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "snapshot tampered: src/model.cs"
+      }
+    },
+    {
+      "id": "N14",
+      "requirement": "Failed process plus forged success cannot overwrite earlier failed report",
+      "passed": true,
+      "externalExitCode": 9,
+      "terminalRefusal": true,
+      "reportUnchanged": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 3,
+        "error": "review REV-20261018071903-12f73c is immutable terminal status=failed"
+      }
+    },
+    {
+      "id": "N15",
+      "requirement": "Repeated no-change sync leaves revision and contract stable",
+      "passed": true,
+      "before": 2,
+      "after": 2,
+      "lastAcknowledged": 2
+    },
+    {
+      "id": "N16",
+      "requirement": "Failed review task status agrees with recorded failed run",
+      "passed": true,
+      "reportStatus": "failed",
+      "taskStatus": "failed"
+    },
+    {
+      "id": "N17",
+      "requirement": "Concurrent different-task claims do not lose shared state revision",
+      "passed": true,
+      "observations": [
+        {
+          "code": 4,
+          "out": "{\"error\":\"Lock held by claim:cursor:B pid=49868 (alive=true, ageMs=10). Do not delete Unity project locks. Use collab unlock only for this tool's locks.\",\"exitCode\":4}\n"
+        },
+        {
+          "code": 0,
+          "out": "{\"taskId\":\"B\",\"holder\":\"cursor\",\"revision\":2}\n"
+        }
+      ],
+      "holders": [
+        {
+          "id": "A",
+          "holder": null
+        },
+        {
+          "id": "B",
+          "holder": "cursor"
+        }
+      ],
+      "before": 1,
+      "after": 2,
+      "scheduler": "Shared state.lock serializes claim; CAS rejects the loser so revision advances exactly once."
+    },
+    {
+      "id": "N18",
+      "requirement": "Unity process inspection fails closed if PowerShell cannot be started",
+      "passed": true,
+      "observation": {
+        "checked": false,
+        "running": null,
+        "pids": [],
+        "error": "spawnSync powershell.exe ENOENT"
+      }
+    },
+    {
+      "id": "N19",
+      "requirement": "Newly failed latest delivery is not paired with an old passed review",
+      "passed": true,
+      "oldReview": "REV-20261018071907-d28569",
+      "newDelivery": "DEL-20261018071908-0f5627",
+      "note": "Latest delivery DEL-20261018071908-0f5627 review REV-20261018071908-ffd650 failed."
+    },
+    {
+      "id": "P04",
+      "requirement": "Source mutation during snapshot copy is rejected without publishing mixed snapshot",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "Failed to create stable snapshot after 1 attempts: Source changed during snapshot copy"
+      },
+      "publishedSnapshot": false
+    },
+    {
+      "id": "N20",
+      "requirement": "Interrupted review is recoverable rather than left running indefinitely",
+      "passed": true,
+      "statusAfterWorkerExitAndSync": "interrupted",
+      "trackedWorkerPid": null,
+      "recoveryCommandDocumented": true
+    }
+  ],
+  "preservation": {
+    "productionUnchanged": true,
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "originalRecords": {
+      "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json": {
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      "docs/collaboration/reviews/REV-20261017065756-f1940a.json": {
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md": {
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    }
+  }
+}

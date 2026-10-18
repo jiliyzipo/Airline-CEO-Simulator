@@ -1,0 +1,22 @@
+PASS D01 doctor is read-only and CLI counters do not verify native hooks
+PASS D02 malformed or scalar stdin is rejected instead of syncing
+PASS D03 idempotency keys are separate for each source and event
+PASS D04 rapid distinct edits are not discarded by debounce
+PASS D05 Codex delivery needs scoped authorization and self-check cannot pass independent gate
+PASS D06 evidence draft defaults uncovered ACs to not_run and explicit coverage can finish
+PASS D07 append-only publication cannot replace an existing audit record
+PASS D08 foreign-machine or corrupt locks are not reclaimed
+PASS D09 claim detects overlap and permits explicitly disjoint task roots
+PASS D10 duplicate task headings and sub-item IDs cannot pass mapping
+PASS D11 only tool-owned managed checkboxes are revoked, preserving manual clause conflicts
+PASS D12 foreground watch refreshes changed input within five seconds without ack
+PASS D13 PowerShell wrapper preserves explicit profiles and evidence drafting works
+PASS D14 per-command help exits zero without mutating records
+PASS D15 dead review worker is interrupted without deleting user Unity locks
+PASS D16 client bridge consumes stdin but never creates a delivery or auto-ack
+PASS D17 invalid config roots, duplicate ACs and traversal snapshot roots are rejected
+PASS D18 unknown delivery profiles fail before exporting a snapshot
+PASS D19 gate rechecks current bytes even when the operator forgot sync
+PASS D20 review freezes its profile and changed local profile cannot inherit a current pass
+PASS D21 machine-local config is excluded from shareable delivery inputs
+SUMMARY 21/21 daily checks; evidence=C:\Users\jiliy\AppData\Local\Temp\collab-daily-bm36DP

@@ -1,0 +1,15 @@
+ok - schema rejects developer independentReviewPassed
+ok - schema rejects codex claim via role gate
+ok - task requires acceptanceCriteria
+ok - file lock is exclusive
+ok - atomic write replaces file
+ok - fingerprint classify detects impl change
+ok - report-only entries do not change hash when empty list stable
+ok - doctor runs
+ok - init is idempotent
+ok - status and sync work after init
+ok - ack CAS fails on wrong revision
+ok - cursor cannot review-finish
+ok - second claim of held task conflicts
+
+all tests passed

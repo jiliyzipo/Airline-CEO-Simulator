@@ -1,0 +1,175 @@
+{
+  "date": "2026-10-18T05:18:29.877Z",
+  "subject": "out/collab/DEL-20261018051637-e21eae/tools/collab",
+  "subjectManifest": "b8608dac381fcf97385fdca3f022211409d0844e46dba213cd7a2141f0752bab",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "results": [
+    {
+      "id": "X-adjacent attributes",
+      "requirement": "parseXmlDocument and NUnit counters refuse adjacent attributes",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-CDATA terminator in text",
+      "requirement": "parseXmlDocument and NUnit counters refuse CDATA terminator in text",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-double hyphen in comment",
+      "requirement": "parseXmlDocument and NUnit counters refuse double hyphen in comment",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-declaration after whitespace",
+      "requirement": "parseXmlDocument and NUnit counters refuse declaration after whitespace",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-decimal control reference",
+      "requirement": "parseXmlDocument and NUnit counters refuse decimal control reference",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-unvalidated doctype",
+      "requirement": "parseXmlDocument and NUnit counters refuse unvalidated doctype",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "error": null,
+        "counters": null
+      }
+    },
+    {
+      "id": "X-valid",
+      "requirement": "parseXmlDocument still accepts valid UTF-8 NUnit content",
+      "passed": true,
+      "detail": {
+        "ok": true,
+        "error": null
+      }
+    },
+    {
+      "id": "G-adjacent attributes",
+      "requirement": "finish refuses a bound result file with adjacent attributes",
+      "passed": true,
+      "detail": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a usable NUnit XML result: result.xml: result file is not a well-formed XML document: attribute in <test-run> must be preceded by whitespace (offset 19)"
+      }
+    },
+    {
+      "id": "G-CDATA terminator in text",
+      "requirement": "finish refuses a bound result file with CDATA terminator in text",
+      "passed": true,
+      "detail": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a usable NUnit XML result: result.xml: result file is not a well-formed XML document: ']]>' is forbidden in ordinary character data (offset 70)"
+      }
+    },
+    {
+      "id": "G-double hyphen in comment",
+      "requirement": "finish refuses a bound result file with double hyphen in comment",
+      "passed": true,
+      "detail": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a usable NUnit XML result: result.xml: result file is not a well-formed XML document: invalid double hyphen in comment (offset 70)"
+      }
+    },
+    {
+      "id": "G-valid-nunit",
+      "requirement": "A well-formed NUnit result file still finishes passed",
+      "passed": true,
+      "detail": {
+        "run": 0,
+        "finish": {
+          "accepted": true,
+          "value": {
+            "reviewId": "REV-20261018051827-11d425",
+            "status": "passed",
+            "issues": [],
+            "freshness": "current",
+            "revision": 6,
+            "machineResult": {
+              "parsed": {
+                "file": "result.xml",
+                "sha256": "14160e974786764103f17c25421de022b84a2b483c9f31cfd43fbe06c305852d",
+                "total": 1,
+                "failed": 0,
+                "skipped": 0,
+                "passed": 1
+              },
+              "counters": {
+                "total": 1,
+                "failed": 0,
+                "skipped": 0,
+                "passed": 1
+              },
+              "unverified": false,
+              "reason": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "G-valid-json",
+      "requirement": "JSON machine output still finishes passed",
+      "passed": true,
+      "detail": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018051829-b1589d",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6,
+          "machineResult": {
+            "parsed": {
+              "adapter": "stdout-json",
+              "total": 1,
+              "failed": 0,
+              "skipped": 0
+            },
+            "counters": {
+              "total": 1,
+              "failed": 0,
+              "skipped": 0
+            },
+            "unverified": false,
+            "reason": null
+          }
+        }
+      }
+    }
+  ]
+}

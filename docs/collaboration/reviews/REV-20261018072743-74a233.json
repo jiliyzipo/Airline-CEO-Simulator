@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018072743-74a233",
+  "deliveryId": "DEL-20261018071756-010504",
+  "taskId": "C-COLLAB-FINAL",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "status": "passed",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "reviewException": true,
+  "authorization": {
+    "schemaVersion": 1,
+    "grantedBy": "user",
+    "actor": "cursor",
+    "developerActor": "codex",
+    "projectId": "Airline-CEO-Simulator",
+    "taskId": "C-COLLAB-FINAL",
+    "deliveryId": "DEL-20261018071756-010504",
+    "actions": [
+      "review-start",
+      "review-run",
+      "review-evidence",
+      "review-finish",
+      "review-cancel"
+    ],
+    "profiles": [
+      "collab"
+    ],
+    "subjectFingerprints": {
+      "implementation": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+      "verification": "973c54332212315c10d601101a769a86807e2143c80a36c89af06df43a168e45",
+      "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+    },
+    "statement": "在用户授权 Codex 完成协调工具全部开发、并要求处理 Cursor 反馈的范围内，准备本次限定的 Cursor 反向独立复验声明。它只允许 Cursor 检测此指定的 Codex 工具交付，不表示已复验或已通过；不允许冒用身份或修改游戏验收结论。",
+    "authorizationBasis": [
+      "用户原话：授权你完成协调工具的全部开发工作",
+      "用户确认：已经让Cursor保持现状。Codex 接手修复后，准备可供 Cursor 真实身份复验的交付。"
+    ],
+    "constraints": [
+      "不得改写原有 DEL/REV/ISSUE/event 历史",
+      "不启动 Unity、不修改游戏业务与游戏任务书",
+      "不 commit/push、不改全局客户端设置",
+      "不授权 Cursor 缺陷 verified/closed 或任务书勾选、全局 recover",
+      "不是操作系统身份凭据，执行者必须如实使用自身 actor"
+    ],
+    "sha256": "99af662aa72fb04390da7547589526258802e20d6c89c5b19313e5ca4f248f3b"
+  },
+  "subjectFingerprints": {
+    "implementation": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+    "verification": "973c54332212315c10d601101a769a86807e2143c80a36c89af06df43a168e45",
+    "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+  },
+  "snapshotPath": "out/collab/DEL-20261018071756-010504",
+  "createdAt": "2026-10-18T07:27:43.130Z",
+  "updatedAt": "2026-10-18T07:34:27.983Z",
+  "runs": [
+    {
+      "at": "2026-10-18T07:27:49.630Z",
+      "finishedAt": "2026-10-18T07:28:15.578Z",
+      "runToken": "30cc87cca6933a0d",
+      "profile": "collab",
+      "deliveryId": "DEL-20261018071756-010504",
+      "subjectImplementationFingerprint": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018071756-010504",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stdout.txt",
+        "sha256": "3cb3d61a4e8aec792cd55fa50c2df5a132045afc0a85e97cedd07eb075be12d2",
+        "bytes": 599,
+        "runToken": "30cc87cca6933a0d"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "30cc87cca6933a0d"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "review-run runToken=30cc87cca6933a0d，cwd=out/collab/DEL-20261018071756-010504，exit=0，stderr 0 字节；标准输出为 112/0/0（collab 38、xml 26、closure 13、daily 21、reverse-review 14），ok=true。日志 .collab-local/logs/REV-20261018072743-74a233/run-30cc87cca6933a0d/stdout.txt。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "同一快照外部套件：developer 38 行通过、baseline24 24/24、supplemental 12/12、boundary8 8/8（evidence/cursor-REV-20261018072743-74a233）。XML 结果闸门审计 12/12，含 6 类非法 XML 在解析层与 finish 层被拒、合法 NUnit/JSON 仍通过（.collab-local/cursor-REV-20261018072743-74a233-xml）。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "README/操作手册明确默认手动 sync/ack + 前台 watch，Hooks 可选且 nativeVerified=false、cliAppliedDoesNotProveNativeTrigger=true；跨 actor 操作被拒（codex 取消 cursor 的 REV 返回 7）；另跑 6 条独立探针全部通过（P1 非法输入非零、P2 本机 config 不入指纹、P3 无基线不得完成、P4 并发 Hook 不重复应用且重试去重、P5 改动后 stale 但保留 passed、P6 未授权与借用授权均被拒）。"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T07:27:49.605Z",
+  "assertions": {
+    "total": 112,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 112,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 112,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-ReverseReview-2026-10-18/cursor/review-evidence-REV-20261018072743-74a233.json",
+  "finishedAt": "2026-10-18T07:34:27.983Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "30cc87cca6933a0d",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018071756-010504"
+  }
+}

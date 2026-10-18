@@ -1,0 +1,25 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "d5880ae38b568efd7497cd58e53ad39c9bab9b23166c63f46f701251d628a396",
+  "summary": "C12 定版复验：工具自身小修（BOM 容忍、PowerShell 包装补齐、中文手册）后的第三条交付，smoke 链路真实执行并通过；旧 passed 报告 REV-20261018034919-2a0d89 保持 passed，但对其实现已失效，C-DEMO 在本次通过前显示 stale、通过后回到 current。",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run 41ba7536dc8123be（out/collab/DEL-20261018035450-a94911）exitCode=0，smoke profile stdout 为合法 JSON 且全部检查 ok；claim/deliver/review 全链路无人工改状态。"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "前一交付 REV-20261018034919-2a0d89 通过后，本次因工具自身增量形成新交付；历史报告仍为 passed 且不可改写（终态 finish 返回冲突），缺陷 ISSUE-20261018034627-c975cb 已完成 open→fixing→fixed→verified→closed 全流程。"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "本次交付的实现指纹 d5880ae3… 与旧 passed 报告对应的 d04f52b7… 不同：在本次 review 通过前 C-DEMO 的 freshness 为 stale（previous run 实证：修改 adapters/README.md 后 sync 显示 stale，恢复字节后回到 current），通过后 freshness=current；旧 passed 报告原样保留。"
+    }
+  ],
+  "assertionsTotal": 2,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0
+}

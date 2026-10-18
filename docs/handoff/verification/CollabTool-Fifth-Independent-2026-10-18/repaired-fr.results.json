@@ -1,0 +1,187 @@
+{
+  "date": "2026-10-18T03:04:35.543Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "total": 11,
+  "passed": 11,
+  "failed": 0,
+  "results": [
+    {
+      "id": "FR1A",
+      "requirement": "The new delivery directory is clean at creation (no unlisted files)",
+      "passed": true,
+      "extra": [],
+      "hashesOk": true,
+      "unlistedAtCreation": 0,
+      "entryCount": 20
+    },
+    {
+      "id": "FR1B",
+      "requirement": "Running the test entry inside a delivery copy writes nothing into it",
+      "passed": true,
+      "testExit": 0,
+      "filesBefore": 21,
+      "filesAfter": 21
+    },
+    {
+      "id": "FR1C",
+      "requirement": "The new delivery runs its configured default smoke end to end",
+      "passed": true,
+      "exitCode": 0,
+      "counters": {
+        "total": 2,
+        "failed": 0
+      },
+      "checks": [
+        {
+          "name": "cli-exists",
+          "ok": true
+        },
+        {
+          "name": "protocol-exists",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "id": "FR1D",
+      "requirement": "Removing the protocol input still fails the smoke (dependency is real)",
+      "passed": true,
+      "exitCode": 1,
+      "checks": [
+        {
+          "name": "cli-exists",
+          "ok": true
+        },
+        {
+          "name": "protocol-exists",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "id": "FR1E",
+      "requirement": "An unlisted source file added to the delivery copy is still rejected",
+      "passed": true,
+      "exitCode": 5,
+      "error": "snapshot contains unlisted files: src/evil.cs"
+    },
+    {
+      "id": "FR2A",
+      "requirement": "Tampered stdout cannot be finished as passed",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "review-finish refused: stdout evidence size changed (recorded=65 actual=64): .collab-local/logs/REV-20261018030432-1a47d0/run-f64dcdba03a20f58/stdout.txt"
+      }
+    },
+    {
+      "id": "FR2B",
+      "requirement": "Sequential runs keep separate evidence files and hashes",
+      "passed": true,
+      "firstToken": "0afec6db8c2e8351",
+      "secondToken": "c066b86b7d28cb2d",
+      "firstPath": ".collab-local/logs/REV-20261018030432-27a55b/run-0afec6db8c2e8351/stdout.txt",
+      "secondPath": ".collab-local/logs/REV-20261018030432-27a55b/run-c066b86b7d28cb2d/stdout.txt",
+      "firstUnchanged": true
+    },
+    {
+      "id": "FR2C",
+      "requirement": "An unbound (legacy-shaped) run cannot be finished as passed",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "review-finish refused: run da7c292a98905ce8 has no stdout content binding; this review cannot be judged passed — start a new review with the current tool"
+      }
+    },
+    {
+      "id": "FR3A",
+      "requirement": "A truncated NUnit result file is rejected",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a usable NUnit XML result: result.xml: result file is not a well-formed XML document: element <test-run> is not closed (offset 70)"
+      },
+      "parsed": null
+    },
+    {
+      "id": "FR3B",
+      "requirement": "A complete passing NUnit result is accepted",
+      "passed": true,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018030434-7607e0",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6,
+          "machineResult": {
+            "parsed": {
+              "file": "result.xml",
+              "sha256": "7e9e72a82e2ae4694de193b5b93f64760c6201b578f6a06954eb40ceb8ebeeaa",
+              "total": 2,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 2
+            },
+            "counters": {
+              "total": 2,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 2
+            },
+            "unverified": false,
+            "reason": null
+          }
+        }
+      },
+      "parsed": {
+        "total": 2,
+        "failed": 0,
+        "skipped": 0,
+        "passed": 2
+      }
+    },
+    {
+      "id": "FR3C",
+      "requirement": "Real Unity NUnit result files parse with their recorded counts",
+      "passed": true,
+      "samples": [
+        {
+          "rel": "docs/handoff/verification/2026-10-17/EditMode.xml",
+          "counters": {
+            "total": 25,
+            "failed": 0,
+            "skipped": 0,
+            "passed": 25
+          },
+          "expected": {
+            "total": 25,
+            "failed": 0,
+            "skipped": 0,
+            "passed": 25
+          }
+        },
+        {
+          "rel": "docs/handoff/verification/2026-10-17/PlayMode.xml",
+          "counters": {
+            "total": 99,
+            "failed": 0,
+            "skipped": 0,
+            "passed": 99
+          },
+          "expected": {
+            "total": 99,
+            "failed": 0,
+            "skipped": 0,
+            "passed": 99
+          }
+        }
+      ]
+    }
+  ]
+}

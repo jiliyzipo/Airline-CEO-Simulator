@@ -1,0 +1,19 @@
+{
+  "conclusion": "passed",
+  "subjectImplementationFingerprint": "22aac21aa9911c86a718c1c4792ef141e7f72a4d8524a2b72cb2205e34271a58",
+  "summary": "compile profile executed the real tools/semcheck/run.js inside the isolated delivery snapshot; all three gates reported errors=0 and the command exited 0. semcheck_report.txt is the tool's own declared run output, not a delivery input.",
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "run b4e165052dfc2f57 in out/collab/DEL-20261018033139-af5cca: errors=0 (raw=0); tests-asm: errors=0 (raw=0); enc: errors=0 (352 files scanned); external exit code 0. Post-run snapshot integrity verified (only the declared run output tools/semcheck/semcheck_report.txt appeared)."
+    }
+  ],
+  "assertionsTotal": 3,
+  "assertionsFailed": 0,
+  "assertionsSkipped": 0,
+  "notes": [
+    "enc gate scanned the task-scoped snapshot (352 files), not the whole repo; hints about files outside snapshotRoots are expected and non-fatal (errors=0).",
+    "No game code was modified, Unity was not started, nothing was committed or pushed."
+  ]
+}

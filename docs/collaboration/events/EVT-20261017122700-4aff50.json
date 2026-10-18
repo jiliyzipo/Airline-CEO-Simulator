@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261017122700-4aff50",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 44,
+  "at": "2026-10-17T12:27:00.735Z",
+  "actor": "user",
+  "action": "init",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "init created=0 skipped=20",
+  "data": {
+    "created": [],
+    "skipped": [
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\deliveries",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\reviews",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\events",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\issues",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\locks",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\tmp",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\logs",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab\\config.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\state.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\C-DEMO.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T01.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T02.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T03.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T04.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T05.json",
+      "C:\\Users\\jiliy\\Airline-CEO-Simulator\\docs\\collaboration\\tasks\\T06.json"
+    ]
+  }
+}

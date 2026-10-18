@@ -1,0 +1,24 @@
+ok - schema rejects developer independentReviewPassed
+ok - schema rejects codex claim via role gate
+ok - task requires acceptanceCriteria
+ok - file lock is exclusive
+ok - file lock does not steal a lock whose payload is still being written
+ok - nunit parser requires every counter attribute
+ok - nunit parser rejects roots concealing failed cases
+ok - nunit parser accepts a real Unity-shaped result
+ok - nunit parser requires a complete XML document, not just a root tag
+ok - nunit parser handles nested suites, comments and CDATA
+ok - nunit parser still refuses valid documents that report failures
+ok - slotcheck adapter derives counters and verifies its summary
+ok - semcheck adapter requires all three gates
+ok - atomic write replaces file
+ok - fingerprint classify detects impl change
+ok - report-only entries do not change hash when empty list stable
+ok - doctor runs
+ok - init is idempotent
+ok - status and sync work after init
+ok - ack CAS fails on wrong revision
+ok - cursor cannot review-finish
+ok - second claim of held task conflicts
+
+all tests passed

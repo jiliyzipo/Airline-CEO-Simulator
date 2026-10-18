@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261018041847-27c5bf",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018035835-766dc7",
+  "reviewId": "REV-20261018041820-9f4b26",
+  "title": "C09 completion gates and C10 concurrent Hook dedupe have reproducible gaps; Codex workspace repairs await reacceptance",
+  "repro": "COLLAB_AUDIT_TOOL_SOURCE=out/collab/DEL-20261018035835-766dc7/tools/collab; run tools/collab/tests/closure.test.mjs in repository root.",
+  "expected": "Missing baseline/document, stale or cross-delivery evidence must block; dependencies diagnose cycles; concurrent duplicate Hook applies once; concurrent issue transitions preserve both states.",
+  "actual": "Original subject passes 3/12: undefined nextSeen, fail-open gates, older passed/old profile evidence masking newer failures, Hook twice applied, lost issue state. Codex repaired workspace and achieved 12/12; original delivery remains unchanged.",
+  "evidence": "docs/handoff/CollabTool_Closure_IndependentAudit_and_Fix_2026-10-18.md",
+  "severity": "major",
+  "suggestedOwner": "codex",
+  "status": "open",
+  "createdAt": "2026-10-18T04:18:47.971Z"
+}

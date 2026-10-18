@@ -30,13 +30,17 @@ namespace AirlineCEO.EditorTools
             Ensure<HedgeManager>("HedgeManager");
             Ensure<LoanManager>("LoanManager");
             Ensure<FleetManager>("FleetManager");
+            Ensure<AIManager>("AIManager");
+            Ensure<CompetitionManager>("CompetitionManager");
+            Ensure<RandomEventManager>("RandomEventManager");
+            Ensure<MacroEconomyManager>("MacroEconomyManager");
             EnsureAIChatManager();
             Ensure<MVPBootstrap>("MVPBootstrap");
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorUtility.DisplayDialog(
                 "MVP 场景就绪",
-                "已添加核心组件（含 AOG / 扩张 / Safety / 人事 / 对冲融资 / 机队）。\n财务顾问与机队购买弹窗由 MVPBootstrap 运行时创建。\n配置 Key：AirlineCEO → Set DeepSeek API Key",
+                "已添加核心组件（含 AOG / 扩张 / Safety / 人事 / 对冲融资 / 机队 / AI 竞对 / 随机事件）。\n财务顾问与机队购买弹窗由 MVPBootstrap 运行时创建。\n配置 Key：AirlineCEO → Set DeepSeek API Key",
                 "确定");
         }
 

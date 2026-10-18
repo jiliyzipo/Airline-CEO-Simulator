@@ -1,0 +1,26 @@
+{
+  "taskId": "C-ENG-UNITY",
+  "title": "隔离 Unity 入口串联（EditMode 真实执行 + 占用策略）",
+  "scope": [
+    "仅在隔离快照中执行 Unity 批处理，不启动、不关闭用户正在使用的 Unity 实例",
+    "结果必须来自本次 run 生成的 NUnit XML，并与本次 runToken/交付绑定"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "unity-editmode 在隔离快照中真实调用 tools/regression/RunUnityTests.ps1，本次 run 生成的 NUnit XML 为 25/25 通过，且退出码与计数一致"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity 被占用时拒绝启动第二个批处理、不关闭用户进程；终态失败后只回收本工具自己的 unity-review 租约"
+    }
+  ],
+  "dependencies": [],
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/regression"
+  ],
+  "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07"
+}

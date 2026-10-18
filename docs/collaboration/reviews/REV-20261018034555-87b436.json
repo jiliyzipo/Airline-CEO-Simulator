@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018034555-87b436",
+  "deliveryId": "DEL-20261018034551-e2de28",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "smoke",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "c248c0b6e472d29600d67b86b7114df5447012aeb0b4d31dde4d09f20a8cd32e",
+    "verification": "77b15f882178d4fcbb25af8a950414477cd15237f3856159d7d862af0fd2bbdb",
+    "contract": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+  },
+  "snapshotPath": "out/collab/DEL-20261018034551-e2de28",
+  "createdAt": "2026-10-18T03:45:55.731Z",
+  "updatedAt": "2026-10-18T03:46:27.171Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:46:00.683Z",
+      "finishedAt": "2026-10-18T03:46:00.770Z",
+      "runToken": "bc37bcc0c1e8cb9e",
+      "profile": "smoke",
+      "deliveryId": "DEL-20261018034551-e2de28",
+      "subjectImplementationFingerprint": "c248c0b6e472d29600d67b86b7114df5447012aeb0b4d31dde4d09f20a8cd32e",
+      "command": [
+        "node",
+        "tools/collab/tests/smoke-profile.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018034551-e2de28",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018034555-87b436/run-bc37bcc0c1e8cb9e/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018034555-87b436/run-bc37bcc0c1e8cb9e/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018034555-87b436/run-bc37bcc0c1e8cb9e/stdout.txt",
+        "sha256": "d13f65f27646aab966ea530bf565051dce6c2f78cdb6d2129dc6ab97a9d647e5",
+        "bytes": 282,
+        "runToken": "bc37bcc0c1e8cb9e"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018034555-87b436/run-bc37bcc0c1e8cb9e/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "bc37bcc0c1e8cb9e"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "claim → deliver(sql) → review-start → review-run → review-finish 全链路执行，run bc37bcc0c1e8cb9e exitCode=0，smoke profile 输出 protocol-exists=true 等检查全为 ok。"
+    },
+    {
+      "id": "AC2",
+      "result": "failed",
+      "evidence": "失败分支尚未在本次交付内演示：需要先有一条 failed 结论与缺陷记录，再由新交付复验通过。"
+    },
+    {
+      "id": "AC3",
+      "result": "failed",
+      "evidence": "实现指纹变化后的 stale 展示尚未执行；本次未改动实现，无法证明旧 passed 会转为待复验。"
+    }
+  ],
+  "issues": [
+    "ISSUE-20261018034627-c975cb"
+  ],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:46:00.653Z",
+  "assertions": {
+    "total": 0,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": "docs/handoff/verification/CollabTool-C07-C12-2026-10-18/drill-evidence-1.json",
+  "finishedAt": "2026-10-18T03:46:27.171Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "bc37bcc0c1e8cb9e",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261018034551-e2de28"
+  }
+}

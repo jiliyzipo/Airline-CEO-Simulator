@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018033157-f4f3a5",
+  "deliveryId": "DEL-20261018033139-af5cca",
+  "taskId": "C-ENG-COMPILE",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "compile",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "22aac21aa9911c86a718c1c4792ef141e7f72a4d8524a2b72cb2205e34271a58",
+    "verification": "85a98cf4ace241696810fc7e3a6a39d49d031a74f2ed2f479564d072d6c619c9",
+    "contract": "6e0d2a47ed649e79690260a6e2b0f39b1a1fc82901dd76bcf3c212cfb1ab5784"
+  },
+  "snapshotPath": "out/collab/DEL-20261018033139-af5cca",
+  "createdAt": "2026-10-18T03:31:57.693Z",
+  "updatedAt": "2026-10-18T03:32:09.462Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:32:02.229Z",
+      "finishedAt": "2026-10-18T03:32:09.462Z",
+      "runToken": "06f15adc2eaa004d",
+      "profile": "compile",
+      "deliveryId": "DEL-20261018033139-af5cca",
+      "subjectImplementationFingerprint": "22aac21aa9911c86a718c1c4792ef141e7f72a4d8524a2b72cb2205e34271a58",
+      "command": [
+        "node",
+        "tools/semcheck/run.js"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018033139-af5cca",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018033157-f4f3a5/run-06f15adc2eaa004d/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018033157-f4f3a5/run-06f15adc2eaa004d/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018033157-f4f3a5/run-06f15adc2eaa004d/stdout.txt",
+        "sha256": "86c5d4545b4fdc57a5adb4446e497b145d09e8021fc7957810bd0b9a11ae59ac",
+        "bytes": 3252,
+        "runToken": "06f15adc2eaa004d"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018033157-f4f3a5/run-06f15adc2eaa004d/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "06f15adc2eaa004d"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": false,
+        "reason": "snapshot contains unlisted files: tools/semcheck/semcheck_report.txt"
+      }
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:32:02.210Z",
+  "finishedAt": "2026-10-18T03:32:09.462Z",
+  "integrityFailure": "snapshot contains unlisted files: tools/semcheck/semcheck_report.txt"
+}

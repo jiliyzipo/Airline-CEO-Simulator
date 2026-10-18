@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-18T01:36:02.393Z",
+  "deliveryId": "DEL-20261017150657-dd9483",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "sourceFingerprint": "3f24a449533486f82dd926dff2a6c998d7cdd621564d01ba7743ec36d582aa89",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-fourth-current-boundaries\\2026-10-18T01-35-55-453Z",
+  "total": 5,
+  "passed": 2,
+  "failed": 3,
+  "results": [
+    {
+      "id": "F01",
+      "requirement": "Valid machine JSON and complete evidence explicitly finish passed",
+      "passed": true,
+      "actual": {
+        "reviewId": "REV-20261018013556-9707dd",
+        "status": "passed",
+        "issues": [],
+        "freshness": "current",
+        "revision": 6,
+        "machineResult": {
+          "parsed": {
+            "adapter": "stdout-json",
+            "total": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "counters": {
+            "total": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "unverified": false,
+          "reason": null
+        }
+      }
+    },
+    {
+      "id": "F02",
+      "requirement": "Uncontracted unknown output stays terminal blocked with exit 6 and unknown freshness",
+      "passed": true,
+      "result": {
+        "reviewId": "REV-20261018013557-5b2284",
+        "status": "blocked",
+        "blockedReason": "machine result does not support an independent verdict: declared JSON profile produced no machine result JSON in stdout",
+        "machineResult": {
+          "parsed": null,
+          "counters": null,
+          "unverified": true,
+          "reason": "declared JSON profile produced no machine result JSON in stdout"
+        },
+        "exitCode": 6
+      },
+      "repeat": {
+        "accepted": false,
+        "exitCode": 3,
+        "error": "review REV-20261018013557-5b2284 is immutable terminal status=blocked"
+      },
+      "task": {
+        "reviewStatus": "blocked",
+        "freshness": "unknown"
+      }
+    },
+    {
+      "id": "F03",
+      "requirement": "The actual fourth DEL can execute its configured default smoke successfully",
+      "passed": false,
+      "testError": "Error: snapshot contains unlisted files: docs/collaboration/CURRENT.md, docs/collaboration/events/EVT-20261017150705-6a55ae.json, docs/collaboration/events/EVT-20261017150705-e98dc8.json, docs/collaboration/events/EVT-20261017150708-052a20.json, docs/collaboration/events/EVT-20261017150708-300009.json, docs/collaboration/events/EVT-20261017150708-47f047.json, docs/collaboration/events/EVT-20261017150708-84dcc8.json, docs/collaboration/events/EVT-20261017150708-9b3bac.json, docs/collaboration/events/EVT-20261017150709-1eeb78.json, docs/collaboration/events/EVT-20261017150709-820e62.json, docs/collaboration/events/EVT-20261017150709-86c625.json, docs/collaboration/events/EVT-20261017150709-9d1078.json, docs/collaboration/events/EVT-20261017150709-b0f58f.json, docs/collaboration/NEXT_CODEX.md, docs/collaboration/NEXT_CURSOR.md, docs/collaboration/state.json, docs/collaboration/tasks/C-DEMO.json, docs/collaboration/tasks/T01.json, docs/collaboration/tasks/T02.json, docs/collaboration/tasks/T03.json, docs/collaboration/tasks/T04.json, docs/collaboration/tasks/T05.json, docs/collaboration/tasks/T06.json\n    at fail (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/lib/exit.mjs:14:15)\n    at verifySnapshotIntegrity (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/lib/commands.mjs:204:5)\n    at Module.cmdReviewRun (file:///C:/Users/jiliy/Airline-CEO-Simulator/tools/collab/lib/commands.mjs:1186:19)\n    at run (file:///C:/Users/jiliy/Airline-CEO-Simulator/docs/handoff/verification/CollabTool-Fourth-Independent-2026-10-18/acceptance-boundaries.mjs:34:22)\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/docs/handoff/verification/CollabTool-Fourth-Independent-2026-10-18/acceptance-boundaries.mjs:58:31\n    at test (file:///C:/Users/jiliy/Airline-CEO-Simulator/docs/handoff/verification/CollabTool-Fourth-Independent-2026-10-18/acceptance-boundaries.mjs:43:82)\n    at file:///C:/Users/jiliy/Airline-CEO-Simulator/docs/handoff/verification/CollabTool-Fourth-Independent-2026-10-18/acceptance-boundaries.mjs:53:7"
+    },
+    {
+      "id": "F04",
+      "requirement": "Failed stdout recorded by run cannot be replaced after execution to produce passed",
+      "passed": false,
+      "stdoutHashChanged": true,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018013600-48b3b1",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6,
+          "machineResult": {
+            "parsed": {
+              "adapter": "stdout-json",
+              "total": 3,
+              "failed": 0,
+              "skipped": 0
+            },
+            "counters": {
+              "total": 3,
+              "failed": 0,
+              "skipped": 0
+            },
+            "unverified": false,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "id": "F05",
+      "requirement": "Truncated declared NUnit XML is rejected rather than accepted as a complete result",
+      "passed": false,
+      "xml": "<test-run total=\"1\" passed=\"1\" failed=\"0\" skipped=\"0\" result=\"Passed\">",
+      "parsed": {
+        "total": 1,
+        "failed": 0,
+        "skipped": 0,
+        "passed": 1
+      },
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018013601-a0db15",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6,
+          "machineResult": {
+            "parsed": {
+              "file": "result.xml",
+              "sha256": "126f2eb15c703664ce70f12c739b535a1e699dae6bdfe563dde848154f74de3c",
+              "total": 1,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 1
+            },
+            "counters": {
+              "total": 1,
+              "failed": 0,
+              "skipped": 0,
+              "passed": 1
+            },
+            "unverified": false,
+            "reason": null
+          }
+        }
+      }
+    }
+  ],
+  "preservation": {
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionUnchanged": true,
+    "records": [
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json",
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/reviews/REV-20261017065756-f1940a.json",
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017095048-cfd9dd.json",
+        "before": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "after": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017122743-589b23.json",
+        "before": "8d909d5ea9d6859754d08615a1b1125ccdbd8726b00a5cc97845b415103ee02a",
+        "after": "8d909d5ea9d6859754d08615a1b1125ccdbd8726b00a5cc97845b415103ee02a",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017150657-dd9483.json",
+        "before": "c6df5f36ddc987b761c1bc4e16288de04626d6e71c08138de4e89cdc874696ad",
+        "after": "c6df5f36ddc987b761c1bc4e16288de04626d6e71c08138de4e89cdc874696ad",
+        "unchanged": true
+      },
+      {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+PASS X-adjacent attributes: parseXmlDocument and NUnit counters refuse adjacent attributes
+PASS X-CDATA terminator in text: parseXmlDocument and NUnit counters refuse CDATA terminator in text
+PASS X-double hyphen in comment: parseXmlDocument and NUnit counters refuse double hyphen in comment
+PASS X-declaration after whitespace: parseXmlDocument and NUnit counters refuse declaration after whitespace
+PASS X-decimal control reference: parseXmlDocument and NUnit counters refuse decimal control reference
+PASS X-unvalidated doctype: parseXmlDocument and NUnit counters refuse unvalidated doctype
+PASS X-valid: parseXmlDocument still accepts valid UTF-8 NUnit content
+PASS G-adjacent attributes: finish refuses a bound result file with adjacent attributes
+PASS G-CDATA terminator in text: finish refuses a bound result file with CDATA terminator in text
+PASS G-double hyphen in comment: finish refuses a bound result file with double hyphen in comment
+PASS G-valid-nunit: A well-formed NUnit result file still finishes passed
+PASS G-valid-json: JSON machine output still finishes passed
+SUMMARY 12/12 XML gate audits passed; 0 failed; subject=out/collab/DEL-20261018050538-fe84c9/tools/collab
+RESULT C:\Users\jiliy\Airline-CEO-Simulator\.collab-local\codex-final-delivery-final\2026-10-18T05-07-29-774Z\results.json

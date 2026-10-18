@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018040232-0fae8a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 163,
+  "at": "2026-10-18T04:02:32.403Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "C-DEMO",
+  "deliveryId": "DEL-20261018022444-a55ae4",
+  "reviewId": "REV-20261018030537-cc1568",
+  "parentEventId": null,
+  "summary": "ISSUE-20261018030616-3028cb: fixing -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261018030616-3028cb",
+    "from": "fixing",
+    "to": "fixed",
+    "note": "新交付 DEL-20261018035835-766dc7 含 xml.mjs 修复（e6d3b5e2…）与 xml.test.mjs（32b0a54f…），smoke review REV-20261018035841-c4d71c passed"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "date": "2026-10-18T01:34:34.248Z",
+  "deliveryId": "DEL-20261017122743-589b23",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261017150657-dd9483\\tools\\collab",
+  "sourceFingerprint": "3f24a449533486f82dd926dff2a6c998d7cdd621564d01ba7743ec36d582aa89",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-20261018-delivery-boundary8\\2026-10-18T01-34-25-585Z",
+  "total": 8,
+  "passed": 8,
+  "failed": 0,
+  "results": [
+    {
+      "id": "T01",
+      "requirement": "Unstructured output from a declared JSON profile cannot support passed",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared JSON profile produced no machine result JSON in stdout"
+      }
+    },
+    {
+      "id": "T02",
+      "requirement": "A malformed declared result file cannot fall back to passing stdout",
+      "passed": true,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a valid, self-consistent NUnit XML result: result.xml"
+      }
+    },
+    {
+      "id": "T03",
+      "requirement": "NUnit XML missing passed/failed/skipped attributes cannot pass",
+      "passed": true,
+      "parsed": null,
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a valid, self-consistent NUnit XML result: result.xml"
+      }
+    },
+    {
+      "id": "T04",
+      "requirement": "NUnit failure cases cannot be concealed by inconsistent root counters",
+      "passed": true,
+      "xml": "<test-run total=\"1\" passed=\"1\" failed=\"0\" skipped=\"0\" result=\"Passed\"><test-case result=\"Failed\"/></test-run>",
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file is not a valid, self-consistent NUnit XML result: result.xml"
+      }
+    },
+    {
+      "id": "T05",
+      "requirement": "A pre-existing result file unrelated to the run cannot support passed",
+      "passed": true,
+      "resultPredatedRun": true,
+      "run": {
+        "reviewId": "REV-20261018013429-624672",
+        "exitCode": 0,
+        "status": "running",
+        "cancelledDuringRun": false,
+        "runToken": "dd27e461cf9fc9be",
+        "stdoutPath": ".collab-local/logs/REV-20261018013429-624672/stdout.txt",
+        "stderrPath": ".collab-local/logs/REV-20261018013429-624672/stderr.txt",
+        "externalExitCode": 0,
+        "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-20261018-delivery-boundary8\\2026-10-18T01-34-25-585Z\\fixtures\\05\\out\\collab\\DEL-20261018013429-065146",
+        "resultFile": {
+          "path": "src/result.xml",
+          "producedByRun": false,
+          "sha256": "056c8dd94d3aef752ffe145d8255d8e7967f6087442f893a2fa853ce5769595f"
+        }
+      },
+      "observation": {
+        "accepted": false,
+        "exitCode": 6,
+        "error": "machine result does not support passed: declared result file was not produced by this run (pre-existing or leftover): src/result.xml"
+      }
+    },
+    {
+      "id": "T06",
+      "requirement": "Run or finish detects execution-time modification of snapshot source",
+      "passed": true,
+      "runObservation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "executed snapshot changed during the run; review REV-20261018013429-86e258 cannot pass: snapshot tampered: src/model.cs"
+      },
+      "observation": {
+        "accepted": false,
+        "exitCode": 5,
+        "error": "review-finish refused: executed snapshot does not match delivery DEL-20261018013429-9c65b8: snapshot tampered: src/model.cs"
+      },
+      "snapshotSource": "mutated-during-run"
+    },
+    {
+      "id": "T07",
+      "requirement": "Two processes running the same review execute its command at most once",
+      "passed": true,
+      "executions": 1,
+      "workers": [
+        {
+          "exitCode": 0,
+          "output": "{\n  \"reviewId\": \"REV-20261018013430-d5be98\",\n  \"exitCode\": 0,\n  \"status\": \"running\",\n  \"cancelledDuringRun\": false,\n  \"runToken\": \"be0bb314cd194c08\",\n  \"stdoutPath\": \".collab-local/logs/REV-20261018013430-d5be98/stdout.txt\",\n  \"stderrPath\": \".collab-local/logs/REV-20261018013430-d5be98/stderr.txt\",\n  \"externalExitCode\": 0,\n  \"cwd\": \"C:\\\\Users\\\\jiliy\\\\Airline-CEO-Simulator\\\\.collab-local\\\\reaccept-20261017\\\\codex-20261018-delivery-boundary8\\\\2026-10-18T01-34-25-585Z\\\\fixtures\\\\07\\\\out\\\\collab\\\\DEL-20261018013430-6a1633\",\n  \"resultFile\": null\n}\n"
+        },
+        {
+          "exitCode": 3,
+          "output": "{\n  \"ok\": false,\n  \"error\": \"review REV-20261018013430-d5be98 already has an active run (codex@Jiliy pid=54796); refusing to execute a second time\",\n  \"exitCode\": 3,\n  \"reviewId\": \"REV-20261018013430-d5be98\",\n  \"activeRun\": {\n    \"owner\": \"codex@Jiliy\",\n    \"pid\": 54796,\n    \"machine\": \"Jiliy\",\n    \"startedAt\": \"2026-10-18T01:34:30.794Z\",\n    \"heartbeatAt\": \"2026-10-18T01:34:30.796Z\",\n    \"reviewId\": \"REV-20261018013430-d5be98\",\n    \"runToken\": \"be0bb314cd194c08\"\n  }\n}\n"
+        }
+      ],
+      "recordedRuns": 1
+    },
+    {
+      "id": "T08",
+      "requirement": "A second review can reuse immutable inputs after first run emits build artifacts",
+      "passed": true,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261018013433-9c1d27",
+          "exitCode": 0,
+          "status": "running",
+          "cancelledDuringRun": false,
+          "runToken": "053bba9990ad5617",
+          "stdoutPath": ".collab-local/logs/REV-20261018013433-9c1d27/stdout.txt",
+          "stderrPath": ".collab-local/logs/REV-20261018013433-9c1d27/stderr.txt",
+          "externalExitCode": 0,
+          "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-20261018-delivery-boundary8\\2026-10-18T01-34-25-585Z\\fixtures\\08\\out\\collab\\DEL-20261018013432-0bbc01",
+          "resultFile": null
+        }
+      },
+      "note": "Uses only fixture Node output, not actual compiler or Unity."
+    }
+  ],
+  "preservation": {
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionUnchanged": true,
+    "records": [
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json",
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/reviews/REV-20261017065756-f1940a.json",
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017095048-cfd9dd.json",
+        "before": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "after": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "unchanged": true
+      },
+      {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    ]
+  }
+}

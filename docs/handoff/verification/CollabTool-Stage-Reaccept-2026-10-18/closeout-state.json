@@ -1,0 +1,636 @@
+{
+  "at": "2026-10-18T10:46:10.595Z",
+  "proof": {
+    "at": "2026-10-18T10:43:24.456Z",
+    "reviewId": "REV-20261018103950-3b9460",
+    "deliveryId": "DEL-20261018102500-1304ad",
+    "runToken": "54c34d23a4aa463c",
+    "assertions": {
+      "total": 132,
+      "failed": 0,
+      "skipped": 0
+    },
+    "snapshotInputFiles": 33,
+    "snapshotAndWorkspaceIntact": true,
+    "boundaries": {
+      "subjectOnly": {
+        "passed": 5,
+        "total": 6,
+        "failedCase": "SA05"
+      },
+      "reconciled": {
+        "passed": 7,
+        "total": 7
+      }
+    },
+    "attested": {
+      "exitCode": 0,
+      "status": "passed",
+      "actor": "cursor",
+      "independent": true,
+      "reviewKind": "independent",
+      "attestation": {
+        "by": "cursor",
+        "at": "2026-10-18T10:42:05.696Z",
+        "clauses": [
+          {
+            "id": "AC1",
+            "result": "passed"
+          },
+          {
+            "id": "AC2",
+            "result": "passed"
+          },
+          {
+            "id": "AC3",
+            "result": "passed"
+          }
+        ],
+        "authorizationSha256": "492b7f89861d446e5c48ec63c95569f3b196e4223b99c1eed0eab81bab6d7ef7"
+      },
+      "grantSha256": "492b7f89861d446e5c48ec63c95569f3b196e4223b99c1eed0eab81bab6d7ef7",
+      "coverage": [
+        {
+          "id": "AC1",
+          "result": "passed",
+          "evidence": "profile=smoke runToken=eba47b700ba26d7d counters={\"total\":2,\"failed\":0,\"skipped\":0} | reviewer-attested"
+        },
+        {
+          "id": "AC2",
+          "result": "passed",
+          "evidence": "profile=smoke runToken=eba47b700ba26d7d counters={\"total\":2,\"failed\":0,\"skipped\":0} | reviewer-attested"
+        },
+        {
+          "id": "AC3",
+          "result": "passed",
+          "evidence": "profile=smoke runToken=eba47b700ba26d7d counters={\"total\":2,\"failed\":0,\"skipped\":0} | reviewer-attested"
+        }
+      ]
+    },
+    "originalAuditUnmodified": true,
+    "originalGameFilesUnchanged": 1111,
+    "oldImmutableRecords": [
+      {
+        "path": "docs/collaboration/reviews/REV-20261018095357-18f7dd.json",
+        "sha256": "19e14266f9bef78cd7e959858c6ca92fe2e999df59f8d8422f35b67c9bb4b368"
+      },
+      {
+        "path": "docs/collaboration/issues/ISSUE-20261018095403-f1e86c.json",
+        "sha256": "9e170dd9ac97643781fc8ef2052233f23619b47c08d34e816907c99071b362fc"
+      },
+      {
+        "path": "docs/collaboration/issues/ISSUE-20261018095403-f4f17e.json",
+        "sha256": "3676a4f686c7eb0c18285ab78fddb6c53aa7f6623112785216de8ef44d44e008"
+      },
+      {
+        "path": "docs/collaboration/issues/ISSUE-20261018095403-4c0790.json",
+        "sha256": "31e9d644f32b5ff16bf6505fac89f5bf1c9a4a69585ab0065f450337007db64f"
+      },
+      {
+        "path": "docs/collaboration/issues/ISSUE-20261018095403-a7a8ab.json",
+        "sha256": "be54de1585411f28432bef6491ea31220382e4b67531f343bf6a01ab19651de6"
+      },
+      {
+        "path": "docs/collaboration/issues/ISSUE-20261018095403-dd65a3.json",
+        "sha256": "970ebbb71f00ba8f0c50c1cdf901b91febcca2b4df46839b7a043fcde82cf7c2"
+      }
+    ]
+  },
+  "transitions": [
+    {
+      "issueId": "ISSUE-20261018095403-f1e86c",
+      "taskId": "S01-COLLAB",
+      "from": "fixed",
+      "to": "verified",
+      "revision": 230,
+      "eventId": "EVT-20261018104324-382572",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-f1e86c",
+      "taskId": "S01-COLLAB",
+      "from": "verified",
+      "to": "closed",
+      "revision": 232,
+      "eventId": "EVT-20261018104339-c75d1e",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-f4f17e",
+      "taskId": "S01-COLLAB",
+      "from": "fixed",
+      "to": "verified",
+      "revision": 233,
+      "eventId": "EVT-20261018104354-eaacb5",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-f4f17e",
+      "taskId": "S01-COLLAB",
+      "from": "verified",
+      "to": "closed",
+      "revision": 234,
+      "eventId": "EVT-20261018104408-65ad1f",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-4c0790",
+      "taskId": "S01-COLLAB",
+      "from": "fixed",
+      "to": "verified",
+      "revision": 235,
+      "eventId": "EVT-20261018104423-f61d16",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-4c0790",
+      "taskId": "S01-COLLAB",
+      "from": "verified",
+      "to": "closed",
+      "revision": 236,
+      "eventId": "EVT-20261018104439-cdbb6e",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-a7a8ab",
+      "taskId": "S01-COLLAB",
+      "from": "fixed",
+      "to": "verified",
+      "revision": 237,
+      "eventId": "EVT-20261018104453-4800c5",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-a7a8ab",
+      "taskId": "S01-COLLAB",
+      "from": "verified",
+      "to": "closed",
+      "revision": 238,
+      "eventId": "EVT-20261018104509-56a1a1",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-dd65a3",
+      "taskId": "S01-COLLAB",
+      "from": "fixed",
+      "to": "verified",
+      "revision": 239,
+      "eventId": "EVT-20261018104523-5f8069",
+      "actor": "codex"
+    },
+    {
+      "issueId": "ISSUE-20261018095403-dd65a3",
+      "taskId": "S01-COLLAB",
+      "from": "verified",
+      "to": "closed",
+      "revision": 240,
+      "eventId": "EVT-20261018104538-2eb0b4",
+      "actor": "codex"
+    }
+  ],
+  "taskGate": {
+    "taskId": "S01-COLLAB",
+    "ok": true,
+    "checks": [
+      {
+        "id": "mapped",
+        "ok": true,
+        "detail": "not a task-book clause task; gate uses collaboration records only"
+      },
+      {
+        "id": "independent-review",
+        "ok": true,
+        "detail": "separate developer and reviewer roles"
+      },
+      {
+        "id": "current-passed-review",
+        "ok": true,
+        "detail": "latest review REV-20261018103950-3b9460 passed; freshness=current"
+      },
+      {
+        "id": "no-open-blockers",
+        "ok": true,
+        "detail": "no open blocker/critical issues"
+      }
+    ],
+    "blockers": [],
+    "latestDeliveryId": "DEL-20261018102500-1304ad",
+    "latestReview": {
+      "reviewId": "REV-20261018103950-3b9460",
+      "status": "passed"
+    }
+  },
+  "projectGate": {
+    "ok": false,
+    "tasks": [
+      {
+        "taskId": "T01",
+        "ok": true,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 51, 8 sub-items, section ## 4. T01 · R42 交割后加班失败"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline ae61539a4918 recorded 2026-10-18T03:44:39.490Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 8 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 51,
+          "totalChecked": true,
+          "subItems": 8,
+          "checkedSubItems": 8,
+          "clauseHash": "ae61539a4918dd66b7eb4f923967db2177dd72c51179eccb9af7ca9288e00507"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      },
+      {
+        "taskId": "T02",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 52, 8 sub-items, section ## 5. T02 · 可复现开发基线"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline d05528f353e9 recorded 2026-10-18T03:44:39.695Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 8 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "clean-git-checkout",
+            "ok": false,
+            "detail": "Git 干净检出未验证（cleanGitCheckoutVerified=false）— blocks the total clause even if local runs pass"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "clean-git-checkout",
+            "detail": "Git 干净检出未验证（cleanGitCheckoutVerified=false）— blocks the total clause even if local runs pass"
+          }
+        ],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 52,
+          "totalChecked": false,
+          "subItems": 8,
+          "checkedSubItems": 8,
+          "clauseHash": "d05528f353e9d8fe79108fd2517e7a6c29425aa98590bdd7a9087de0c77ed038"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      },
+      {
+        "taskId": "T03",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 53, 9 sub-items, section ## 6. T03 · 主链路集成回归"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline 230cdc3815ef recorded 2026-10-18T03:44:39.881Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": false,
+            "detail": "1 unchecked: T03.8"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "sub-items",
+            "detail": "1 unchecked: T03.8"
+          }
+        ],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 53,
+          "totalChecked": false,
+          "subItems": 9,
+          "checkedSubItems": 8,
+          "clauseHash": "230cdc3815ef7f62467c900e206f2c92ce509feeaffc6f5a0cf4f48c39903f22"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      },
+      {
+        "taskId": "T04",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 54, 9 sub-items, section ## 7. T04 · 经营账务与长线平衡"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline 37adb7c6b570 recorded 2026-10-18T03:44:40.062Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": false,
+            "detail": "2 unchecked: T04.3, T04.8"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "sub-items",
+            "detail": "2 unchecked: T04.3, T04.8"
+          }
+        ],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 54,
+          "totalChecked": false,
+          "subItems": 9,
+          "checkedSubItems": 7,
+          "clauseHash": "37adb7c6b570a9df1f921cbcd156c90869d408d5d05679735e76f5f5fecd3449"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      },
+      {
+        "taskId": "T05",
+        "ok": false,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 55, 8 sub-items, section ## 8. T05 · 当前时间策略下的交互体验"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline 79981fa6ede0 recorded 2026-10-18T03:44:40.221Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": false,
+            "detail": "4 unchecked: T05.2, T05.5, T05.6, T05.7"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [
+          {
+            "id": "sub-items",
+            "detail": "4 unchecked: T05.2, T05.5, T05.6, T05.7"
+          }
+        ],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 55,
+          "totalChecked": false,
+          "subItems": 8,
+          "checkedSubItems": 4,
+          "clauseHash": "79981fa6ede06807433e9748dd843233a77ce990788c0c0567cdb02a9de4d37a"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      },
+      {
+        "taskId": "T06",
+        "ok": true,
+        "checks": [
+          {
+            "id": "mapped",
+            "ok": true,
+            "detail": "mapped to docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md"
+          },
+          {
+            "id": "clause-locatable",
+            "ok": true,
+            "detail": "total line 56, 7 sub-items, section ## 9. T06 · 文档与架构收口"
+          },
+          {
+            "id": "clause-baseline",
+            "ok": true,
+            "detail": "baseline d40eb03a0203 recorded 2026-10-18T03:44:40.383Z (scheme 2)",
+            "legacyScheme": false
+          },
+          {
+            "id": "clause-unchanged",
+            "ok": true,
+            "detail": "clause text matches baseline"
+          },
+          {
+            "id": "sub-items",
+            "ok": true,
+            "detail": "all 7 sub-items checked"
+          },
+          {
+            "id": "reference-authority",
+            "ok": true,
+            "detail": "read-only reference task: task book remains authoritative; the tool does not claim completion"
+          },
+          {
+            "id": "no-open-blockers",
+            "ok": true,
+            "detail": "no open blocker/critical issues"
+          }
+        ],
+        "blockers": [],
+        "clause": {
+          "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+          "totalLine": 56,
+          "totalChecked": true,
+          "subItems": 7,
+          "checkedSubItems": 7,
+          "clauseHash": "d40eb03a0203b039f0c0d5185ec332f31da55d996566571d806c96a94c40c61e"
+        },
+        "latestDeliveryId": null,
+        "latestReview": null
+      }
+    ],
+    "taskBook": {
+      "totalClauses": 6,
+      "checked": 2,
+      "unchecked": [
+        "T02",
+        "T03",
+        "T04",
+        "T05"
+      ]
+    },
+    "toolClauses": {
+      "configured": true,
+      "path": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md",
+      "total": 12,
+      "checked": 12,
+      "unchecked": [],
+      "error": null
+    },
+    "openIssues": [],
+    "blockers": [
+      {
+        "id": "gate:T02",
+        "detail": "clean-git-checkout"
+      },
+      {
+        "id": "gate:T03",
+        "detail": "sub-items"
+      },
+      {
+        "id": "gate:T04",
+        "detail": "sub-items"
+      },
+      {
+        "id": "gate:T05",
+        "detail": "sub-items"
+      },
+      {
+        "id": "clause:T02",
+        "detail": "total clause still unchecked in task book"
+      },
+      {
+        "id": "clause:T03",
+        "detail": "total clause still unchecked in task book"
+      },
+      {
+        "id": "clause:T04",
+        "detail": "total clause still unchecked in task book"
+      },
+      {
+        "id": "clause:T05",
+        "detail": "total clause still unchecked in task book"
+      }
+    ]
+  },
+  "revision": 240,
+  "ack": {
+    "cursor": {
+      "revision": 224,
+      "at": "2026-10-18T10:37:04.327Z"
+    },
+    "codex": {
+      "revision": 240,
+      "at": "2026-10-18T10:46:09.579Z"
+    }
+  },
+  "oldImmutableRecordsUnchanged": true
+}

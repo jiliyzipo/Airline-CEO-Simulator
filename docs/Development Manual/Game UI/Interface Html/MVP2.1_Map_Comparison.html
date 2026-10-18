@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>方案A · 昼夜对照平面地图</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg: #02060e;
+      --panel: #0a1424;
+      --border: #1a3355;
+      --accent: #4da6ff;
+      --text: #e0e8f0;
+      --muted: #7a8aa8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header {
+      height: 46px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .header .title { font-size: 13px; font-weight: 700; color: var(--accent); }
+    .header .sub { font-size: 11px; color: var(--muted); }
+    .header .spacer { flex: 1; }
+    .header .clock {
+      font-size: 11px;
+      background: #112240;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+    }
+    #mapWrap {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+      background: #020810;
+    }
+    #gameMap {
+      position: absolute;
+      inset: 0;
+      background: #020810 !important;
+    }
+    .leaflet-container { background: #020810 !important; }
+    .leaflet-container,
+    .leaflet-grab,
+    .leaflet-dragging .leaflet-grab,
+    .leaflet-marker-icon,
+    .leaflet-interactive {
+      cursor: default !important;
+    }
+    .route-bloom {
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      fill: none !important;
+      filter: blur(5px);
+      opacity: 0.35;
+    }
+    .route-soft {
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      fill: none !important;
+      filter: blur(2px);
+      opacity: 0.55;
+    }
+    .route-core {
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      fill: none !important;
+      opacity: 0.75;
+    }
+    .route-hit {
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      fill: none !important;
+      pointer-events: stroke !important;
+    }
+    .leaflet-tile-pane { filter: none !important; }
+    .leaflet-div-icon { background: transparent !important; border: none !important; }
+
+    .label {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      pointer-events: none;
+      background: rgba(6,14,26,0.88);
+      border: 1px solid rgba(77,166,255,0.45);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #c8e0ff;
+      white-space: nowrap;
+    }
+    .hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      pointer-events: none;
+      background: rgba(6,14,26,0.8);
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .leaflet-control-zoom a {
+      background: rgba(10,26,50,0.9) !important;
+      color: #e0e8f0 !important;
+      border-color: #1a3355 !important;
+    }
+    .leaflet-popup-content-wrapper {
+      background: #0d1a2d !important;
+      color: #e0e8f0 !important;
+      border: 1px solid #1a3355 !important;
+      font-size: 11px !important;
+    }
+    .leaflet-popup-tip { background: #0d1a2d !important; }
+    .footer {
+      height: 34px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 12px;
+      font-size: 10px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .hub-marker {
+      position: relative;
+      width: 48px;
+      height: 48px;
+    }
+    .hub-marker .hub-glow {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(255,255,255,0.5) 0%,
+        rgba(120,200,255,0.38) 25%,
+        rgba(50,130,255,0.14) 50%,
+        rgba(40,100,255,0) 72%);
+      pointer-events: none;
+    }
+    .hub-marker .hub-core {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #6eb8ff 0%, #1a6cff 100%);
+      border: 1.5px solid rgba(230,245,255,0.95);
+      box-shadow: 0 0 12px rgba(90,190,255,0.9), 0 0 24px rgba(40,130,255,0.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      color: #fff;
+      line-height: 1;
+    }
+    .hub-marker.base .hub-core {
+      width: 26px; height: 26px;
+      font-size: 12px;
+      background: linear-gradient(160deg, #8ecfff 0%, #1a5cff 100%);
+    }
+    .hub-label {
+      position: absolute;
+      left: 50%;
+      top: calc(100% - 2px);
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: rgba(235,245,255,0.95);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .plane-icon {
+      font-size: 28px;
+      color: #fff;
+      filter: drop-shadow(0 0 4px rgba(140,210,255,1)) drop-shadow(0 0 12px rgba(60,160,255,0.85));
+      line-height: 1;
+      pointer-events: none;
+    }
+    .plane-hit {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">🗺 方案 A · 昼夜对照平面地图</div>
+    <div class="sub">大圆弧航线光带 · 亮点仅在航线起终点</div>
+    <div class="spacer"></div>
+    <div class="clock" id="clock">—</div>
+  </div>
+
+  <div id="mapWrap">
+    <div class="label">方案 A · 昼夜对照平面地图</div>
+    <div id="gameMap"></div>
+    <div class="hint">航线=柔和发光弧线 · 节点=蓝光晕图标 · 无散落杂点</div>
+  </div>
+
+  <div class="footer">
+    <span class="dot" style="background:#1a5cff;"></span>主基地
+    <span class="dot" style="background:#4da6ff;"></span>通航城市
+    <span style="color:#8ec8ff;">〜〜</span>发光弧线航路
+    <span>✈</span>航班
+    <span class="spacer" style="flex:1;"></span>
+    <span>晨昏线按 UTC 太阳位置 · 夜幕与地图锁定</span>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+  function computeSun() {
+    var now = new Date();
+    var jd = now.getTime() / 86400000 + 2440587.5;
+    var n = jd - 2451545.0;
+    var L = (280.460 + 0.9856474 * n) % 360; if (L < 0) L += 360;
+    var g = (357.528 + 0.9856003 * n) % 360; if (g < 0) g += 360;
+    var gr = g * Math.PI / 180;
+    var lambda = L + 1.915 * Math.sin(gr) + 0.020 * Math.sin(2 * gr);
+    var eps = 23.439 - 0.0000004 * n;
+    var dec = Math.asin(Math.sin(eps * Math.PI / 180) * Math.sin(lambda * Math.PI / 180));
+    var ut = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+    var ra = Math.atan2(Math.cos(eps * Math.PI / 180) * Math.sin(lambda * Math.PI / 180), Math.cos(lambda * Math.PI / 180));
+    var raDeg = (ra * 180 / Math.PI + 360) % 360;
+    var gmst = (100.46 + 0.985647352 * n + ut * 15.04107) % 360; if (gmst < 0) gmst += 360;
+    var lng = (raDeg - gmst + 360) % 360; if (lng > 180) lng -= 360;
+    return { lat: dec * 180 / Math.PI, lng: lng };
+  }
+
+  var BASES = [
+    { name:'深圳宝安', code:'SZX', lat:22.639, lng:113.811 },
+    { name:'广州白云', code:'CAN', lat:23.392, lng:113.299 }
+  ];
+  var ROUTES = [
+    { name:'北京首都', code:'PEK', lat:40.080, lng:116.585 },
+    { name:'上海虹桥', code:'SHA', lat:31.198, lng:121.336 },
+    { name:'成都双流', code:'CTU', lat:30.579, lng:103.947 },
+    { name:'三亚凤凰', code:'SYX', lat:18.303, lng:109.412 },
+    { name:'昆明长水', code:'KMG', lat:25.102, lng:102.929 },
+    { name:'贵阳龙洞堡', code:'KWE', lat:26.539, lng:106.801 },
+    { name:'伦敦希思罗', code:'LHR', lat:51.470, lng:-0.454 }
+  ];
+  var FLIGHTS = [
+    { id:'B-2026', type:'A320', from:[22.639,113.811], to:[40.080,116.585], p:0.55 },
+    { id:'B-2030', type:'A320neo', from:[22.639,113.811], to:[30.579,103.947], p:0.70 },
+    { id:'B-2025', type:'A320', from:[22.639,113.811], to:[31.198,121.336], p:0.35 },
+    { id:'B-2019', type:'B738', from:[22.639,113.811], to:[18.303,109.412], p:0.15 },
+    { id:'A-1001', type:'A330', from:[22.639,113.811], to:[25.102,102.929], p:0.90 },
+    { id:'A-1003', type:'A350-900', from:[22.639,113.811], to:[51.470,-0.454], p:0.42 }
+  ];
+
+  function greatCirclePoints(lat1, lng1, lat2, lng2, steps) {
+    steps = steps || 96;
+    var φ1 = lat1 * Math.PI / 180, λ1 = lng1 * Math.PI / 180;
+    var φ2 = lat2 * Math.PI / 180, λ2 = lng2 * Math.PI / 180;
+    var cosφ1 = Math.cos(φ1), cosφ2 = Math.cos(φ2);
+    var sinφ1 = Math.sin(φ1), sinφ2 = Math.sin(φ2);
+    var d = 2 * Math.asin(Math.sqrt(
+      Math.pow(Math.sin((φ1 - φ2) / 2), 2) +
+      cosφ1 * cosφ2 * Math.pow(Math.sin((λ1 - λ2) / 2), 2)
+    ));
+    if (d < 1e-10) return [[lat1, lng1], [lat2, lng2]];
+    var pts = [];
+    for (var i = 0; i <= steps; i++) {
+      var t = i / steps;
+      var A = Math.sin((1 - t) * d) / Math.sin(d);
+      var B = Math.sin(t * d) / Math.sin(d);
+      var x = A * cosφ1 * Math.cos(λ1) + B * cosφ2 * Math.cos(λ2);
+      var y = A * cosφ1 * Math.sin(λ1) + B * cosφ2 * Math.sin(λ2);
+      var z = A * sinφ1 + B * sinφ2;
+      pts.push([
+        Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI,
+        Math.atan2(y, x) * 180 / Math.PI
+      ]);
+    }
+    return pts;
+  }
+
+  function addGlowingRoute(arc, popupHtml) {
+    var svg = map._routeSvg || (map._routeSvg = L.svg({ padding: 1.2 }));
+    L.polyline(arc, {
+      color: '#2a7fd4', weight: 22, opacity: 1, interactive: false,
+      className: 'route-bloom', renderer: svg
+    }).addTo(map);
+    L.polyline(arc, {
+      color: '#5eb8ff', weight: 9, opacity: 1, interactive: false,
+      className: 'route-soft', renderer: svg
+    }).addTo(map);
+    L.polyline(arc, {
+      color: 'rgba(190,230,255,0.85)', weight: 1.5, opacity: 1, interactive: false,
+      className: 'route-core', renderer: svg
+    }).addTo(map);
+    return L.polyline(arc, {
+      color: '#fff', weight: 36, opacity: 0.01, interactive: true,
+      className: 'route-hit', bubblingMouseEvents: false, renderer: svg
+    }).addTo(map).bindPopup(popupHtml);
+  }
+
+  function hubIcon(code, isBase) {
+    return L.divIcon({
+      className: '',
+      html: '<div class="hub-marker'+(isBase?' base':'')+'">'+
+        '<div class="hub-glow"></div>'+
+        '<div class="hub-core">'+(isBase?'🏠':'🏙')+'</div>'+
+        '<div class="hub-label">'+code+'</div>'+
+      '</div>',
+      iconSize: [48, 48],
+      iconAnchor: [24, 24]
+    });
+  }
+
+  var map = L.map('gameMap', {
+    center: [40, 55],
+    zoom: 3,
+    minZoom: 2,
+    maxZoom: 12,
+    worldCopyJump: true,
+    zoomControl: true,
+    attributionControl: false,
+    zoomAnimation: false,
+    fadeAnimation: false,
+    markerZoomAnimation: false,
+    maxBounds: [[-85, -200], [85, 200]],
+    maxBoundsViscosity: 1.0
+  });
+
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19
+  }).addTo(map);
+
+  function enforceFill() {
+    var size = map.getSize();
+    if (!size.y || !size.x) return;
+    var minZ = Math.log2(Math.max(size.x, size.y) / 256);
+    minZ = Math.ceil(minZ * 10) / 10;
+    if (minZ < 1.5) minZ = 1.5;
+    if (minZ > 6) minZ = 6;
+    map.setMinZoom(minZ);
+    if (map.getZoom() < minZ) map.setZoom(minZ, { animate: false });
+  }
+
+  var szx = [22.639, 113.811];
+  ROUTES.forEach(function(c) {
+    var arc = greatCirclePoints(szx[0], szx[1], c.lat, c.lng, c.code === 'LHR' ? 192 : 128);
+    addGlowingRoute(arc,
+      '<strong style="color:#8ec8ff;">✈ 深圳 ↔ '+c.name+'</strong><br>'+
+      '<span style="color:#8899bb;">'+c.code+' · 大圆弧航路</span>'
+    );
+    L.marker([c.lat, c.lng], { icon: hubIcon(c.code, false) })
+      .addTo(map)
+      .bindPopup('<strong>'+c.name+' ('+c.code+')</strong>');
+  });
+
+  BASES.forEach(function(b) {
+    L.marker([b.lat, b.lng], { icon: hubIcon(b.code, true) })
+      .addTo(map)
+      .bindPopup('<strong>🏠 '+b.name+' ('+b.code+')</strong><br>主运营基地');
+  });
+
+  FLIGHTS.forEach(function(f) {
+    var arc = greatCirclePoints(f.from[0], f.from[1], f.to[0], f.to[1], f.to && f.to[1] < 0 ? 160 : 100);
+    var idx = Math.min(arc.length - 2, Math.max(1, Math.floor(f.p * (arc.length - 1))));
+    var lat = arc[idx][0], lng = arc[idx][1];
+    var nlat = arc[idx + 1][0], nlng = arc[idx + 1][1];
+    var ang = Math.atan2(nlat - lat, nlng - lng) * 180 / Math.PI + 90;
+    L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="plane-hit"><div class="plane-icon" style="transform:rotate('+ang+'deg);">✈</div></div>',
+        iconSize: [48, 48],
+        iconAnchor: [24, 24]
+      }),
+      zIndexOffset: 800
+    }).addTo(map).bindPopup('<strong>✈ '+f.id+'</strong><br>'+f.type);
+  });
+
+  // Night veil only — NO random city lights
+  map.createPane('nightPane');
+  var nightPane = map.getPane('nightPane');
+  nightPane.style.zIndex = 350;
+  nightPane.style.pointerEvents = 'none';
+
+  var nightCanvas = L.DomUtil.create('canvas', 'night-canvas', nightPane);
+  nightCanvas.style.position = 'absolute';
+  nightCanvas.style.left = '0';
+  nightCanvas.style.top = '0';
+  nightCanvas.style.pointerEvents = 'none';
+
+  // Bloom only at route start/end hubs
+  var HUB_LIGHTS = BASES.concat(ROUTES);
+
+  var drawScheduled = false;
+  function scheduleDraw() {
+    if (drawScheduled) return;
+    drawScheduled = true;
+    requestAnimationFrame(function() {
+      drawScheduled = false;
+      drawNight();
+    });
+  }
+
+  function drawNight() {
+    var size = map.getSize();
+    if (!size.x || !size.y) return;
+
+    var dpr = window.devicePixelRatio || 1;
+    nightCanvas.width = Math.round(size.x * dpr);
+    nightCanvas.height = Math.round(size.y * dpr);
+    nightCanvas.style.width = size.x + 'px';
+    nightCanvas.style.height = size.y + 'px';
+
+    var topLeft = map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(nightCanvas, topLeft);
+
+    var ctx = nightCanvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, size.x, size.y);
+
+    var sun = computeSun();
+    var cosDec = Math.cos(sun.lat * Math.PI / 180);
+    var sinDec = Math.sin(sun.lat * Math.PI / 180);
+    var sunLng = sun.lng * Math.PI / 180;
+
+    var step = 3;
+    var mw = Math.ceil(size.x / step);
+    var mh = Math.ceil(size.y / step);
+    var mask = document.createElement('canvas');
+    mask.width = mw;
+    mask.height = mh;
+    var mctx = mask.getContext('2d');
+    var img = mctx.createImageData(mw, mh);
+    var data = img.data;
+
+    for (var y = 0; y < mh; y++) {
+      for (var x = 0; x < mw; x++) {
+        var ll = map.containerPointToLatLng(L.point(x * step + step * 0.5, y * step + step * 0.5));
+        var lat = ll.lat * Math.PI / 180;
+        var lng = ll.lng * Math.PI / 180;
+        var cosC = Math.sin(lat) * sinDec + Math.cos(lat) * cosDec * Math.cos(lng - sunLng);
+        var nightA = Math.max(0, Math.min(1, 0.5 - cosC * 2.5));
+        var i = (y * mw + x) * 4;
+        data[i] = 2;
+        data[i + 1] = 6;
+        data[i + 2] = 24;
+        data[i + 3] = Math.floor(nightA * 235);
+      }
+    }
+    mctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(mask, 0, 0, size.x, size.y);
+
+    // Soft cyan bloom under hubs only (start + end of routes)
+    HUB_LIGHTS.forEach(function(h) {
+      var latR = h.lat * Math.PI / 180;
+      var lngR = h.lng * Math.PI / 180;
+      var cosC = Math.sin(latR) * sinDec + Math.cos(latR) * cosDec * Math.cos(lngR - sunLng);
+      var nightA = Math.max(0, Math.min(1, 0.5 - cosC * 2.5));
+      var strength = 0.3 + nightA * 0.7;
+
+      var pt = map.latLngToContainerPoint(L.latLng(h.lat, h.lng));
+      if (pt.x < -60 || pt.x > size.x + 60 || pt.y < -60 || pt.y > size.y + 60) return;
+
+      var isBase = BASES.some(function(b) { return b.code === h.code; });
+      var r = isBase ? 40 : 32;
+      var g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r);
+      g.addColorStop(0, 'rgba(230,250,255,' + (0.5 * strength) + ')');
+      g.addColorStop(0.22, 'rgba(120,200,255,' + (0.32 * strength) + ')');
+      g.addColorStop(0.5, 'rgba(50,130,255,' + (0.14 * strength) + ')');
+      g.addColorStop(1, 'rgba(40,100,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(pt.x - r, pt.y - r, r * 2, r * 2);
+    });
+  }
+
+  map.on('move zoom moveend zoomend viewreset resize', scheduleDraw);
+  map.on('resize zoomend', enforceFill);
+
+  window.addEventListener('resize', function() {
+    map.invalidateSize();
+    enforceFill();
+    scheduleDraw();
+  });
+
+  function tick() {
+    var now = new Date();
+    var wd = ['日','一','二','三','四','五','六'][now.getUTCDay()];
+    var localH = String((now.getUTCHours() + 8) % 24).padStart(2, '0');
+    var utcH = String(now.getUTCHours()).padStart(2, '0');
+    var m = String(now.getUTCMinutes()).padStart(2, '0');
+    var s = String(now.getUTCSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent =
+      '2025-07-01 周' + wd + ' ' + localH + ':' + m + ' | UTC ' + utcH + ':' + m + ':' + s;
+    scheduleDraw();
+  }
+
+  setTimeout(function() {
+    map.invalidateSize();
+    enforceFill();
+    drawNight();
+  }, 150);
+  setInterval(tick, 1000);
+  </script>
+</body>
+</html>

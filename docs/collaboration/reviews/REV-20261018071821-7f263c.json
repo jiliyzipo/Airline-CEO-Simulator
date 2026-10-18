@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018071821-7f263c",
+  "deliveryId": "DEL-20261018071756-010504",
+  "taskId": "C-COLLAB-FINAL",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "cancelled",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": false,
+  "reviewKind": "developer-self-check",
+  "subjectFingerprints": {
+    "implementation": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+    "verification": "973c54332212315c10d601101a769a86807e2143c80a36c89af06df43a168e45",
+    "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+  },
+  "snapshotPath": "out/collab/DEL-20261018071756-010504",
+  "createdAt": "2026-10-18T07:18:21.727Z",
+  "updatedAt": "2026-10-18T07:18:43.791Z",
+  "runs": [],
+  "coverage": [],
+  "issues": [],
+  "finishedAt": "2026-10-18T07:18:43.791Z",
+  "cancelReason": "Developer snapshot verification is already running via the append-only verify driver; avoid duplicating the identical full suite. This delivery awaits a real Cursor independent REV.",
+  "workerPid": null,
+  "activeRunToken": null
+}

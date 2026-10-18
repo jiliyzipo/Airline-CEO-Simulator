@@ -1,0 +1,309 @@
+{
+  "date": "2026-10-17T10:12:05.121Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261017095048-cfd9dd\\tools\\collab",
+  "sourceFingerprint": "bfb45c45ce205e84c592009aefe1c744379c85cc2c888515e337e574209967a0",
+  "fixtureRoot": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-extra-delivery\\2026-10-17T10-11-47-258Z",
+  "total": 12,
+  "passed": 1,
+  "failed": 11,
+  "results": [
+    {
+      "id": "S01",
+      "requirement": "Exit-zero machine JSON with failed assertions cannot be overridden by caller success",
+      "passed": false,
+      "runExitCode": 0,
+      "stdout": "{\"assertionsTotal\":3,\"assertionsFailed\":1,\"assertionsSkipped\":0}\n",
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101148-b6a064",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6
+        }
+      }
+    },
+    {
+      "id": "S02",
+      "requirement": "Empty stdout and no result file cannot produce passed",
+      "passed": false,
+      "stdoutBytes": 0,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101149-4f33d2",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6
+        }
+      }
+    },
+    {
+      "id": "S03",
+      "requirement": "Non-numeric assertion counters are rejected",
+      "passed": false,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101149-b5b4e6",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6
+        }
+      },
+      "storedAssertions": {
+        "total": null,
+        "failed": null,
+        "skipped": null
+      }
+    },
+    {
+      "id": "S04",
+      "requirement": "Demo deliver does not invalidate its own implementation fingerprint",
+      "passed": false,
+      "deliveryFingerprint": "74f7f93a0e725c9ac8312e886f1cd0a996dac3cdaed45f79bb8d57e32b34531a",
+      "current": {
+        "taskId": "C-DEMO",
+        "freshness": "stale",
+        "note": "Delivery snapshot differs from current workspace.",
+        "implementationFingerprint": "4f618ef71d159447aa6d5ac5678a3e5f22334b92ba04bec48b39a57455354c07",
+        "verificationFingerprint": "4f618ef71d159447aa6d5ac5678a3e5f22334b92ba04bec48b39a57455354c07",
+        "pairedDeliveryId": "DEL-20261017101150-683f7b",
+        "pairedReviewId": null
+      }
+    },
+    {
+      "id": "S05",
+      "requirement": "Snapshot ProjectSettings identity and executable settings are validated",
+      "passed": false,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101153-8bbf25",
+          "exitCode": 0,
+          "status": "running",
+          "stdoutPath": ".collab-local/logs/REV-20261017101153-8bbf25/stdout.txt",
+          "stderrPath": ".collab-local/logs/REV-20261017101153-8bbf25/stderr.txt",
+          "externalExitCode": 0,
+          "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-extra-delivery\\2026-10-17T10-11-47-258Z\\fixtures\\05\\out\\collab\\DEL-20261017101153-4a2511"
+        }
+      }
+    },
+    {
+      "id": "S06",
+      "requirement": "Unlisted executable source added to snapshot is detected",
+      "passed": false,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101154-574bb4",
+          "exitCode": 0,
+          "status": "running",
+          "stdoutPath": ".collab-local/logs/REV-20261017101154-574bb4/stdout.txt",
+          "stderrPath": ".collab-local/logs/REV-20261017101154-574bb4/stderr.txt",
+          "externalExitCode": 0,
+          "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-extra-delivery\\2026-10-17T10-11-47-258Z\\fixtures\\06\\out\\collab\\DEL-20261017101154-cf0cd2"
+        }
+      }
+    },
+    {
+      "id": "S07",
+      "requirement": "Finishing smoke does not delete another review resource lock",
+      "passed": false,
+      "lockExistsAfter": false,
+      "observation": {
+        "accepted": true,
+        "value": {
+          "reviewId": "REV-20261017101155-24a8a2",
+          "status": "passed",
+          "issues": [],
+          "freshness": "current",
+          "revision": 6
+        }
+      }
+    },
+    {
+      "id": "S08",
+      "requirement": "Cancelling a running worker remains cancelled after the worker completes",
+      "passed": false,
+      "cancelled": {
+        "reviewId": "REV-20261017101156-17b92c",
+        "status": "cancelled"
+      },
+      "workerExitCode": 0,
+      "finalStatus": "running",
+      "finishedAt": null,
+      "output": "{\n  \"reviewId\": \"REV-20261017101156-17b92c\",\n  \"exitCode\": 0,\n  \"status\": \"running\",\n  \"stdoutPath\": \".collab-local/logs/REV-20261017101156-17b92c/stdout.txt\",\n  \"stderrPath\": \".collab-local/logs/REV-20261017101156-17b92c/stderr.txt\",\n  \"externalExitCode\": 0,\n  \"cwd\": \"C:\\\\Users\\\\jiliy\\\\Airline-CEO-Simulator\\\\.collab-local\\\\reaccept-20261017\\\\codex-extra-delivery\\\\2026-10-17T10-11-47-258Z\\\\fixtures\\\\08\\\\out\\\\collab\\\\DEL-20261017101155-9ba410\"\n}\n"
+    },
+    {
+      "id": "S09",
+      "requirement": "Sync cannot overwrite a claim committed after sync read the task",
+      "passed": false,
+      "scheduler": "Run valid claim between sync task read and task replacement; no production code changed.",
+      "claim": {
+        "taskId": "C-DEMO",
+        "holder": "cursor",
+        "revision": 3
+      },
+      "sync": {
+        "accepted": true,
+        "value": {
+          "revision": 3,
+          "revisionBumped": true,
+          "anyChange": false,
+          "freshness": [
+            {
+              "taskId": "C-DEMO",
+              "freshness": "unknown",
+              "note": "",
+              "implementationFingerprint": "b7d7ba6b62736d8a9b2a1c6b27a1eda84e378b64404bbfea09d0a4a64bc25d80",
+              "verificationFingerprint": "b7d7ba6b62736d8a9b2a1c6b27a1eda84e378b64404bbfea09d0a4a64bc25d80",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T01",
+              "freshness": "unknown",
+              "note": "taskBookStatus=accepted",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T02",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T03",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T04",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T05",
+              "freshness": "unknown",
+              "note": "taskBookStatus=partial_open",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            },
+            {
+              "taskId": "T06",
+              "freshness": "unknown",
+              "note": "taskBookStatus=accepted",
+              "implementationFingerprint": "c47304a238c6cdbddcb8c5b0e7c708be928a529f8913ce208eb629b83a8dc664",
+              "verificationFingerprint": "7a8f4256054c2fb2c1cd20e86a79e48ec0bf2acb4e7ecce2eec4b5df7e90fed0",
+              "pairedDeliveryId": null,
+              "pairedReviewId": null
+            }
+          ],
+          "ack": {
+            "cursor": {
+              "revision": 2,
+              "at": "2026-10-17T10:12:00.463Z"
+            },
+            "codex": null
+          },
+          "currentPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\.collab-local\\reaccept-20261017\\codex-extra-delivery\\2026-10-17T10-11-47-258Z\\fixtures\\09\\docs\\collaboration\\CURRENT.md"
+        }
+      },
+      "taskHolder": null,
+      "indexHolder": "cursor"
+    },
+    {
+      "id": "S10",
+      "requirement": "PowerShell ack wrapper forwards its actor/revision arguments",
+      "passed": true,
+      "exitCode": 0,
+      "stdout": "{\n  \"ack\": {\n    \"cursor\": null,\n    \"codex\": {\n      \"revision\": 1,\n      \"at\": \"2026-10-17T10:12:03.121Z\"\n    }\n  },\n  \"revision\": 1\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "S11",
+      "requirement": "Delivery/review/issue/event malformed field types are rejected individually",
+      "passed": false,
+      "observations": [
+        {
+          "type": "delivery",
+          "accepted": true,
+          "value": true
+        },
+        {
+          "type": "review",
+          "accepted": true,
+          "value": true
+        },
+        {
+          "type": "issue",
+          "accepted": true,
+          "value": true
+        },
+        {
+          "type": "event",
+          "accepted": true,
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "requirement": "Verification tool test change preserves implementation identity",
+      "passed": false,
+      "implementationChanged": true,
+      "verificationChanged": true
+    }
+  ],
+  "preservation": {
+    "productionBefore": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionAfter": "e108606412e05a72cd0ca905051bb23bc77620656b5a5624b4e615444e4ff9c9",
+    "productionUnchanged": true,
+    "records": [
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017065745-c9b348.json",
+        "before": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "after": "abd914ee12a4f27a0c25cac453109a4f000c5a02cce0e5f8fcca569d78bacacd",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/reviews/REV-20261017065756-f1940a.json",
+        "before": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "after": "94b9eef5f1323a513f4f5bb9808e9aa2f2d2d971421c1f178dcbe74aae73d7de",
+        "unchanged": true
+      },
+      {
+        "file": "docs/collaboration/deliveries/DEL-20261017095048-cfd9dd.json",
+        "before": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "after": "d63aa555fa5c7c0a044afe4a7917f883b7bf87d815c64b33e6c973a12e4d6e95",
+        "unchanged": true
+      },
+      {
+        "file": "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-17.md",
+        "before": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "after": "0b2562677604c72d5094cee856764f2e3d2ba74d5b4b247d6910b962d2a51194",
+        "unchanged": true
+      }
+    ]
+  }
+}

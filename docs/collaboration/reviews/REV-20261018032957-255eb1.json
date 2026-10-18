@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261018032957-255eb1",
+  "deliveryId": "DEL-20261018032237-012f93",
+  "taskId": "C-ENG",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "cancelled",
+  "profile": "unity-editmode",
+  "toolVersion": "collab-cli/1.1.0",
+  "subjectFingerprints": {
+    "implementation": "39dad7ced68acee9672888d951dbd3e0070676660c8fa43f07de5d849a889ee8",
+    "verification": "0bce3574d3830672e85b417351a5ff180dfc2c4da3569374261b19e57f726b45",
+    "contract": "d4154fc11553c51d27c12ffedd50abde29fddef9d32fe5821bb26a9ecdeaeffc"
+  },
+  "snapshotPath": "out/collab/DEL-20261018032237-012f93",
+  "createdAt": "2026-10-18T03:29:57.977Z",
+  "updatedAt": "2026-10-18T03:31:03.316Z",
+  "runs": [
+    {
+      "at": "2026-10-18T03:30:04.250Z",
+      "finishedAt": "2026-10-18T03:30:22.739Z",
+      "runToken": "883d281e3081e101",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261018032237-012f93",
+      "subjectImplementationFingerprint": "39dad7ced68acee9672888d951dbd3e0070676660c8fa43f07de5d849a889ee8",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "883d281e3081e101"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261018032237-012f93",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261018032957-255eb1/run-883d281e3081e101/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261018032957-255eb1/run-883d281e3081e101/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261018032957-255eb1/run-883d281e3081e101/stdout.txt",
+        "sha256": "cfa383fe0ba87ecbcd5a833e185a706bc1f3d297aab4c345f802a5725eeebffc",
+        "bytes": 64,
+        "runToken": "883d281e3081e101"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261018032957-255eb1/run-883d281e3081e101/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "883d281e3081e101"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_883d281e3081e101.xml",
+        "runToken": "883d281e3081e101",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261018032237-012f93",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "f3324f409a45699420d29125fc190b1dde69fe31c1994432d5fbdeae982b42a1",
+          "bytes": 21183,
+          "mtimeMs": 1792294221388.622
+        },
+        "producedByRun": true,
+        "sha256": "f3324f409a45699420d29125fc190b1dde69fe31c1994432d5fbdeae982b42a1"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-18T03:30:04.224Z",
+  "finishedAt": "2026-10-18T03:31:03.316Z",
+  "cancelReason": "AC scope mismatch: C-ENG bundles compile/slot/unity ACs, but one review is bound to one profile. Superseded by C-ENG-UNITY / C-ENG-COMPILE / C-ENG-SLOT. Recorded Unity run retained."
+}

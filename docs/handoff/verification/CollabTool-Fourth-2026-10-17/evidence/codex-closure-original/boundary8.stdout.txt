@@ -1,0 +1,10 @@
+PASS T01: Unstructured output from a declared JSON profile cannot support passed
+PASS T02: A malformed declared result file cannot fall back to passing stdout
+PASS T03: NUnit XML missing passed/failed/skipped attributes cannot pass
+PASS T04: NUnit failure cases cannot be concealed by inconsistent root counters
+PASS T05: A pre-existing result file unrelated to the run cannot support passed
+FAIL T06: Run or finish detects execution-time modification of snapshot source
+PASS T07: Two processes running the same review execute its command at most once
+PASS T08: A second review can reuse immutable inputs after first run emits build artifacts
+SUMMARY 7/8 third-round boundary checks passed; 1 failed
+RESULT C:\Users\jiliy\Airline-CEO-Simulator\.collab-local\reaccept-20261017\codex-closure-original-boundary8\2026-10-18T04-09-14-783Z\results.json

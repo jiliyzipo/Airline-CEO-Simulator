@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-17T15:08:41.883Z",
+  "subjectToolsPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\tools\\collab",
+  "label": "current",
+  "suites": [
+    {
+      "id": "developer-tests",
+      "exitCode": 0,
+      "ok": true,
+      "counts": null,
+      "passLines": 19,
+      "failLines": 0,
+      "script": ".collab-local/devtests-current-1792249721835/tools/collab/tests/collab.test.mjs",
+      "cwd": ".collab-local/devtests-current-1792249721835",
+      "resultsPath": null
+    },
+    {
+      "id": "baseline24",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 24,
+        "passed": 24,
+        "failed": 0
+      },
+      "passLines": 24,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/baseline24-rerun.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/acceptance-20261017/current-baseline24/results.json"
+    },
+    {
+      "id": "supplemental",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0
+      },
+      "passLines": 12,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Reaccept-2026-10-17/supplemental.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/current-supplemental/2026-10-17T15-09-17-358Z/results.json"
+    },
+    {
+      "id": "boundary8",
+      "exitCode": 0,
+      "ok": true,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "passLines": 8,
+      "failLines": 0,
+      "script": "docs/handoff/verification/CollabTool-Third-2026-10-17/edge-cases.mjs",
+      "cwd": "",
+      "resultsPath": ".collab-local/reaccept-20261017/current-boundary8/2026-10-17T15-09-35-149Z/results.json"
+    }
+  ],
+  "failedSuites": 0
+}

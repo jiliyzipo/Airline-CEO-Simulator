@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261018072743-1e378c",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 192,
+  "at": "2026-10-18T07:27:43.171Z",
+  "actor": "cursor",
+  "action": "review-start",
+  "taskId": "C-COLLAB-FINAL",
+  "deliveryId": "DEL-20261018071756-010504",
+  "reviewId": "REV-20261018072743-74a233",
+  "parentEventId": null,
+  "summary": "review-start REV-20261018072743-74a233 profile=collab",
+  "data": {
+    "reviewException": true,
+    "authorization": {
+      "schemaVersion": 1,
+      "grantedBy": "user",
+      "actor": "cursor",
+      "developerActor": "codex",
+      "projectId": "Airline-CEO-Simulator",
+      "taskId": "C-COLLAB-FINAL",
+      "deliveryId": "DEL-20261018071756-010504",
+      "actions": [
+        "review-start",
+        "review-run",
+        "review-evidence",
+        "review-finish",
+        "review-cancel"
+      ],
+      "profiles": [
+        "collab"
+      ],
+      "subjectFingerprints": {
+        "implementation": "19e78d1785779ee232d31a76c7b902d225e30114902f20de80f68a48f3b60547",
+        "verification": "973c54332212315c10d601101a769a86807e2143c80a36c89af06df43a168e45",
+        "contract": "8ae98d295628aea50b6dd9db13f612271c615a749a20a5a2235ab11b00eeeb18"
+      },
+      "statement": "在用户授权 Codex 完成协调工具全部开发、并要求处理 Cursor 反馈的范围内，准备本次限定的 Cursor 反向独立复验声明。它只允许 Cursor 检测此指定的 Codex 工具交付，不表示已复验或已通过；不允许冒用身份或修改游戏验收结论。",
+      "authorizationBasis": [
+        "用户原话：授权你完成协调工具的全部开发工作",
+        "用户确认：已经让Cursor保持现状。Codex 接手修复后，准备可供 Cursor 真实身份复验的交付。"
+      ],
+      "constraints": [
+        "不得改写原有 DEL/REV/ISSUE/event 历史",
+        "不启动 Unity、不修改游戏业务与游戏任务书",
+        "不 commit/push、不改全局客户端设置",
+        "不授权 Cursor 缺陷 verified/closed 或任务书勾选、全局 recover",
+        "不是操作系统身份凭据，执行者必须如实使用自身 actor"
+      ],
+      "sha256": "99af662aa72fb04390da7547589526258802e20d6c89c5b19313e5ca4f248f3b"
+    }
+  }
+}

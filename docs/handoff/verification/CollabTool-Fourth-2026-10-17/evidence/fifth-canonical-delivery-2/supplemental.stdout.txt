@@ -1,0 +1,14 @@
+PASS S01: Exit-zero machine JSON with failed assertions cannot be overridden by caller success
+PASS S02: Empty stdout and no result file cannot produce passed
+PASS S03: Non-numeric assertion counters are rejected
+PASS S04: Demo deliver does not invalidate its own implementation fingerprint
+PASS S05: Snapshot ProjectSettings identity and executable settings are validated
+PASS S06: Unlisted executable source added to snapshot is detected
+PASS S07: Finishing smoke does not delete another review resource lock
+PASS S08: Cancelling a running worker remains cancelled after the worker completes
+PASS S09: Sync cannot overwrite a claim committed after sync read the task
+PASS S10: PowerShell ack wrapper forwards its actor/revision arguments
+PASS S11: Delivery/review/issue/event malformed field types are rejected individually
+PASS S12: Verification tool test change preserves implementation identity
+SUMMARY 12/12 supplemental checks passed; 0 failed
+RESULT C:\Users\jiliy\Airline-CEO-Simulator\.collab-local\reaccept-20261017\fifth-canonical-delivery-2-supplemental\2026-10-18T02-27-52-367Z\results.json

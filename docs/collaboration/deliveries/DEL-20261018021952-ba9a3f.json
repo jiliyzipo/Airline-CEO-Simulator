@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "deliveryId": "DEL-20261018021952-ba9a3f",
+  "taskId": "C-DEMO",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "tool": "cursor",
+  "model": "deepseek-v4.1-flash",
+  "summary": "# 协作工具第四轮交付说明\r\n\r\n日期：2026-10-17。交付方：Cursor。对应验收报告：ACCEPT-COLLAB-20261017-CODEX-03（第三轮，结论 failed）。\r\n\r\n本交付只改 `tools/collab` 工具实现与协作文档，不改游戏业务代码、不改任务书勾选、不启动 Unity、不提交/推送。\r\n\r\n## 1. 本轮针对的阻断项\r\n\r\n| 编号 | 第三轮缺陷 | 本轮实现 |\r\n|---|---|---|\r\n| TH-01 | 未知/畸形结果仍可判通过（T01、T02） | `parseRunResult` 按 `resultKind` 强制格式；声明的 `resultFile` 必须成功解析，stdout 不再兜底；未识别输出只能 `blocked`/拒绝 |\r\n| TH-02 | NUnit 缺字段被补成 0、根汇总掩盖失败用例（T03、T04） | 严格解析：四个计数属性必须存在且为纯数字；与 `<test-case result>` 明细交叉核对；计数关系必须自洽 |\r\n| TH-03 | 旧 XML 可复用（T05） | 结果文件绑定本次执行：`runToken` + 运行前后 SHA256/时间戳 + `producedByRun`；路径支持 `{runToken}` 保证每次唯一；run 与 review 都保存路径与哈希 |\r\n| TH-04 | 运行中改快照仍可盖通过（T06） | run 前、run 后、finish 三处复核快照清单与哈希；运行中源码变化 → run 失败、finish 拒绝 |\r\n| TH-05 | 同一 review 双进程重复执行（T07） | 执行租约 `review-run-<id>.lock` 原子创建并持有到写回结束；第二个进程返回退出码 3；`runToken` 保护写回/取消/锁释放 |\r\n| TH-06 | 编译产物阻断复验（T08） | 运行时产物目录（`bin/ obj/ Library/ Temp/ Logs/ Build/` 等）视为产物而非源码，允许保留；产物目录之外的新增源码仍拒绝 |\r\n\r\n同时修正第三轮 §5 指出的 Unity 目录口径问题：\r\nprofile 现在以 `Unity Project` 为 `-ProjectPath`，结果文件为\r\n`Unity Project/Logs/Tasks20261017_<runToken>.xml`，与快照实际布局一致。\r\n\r\n## 2. 语义变化（请验收方核对）\r\n\r\n1. **不再存在 “unverified 仍 passed”**。若 profile 未声明机器结果契约且输出无法识别，\r\n   review 记为终态 `blocked`，退出码 6，任务 freshness 记 `unknown`，需开新 REV 重来。\r\n2. 终态集合扩展为 `passed / failed / blocked / cancelled`，均不可再次 finish。\r\n3. `compile` profile 声明 `resultKind: semcheck`（两次程序集编译门 + 编码门，共 3 个断言）；\r\n   `slot` 声明 `resultKind: slotcheck`（由 `[PASS]/[FAIL]` 明细推导计数并与 `SLOTCHECK` 汇总核对）。\r\n   两者的适配器已用真实工具输出验证（`errors=0` 三行、`SLOTCHECK OK`）。\r\n4. 旧正例 fixture（任意文本 stdout 期望 passed）按第三轮 §7 的要求不再成立；\r\n   本轮证据全部使用真实机器结果，未保留任何宽松通道。\r\n\r\n交付编号：`DEL-20261017150657-dd9483`（快照 `out/collab/DEL-20261017150657-dd9483/`；演示任务 C-DEMO 按设计只复制 `tools/collab`）。\r\n实现指纹：`efdddc5f2a11639ad3454a21b6092114b8d692f244bc0b4f2e475e82d28fdd1c`。\r\n\r\n## 3. 本轮证据\r\n\r\n驱动脚本：`docs/handoff/verification/CollabTool-Fourth-2026-10-17/run-verification.mjs`\r\n（原样调用三份既有套件，不改其源码）。\r\n\r\n工作区 `tools/collab` 与交付快照 `out/collab/DEL-20261017150657-dd9483/tools/collab` 均达到：\r\n\r\n| 套件 | 工作区 | 交付快照 |\r\n|---|---|---|\r\n| 开发方测试 `tools/collab/tests/collab.test.mjs` | 19/19 | 19/19 |\r\n| 原检查 `baseline24-rerun.mjs` | 24/24 | 24/24 |\r\n| 补充检查 `supplemental.mjs` | 12/12 | 12/12 |\r\n| 第三轮边界检查 `CollabTool-Third-2026-10-17/edge-cases.mjs` | 8/8 | 8/8 |\r\n\r\n原始输出与结果 JSON：\r\n`docs/handoff/verification/CollabTool-Fourth-2026-10-17/evidence/current/` 与 `.../evidence/delivery/`。\r\n\r\n开发方测试在一次性 scaffold 中运行（`docs/collaboration` + 工具占位文件，方法同 baseline P01），\r\n以免污染真实仓库状态，并保证工作区与快照用同一口径比较。\r\n\r\n注意：若 shell 里残留 `COLLAB_AUDIT_TOOL_SOURCE`（上一轮指向旧快照），单独运行三份套件会**测旧代码**。\r\n驱动脚本已对每个套件显式覆盖该变量；手工复现时请先 `Remove-Item Env:COLLAB_AUDIT_TOOL_SOURCE`。\r\n\r\n新增开发方单测（本轮新增 6 条）：NUnit 缺字段/掩盖失败/真实形态、slotcheck 适配器、\r\nsemcheck 三门槛、以及“锁初始化期间不得被抢占”（复现 TH-05 竞态的双执行路径）。\r\n\r\n真实适配器抽样：`node tools/semcheck/run.js` 输出 `errors=0 (raw=0)` / `tests-asm: errors=0 (raw=0)` / `enc: errors=0`；\r\n`dotnet run --project tools/slotcheck/slotcheck.csproj -c Release` 输出 `SLOTCHECK OK`，均被对应适配器接受。\r\n\r\n`blocked` 终态实测（一次性 fixture，未提交）：未声明结果契约的 profile 输出任意文本时，\r\n`review-finish` 退出码 6、review 与任务均为 `blocked`、`finishedAt` 已写、freshness=`unknown`，\r\n再次 finish 返回退出码 3（终态不可改写），没有出现 passed。\r\n\r\n复现（仓库根）：\r\n\r\n```powershell\r\nnode docs/handoff/verification/CollabTool-Fourth-2026-10-17/run-verification.mjs --subject tools/collab --label current\r\nnode docs/handoff/verification/CollabTool-Fourth-2026-10-17/run-verification.mjs --subject out/collab/DEL-20261017150657-dd9483/tools/collab --label delivery\r\n```\r\n\r\n## 4. 仍未完成（继续如实标注）\r\n\r\n- C07 真实 Unity EditMode/PlayMode 串联：本轮**未启动 Unity**。profile 的目录与结果路径已对齐，\r\n  结果绑定与严格 XML 解析已就绪，但真实 Unity 执行、XML 绑定、占用恢复仍需在有授权时实测。\r\n- C09 权威任务书动态映射与总完成闸门：未实现。\r\n- C10 客户端 Hook 端到端与事件去重：仍未验证，`doctor` 继续报告 `verified:false`。\r\n- C12 完整用户日常流程演练：未完成。\r\n- `cleanGitCheckoutVerified` 仍为 `false`，未把“源码含未提交文件”说成干净检出。\r\n\r\n## 5. 改动文件\r\n\r\n工具实现：\r\n\r\n- `tools/collab/lib/io.mjs` — 锁初始化竞态：空/半写入的锁文件不再被当作“可回收”，只有明确失主才回收\r\n- `tools/collab/lib/commands.mjs` — 严格结果解析（`parseRunResult` / `parseNunitCounters` /\r\n  `parseSlotcheckText` / `parseSemcheckText`）、执行租约与 `runToken`、结果文件绑定、\r\n  运行后与 finish 时快照复核、产物目录豁免、`blocked` 终态\r\n- `tools/collab/lib/state.mjs` — `blocked` 的 freshness 语义（保持 `unknown`，绝不写成 current）\r\n- `tools/collab/tests/collab.test.mjs` — 新增 6 条单测\r\n- `tools/collab/config.json` / `config.example.json` — `resultKind`、Unity `-ProjectPath` 与\r\n  `{runToken}` 结果路径\r\n\r\n文档：\r\n\r\n- `docs/collaboration/PROTOCOL.md`、`docs/collaboration/README.md`\r\n- `docs/handoff/CollabTool_Delivery_Fourth_2026-10-17.md`（本文件）\r\n- `docs/handoff/verification/CollabTool-Fourth-2026-10-17/run-verification.mjs` + `evidence/`\r\n\r\n## 6. 保全\r\n\r\n- 未修改 `docs/collaboration/deliveries|reviews|events|issues` 历史记录；本轮只新增 DEL。\r\n- 未修改 `Unity Project/Assets|Packages|ProjectSettings`。\r\n- 未修改游戏任务书；未提交、未推送、未清理任何历史证据。",
+  "files": {
+    "changedNote": "see fingerprints.implementation.entries / git porcelain"
+  },
+  "businessRisk": "none stated",
+  "selfTest": {
+    "performed": true,
+    "notes": "FR-01/02/03 fixed; dev tests 22/22, baseline 24/24, supplemental 12/12, boundary 8/8; F04/F05 now rejected"
+  },
+  "knownGaps": [
+    "C07 real Unity run not executed",
+    "C09 task-book gate not implemented",
+    "C10 hooks end-to-end unverified",
+    "C12 full user drill not done"
+  ],
+  "git": {
+    "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+    "dirty": true,
+    "cleanGitCheckoutVerified": false,
+    "sourceIncludesUncommittedFiles": true
+  },
+  "fingerprints": {
+    "schemaVersion": 1,
+    "fingerprintPolicyVersion": 1,
+    "computedAt": "2026-10-18T02:19:52.921Z",
+    "git": {
+      "head": "9216aabd80e4f63c89611f90e3cdaa48b6f62045",
+      "dirty": true,
+      "cleanGitCheckoutVerified": false,
+      "sourceIncludesUncommittedFiles": true
+    },
+    "implementation": {
+      "fingerprint": "42a40d2250bce8b1dc296e10609fca7095d5d171a01d9f35f09f29a9338a1a07",
+      "fileCount": 17,
+      "entries": [
+        {
+          "path": "docs/collaboration/PROTOCOL.md",
+          "bytes": 3204,
+          "sha256": "f23c4fad9acf0f2084a014a8b78af894db7d2be34ec647a3cf9be96bb41e5aa0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 3146,
+          "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 4405,
+          "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 2703,
+          "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 2703,
+          "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 77718,
+          "sha256": "e6aa07d5af9c723a660008a8115b90761d521b8687ba66920a30be634626ba43",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 9073,
+          "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 4893,
+          "sha256": "9a29dd90d45e2dcb2d76735f93e736e705bf28f501f907b574deea480ba676cb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 9894,
+          "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 18524,
+          "sha256": "dae2fe79510bf27c969c6e21bf7ea84f6a5b794252ad68080f4ea6c18ee4312d",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/xml.mjs",
+          "bytes": 8683,
+          "sha256": "cf63b81fdb2d583874b6fcbb14f24794776f76b009c7121f33e99bedaee537b3",
+          "tracked": false
+        }
+      ],
+      "roots": [
+        "tools/collab",
+        "docs/collaboration/PROTOCOL.md"
+      ]
+    },
+    "verification": {
+      "fingerprint": "a88a776bd1a6898ad911430dbc78ef2888dcd3730a6327113c5d8de233441719",
+      "fileCount": 20,
+      "entries": [
+        {
+          "path": "docs/collaboration/PROTOCOL.md",
+          "bytes": 3204,
+          "sha256": "f23c4fad9acf0f2084a014a8b78af894db7d2be34ec647a3cf9be96bb41e5aa0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 300,
+          "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 434,
+          "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 770,
+          "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 3146,
+          "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 4405,
+          "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 2703,
+          "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/config.json",
+          "bytes": 2703,
+          "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 77718,
+          "sha256": "e6aa07d5af9c723a660008a8115b90761d521b8687ba66920a30be634626ba43",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 9073,
+          "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 4893,
+          "sha256": "9a29dd90d45e2dcb2d76735f93e736e705bf28f501f907b574deea480ba676cb",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 1932,
+          "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 9894,
+          "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 18524,
+          "sha256": "dae2fe79510bf27c969c6e21bf7ea84f6a5b794252ad68080f4ea6c18ee4312d",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/lib/xml.mjs",
+          "bytes": 8683,
+          "sha256": "cf63b81fdb2d583874b6fcbb14f24794776f76b009c7121f33e99bedaee537b3",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/collab.test.mjs",
+          "bytes": 13608,
+          "sha256": "4299534bd1275463064bed288dfe0e75b8d56dd12dd1d1fe5892a2ea21e17979",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/smoke-profile.mjs",
+          "bytes": 759,
+          "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+          "tracked": false
+        },
+        {
+          "path": "tools/collab/tests/stale-marker.txt",
+          "bytes": 20,
+          "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+          "tracked": false
+        }
+      ],
+      "roots": [
+        "tools/collab",
+        "docs/collaboration/PROTOCOL.md"
+      ]
+    },
+    "contract": {
+      "fingerprint": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043",
+      "fileCount": 1,
+      "entries": [
+        {
+          "path": "(stable-contract-payload)",
+          "bytes": 735,
+          "sha256": "c0fead5adb8686951b2d4f1d4b15ed365f82dd9ba11ad9342ddc10d4dd4ac043"
+        }
+      ]
+    }
+  },
+  "recommendedProfiles": [
+    "smoke"
+  ],
+  "snapshotPath": "out/collab/DEL-20261018021952-ba9a3f",
+  "snapshotManifest": {
+    "sourceFingerprint": "a88a776bd1a6898ad911430dbc78ef2888dcd3730a6327113c5d8de233441719",
+    "copiedFileCount": 20,
+    "cleanGitCheckoutVerified": false,
+    "unlistedAtCreation": 0,
+    "entries": [
+      {
+        "path": "docs/collaboration/PROTOCOL.md",
+        "sha256": "f23c4fad9acf0f2084a014a8b78af894db7d2be34ec647a3cf9be96bb41e5aa0",
+        "bytes": 3204,
+        "snapshotSha256": "f23c4fad9acf0f2084a014a8b78af894db7d2be34ec647a3cf9be96bb41e5aa0"
+      },
+      {
+        "path": "tools/collab/adapters/codex-hooks.toml.example",
+        "sha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0",
+        "bytes": 300,
+        "snapshotSha256": "05ea6d6b863f80dcbc2e79ba34662daf7a5d4c38e7d105cc0dc9eb185b0e9fb0"
+      },
+      {
+        "path": "tools/collab/adapters/cursor-hooks.json.example",
+        "sha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf",
+        "bytes": 434,
+        "snapshotSha256": "95b59ae8fa0b8c3df31eece7ac115771dfc228f11aec6bee4f6ce207928587cf"
+      },
+      {
+        "path": "tools/collab/adapters/README.md",
+        "sha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a",
+        "bytes": 770,
+        "snapshotSha256": "e46db5d5709bcf4f679f4984305665f1ff94f57d5a89a32e0ba7e350c29fc92a"
+      },
+      {
+        "path": "tools/collab/cli.mjs",
+        "sha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687",
+        "bytes": 3146,
+        "snapshotSha256": "f18f8810c9d1f986a17c33c2aa94941796ec19a0daa304603f6ee4e80720f687"
+      },
+      {
+        "path": "tools/collab/Collab.ps1",
+        "sha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f",
+        "bytes": 4405,
+        "snapshotSha256": "b9c30b8f6830cab303b906a3c7d1c4a2de2a0d6a262f488386c9c8feec23730f"
+      },
+      {
+        "path": "tools/collab/config.example.json",
+        "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+        "bytes": 2703,
+        "snapshotSha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a"
+      },
+      {
+        "path": "tools/collab/config.json",
+        "sha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a",
+        "bytes": 2703,
+        "snapshotSha256": "2c9bb91c2700a556540e536c1a40ce1461bb2aa3ce2276e1cce994dccc1e0d8a"
+      },
+      {
+        "path": "tools/collab/lib/commands.mjs",
+        "sha256": "e6aa07d5af9c723a660008a8115b90761d521b8687ba66920a30be634626ba43",
+        "bytes": 77718,
+        "snapshotSha256": "e6aa07d5af9c723a660008a8115b90761d521b8687ba66920a30be634626ba43"
+      },
+      {
+        "path": "tools/collab/lib/exit.mjs",
+        "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+        "bytes": 378,
+        "snapshotSha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08"
+      },
+      {
+        "path": "tools/collab/lib/fingerprint.mjs",
+        "sha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4",
+        "bytes": 9073,
+        "snapshotSha256": "39354f491944f74e8053858b5ce02599510a6038cf45a63111319e19e8ca50a4"
+      },
+      {
+        "path": "tools/collab/lib/io.mjs",
+        "sha256": "9a29dd90d45e2dcb2d76735f93e736e705bf28f501f907b574deea480ba676cb",
+        "bytes": 4893,
+        "snapshotSha256": "9a29dd90d45e2dcb2d76735f93e736e705bf28f501f907b574deea480ba676cb"
+      },
+      {
+        "path": "tools/collab/lib/paths.mjs",
+        "sha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66",
+        "bytes": 1932,
+        "snapshotSha256": "74f3bcfa516db23f612322ea5daf8d99c823d469ef5933d8ea5cc23b02cedf66"
+      },
+      {
+        "path": "tools/collab/lib/schemas.mjs",
+        "sha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3",
+        "bytes": 9894,
+        "snapshotSha256": "a14ecf518dcce70531fcd8eafdac2cef31494a921a0551ea41e1cf48deb568d3"
+      },
+      {
+        "path": "tools/collab/lib/snapshot.mjs",
+        "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+        "bytes": 3919,
+        "snapshotSha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca"
+      },
+      {
+        "path": "tools/collab/lib/state.mjs",
+        "sha256": "dae2fe79510bf27c969c6e21bf7ea84f6a5b794252ad68080f4ea6c18ee4312d",
+        "bytes": 18524,
+        "snapshotSha256": "dae2fe79510bf27c969c6e21bf7ea84f6a5b794252ad68080f4ea6c18ee4312d"
+      },
+      {
+        "path": "tools/collab/lib/xml.mjs",
+        "sha256": "cf63b81fdb2d583874b6fcbb14f24794776f76b009c7121f33e99bedaee537b3",
+        "bytes": 8683,
+        "snapshotSha256": "cf63b81fdb2d583874b6fcbb14f24794776f76b009c7121f33e99bedaee537b3"
+      },
+      {
+        "path": "tools/collab/tests/collab.test.mjs",
+        "sha256": "4299534bd1275463064bed288dfe0e75b8d56dd12dd1d1fe5892a2ea21e17979",
+        "bytes": 13608,
+        "snapshotSha256": "4299534bd1275463064bed288dfe0e75b8d56dd12dd1d1fe5892a2ea21e17979"
+      },
+      {
+        "path": "tools/collab/tests/smoke-profile.mjs",
+        "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+        "bytes": 759,
+        "snapshotSha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c"
+      },
+      {
+        "path": "tools/collab/tests/stale-marker.txt",
+        "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+        "bytes": 20,
+        "snapshotSha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1"
+      }
+    ]
+  },
+  "independentReviewPassed": false,
+  "createdAt": "2026-10-18T02:19:53.003Z"
+}
