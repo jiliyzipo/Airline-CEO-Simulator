@@ -191,6 +191,17 @@ namespace AirlineCEO.Logic
                 return true;
             }
 
+            // 航班号（如 NS148）：落到该航班所属航线的「航班详细计划」。
+            // 一个航班号唯一对应一条航线（号段按航线整块预留，见 FlightScheduleFormat.BlockStride），
+            // 故链接 id 里直接带 routeId，落地页据 OpsSubpageContext.SelectedRouteId 选中该线。
+            if (linkId.StartsWith("flight:", StringComparison.Ordinal))
+            {
+                string routeId = linkId.Substring(7);
+                if (string.IsNullOrEmpty(routeId)) return false;
+                hit = new Hit("n43_航班详细计划", routeId);
+                return true;
+            }
+
             return false;
         }
 
@@ -211,8 +222,89 @@ namespace AirlineCEO.Logic
             var iataTerms = new (string term, string linkId)[codes.Length];
             for (int i = 0; i < codes.Length; i++)
                 iataTerms[i] = (codes[i], "city:" + codes[i]);
-            return WrapAircraftRegs(WrapAirportCodes(s, iataTerms));
+            s = WrapAircraftRegs(WrapAirportCodes(s, iataTerms));
+            return WrapFlightNumbers(s);
         }
+
+        /// <summary>
+        /// 航班号关键词（如 NS148）→ 所属航线的「航班详细计划」。
+        ///
+        /// ★2026-10-19 报障：「航班号没有关键词设置」—— 邮件正文里 <c>NS148</c> 是纯文本，
+        /// 而机号 <c>B-2008</c>、三字码对 <c>PEK-LHR</c> 都可点，唯独航班号点不动。
+        ///
+        /// 号段按航线整块预留（<see cref="FlightScheduleFormat.BlockStride"/> = 4 波 × 2 个号），
+        /// 所以**按航线现算全部预留号**，而不是只认「当前已排班次」的号：
+        /// 呈报里提到的待加班次往往还没有航班实体，只认已建班会让这封信里的号点不动。
+        /// 只包**已知号**，不做 `[A-Z]{2}\d+` 泛匹配 —— 否则 A320、B738 这类机型名也会被当成航班号。
+        /// </summary>
+        static string WrapFlightNumbers(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s ?? "";
+            var gs = GameState.Instance;
+            if (gs?.activeRoutes == null || gs.activeRoutes.Count == 0) return s;
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var terms = new List<(string term, string linkId)>();
+            for (int r = 0; r < gs.activeRoutes.Count; r++)
+            {
+                var route = gs.activeRoutes[r];
+                if (route == null || string.IsNullOrEmpty(route.routeId)) continue;
+                // 与排班引擎同源：Number() 在 flightNumber 为空时会用基地三字码兜底，
+                // 不要在这里另写一套前缀规则，免得信里的号与能点的号对不上。
+                FlightScheduleFormat.Numbers(route, 0, out string outboundNo, out _);
+                string prefix = FlightScheduleFormat.PrefixOf(outboundNo);
+                int num = FlightScheduleFormat.NumberOf(outboundNo);
+                if (num < 0 || string.IsNullOrEmpty(prefix)) continue;
+                for (int i = 0; i < FlightScheduleFormat.BlockStride; i++)
+                {
+                    string no = prefix + (num + i);
+                    if (seen.Add(no)) terms.Add((no, "flight:" + route.routeId));
+                }
+            }
+            if (terms.Count == 0) return s;
+            // 长的先匹配，避免短号吃掉长号（号段内不会互相包含，但保留与其它词表一致的规则）。
+            terms.Sort((a, b) => b.term.Length.CompareTo(a.term.Length));
+
+            for (int t = 0; t < terms.Count; t++)
+            {
+                string no = terms[t].term;
+                string id = terms[t].linkId;
+                int at = 0;
+                while (at < s.Length)
+                {
+                    int idx = IndexOfAsciiToken(s, no, at);
+                    if (idx < 0) break;
+                    if (InsideMarkup(s, idx)) { at = idx + no.Length; continue; }
+                    string shown = s.Substring(idx, no.Length);
+                    string wrap = Markup(id, shown);
+                    s = s.Substring(0, idx) + wrap + s.Substring(idx + no.Length);
+                    at = idx + wrap.Length;
+                }
+            }
+            return s;
+        }
+
+        /// <summary>
+        /// 按**ASCII 词边界**取子串位置（大小写不敏感）。
+        /// 不能复用 <see cref="IndexOfIata"/>：它用 <c>char.IsLetterOrDigit</c> 判边界，
+        /// 而汉字也算 letter —— 「执飞NS148。」这种中英紧邻的写法会被判成「号在单词中间」而漏包链接。
+        /// 航班号的实际相邻文本几乎都是中文或标点，必须只把 ASCII 字母数字当词字符。
+        /// </summary>
+        static int IndexOfAsciiToken(string s, string token, int start)
+        {
+            int len = token.Length;
+            for (int i = Math.Max(0, start); i + len <= s.Length; i++)
+            {
+                if (i > 0 && IsAsciiWordChar(s[i - 1])) continue;
+                if (i + len < s.Length && IsAsciiWordChar(s[i + len])) continue;
+                if (string.Compare(s, i, token, 0, len, StringComparison.OrdinalIgnoreCase) == 0)
+                    return i;
+            }
+            return -1;
+        }
+
+        static bool IsAsciiWordChar(char c) =>
+            (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 
         /// <summary>飞机注册号关键词（点进飞机详情）。</summary>
         public static string AircraftLink(string registration)

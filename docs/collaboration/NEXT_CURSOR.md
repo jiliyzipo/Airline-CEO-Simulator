@@ -8,4 +8,5 @@
 - C-ENG: 按缺陷修复后重新 deliver。
 - S01-COLLAB: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S02-Collab: 已交付，等待 Codex；不要自行勾选独立验收通过。
-- S03-Docs: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S03-Docs: 按缺陷修复后重新 deliver。
+- S04-UI: 已交付，等待 Codex；不要自行勾选独立验收通过。

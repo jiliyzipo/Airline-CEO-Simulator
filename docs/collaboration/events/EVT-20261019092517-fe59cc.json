@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261019092517-fe59cc",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 275,
+  "at": "2026-10-19T09:25:17.757Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": "REV-20261019092237-60f210",
+  "parentEventId": null,
+  "summary": "ISSUE-20261019092302-a70313: open -> fixing",
+  "data": {
+    "issueId": "ISSUE-20261019092302-a70313",
+    "from": "open",
+    "to": "fixing",
+    "note": "改用 unity-editmode 模板新建阶段任务 S04-UI，使 AC1-AC3 与机器契约逐字节一致；代码内容不变"
+  }
+}

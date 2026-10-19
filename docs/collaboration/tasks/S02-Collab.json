@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Collab",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:03:21.389Z",
-  "updatedAt": "2026-10-18T13:51:39.997Z",
-  "freshnessNote": "Review REV-20261018134910-387fd9 still applies to delivery DEL-20261018134113-f7d6ec.",
-  "staleForReviewId": null
+  "updatedAt": "2026-10-19T09:11:52.121Z",
+  "freshnessNote": "Historical review REV-20261018134910-387fd9 passed delivery DEL-20261018134113-f7d6ec; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261018134910-387fd9"
 }

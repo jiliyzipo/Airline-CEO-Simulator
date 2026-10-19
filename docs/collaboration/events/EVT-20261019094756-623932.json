@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261019094756-623932",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 285,
+  "at": "2026-10-19T09:47:56.938Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": "REV-20261019092237-60f210",
+  "parentEventId": null,
+  "summary": "ISSUE-20261019092302-a70313: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261019092302-a70313",
+    "from": "verified",
+    "to": "closed",
+    "note": "Closed AC/profile mismatch after independent REV-20261019094559-31090f for replacement DEL-20261019092547-d6429c. Original failed DEL/REV retained; no acceptance claim for untested UI interactions or T02 clean checkout."
+  }
+}

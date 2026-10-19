@@ -1218,7 +1218,7 @@ namespace AirlineCEO.EditorTools
                 Debug.Log($"运力指令 航班环 → [{rep.ringIdsCsv}] 环数={gsD.flightRings.Count}（期望 1）");
                 Debug.Log($"运力指令 回退快照 → hasPreDirective={ra.hasPreDirective}（期望 True） 快照班次={ra.preDirectiveFlights?.Count ?? -1}（期望 1）");
 
-                bool queued = InboxManager.QueueCapacityReport(gsD, ra, rep);
+                bool queued = InboxManager.QueueCapacityReport(gsD, ra, rep, 0);   // 0 = 立即入箱，验内容不验延迟
                 var capMail = gsD.inbox.Find(x => x != null && x.action == InboxManager.CapacityDirectiveAction);
                 Debug.Log($"运力指令 呈报 → 入箱={queued}（期望 True） 主题={capMail?.subject}");
                 Debug.Log($"运力指令 呈报 需决策={InboxManager.RequiresDecision(capMail)}（期望 True） 到期阻断={InboxManager.IsDue(capMail, gsD.year, gsD.quarter)}（期望 False）");
@@ -1632,7 +1632,7 @@ namespace AirlineCEO.EditorTools
                             Debug.Log($"P3 诊断 波{swD.dep}（{swD.slotAirport} band={swD.slotBand}）端数={eD.Count} → {sbD}");
                         }
 
-                    InboxManager.QueueCapacityReport(gsP3, rcP3, repP3);
+                    InboxManager.QueueCapacityReport(gsP3, rcP3, repP3, 0);
                     var applyMail = gsP3.inbox.Find(x => x != null && x.action == InboxManager.ApplySlotAction);
                     Debug.Log($"P3 申请邮件 → {(applyMail != null ? applyMail.subject : "无")}（期望含「申请」） 数量={applyMail?.permitAttempts ?? 0}");
 
@@ -1777,7 +1777,7 @@ namespace AirlineCEO.EditorTools
                     //   ③ 容差内（≤15 分）根本不该开单 —— 那本就算同一条槽。
                     //   ⚠️ 开单发生在 `QueueCapacityReport` 里（线上下达调令走的就是它），
                     //      测试里直调 `Execute` 只得到报告、不会开单，故这里要显式走一次呈报。
-                    InboxManager.QueueCapacityReport(gsP3, rcP3, repP3b);
+                    InboxManager.QueueCapacityReport(gsP3, rcP3, repP3b, 0);
                     var changeMail = gsP3.inbox.Find(x => x != null && x.action == InboxManager.ChangeSlotAction);
                     string chFrom = changeMail == null ? "" : changeMail.slotFromClock;
                     string chTo = changeMail == null ? "" : InboxManager.SlotMailClock(changeMail);
@@ -3921,7 +3921,7 @@ namespace AirlineCEO.EditorTools
                 // 旧版这条用例只调 `Execute` 就断言「收件箱新增 1 封」，于是它恒红：判据测错了层，
                 // 而 CEO 报障要的那封「市场部反馈邮件」其实没人钉住。
                 bool reportQueued = repT.ok && !repT.assignment
-                                    && InboxManager.QueueCapacityReport(gsC, rT, repT);
+                                    && InboxManager.QueueCapacityReport(gsC, rT, repT, 0);
                 bool executed = repT.ok && !repT.assignment && rT.daysOfWeek == "每日"
                                 && rT.WeeklyFlightsDeparture() > weekly0T;
                 Debug.Log($"R28 执行 → ok={repT.ok}（期望 True） 班期 {rT.daysOfWeek}（期望 每日）"
@@ -4006,7 +4006,7 @@ namespace AirlineCEO.EditorTools
                 // 比一句「办不成」有用得多（那也正是 CEO 要的那封呈报里的实质内容）。
                 var repPart = CapacityDirectiveLogic.Execute(gsC, rT, dBig);
                 bool partQueued = repPart.ok && !repPart.assignment
-                                  && InboxManager.QueueCapacityReport(gsC, rT, repPart);
+                                  && InboxManager.QueueCapacityReport(gsC, rT, repPart, 0);
                 InboxMail partMail = null;
                 for (int i = gsC.inbox.Count - 1; i >= 0; i--)
                 {

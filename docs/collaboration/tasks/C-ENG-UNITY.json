@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "仅在隔离快照中执行 Unity 批处理，不启动、不关闭用户正在使用的 Unity 实例",
@@ -26,13 +26,13 @@
   "blockers": [],
   "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07",
   "createdAt": "2026-10-18T03:31:26.139Z",
-  "updatedAt": "2026-10-18T03:58:08.971Z",
+  "updatedAt": "2026-10-19T09:11:47.658Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
     "Unity Project/ProjectSettings",
     "tools/regression"
   ],
-  "freshnessNote": "Review REV-20261018033542-0f4993 still applies to delivery DEL-20261018033132-39a1e3.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261018033542-0f4993 passed delivery DEL-20261018033132-39a1e3; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261018033542-0f4993"
 }

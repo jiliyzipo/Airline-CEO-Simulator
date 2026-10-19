@@ -34,7 +34,7 @@ var goR42 = new GameObject("__r42_receipt_gs__");
 
                     int wavesR42 = rR42.FlightCount;
                     var repR42 = CapacityDirectiveLogic.Execute(gsR42, rR42, CapacityDirectiveLogic.Parse("增加到每日3段往返"));
-                    InboxManager.QueueCapacityReport(gsR42, rR42, repR42);
+                    InboxManager.QueueCapacityReport(gsR42, rR42, repR42, 0);   // 0 = 立即入箱：本用例验内容，不验送达延迟
                     var repMailA = gsR42.inbox.Find(x => x != null && x.action == InboxManager.CapacityDirectiveAction);
                     bool factsStamped = repMailA != null
                                         && repMailA.capTargetWaves == 3 && repMailA.capBeforeWaves == wavesR42
@@ -46,7 +46,7 @@ var goR42 = new GameObject("__r42_receipt_gs__");
                     // ③／④ 重复下同一条令：不再叠单；旧呈报转为「已作废」
                     int applyBefore = gsR42.inbox.FindAll(x => x != null && x.action == InboxManager.ApplySlotAction).Count;
                     var repR42b = CapacityDirectiveLogic.Execute(gsR42, rR42, CapacityDirectiveLogic.Parse("增加到每日3段往返"));
-                    InboxManager.QueueCapacityReport(gsR42, rR42, repR42b);
+                    InboxManager.QueueCapacityReport(gsR42, rR42, repR42b, 0);
                     int applyAfter = gsR42.inbox.FindAll(x => x != null && x.action == InboxManager.ApplySlotAction).Count;
                     var repMailB = gsR42.inbox.Find(x => x != null && x.action == InboxManager.CapacityDirectiveAction && InboxManager.IsOpen(x));
                     bool superseded = repMailA != null && repMailA.status == InboxManager.SupersededStatus
@@ -78,7 +78,7 @@ var goR42 = new GameObject("__r42_receipt_gs__");
                     // 先重现原夹具：一架早班飞机并不保证能接晚班；交割也只会呈报，不代 CEO 批准。
                     SettleSlots(gsR42);
                     var repR42c = CapacityDirectiveLogic.Execute(gsR42, rR42, CapacityDirectiveLogic.Parse("增加到每日3段往返"));
-                    Debug.Log("R42_TRACE post-settlement " + repR42c.shortageSection + " crew=" + repR42c.crewSection); InboxManager.QueueCapacityReport(gsR42, rR42, repR42c);
+                    Debug.Log("R42_TRACE post-settlement " + repR42c.shortageSection + " crew=" + repR42c.crewSection); InboxManager.QueueCapacityReport(gsR42, rR42, repR42c, 0);
                     var repMailC = gsR42.inbox.Find(x => x != null && x.action == InboxManager.CapacityDirectiveAction && InboxManager.IsOpen(x));
                     InboxManager.ApproveCapacityDirective(gsR42, repMailC, out string _);
                     var constrainedReceipt = LastPendingMail(gsR42, "fx_cap_");
@@ -96,7 +96,7 @@ var goR42 = new GameObject("__r42_receipt_gs__");
                         var positive = CapacityDirectiveLogic.Execute(gsR42, rR42,
                             CapacityDirectiveLogic.Parse("增加到每日3段往返"));
                         Require(positive.ok, "positive directive must produce a report");
-                        InboxManager.QueueCapacityReport(gsR42, rR42, positive);
+                        InboxManager.QueueCapacityReport(gsR42, rR42, positive, 0);
                         var positiveMail = gsR42.inbox.Find(x => x != null
                             && x.action == InboxManager.CapacityDirectiveAction && InboxManager.IsOpen(x));
                         Require(InboxManager.ApproveCapacityDirective(gsR42, positiveMail, out string note), note);

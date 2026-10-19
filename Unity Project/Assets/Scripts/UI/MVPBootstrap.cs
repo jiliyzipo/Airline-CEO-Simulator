@@ -1238,7 +1238,7 @@ namespace AirlineCEO.UI
                 sb.AppendLine($"  遗产评级  {legacy.grade}  （总分 {legacy.total:F0}）");
                 sb.AppendLine("———————————————");
                 sb.AppendLine($"  市值表现（40%）  {legacy.marketCapScore:F0}  · 市值 {legacy.marketCapWan:F0} 万美元");
-                sb.AppendLine($"  安全飞行（30%）  {legacy.safetyScore:F0}  · 累计 {legacy.totalFlightHours:F0} FH");
+                sb.AppendLine($"  安全飞行（30%）  {legacy.safetyScore:F0}  · 累计飞行 {legacy.totalFlightHours:F0} 小时");
                 sb.AppendLine($"  航线覆盖（20%）  {legacy.coverageScore:F0}  · {legacy.coveredAirports} 机场 / {legacy.coveredCountries} 国 / {legacy.coveredContinents} 洲");
                 sb.AppendLine($"  董事会满意度（10%） {legacy.satisfactionScore:F0}");
             }

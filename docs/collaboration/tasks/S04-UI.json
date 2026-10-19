@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S04-UI",
+  "title": "阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：T03.8 六节 UI 可验证性走查（10 项通过）及走查中发现缺陷的修复",
+    "D1 航班号关键词缺失（TermNavMap 动态航班号包裹）",
+    "D2 收到新邮件时右侧正文被强制回到顶部（InboxPanelUI 滚动位保持）",
+    "D3 RouteDetailPanel 内点击航线关键词未回写航线上下文，跳到上一条航线",
+    "D4 CEO 下达运力调整后，运力呈报与时刻槽申请邮件立即到达，未按 2 游戏小时延后",
+    "D5 机队页面 FH/FC 缩写改为中文可读表述（累计飞行小时/起降次数）",
+    "不含本阶段未改动的模块、未列入验收条件的重构，以及指令失败口径的即时回执（有意保留）"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S04-UI）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S04-UI）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S04-UI）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-19T09:24:45.912Z",
+  "updatedAt": "2026-10-19T09:47:22.694Z",
+  "freshnessNote": "Review REV-20261019094559-31090f still applies to delivery DEL-20261019092547-d6429c.",
+  "staleForReviewId": null
+}

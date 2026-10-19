@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "仅在隔离快照中执行既有 dotnet slotcheck.csproj，不复制第二套实现",
@@ -22,12 +22,12 @@
   "blockers": [],
   "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07",
   "createdAt": "2026-10-18T03:31:26.481Z",
-  "updatedAt": "2026-10-18T03:58:08.955Z",
+  "updatedAt": "2026-10-19T09:11:44.344Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "tools/semcheck",
     "tools/slotcheck"
   ],
-  "freshnessNote": "Review REV-20261018033157-6550bc still applies to delivery DEL-20261018033145-e77a66.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261018033157-6550bc passed delivery DEL-20261018033145-e77a66; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261018033157-6550bc"
 }

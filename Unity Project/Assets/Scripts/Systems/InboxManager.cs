@@ -124,6 +124,10 @@ namespace AirlineCEO.Systems
                 {
                     var p = gs.pendingInbox[i];
                     if (p?.mail == null || p.mail.id != mail.id) continue;
+                    // 同一封重排：必须一起更新送达时刻。只换内容不换点，会沿用上一次的
+                    // deliverUtcTicks —— 那条通常已经到期，下一帧就投递，等于「延迟」没生效
+                    // （运力呈报重复下达时就会撞上：新调令的呈报会立刻冒出来）。
+                    p.deliverUtcTicks = whenUtc.Ticks;
                     p.mail = mail;
                     return;
                 }
@@ -134,6 +138,18 @@ namespace AirlineCEO.Systems
                 deliverUtcTicks = whenUtc.Ticks,
                 mail = mail
             });
+        }
+
+        /// <summary>
+        /// 现在入箱，或按 <paramref name="delayHours"/> 延后（0 / 负数 = 立即）。
+        /// 2026-10-19：CEO 下达运力调令后，运营部呈报与战略发展部的时刻槽单都不该在同一秒冒出来，
+        /// 统一走这里，免得每处各写一遍 Schedule/Add 的分支。
+        /// </summary>
+        static void Enqueue(GameState gs, InboxMail mail, int delayHours)
+        {
+            if (gs == null || mail == null) return;
+            if (delayHours > 0) Schedule(gs, mail, InboxCadence.AfterHours(gs.SimUtc, delayHours));
+            else Add(gs, mail);
         }
 
         /// <summary>投递已到期的待发邮件（由 TimeManager 按游戏时钟调用）。</summary>
@@ -2339,7 +2355,8 @@ namespace AirlineCEO.Systems
         /// 返回的**第一个**缺端；本场端在需求列表里排下标 0、且新增波次在本场必然没有持仓，
         /// 于是「只办一端」在实际运行中恒定表现为「只办起飞机场」——对端一次都没被提起过。
         /// </summary>
-        public static void QueueSlotApplications(GameState gs, RouteData route, List<OpsScheduleLogic.WaveShortage> shortages)
+        public static void QueueSlotApplications(GameState gs, RouteData route, List<OpsScheduleLogic.WaveShortage> shortages,
+                                                 int delayHours = 0)
         {
             if (gs == null || route == null || shortages == null || shortages.Count == 0) return;
             var order = new List<string>();
@@ -2373,7 +2390,8 @@ namespace AirlineCEO.Systems
                             QueueChangeSlot(gs, ends[k].airport, cFrom, cTo, 1,
                                 ChangeSlotMailId(gs, route, ends[k].airport, cTo), out _,
                                 SlotChangeReason(route, ends[k], cFrom, cTo), route.routeId, flightClk,
-                                RoutePermitLogic.LegName(ends[k]) + "　" + RoutePermitLogic.LegClocks(ends[k]));
+                                RoutePermitLogic.LegName(ends[k]) + "　" + RoutePermitLogic.LegClocks(ends[k]),
+                                delayHours);
                         continue;
                     }
 
@@ -2398,7 +2416,8 @@ namespace AirlineCEO.Systems
                 string clk = clocks[key];
                 QueueApplySlots(gs, apt, clk, counts[key],
                     ApplySlotMailId(gs, route, apt, clk), out _,
-                    SlotApplyReason(route, apt, clk, flights[key], stations[key]), route.routeId, flights[key]);
+                    SlotApplyReason(route, apt, clk, flights[key], stations[key]), route.routeId, flights[key],
+                    delayHours);
             }
         }
 
@@ -2432,7 +2451,7 @@ namespace AirlineCEO.Systems
         /// 又收了一道钱；现实里协调人分配是不收费的，付费只出现在航司之间的二级市场交易。
         /// </summary>
         public static bool QueueApplySlots(GameState gs, string airport, string clock, int count, string id, out string message,
-            string reason = null, string routeId = null, string flightClock = null)
+            string reason = null, string routeId = null, string flightClock = null, int delayHours = 0)
         {
             message = "";
             if (gs == null) { message = "游戏未就绪"; return false; }
@@ -2458,7 +2477,7 @@ namespace AirlineCEO.Systems
             }
 
             float unit = StrategyEconomics.SlotValueWan(apt, b);
-            Add(gs, new InboxMail
+            Enqueue(gs, new InboxMail
             {
                 id = mailId,
                 sender = "战略发展部",
@@ -2496,7 +2515,7 @@ namespace AirlineCEO.Systems
                 receivedQuarter = gs.quarter,
                 time = gs.DateLabel,
                 deadlineQuarters = DefaultDeadlineQuarters
-            });
+            }, delayHours);
             message = $"已提交收件箱：请批准向协调池申请 {apt} {clk} 时刻槽 {n} 条（免费），下季度交割。";
             return true;
         }
@@ -2557,7 +2576,7 @@ namespace AirlineCEO.Systems
         /// </summary>
         public static bool QueueChangeSlot(GameState gs, string airport, string fromClock, string toClock, int count,
             string id, out string message, string reason = null, string routeId = null, string flightClock = null,
-            string stationLabel = null)
+            string stationLabel = null, int delayHours = 0)
         {
             message = "";
             if (gs == null) { message = "游戏未就绪"; return false; }
@@ -2593,7 +2612,7 @@ namespace AirlineCEO.Systems
                 return false;
             }
             int n = count < 1 ? 1 : count;
-            Add(gs, new InboxMail
+            Enqueue(gs, new InboxMail
             {
                 id = mailId,
                 sender = "战略发展部",
@@ -2630,7 +2649,7 @@ namespace AirlineCEO.Systems
                 receivedQuarter = gs.quarter,
                 time = gs.DateLabel,
                 deadlineQuarters = DefaultDeadlineQuarters
-            });
+            }, delayHours);
             message = $"已提交收件箱：请批准向协调人提 {apt} 的时刻变更（{from} → {to}，免费）。";
             return true;
         }
@@ -3724,7 +3743,12 @@ namespace AirlineCEO.Systems
         }
 
         /// <summary>运营部执行完 CEO 运力指令后，把「调整后运力 + 航班环」呈报给 CEO。</summary>
-        public static bool QueueCapacityReport(GameState gs, RouteData route, CapacityDirectiveLogic.Report rep)
+        /// <param name="delayHours">
+        /// 呈报投递延迟（游戏小时）。-1 = 按 <see cref="InboxCadence.ReportHours"/> 延后（线上路径）；
+        /// 0 = 立即入箱（回归用例用，断言的是「这封该不该生成」而不是「几小时后到」）。
+        /// </param>
+        public static bool QueueCapacityReport(GameState gs, RouteData route, CapacityDirectiveLogic.Report rep,
+                                               int delayHours = -1)
         {
             if (gs == null || route == null || rep == null || !rep.ok) return false;
             // 指派/改派执飞飞机的呈报走 assign_aircraft 专用邮件（Execute 里已直接投递提名件）。
@@ -3732,12 +3756,16 @@ namespace AirlineCEO.Systems
             if (rep.assignment) return true;
             if (gs.inbox == null) gs.inbox = new List<InboxMail>();
 
+            string id = CapacityMailId(route.routeId, route.opsPlanRevision);
             // 原排班呈报若还挂着，标记为已被指令取代，避免同一航线两封待办互相阻断
             SupersedeOpsSchedule(gs, route);
             // 同一航线更早的运力呈报也已过时（新调令已重编）
             SupersedeCapacityReports(gs, route, null);
+            // 还没到点的那封旧呈报同样作废 —— 只扫 inbox 会让它过期后照样送到 CEO 桌上，
+            // 那时两条呈报说的是同一航线、两个不同方案，批哪条都是错的。
+            DropPendingCapacityReports(gs, route, id);
 
-            string id = CapacityMailId(route.routeId, route.opsPlanRevision);
+            int hours = delayHours >= 0 ? delayHours : InboxCadence.ReportHours;
             string subject = rep.slotFirst
                 ? $"关于 {route.origin}—{route.destination} 运力调整（先批时刻槽）"
                 : $"关于 {route.origin}—{route.destination} 运力调整与航班环的报告（请批复）";
@@ -3759,7 +3787,7 @@ namespace AirlineCEO.Systems
                     m.capEngineRev = CapacityDirectiveLogic.EngineRev;
                     StampCapacityFacts(m, rep);
                     m.tag = rep.slotFirst ? "待槽" : "呈报";
-                    QueueSlotApplications(gs, route, rep.shortages);
+                    QueueSlotApplications(gs, route, rep.shortages, hours);
                     Changed?.Invoke();
                     gs.NotifyChanged();
                     return true;
@@ -3788,12 +3816,34 @@ namespace AirlineCEO.Systems
                 deadlineQuarters = DefaultDeadlineQuarters
             };
             StampCapacityFacts(fresh, rep);
-            Add(gs, fresh);
-            gs.AddDecisionLog(
-                $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），已呈报待批。");
-            QueueSlotApplications(gs, route, rep.shortages);
+            // ★2026-10-19：呈报是「运营部编完班、组完环、联动完各部门之后写出来的东西」，
+            // 不该在指令敲完的同一秒躺进收件箱（报障原话）。改为按游戏时钟延后投递，
+            // 到点由 TimeManager → DeliverDue 送进收件箱；此间航线已按新方案排好、directivePending 挂着。
+            Enqueue(gs, fresh, hours);
+            gs.AddDecisionLog(hours > 0
+                ? $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），呈报约 {hours} 小时后送达。"
+                : $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），已呈报待批。");
+            // 时刻槽单同样延后：缺槽是这条指令派生的活，不是「指令一敲战略发展部就到了」。
+            QueueSlotApplications(gs, route, rep.shortages, hours);
             gs.NotifyChanged();
             return true;
+        }
+
+        /// <summary>
+        /// 清掉还压在待发队列里的、同一航线的运力呈报（留下 <paramref name="keepId"/> 那一封）。
+        /// 与 <see cref="SupersedeCapacityReports"/> 配对：那个管已经进箱的，这个管还没到点的。
+        /// </summary>
+        static void DropPendingCapacityReports(GameState gs, RouteData route, string keepId)
+        {
+            if (gs?.pendingInbox == null || route == null) return;
+            for (int i = gs.pendingInbox.Count - 1; i >= 0; i--)
+            {
+                var m = gs.pendingInbox[i]?.mail;
+                if (m == null || m.action != CapacityDirectiveAction) continue;
+                if (!string.Equals(m.origin, route.routeId, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!string.IsNullOrEmpty(keepId) && m.id == keepId) continue;
+                gs.pendingInbox.RemoveAt(i);
+            }
         }
 
         /// <summary>

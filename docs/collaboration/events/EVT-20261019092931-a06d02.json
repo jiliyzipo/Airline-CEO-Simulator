@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261019092931-a06d02",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 277,
+  "at": "2026-10-19T09:29:31.773Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": "REV-20261019092237-60f210",
+  "parentEventId": null,
+  "summary": "ISSUE-20261019092302-a70313: fixing -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261019092302-a70313",
+    "from": "fixing",
+    "to": "fixed",
+    "note": "修复交付 DEL-20261019092547-d6429c（任务 S04-UI，profile unity-editmode）：AC1-AC3 由 unity-editmode 模板原样生成，machineCoverageFor ok=true，交接单不再出现自定义条款告警。业务代码与 DEL-20261019091504-e23a3e 相同。请 Codex 复验。"
+  }
+}

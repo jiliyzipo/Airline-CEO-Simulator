@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "rework",
   "reviewStatus": "cancelled",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "仅用于协作工具 C07 的真实工程入口串联验收，不改变任何游戏任务结论",
@@ -35,7 +35,7 @@
   "blockers": [],
   "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07",
   "createdAt": "2026-10-18T03:22:17.337Z",
-  "updatedAt": "2026-10-18T03:57:36.912Z",
+  "updatedAt": "2026-10-19T09:11:50.975Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/regression"
   ],
   "snapshotFiles": [],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
-  "staleForReviewId": null
+  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "staleForReviewId": "REV-20261018032957-255eb1"
 }

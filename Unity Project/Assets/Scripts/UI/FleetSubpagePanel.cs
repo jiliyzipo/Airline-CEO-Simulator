@@ -359,7 +359,7 @@ namespace AirlineCEO.UI
             L("Reg", $"{ac.registration} · {ac.type}", 0.0f, 0.885f, 0.55f, 0.965f, 18, UITheme.TextPrimary, true);
             L("Name", $"「{(string.IsNullOrEmpty(ac.aircraftName) ? "未命名" : ac.aircraftName)}」 · {ac.source}", 0.55f, 0.885f, 1.0f, 0.965f, 13,
                 UITheme.TextMuted, false, TextAlignmentOptions.MidlineRight);
-            L("Status", $"状态 {statusWord} · 机龄 {ac.age} 年 · 机况 {ac.condition:F0}% · 舱位 头 {ac.firstClassSeats}/商 {ac.businessSeats}/经 {ac.economySeats}（总 {ac.TotalSeats}） · 估值 {residual:F0} 万 · 月维护 {maint:F1} 万 · 累计 {ac.flightHours:F0} FH / {ac.flightCycles} FC · 最近大修 {ovh}",
+            L("Status", $"状态 {statusWord} · 机龄 {ac.age} 年 · 机况 {ac.condition:F0}% · 舱位 头 {ac.firstClassSeats}/商 {ac.businessSeats}/经 {ac.economySeats}（总 {ac.TotalSeats}） · 估值 {residual:F0} 万 · 月维护 {maint:F1} 万 · 累计飞行 {ac.flightHours:F0} 小时 / {ac.flightCycles} 次起降 · 最近大修 {ovh}",
                 0.0f, 0.815f, 1.0f, 0.885f, 11, statusColor, true);
 
             // 执飞航线 + 日循环 + 航班环

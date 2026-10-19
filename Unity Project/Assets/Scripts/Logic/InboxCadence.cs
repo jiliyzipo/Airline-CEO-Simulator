@@ -16,6 +16,14 @@ namespace AirlineCEO.Logic
         public const int ReplyHours = 4;
         /// <summary>节点进度汇报落笔（小时）。</summary>
         public const int ProgressHours = 6;
+        /// <summary>
+        /// 运营部受理运力调令后，编班、组环、联动市场/机务/财务/地勤并写成呈报（小时）。
+        ///
+        /// ★2026-10-19 报障：「CEO 下达指令后，邮箱立即收到汇报，应该是过几小时才把呈报送到收件箱」。
+        /// 旧版 `QueueCapacityReport` 直接 `Add`，指令刚敲完呈报就躺在收件箱里，
+        /// 会让人以为「运营部不用干活」；且呈报是待批件，立刻出现等于把审批压在一瞬间。
+        /// </summary>
+        public const int ReportHours = 2;
 
         public static DateTime AfterBusinessDays(DateTime utc, int days)
         {
@@ -41,5 +49,8 @@ namespace AirlineCEO.Logic
         public static DateTime ReplyReady(DateTime utc) => AfterHours(utc, ReplyHours);
 
         public static DateTime ProgressReady(DateTime utc) => AfterHours(utc, ProgressHours);
+
+        /// <summary>运力呈报落笔（见 <see cref="ReportHours"/>）。</summary>
+        public static DateTime ReportReady(DateTime utc) => AfterHours(utc, ReportHours);
     }
 }

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261019092302-a70313",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": "REV-20261019092237-60f210",
+  "title": "验收条件缺少机器验证，且检测者未显式补证",
+  "repro": "任务 S03-Docs 的验收条件与 profile unity-editmode 的机器契约不一致",
+  "expected": "机器可验证的条款由 profile 覆盖；其余条款必须由检测者用 --coverage 显式声明，或判定失败",
+  "actual": "AC2（AC2 已被改写为自定义条款，机器计数无法证明它）；AC3（AC3 已被改写为自定义条款，机器计数无法证明它）",
+  "evidence": ".collab-local/logs/REV-20261019092237-60f210/run-b88738b0f647581a/stdout.txt",
+  "severity": "blocker",
+  "suggestedOwner": "codex",
+  "status": "open",
+  "createdAt": "2026-10-19T09:23:02.487Z"
+}

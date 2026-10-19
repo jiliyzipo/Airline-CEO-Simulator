@@ -731,7 +731,7 @@ namespace AirlineCEO.UI
             string status =
                 $"已下达〔{chan}〕　{Shorten(d.analysis, 44)}\n" +
                 $"结果　{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}\n" +
-                (queued ? "运营部已呈报至 收件箱，待您批复。" : "呈报邮件未能投递，请检查收件箱状态。");
+                (queued ? $"运营部已受理，约 {InboxCadence.ReportHours} 小时后呈报至收件箱。" : "呈报邮件未能投递，请检查收件箱状态。");
             if (rep.shortages != null && rep.shortages.Count > 0)
             {
                 var slots = new List<string>();
@@ -742,7 +742,7 @@ namespace AirlineCEO.UI
                 }
                 status = $"已下达〔{chan}〕　{Shorten(d.analysis, 36)}\n" +
                          $"结果　{route.DualWeeklyLine()} · {ring}　" +
-                         (queued ? "已呈报收件箱，待批复。" : "呈报邮件未能投递。") + "\n" +
+                         (queued ? $"已受理，约 {InboxCadence.ReportHours} 小时后呈报。" : "呈报邮件未能投递。") + "\n" +
                          $"运力缺口　{string.Join("、", slots.ToArray())} 时段排不出班\n" +
                          (rep.shortages[0] != null ? "原因　" + Shorten(rep.shortages[0].reason, 60) : "");
             }
@@ -829,6 +829,22 @@ namespace AirlineCEO.UI
             {
                 OpenAircraft(hit.routeKey);
                 return;
+            }
+            // ★2026-10-19：本页正文也会走 TermNavMap.Decorate，于是航班号（flight:→n43）与
+            // 三字码对（route:→n41）这类带键链接会出现在这里。落地页按上下文键选对象，
+            // 不把键写回去就会打开「上一次选中的航线」—— 看着跳了，跳的是别人。
+            if (!string.IsNullOrEmpty(hit.routeKey) && hit.pageId != null)
+            {
+                if (hit.pageId.StartsWith("n12"))
+                {
+                    FleetNetContext.SelectedCityIata = hit.routeKey;
+                    FleetNetContext.OpenEconomyTab = true;
+                }
+                else
+                {
+                    FleetNetContext.SelectedRouteId = hit.routeKey;
+                    OpsSubpageContext.SelectedRouteId = hit.routeKey;
+                }
             }
             var nav = FindFirstObjectByType<PrefabNavIntegration>();
             if (nav != null && !string.IsNullOrEmpty(hit.pageId))

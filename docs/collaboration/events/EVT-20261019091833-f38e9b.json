@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261019091833-f38e9b",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 267,
+  "at": "2026-10-19T09:18:33.330Z",
+  "actor": "cursor",
+  "action": "stage-close",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "stage-close profile=unity-editmode preflight=pass",
+  "data": {
+    "profile": "unity-editmode",
+    "handoffFile": "out/collab/handoff/DEL-20261019091504-e23a3e.md"
+  }
+}

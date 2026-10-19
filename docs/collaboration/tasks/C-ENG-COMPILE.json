@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "仅在隔离快照中执行既有 node tools/semcheck/run.js，不复制第二套实现",
@@ -22,11 +22,11 @@
   "blockers": [],
   "sourceTaskBook": "docs/Development Manual/Development Task Book/Task book/Cursor_Codex_协作工具_开发需求与操作手册_v1.0_2026-10-17.md §10 / §14 C07",
   "createdAt": "2026-10-18T03:31:26.323Z",
-  "updatedAt": "2026-10-18T03:58:08.930Z",
+  "updatedAt": "2026-10-19T09:11:41.773Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "tools/semcheck"
   ],
-  "freshnessNote": "Review REV-20261018033359-8f89f1 still applies to delivery DEL-20261018033139-af5cca.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261018033359-8f89f1 passed delivery DEL-20261018033139-af5cca; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261018033359-8f89f1"
 }

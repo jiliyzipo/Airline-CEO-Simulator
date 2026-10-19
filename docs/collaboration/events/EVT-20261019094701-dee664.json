@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261019094701-dee664",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 283,
+  "at": "2026-10-19T09:47:01.394Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261019091504-e23a3e",
+  "reviewId": "REV-20261019092237-60f210",
+  "parentEventId": null,
+  "summary": "ISSUE-20261019092302-a70313: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261019092302-a70313",
+    "from": "fixed",
+    "to": "verified",
+    "note": "Replacement DEL-20261019092547-d6429c uses S04-UI and matching unity-editmode AC1-AC3; independent REV-20261019094559-31090f passed 25/25 and all coverage. Bound logs/XML hashes checked. Resolves only the AC/profile mismatch, not the separately disclosed UI manual-evidence gaps."
+  }
+}

@@ -28,6 +28,14 @@ namespace AirlineCEO.UI.Shell
         ScrollRect _listScroll;
         bool _rebuilding;
         int _lastUnread = -1;
+        /// <summary>
+        /// 上一次把正文滚动条复位到顶部的那封信的 id。
+        ///
+        /// ★2026-10-19：收件箱每来一封新信都会走 <see cref="OnInboxChanged"/> → <see cref="RenderDetail"/>，
+        /// 而 RenderDetail 过去无条件调 RefreshBodyScroll 把正文滚回顶部 —— CEO 正在读的那封被顶回第一行。
+        /// 换成同 id 时保留位置、换了信才回顶。
+        /// </summary>
+        string _bodyScrollMailId;
 
         TextMeshProUGUI _listCount;
         Button _chipOpen;
@@ -720,9 +728,14 @@ namespace AirlineCEO.UI.Shell
                 if (!string.IsNullOrEmpty(_selected.id) && !string.IsNullOrEmpty(body)
                     && body.IndexOf(_selected.id, StringComparison.Ordinal) >= 0)
                     body = body.Replace(_selected.id, RoutePermitLogic.CaseNo(_selected));
+                // 同一封信的重绘（新信到达、状态刷新、布局重排）不得把正在读的正文顶回第一行；
+                // 只有换了信才从顶部开始。判定用 id，不用对象引用 —— 读档/重建会换对象但仍是「同一封」。
+                bool sameMail = _selected != null && !string.IsNullOrEmpty(_selected.id)
+                               && _selected.id == _bodyScrollMailId;
                 _detailBody.text = TermNavMap.Decorate(body);
                 _detailBody.ForceMeshUpdate();
-                RefreshBodyScroll();
+                RefreshBodyScroll(preservePosition: sameMail);
+                if (_selected != null) _bodyScrollMailId = _selected.id;
             }
             RebuildLinkButtons();
             RefreshDecisionButtons();
@@ -1201,7 +1214,8 @@ namespace AirlineCEO.UI.Shell
             PlaceFooterNote(_detailDeadline, noteRight, footer);
             PlaceFooterNote(_hint, noteRight, footer);
             SyncFooterNotes();
-            RefreshBodyScroll();
+            // 布局类调用不得动阅读位置（新信到达也会走到这里）：保留当前滚动。
+            RefreshBodyScroll(preservePosition: true);
         }
 
         static void PlaceFooterNote(TextMeshProUGUI label, float right, float footer)
@@ -1549,16 +1563,23 @@ namespace AirlineCEO.UI.Shell
             return pageId.StartsWith("n12", StringComparison.Ordinal);
         }
 
-        void RefreshBodyScroll()
+        /// <summary>
+        /// 重排正文并设定滚动位置。
+        /// <paramref name="preservePosition"/> = true 时保留当前阅读位置（同一封信重绘）；
+        /// false 时回到顶部（换了信）。默认 false 只服务真正的「换信」路径，
+        /// 布局类调用（如 <see cref="LayoutReplyBox"/>）必须传 true 或走默认保留。
+        /// </summary>
+        void RefreshBodyScroll(bool preservePosition = false)
         {
             if (_detailBody == null) return;
+            float keep = _bodyScroll != null ? Mathf.Clamp01(_bodyScroll.verticalNormalizedPosition) : 1f;
             _detailBody.ForceMeshUpdate();
             LayoutRebuilder.ForceRebuildLayoutImmediate(_detailBody.rectTransform);
             if (_bodyViewport != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(_bodyViewport);
             Canvas.ForceUpdateCanvases();
             if (_bodyScroll != null)
-                _bodyScroll.verticalNormalizedPosition = 1f;
+                _bodyScroll.verticalNormalizedPosition = preservePosition ? keep : 1f;
         }
 
         void Mark(string status)
