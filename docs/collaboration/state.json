@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 285,
-  "updatedAt": "2026-10-19T09:47:56.931Z",
+  "revision": 332,
+  "updatedAt": "2026-10-22T09:39:41.921Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -81,7 +81,7 @@
       "devStatus": "rework",
       "reviewStatus": "failed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-18T13:23:57.199Z"
     },
@@ -90,12 +90,39 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-19T09:24:45.912Z"
+    },
+    "S05-P2Close": {
+      "title": "阶段 S05-P2Close：Logic/UI/Editor",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-22T01:03:04.056Z"
+    },
+    "S06-BatchB": {
+      "title": "阶段 S06-BatchB：Logic/UI/Editor",
+      "devStatus": "rework",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-22T01:30:02.214Z"
+    },
+    "D2-TierLadder": {
+      "title": "阶段 D2-TierLadder：Logic/UI/Editor",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-22T09:28:39.536Z"
     }
   },
-  "lastDeliveryId": "DEL-20261019092547-d6429c",
+  "lastDeliveryId": "DEL-20261022092843-6e9303",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

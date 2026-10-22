@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：T03.8 六节 UI 可验证性走查（10 项通过）及走查中发现缺陷的修复",
@@ -35,7 +35,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-19T09:47:22.694Z",
-  "freshnessNote": "Review REV-20261019094559-31090f still applies to delivery DEL-20261019092547-d6429c.",
-  "staleForReviewId": null
+  "updatedAt": "2026-10-19T13:26:04.198Z",
+  "freshnessNote": "Historical review REV-20261019094559-31090f passed delivery DEL-20261019092547-d6429c; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261019094559-31090f"
 }

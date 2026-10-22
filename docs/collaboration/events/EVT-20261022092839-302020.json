@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261022092839-302020",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 326,
+  "at": "2026-10-22T09:28:39.551Z",
+  "actor": "cursor",
+  "action": "task-add",
+  "taskId": "D2-TierLadder",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "task-add D2-TierLadder",
+  "data": {}
+}

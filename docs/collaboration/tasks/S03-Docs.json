@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "rework",
   "reviewStatus": "failed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Docs",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:23:57.199Z",
-  "updatedAt": "2026-10-19T09:25:02.617Z",
+  "updatedAt": "2026-10-19T13:26:02.954Z",
   "freshnessNote": "Latest delivery DEL-20261019091504-e23a3e review REV-20261019092237-60f210 failed.",
-  "staleForReviewId": null
+  "staleForReviewId": "REV-20261019092237-60f210"
 }

@@ -2,7 +2,7 @@
 
 当前工程：`Unity Project/`，Unity 6000.3.21f1；主场景 `Assets/MVP V1.0.unity`。运行时语言 C#，uGUI/TMP 生成界面，ScriptableObject/Resources 提供静态配置，GameState 为在局状态，PlayerPrefs/JSON 为本地持久化。没有数据库服务器部署前提。
 
-文档入口依次为：根 README、本阶段任务书、`handoff/阶段执行交接_2026-10-17.md`、`Architecture/CurrentRules_2026-10-17.md` 和 `Architecture/SystemArchitecture.md`。历史交接保留原始日期；新实测纠正历史结论时不覆盖原记录。
+文档入口依次为：根 README、本阶段任务书 `Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md`、`handoff/阶段执行交接_2026-10-17.md`、`Architecture/CurrentRules_2026-10-17.md` 和 `Architecture/SystemArchitecture.md`。历史交接保留原始日期；新实测纠正历史结论时不覆盖原记录。
 
 协作状态入口（程序生成，勿手工维护第二套）：`docs/collaboration/CURRENT.md`。协议与操作见 `docs/collaboration/README.md`、`AGENTS.md`。
 

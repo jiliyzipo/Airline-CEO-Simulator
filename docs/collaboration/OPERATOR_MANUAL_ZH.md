@@ -84,6 +84,10 @@ node tools/collab/cli.mjs stage-close [--task S01-UI] [--note "本次修了什�
   不会出现“跑完了但快照已被污染还标成可检测”。
 - Unity 类 profile 的预检与正式检测共用 `unity-review.lock` 资源租约：
   别的 review 持锁、编辑器占用、占用无法确认，三种情况都直接退出码 4 且不执行。
+- **实战要点（2026-10-22 实证）**：`stage-close` 会真的拉起 Unity 批处理，所以**编辑器开着就跑不了** ——
+  此时退出码 4、不生成 DEL。用户还在手测时先只做修复与自测，把“已改、未进 DEL”写进任务书，
+  等 Unity 关闭再重跑 `stage-close`。**不要**为了跑通去杀 Unity 或删工程锁。
+  另外：`stage-close` 重跑会生成新的 DEL，同一任务下未检测的旧 DEL 标记为 `superseded`。
 - 预检是开发自测，**永远不能**替代独立验收。交接单会列出哪些验收条件不被 profile 机器覆盖。
 
 手动路径（排查或特殊场景）：
