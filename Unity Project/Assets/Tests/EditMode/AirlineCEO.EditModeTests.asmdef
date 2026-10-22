@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "AirlineCEO.Runtime"
+        "AirlineCEO.Runtime",
+        "AirlineCEO.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -18,6 +18,20 @@ namespace AirlineCEO.Systems
 
         public static event Action Changed;
 
+        /// <summary>额度见底时滞留待投的外部消息（仅内存：新局由 <see cref="ResetForNewGame"/> 清空）。</summary>
+        static readonly List<ExternalEventPayload> Deferred = new List<ExternalEventPayload>();
+
+        /// <summary>新局 / 回开始界面时调用：丢弃上一局没投完的滞留稿与去重表。</summary>
+        public static void ResetForNewGame()
+        {
+            Deferred.Clear();
+            ExternalDataFetcher.Reset();
+            WeatherFeed.Reset();
+            TyphoonFeed.Reset();
+            SigmetFeed.Reset();
+            GlobalStormFeed.Reset();
+        }
+
         public static List<ExternalEvent> Ensure(GameState gs)
         {
             if (gs == null) return null;
@@ -97,6 +111,11 @@ namespace AirlineCEO.Systems
             {
                 ExternalDataFetcher.RequestRefresh();
                 ExternalDataFetcher.RequestQuoteRefresh();
+                ExternalDataFetcher.RequestFxRefresh();
+                WeatherFeed.RequestRefresh(gs);
+                TyphoonFeed.RequestRefresh(gs);
+                SigmetFeed.RequestRefresh(gs);
+                GlobalStormFeed.RequestRefresh(gs);
                 DrainSource(gs);
             }
 
@@ -110,15 +129,203 @@ namespace AirlineCEO.Systems
         }
 
         /// <summary>
-        /// 排空现实数据源缓存并入队（每游戏分钟由 Tick 调用）。
+        /// 排空现实数据源缓存并入队（每游戏分钟由 Tick 调用；界面轮询也会调，见 ClockLoop）。
         /// 返回本轮入队条数；未配置源 / 断网 / 无新内容时返回 0。
+        /// <para>
+        /// 三处硬约束都在这里：① 每游戏日入队上限（含台风与气象实况），防止一条事件被多家转载刷屏；
+        /// ② 关键词研判影响每季度最多 <see cref="ExternalImpactRules.MaxInferredPerQuarter"/> 条，
+        /// 避免自动扰动把经济掀翻（台风按官方路径研判，不占该配额）；
+        /// ③ 额度见底时新闻进滞留队列、台风/气象直接丢弃（时效性更强，补投反而失真）。
+        /// </para>
         /// </summary>
         public static int DrainSource(GameState gs)
         {
             if (gs == null) return 0;
-            var arrived = ExternalDataFetcher.FetchEvents();
+
+            int n = 0;
+            // 运行风险优先于情报：额度有限时先投 SIGMET / 台风 / 风暴 / 气象，再投新闻。
+            // 这几类都有时效（下一报覆盖上一报），额度不足就丢弃、不补投。
+            n += Admit(gs, SigmetFeed.Drain(), allowInference: false, requeue: false);
+            n += Admit(gs, TyphoonFeed.Drain(), allowInference: false, requeue: false);
+            n += Admit(gs, GlobalStormFeed.Drain(), allowInference: false, requeue: false);
+            n += Admit(gs, WeatherFeed.Drain(), allowInference: false, requeue: false);
+
+            // 上一轮因「每游戏日上限」用尽而滞留的消息接着补投：额度按游戏日恢复，
+            // 攒下的稿子不必再走一次网络，也不会因为当轮额度见底被静默丢弃。
+            if (Deferred.Count > 0)
+            {
+                var retry = new List<ExternalEventPayload>(Deferred);
+                Deferred.Clear();
+                n += Admit(gs, retry, allowInference: true, requeue: true);
+            }
+
+            n += Admit(gs, ExternalDataFetcher.FetchEvents(), allowInference: true, requeue: true);
+            return n;
+        }
+
+        /// <summary>
+        /// 开局预热：立刻发起一轮现实取数（强制，不受间隔约束）。
+        /// 只是把网络请求提前，结果仍按游戏时钟投递 —— 「打开就能收到国内新闻」不用等第一个游戏分钟。
+        /// </summary>
+        public static void WarmUp(GameState gs)
+        {
+            if (gs == null || !ReferenceEquals(gs, GameState.Instance)) return;
+            ExternalDataFetcher.RequestRefresh(force: true);
+            ExternalDataFetcher.RequestQuoteRefresh(force: true);
+            ExternalDataFetcher.RequestFxRefresh(force: true);
+            WeatherFeed.RequestRefresh(gs, force: true);
+            TyphoonFeed.RequestRefresh(gs, force: true);
+            SigmetFeed.RequestRefresh(gs, force: true);
+            GlobalStormFeed.RequestRefresh(gs, force: true);
+        }
+
+        static int Admit(GameState gs, List<ExternalEventPayload> arrived, bool allowInference,
+            bool requeue = false)
+        {
             if (arrived == null || arrived.Count == 0) return 0;
-            return ReceiveMany(gs, arrived);
+            var list = Ensure(gs);
+            if (list == null) return 0;
+
+            int budget = Mathf.Max(0, ExternalDataFetcher.DailyBudget - ReceivedToday(gs));
+            if (budget <= 0)
+            {
+                if (requeue) Requeue(arrived, 0);
+                return 0;
+            }
+
+            var operated = OperatedAirports(gs);
+            int n = 0;
+            int i = 0;
+            for (; i < arrived.Count && budget > 0; i++)
+            {
+                var p = arrived[i];
+                if (p == null) continue;
+                if (!string.IsNullOrEmpty(p.id) && IndexOfId(list, p.id) >= 0) continue; // 已有：更新不计额度
+
+                if (allowInference && string.IsNullOrEmpty(p.effectType))
+                    InferImpact(gs, p, operated);
+
+                if (Receive(gs, p) == null) continue;
+                n++;
+                budget--;
+            }
+
+            if (budget <= 0 && requeue) Requeue(arrived, i);
+            return n;
+        }
+
+        /// <summary>额度见底时把没排上的稿子暂存，等下一个游戏日再投（有界，先进先出）。</summary>
+        static void Requeue(List<ExternalEventPayload> arrived, int from)
+        {
+            const int maxPending = 24;
+            for (int i = from; i < arrived.Count; i++)
+            {
+                var p = arrived[i];
+                if (p == null || string.IsNullOrEmpty(p.id)) continue;
+                if (Deferred.Exists(x => x != null && x.id == p.id)) continue;
+                Deferred.Add(p);
+            }
+            while (Deferred.Count > maxPending) Deferred.RemoveAt(0);
+        }
+
+        /// <summary>现实内容本身不带数值：按关键词研判成保守影响，并标注「公司研判」。</summary>
+        static void InferImpact(GameState gs, ExternalEventPayload p, List<string> operated)
+        {
+            if (InferredRecently(gs) >= ExternalImpactRules.MaxInferredPerQuarter) return;
+            if (HasSimilarTitle(gs, p.title)) return;
+            if (!ExternalImpactRules.TryInfer(p.title, p.content, operated, out var impact)) return;
+
+            p.effectType = impact.type;
+            p.effectValue = impact.value;
+            if (!string.IsNullOrEmpty(impact.region)) p.affectedRegion = impact.region;
+            if (impact.hours > 0) p.durationHours = impact.hours;
+            p.inferred = true;
+            p.impactNote = impact.note;
+        }
+
+        /// <summary>近一个季度（滚动 92 游戏日）内已生效/待生效的研判影响条数。</summary>
+        static int InferredRecently(GameState gs)
+        {
+            var list = gs.externalEvents;
+            if (list == null) return 0;
+            int n = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var ev = list[i];
+                if (ev == null || !ev.inferred) continue;
+                // 来自官方/结构化数据源的影响（台风路径、SIGMET、全球风暴定位）不占「每季 3 条」的关键词研判配额
+                if (IsStructuredSource(ev.source)) continue;
+                if ((gs.SimUtc - ev.GameReceivedTime).TotalDays <= 92) n++;
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// 结构化数据源（中央气象台路径 / 国际 SIGMET / NASA 全球风暴）：影响由几何距离算出，
+        /// 不是关键词猜的，因此不占「每季 3 条」的关键词研判配额，也不会被误标成「关键词研判」。
+        /// </summary>
+        public static bool IsStructuredSource(string source)
+        {
+            if (string.IsNullOrEmpty(source)) return false;
+            return source.Contains("气象台")
+                   || source.Contains("航行警告")
+                   || source.Contains("风暴监测")
+                   || source.Contains("气象实况");
+        }
+
+        static bool HasSimilarTitle(GameState gs, string title)
+        {
+            var list = gs.externalEvents;
+            if (list == null || string.IsNullOrEmpty(title)) return false;
+            string key = ExternalDataFetcher.TitleKey(title);
+            if (key.Length == 0) return false;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var ev = list[i];
+                if (ev == null) continue;
+                if (string.Equals(ExternalDataFetcher.TitleKey(ev.title), key, StringComparison.Ordinal))
+                    return true;
+            }
+            return false;
+        }
+
+        public static int ReceivedToday(GameState gs)
+        {
+            var list = gs.externalEvents;
+            if (list == null) return 0;
+            var today = ExternalTimeMapper.Local(gs.SimUtc).Date;
+            int n = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var ev = list[i];
+                if (ev == null) continue;
+                if (ExternalTimeMapper.Local(ev.GameReceivedTime).Date == today) n++;
+            }
+            return n;
+        }
+
+        static List<string> OperatedAirports(GameState gs)
+        {
+            var set = new List<string>();
+            void Add(string code)
+            {
+                if (string.IsNullOrEmpty(code)) return;
+                code = code.Trim().ToUpperInvariant();
+                if (!set.Contains(code)) set.Add(code);
+            }
+            Add(gs.hubIata);
+            if (gs.activeRoutes != null)
+            {
+                for (int i = 0; i < gs.activeRoutes.Count; i++)
+                {
+                    var r = gs.activeRoutes[i];
+                    if (r == null) continue;
+                    Add(r.origin);
+                    Add(r.destination);
+                    Add(r.stopover);
+                }
+            }
+            return set;
         }
 
         public static List<ExternalEvent> Pending(GameState gs)
@@ -317,6 +524,8 @@ namespace AirlineCEO.Systems
                 body += "\n\n" + AnnotLine + "\n"
                     + InboxLetter.Section("对公司的影响（预判）")
                     + InboxLetter.Bullet(ImpactLine(ev, forecast: true));
+            if (ev.inferred)
+                body += InboxLetter.Bullet("研判依据：" + InferNote(ev));
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_r_" + ev.id + "_" + ev.gameReceivedTicks,
@@ -350,6 +559,7 @@ namespace AirlineCEO.Systems
             body.Append("\n\n").Append(AnnotLine).Append('\n');
             body.Append(InboxLetter.Section("对公司的影响"));
             body.Append(InboxLetter.Bullet(ImpactLine(ev, forecast: false)));
+            if (ev.inferred) body.Append(InboxLetter.Bullet("研判依据：" + InferNote(ev)));
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_t_" + ev.id + "_" + ev.gameEffectiveTicks,
@@ -413,6 +623,17 @@ namespace AirlineCEO.Systems
                                 : "安全质量部已接到合规检查要求，请留意后续整改事项。";
             return forecast ? "本条为行业动态，暂无直接财务影响，请留意趋势变化。"
                             : "本条为行业动态，暂不影响公司运行数据。";
+        }
+
+        /// <summary>研判依据（让玩家看出这是推断而非官方通报）。</summary>
+        static string InferNote(ExternalEvent ev)
+        {
+            string basis = string.IsNullOrEmpty(ev.impactNote) ? "关键词研判" : ev.impactNote;
+            // 台风 / SIGMET / 全球风暴都走官方或结构化数据，不是关键词猜的，也不占关键词研判配额：
+            // 两类来源必须分开说明，否则玩家会以为这些影响也是「每季最多 3 条」的抽样。
+            if (IsStructuredSource(ev.source))
+                return basis + "（依据官方路径 / 航行警告等结构化数据，非新闻关键词研判）";
+            return basis + $"（公司研判，非来文原文；每季度最多 {ExternalImpactRules.MaxInferredPerQuarter} 条）";
         }
 
         static void MaybeAbsenceBriefing(GameState gs, DateTime from, DateTime to,

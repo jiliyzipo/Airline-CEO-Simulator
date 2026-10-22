@@ -30,6 +30,10 @@ namespace AirlineCEO.Data
         public bool isTriggered;
         public bool isResolved;
         public bool generated;
+        /// <summary>数值影响由关键词研判而来（非原文自带），邮件里会注明「公司研判」。</summary>
+        public bool inferred;
+        /// <summary>研判依据（命中的关键词 + 幅度口径），供邮件内部标注使用。</summary>
+        public string impactNote;
 
         public DateTime GameReceivedTime
         {
@@ -71,6 +75,10 @@ namespace AirlineCEO.Data
         public int durationHours;
         public string chainId;
         public bool generated;
+        /// <summary>数值影响由关键词研判而来（非原文自带）。</summary>
+        public bool inferred;
+        /// <summary>研判依据（命中的关键词 + 幅度口径）。</summary>
+        public string impactNote;
     }
 
     [Serializable]

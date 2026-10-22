@@ -68,7 +68,9 @@ namespace AirlineCEO.Systems
             float rev = 0f;
             for (int i = 0; i < gs.activeRoutes.Count; i++)
                 if (gs.activeRoutes[i] != null)
-                    rev += gs.activeRoutes[i].dailyProfit * 30f;
+                    rev += gs.activeRoutes[i].dailyProfit
+                           * LiveClockLogic.OperatingDaysPerMonth(
+                               gs.activeRoutes[i].daysOfWeek, gs.activeRoutes[i].weeklyFlights);
             gs.monthlyBurnRate = Mathf.Max(40f, profile.monthlyCost);
             // monthlyRevenue 是计算属性时不要赋值；若是字段则设
             TrySetMonthlyHint(gs, rev);

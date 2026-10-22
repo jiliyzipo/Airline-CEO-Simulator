@@ -27,6 +27,8 @@ namespace AirlineCEO.Logic
             new Person { dept = "局方",    post = "主任监察员" },
             new Person { dept = "民航局",  post = "主任监察员" },
             new Person { dept = "AO",      post = "战略顾问" },
+            // 「首席航空顾问」本身已含「航空顾问」：Frame 的 who 组装会取整串，不会拼成两遍。
+            new Person { dept = "航空顾问", post = "首席航空顾问" },
         };
 
         public static string CeoName(GameState gs)

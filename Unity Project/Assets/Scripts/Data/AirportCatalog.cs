@@ -61,6 +61,30 @@ namespace AirlineCEO.Data
             new AirportInfo { code = "LHW", nameZh = "兰州中川", nameEn = "Lanzhou Zhongchuan" },
             new AirportInfo { code = "SYX", nameZh = "三亚凤凰", nameEn = "Sanya Phoenix" },
             new AirportInfo { code = "HAK", nameZh = "海口美兰", nameEn = "Haikou Meilan" },
+            // 2024 年旅客吞吐量 1297 万 / 货邮 3.4 万吨（CAAC 2024 公报）
+            new AirportInfo { code = "ZUH", nameZh = "珠海金湾", nameEn = "Zhuhai Jinwan" },
+            // 1050 万 / 17.3 万吨
+            new AirportInfo { code = "WUX", nameZh = "无锡硕放", nameEn = "Wuxi Shuofang" },
+            // 1473 万 / 16.9 万吨
+            new AirportInfo { code = "NGB", nameZh = "宁波栎社", nameEn = "Ningbo Lishe" },
+            // 1253 万 / 12.9 万吨
+            new AirportInfo { code = "WNZ", nameZh = "温州龙湾", nameEn = "Wenzhou Longwan" },
+            // —— 2026-10-22 批次 B：五座「无超短航距」国内枢纽（CAAC 2024 公报实际值）——
+            // 2024 年旅客吞吐量 1401 万 / 货邮 20.3 万吨
+            new AirportInfo { code = "NNG", nameZh = "南宁吴圩", nameEn = "Nanning Wuxu" },
+            // 2231 万 / 10.7 万吨
+            new AirportInfo { code = "KWE", nameZh = "贵阳龙洞堡", nameEn = "Guiyang Longdongbao" },
+            // 1478 万 / 6.2 万吨
+            new AirportInfo { code = "TYN", nameZh = "太原武宿", nameEn = "Taiyuan Wusu" },
+            // 1317 万 / 5.9 万吨
+            new AirportInfo { code = "HET", nameZh = "呼和浩特白塔", nameEn = "Hohhot Baita" },
+            // 2001 万 / 15.4 万吨
+            new AirportInfo { code = "TNA", nameZh = "济南遥墙", nameEn = "Jinan Yaoqiang" },
+            // —— 2026-10-22 批次 B'（K18 回补）：拉萨贡嘎 ——
+            // 公报量级 550 万 / 4.4 万吨。**等级对数值不敏感**：客流离 2000 万、货邮离 50 万吨
+            // 都差一个量级，5–6 百万之间取任何值都推导为支线（tier 2）—— 所以这里只要量级正确，
+            // 不必逐位对齐公报；协调属性 / 槽池 / 宵禁都由静态构造推导，不受这里影响。
+            new AirportInfo { code = "LXA", nameZh = "拉萨贡嘎", nameEn = "Lhasa Gonggar" },
             new AirportInfo { code = "ICN", nameZh = "首尔仁川", nameEn = "Seoul Incheon" },
             new AirportInfo { code = "NRT", nameZh = "东京成田", nameEn = "Tokyo Narita" },
             new AirportInfo { code = "HND", nameZh = "东京羽田", nameEn = "Tokyo Haneda" },
@@ -273,6 +297,84 @@ namespace AirlineCEO.Data
 
         public static IReadOnlyList<AirportInfo> Airports => All;
 
+        /// <summary>
+        /// 列表匹配名次（越小越靠前），-1 = 不匹配。
+        ///
+        /// 英文**只按词首**匹配，不做任意子串匹配 —— 这是 2026-10-21 的实测缺陷：
+        /// 搜 "NGB" 时，`nameEn.IndexOf` 会在 "Chongqing Jia**ngb**ei" 里命中，
+        /// 于是「宁波」下面顶着一条「重庆江北」。中文没有音节边界问题，仍允许包含匹配。
+        /// </summary>
+        public static int MatchRank(in AirportInfo a, string query)
+        {
+            if (string.IsNullOrWhiteSpace(query) || string.IsNullOrEmpty(a.code)) return -1;
+            string q = query.Trim();
+
+            // ① 代码精确 → 中文名精确 → 英文名精确（"ZUH" / "珠海金湾" / "Zhuhai Jinwan"）
+            if (a.code.Equals(q, StringComparison.OrdinalIgnoreCase)) return 0;
+            if (!string.IsNullOrEmpty(a.nameZh) && a.nameZh.Equals(q, StringComparison.OrdinalIgnoreCase)) return 1;
+            if (!string.IsNullOrEmpty(a.nameEn) && a.nameEn.Equals(q, StringComparison.OrdinalIgnoreCase)) return 1;
+            if (a.Display.Equals(q, StringComparison.OrdinalIgnoreCase)) return 1;
+
+            // ② 代码前缀（"ZU" → ZUH；"N" → NGB/NKG…）
+            if (a.code.StartsWith(q, StringComparison.OrdinalIgnoreCase)) return 2;
+
+            // ③ 中文名前缀 / 英文**词首**前缀（"珠海" → 珠海金湾；"Zhuhai" / "Jin" → 珠海金湾）
+            if (!string.IsNullOrEmpty(a.nameZh) && a.nameZh.StartsWith(q, StringComparison.OrdinalIgnoreCase)) return 3;
+            if (WordPrefix(a.nameEn, q)) return 3;
+
+            // ④ 中文名包含（"金湾" → 珠海金湾）。英文不做包含匹配，理由见方法注释。
+            if (!string.IsNullOrEmpty(a.nameZh) && a.nameZh.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) return 4;
+
+            // ⑤ 代码包含（只做尾码容错，如 "GB" → NGB）。这一档不会把 CKG 拉进来：
+            //    CKG 的三字码里没有 "NGB"，事故来自英文名的音节巧合，与代码无关。
+            if (a.code.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) return 5;
+
+            return -1;
+        }
+
+        /// <summary>是否有某个英文单词以 <paramref name="query"/> 开头（按空格/连字符切词）。</summary>
+        static bool WordPrefix(string nameEn, string query)
+        {
+            if (string.IsNullOrEmpty(nameEn) || string.IsNullOrEmpty(query)) return false;
+            int i = 0, n = nameEn.Length;
+            while (i < n)
+            {
+                while (i < n && (nameEn[i] == ' ' || nameEn[i] == '-' || nameEn[i] == '/')) i++;
+                int start = i;
+                while (i < n && nameEn[i] != ' ' && nameEn[i] != '-' && nameEn[i] != '/') i++;
+                int len = i - start;
+                if (len > 0 && len >= query.Length
+                    && string.Compare(nameEn, start, query, 0, query.Length, StringComparison.OrdinalIgnoreCase) == 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 下拉/搜索用：按 <see cref="MatchRank"/> 过滤并按名次、代码排序。空查询返回空列表
+        /// （不返回整表 —— 98 行一次铺开会顶满屏幕，且与「边打边筛」的交互逻辑矛盾）。
+        /// </summary>
+        public static List<AirportInfo> Filter(string query, int limit = 40)
+        {
+            var list = new List<AirportInfo>();
+            if (string.IsNullOrWhiteSpace(query)) return list;
+
+            var ranked = new List<KeyValuePair<int, AirportInfo>>();
+            for (int i = 0; i < All.Length; i++)
+            {
+                int r = MatchRank(All[i], query);
+                if (r >= 0) ranked.Add(new KeyValuePair<int, AirportInfo>(r, All[i]));
+            }
+            ranked.Sort((x, y) =>
+            {
+                int c = x.Key.CompareTo(y.Key);
+                if (c != 0) return c;
+                return string.CompareOrdinal(x.Value.code, y.Value.code);
+            });
+            for (int i = 0; i < ranked.Count && list.Count < limit; i++) list.Add(ranked[i].Value);
+            return list;
+        }
+
         public static bool TryResolve(string input, out AirportInfo airport)
         {
             airport = default;
@@ -292,21 +394,18 @@ namespace AirlineCEO.Data
                 }
             }
 
-            // 模糊：包含中文名 / 英文片段 / 代码
-            string qu = q.ToUpperInvariant();
-            for (int i = 0; i < All.Length; i++)
+            // 模糊：按共享匹配器（代码前缀 / 中文包含 / 英文词首）取**名次最好**的一条。
+            // 旧实现在 All 里取第一条命中即返回，配合英文的任意子串匹配，会把
+            // 「NGB」解析成 Chongqing Jia(ngb)ei —— 同一个查询在输入框和下拉列表里给出不同机场。
+            var candidates = Filter(q, limit: 1);
+            if (candidates.Count > 0)
             {
-                var a = All[i];
-                if ((!string.IsNullOrEmpty(a.nameZh) && a.nameZh.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (!string.IsNullOrEmpty(a.nameEn) && a.nameEn.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    a.code.IndexOf(qu, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    airport = a;
-                    return true;
-                }
+                airport = candidates[0];
+                return true;
             }
 
             // 兼容「北京」「上海」等简称
+            string qu = q.ToUpperInvariant();
             if (q.Contains("北京") || qu == "PEK" || qu == "PKX")
             {
                 airport = FindByCode("PEK");
@@ -348,6 +447,21 @@ namespace AirlineCEO.Data
             if (string.IsNullOrEmpty(via))
                 return Label(origin) + " → " + Label(dest);
             return Label(origin) + " → " + Label(via) + " → " + Label(dest);
+        }
+
+        /// <summary>
+        /// 往返城对：`北京首都 PEK ⇄ 上海浦东 PVG`。
+        ///
+        /// 计划类页面（周总计划 / 单班页 / 航线卡片）列的是**一条航线的两个方向**：
+        /// 一班 = 去程 + 过站 + 回程，用单向箭头 `→` 会被读成「只飞这一头」，
+        /// 与同一行的「回程时刻」「去程/回程」两列自相矛盾。故这些页面一律用 ⇄，
+        /// 单向 `→` 只留给真正单程的语境（如航线提案、地图航迹）。
+        /// </summary>
+        public static string OdRoundTrip(string origin, string dest, string via = null)
+        {
+            if (string.IsNullOrEmpty(via))
+                return Label(origin) + " ⇄ " + Label(dest);
+            return Label(origin) + " ⇄ " + Label(via) + " ⇄ " + Label(dest);
         }
 
         public static List<string> DropdownOptions(bool includeNone)

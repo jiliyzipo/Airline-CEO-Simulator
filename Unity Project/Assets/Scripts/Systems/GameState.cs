@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using UnityEngine;
@@ -354,7 +356,11 @@ namespace AirlineCEO.Systems
         public int lastExpansionOfferYear;
 
         /// <summary>
-        /// 所有开通航线日利润 × 30，再乘机组战力质量乘数。
+        /// 所有开通航线的**月度**净现金 ＋ 机组战力质量乘数。
+        ///
+        /// <see cref="RouteData.dailyProfit"/> 是执飞当天的净额，故按班期折算执飞天数
+        /// （<see cref="LiveClockLogic.OperatingDaysPerMonth"/>），不能一律 ×30：
+        /// 2~3 班/周的亏损线一个月只飞 8~13 天，×30 会把计划口径压得比实收现金低两成。
         /// 乘数在未建立机组时取 HrEconomics.CrewUnstaffedMultiplier（0.85，严格劣于任何已建机组），
         /// 故开局有机队但无建模机组时航线利润打 85 折——这是刻意的：
         /// 若不折损，「永不招机组」就成了免费满利润的最优解，渠道系统形同虚设。
@@ -375,7 +381,7 @@ namespace AirlineCEO.Systems
                     // 持续性停飞（未指派 / 机号不在册 / 退役转售 / 停场 / 投入过渡业务）不计营收；
                     // 仅「该机正在执飞它班」的瞬时冲突不算停飞——它会在起飞窗口内自愈。
                     if (FlightGroundLogic.IsPersistent(FlightGroundLogic.RouteOf(this, r))) continue;
-                    sum += r.dailyProfit * 30f;
+                    sum += r.dailyProfit * LiveClockLogic.OperatingDaysPerMonth(r.daysOfWeek, r.weeklyFlights);
                 }
                 return sum * CrewQualityMultiplier;
             }
@@ -400,6 +406,15 @@ namespace AirlineCEO.Systems
         /// <summary>机队月维护费（万美元）。</summary>
         public float FleetMonthlyMaintenance =>
             FleetManager.Instance != null ? FleetManager.Instance.CalcMonthlyMaintenance(this) : 0f;
+
+        /// <summary>
+        /// 机队月均航空保险保费（万美元/月）= 季度保费 / 3。全险按季一次性扣现金
+        /// （<c>FinanceManager.ChargeQuarterlyInsurance</c>），故跑道必须含它；
+        /// 不进逐日计提，因为实际记账就不是逐日。
+        /// </summary>
+        public float FleetMonthlyInsurance =>
+            AirlineCEO.Logic.InsuranceEconomics.QuarterlyPremiumWan(
+                FleetManager.FleetTotalValue(this), safetyRating, insuranceCoverage) / 3f;
 
         /// <summary>过渡业务月收入估计（万美元/月）：在租合同的日收入 × 30。</summary>
         public float FleetMonthlyTransitionIncome =>
@@ -706,7 +721,15 @@ namespace AirlineCEO.Systems
         public int TransitionLeasedCount =>
             AirlineCEO.Logic.TransitionBusinessLogic.ContractCount(this);
 
-        /// <summary>净月烧钱（开销 + 机队维护 + 租赁 + CEO + 运行岗薪酬 + 存量人力成本 − 航线月收入 − 过渡业务月收入，下限 0 便于跑道计算）。</summary>
+        /// <summary>
+        /// 净月烧钱（开销 + 机队维护 + 租赁 + CEO + 运行岗薪酬 + 存量人力 + 月均保费 + 月均还本付息
+        /// − 航线月收入 − 过渡业务月收入，下限 0 便于跑道计算）。
+        ///
+        /// 含还本付息是**唯一正确**的口径：贷款虽在季末一次扣，但它是合同强制的现金流出，
+        /// 跑道衡量的就是「现金还能撑多久」。漏掉它会让局内读数比选司预览长 20~32%
+        /// （★2 9.7 vs 8.0 / ★5 3.6 vs 3.0，2026-10-21 K11 修复）。
+        /// 口径与选司预览的 <c>AirlineProfile.monthlyNetBurn</c> 逐项对齐，改一处必须同时改另一处。
+        /// </summary>
         public float EffectiveMonthlyBurn
         {
             get
@@ -715,6 +738,8 @@ namespace AirlineCEO.Systems
                 float net = monthlyBurnRate + FleetMonthlyMaintenance + FleetMonthlyLease + ceoMonth
                     + OperationalPayrollMonthlyWan
                     + LaborCostMonthlyWan
+                    + FleetMonthlyInsurance
+                    + LoanManager.MonthlyDebtService(this)
                     + Mathf.Max(0f, financeCrisisBurnBonus) - monthlyRevenue - FleetMonthlyTransitionIncome;
                 return net > 0f ? net : 0f;
             }
@@ -734,6 +759,17 @@ namespace AirlineCEO.Systems
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            EnsureDefaults();
+        }
+
+        /// <summary>
+        /// 补齐懒建的容器 / 子状态对象，并把派生字段（安全指数、期初现金）对齐到当前值。
+        /// Awake 会调用；<see cref="ResetForNewGame"/> 会在「临时模板实例」上补一次 ——
+        /// 模板的 Awake 发现已有 Instance 会立刻早退，跑不到这段。
+        /// 编辑模式下 Awake 不执行，隔离回归可手动调一次拿到完整状态。
+        /// </summary>
+        public void EnsureDefaults()
+        {
             if (activeRoutes == null)
                 activeRoutes = new List<RouteData>();
             if (currentTargets == null)
@@ -806,6 +842,65 @@ namespace AirlineCEO.Systems
                 pendingInbox = new List<PendingInboxMail>();
             SyncSafetyIndexFromRating();
             yearStartCash = cash;
+        }
+
+        /// <summary>
+        /// 丢弃本局内存状态，回到「刚构造出来」的出厂值。
+        ///
+        /// 用在设置菜单的「退出到开始界面」：回到开始界面后，下一局（新游戏 / 从零创建）必须是干净的 ——
+        /// 否则它会继承上一局的财年、机队、航线、董事会与收件箱。读档不受影响：读档是往一个
+        /// **出厂状态**里灌存档值，与「进程重启后读档」完全同一条路径。
+        ///
+        /// 刻意**不手写字段清单**：类里 100 多个状态字段还在长，手写清单一定漂移
+        /// （清档键表硬编码就漏过 19 个键，见 <c>ClearGameSaveMenu</c> 的注释）。
+        /// 这里新建一个临时实例当模板，用反射把它的字段值抄回来：字段初值即出厂值，新增字段自动覆盖。
+        ///
+        /// 两个例外：
+        /// <list type="bullet">
+        /// <item>事件 / 委托字段是**会话内的订阅关系**（<see cref="OnStateChanged"/> 上有 HUD 订阅），
+        /// 抄掉就等于让刷新逻辑静默失效，故跳过；</item>
+        /// <item>集合沿用原有实例（先 Clear 再填），避免别处缓存的 <c>List</c> 引用突然指向一片旧数据。</item>
+        /// </list>
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            // 已有 Instance，模板的 Awake 会立刻 Destroy 自己并早退（不抢 Instance、不进 DontDestroyOnLoad），
+            // 字段初值在 AddComponent 时就已就位，这一帧内仍可当「出厂值模板」读。
+            var templateGo = new GameObject("GameStateDefaultsTemplate");
+            var template = templateGo.AddComponent<GameState>();
+            template.EnsureDefaults(); // 补上 Awake 早退时跳过的懒建对象（mkt / cargo / stg …）
+
+            var fields = typeof(GameState).GetFields(BindingFlags.Public | BindingFlags.Instance);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                var field = fields[i];
+                if (typeof(Delegate).IsAssignableFrom(field.FieldType)) continue;
+
+                object current = field.GetValue(this);
+
+                // 集合：沿用原实例，只把内容换成模板的（出厂状态一律是空表）。
+                // 顺带覆盖 readonly 集合（decisionLog 就是），它们不能整字段赋值。
+                if (current is IList currentList && !field.FieldType.IsArray)
+                {
+                    currentList.Clear();
+                    if (field.GetValue(template) is IList freshList)
+                        for (int k = 0; k < freshList.Count; k++)
+                            currentList.Add(freshList[k]);
+                    continue;
+                }
+
+                // readonly 标量没有赋值入口；它本来就是字段初值，重置时没必要（也无法）改写。
+                if (field.IsInitOnly || field.IsLiteral) continue;
+
+                field.SetValue(this, field.GetValue(template));
+            }
+
+            // 模板的 Awake 在播放态已经请求过销毁；编辑态（回归测试）不走 Awake，这里补一次。
+            if (Application.isPlaying) Destroy(templateGo);
+            else DestroyImmediate(templateGo);
+            SyncSafetyIndexFromRating();
+            yearStartCash = cash;
+            NotifyChanged();
         }
 
         /// <summary>字母评级 → 数值指数（董事会安全目标）。</summary>

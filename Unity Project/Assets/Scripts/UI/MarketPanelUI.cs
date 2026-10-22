@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using AirlineCEO.Data;
-using AirlineCEO.Logic;
 using AirlineCEO.Systems;
 using AirlineCEO.UI.Navigation;
 using TMPro;
@@ -10,28 +9,24 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// MKT 市场销售部 L1（n14）：总览（KPI + 航线收益排行 + 子页入口）/ RPM 评估 / 竞争态势。
+    /// MKT 市场销售部 L1（n14）：总览（KPI + 航线收益排行 + 子页入口）/ 竞争态势。
+    ///
+    /// 2026-10-19：移除「RPM 评估」页签 —— 该页签只能输出发/到达、固定 leisure、
+    /// 无机型/周班/竞对参数，已经是 n35「新航线 RPM 评估台」的严格子集。
+    /// 两个同名页面并存时，同一条航线会给出两个不同的数。RPM 统一由 n35 承担。
     /// </summary>
     public class MarketPanelUI : MonoBehaviour
     {
         private GameObject _homeRoot;
-        private GameObject _rpmRoot;
         private GameObject _compRoot;
         private Transform _rankingRoot;
         private TextMeshProUGUI _kpiText;
         private TextMeshProUGUI _secondaryKpiText;
         private CompetitionUI _competitionUi;
 
-        private TMP_InputField _originInput;
-        private TMP_InputField _destInput;
-        private TextMeshProUGUI _rpmResultText;
-        private Image _rpmLight;
-
         private Button _tabHomeBtn;
-        private Button _tabRpmBtn;
         private Button _tabCompBtn;
         private Image _tabHomeImg;
-        private Image _tabRpmImg;
         private Image _tabCompImg;
 
         private readonly List<GameObject> _rankingRows = new List<GameObject>();
@@ -77,25 +72,20 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.26f, 0.94f), new Vector2(0.38f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => ShowTab(0), 12);
             _tabHomeImg = _tabHomeBtn.GetComponent<Image>();
-            _tabRpmBtn = UIFactory.Button(panel, "TabRpm", "RPM 评估",
+            _tabCompBtn = UIFactory.Button(panel, "TabComp", "竞争态势",
                 new UIFactory.Anchor(new Vector2(0.40f, 0.94f), new Vector2(0.54f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, () => ShowTab(1), 12);
-            _tabRpmImg = _tabRpmBtn.GetComponent<Image>();
-            _tabCompBtn = UIFactory.Button(panel, "TabComp", "竞争态势",
-                new UIFactory.Anchor(new Vector2(0.56f, 0.94f), new Vector2(0.70f, 0.995f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => ShowTab(2), 12);
             _tabCompImg = _tabCompBtn.GetComponent<Image>();
 
             // 子页快捷入口
             UIFactory.Button(panel, "NavRevenue", "航线收益分析",
-                new UIFactory.Anchor(new Vector2(0.72f, 0.94f), new Vector2(0.84f, 0.995f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.60f, 0.94f), new Vector2(0.74f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, () => OpenMktPage("n44_航线收益分析"), 11);
             UIFactory.Button(panel, "NavPricing", "航班定价",
-                new UIFactory.Anchor(new Vector2(0.86f, 0.94f), new Vector2(0.99f, 0.995f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.76f, 0.94f), new Vector2(0.90f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, () => OpenMktPage("n49_航班定价"), 11);
 
             BuildHome(panel);
-            BuildRpm(panel);
             BuildComp(panel);
             ShowTab(0);
         }
@@ -166,53 +156,7 @@ namespace AirlineCEO.UI
                 UITheme.PanelDeep, () => OpenMktPage("n68_渠道预算"), 12);
             UIFactory.Button(_homeRoot.transform, "BtnComp29", "竞争态势",
                 new UIFactory.Anchor(new Vector2(0.42f, 0.13f), new Vector2(0.62f, 0.21f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => ShowTab(2), 12);
-        }
-
-        private void BuildRpm(Transform panel)
-        {
-            _rpmRoot = UIFactory.Panel(panel, "MarketRpmRoot",
-                new UIFactory.Anchor(new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.93f), Vector2.zero, Vector2.zero),
-                new Color(0, 0, 0, 0));
-            var img = _rpmRoot.GetComponent<Image>();
-            if (img != null) img.color = new Color(0, 0, 0, 0);
-
-            UIFactory.Label(_rpmRoot.transform, "Sub", "输入出发/到达城市，评估综合得分与日利润", 14,
-                TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.02f, 0.9f), new Vector2(0.7f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-
-            UIFactory.Label(_rpmRoot.transform, "OriginLabel", "出发", 16, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.05f, 0.76f), new Vector2(0.18f, 0.86f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-            _originInput = UIFactory.Input(_rpmRoot.transform, "OriginInput", "北京",
-                new UIFactory.Anchor(new Vector2(0.2f, 0.76f), new Vector2(0.55f, 0.86f), Vector2.zero, Vector2.zero));
-
-            UIFactory.Label(_rpmRoot.transform, "DestLabel", "到达", 16, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.05f, 0.62f), new Vector2(0.18f, 0.72f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted);
-            _destInput = UIFactory.Input(_rpmRoot.transform, "DestInput", "伦敦",
-                new UIFactory.Anchor(new Vector2(0.2f, 0.62f), new Vector2(0.55f, 0.72f), Vector2.zero, Vector2.zero));
-
-            UIFactory.Button(_rpmRoot.transform, "AnalyzeButton", "分析航线",
-                new UIFactory.Anchor(new Vector2(0.6f, 0.76f), new Vector2(0.82f, 0.86f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, OnAnalyzeRpm, 16);
-
-            _rpmLight = UIFactory.Panel(_rpmRoot.transform, "RpmLight",
-                new UIFactory.Anchor(new Vector2(0.85f, 0.76f), new Vector2(0.94f, 0.86f), Vector2.zero, Vector2.zero),
-                UITheme.TextMuted).GetComponent<Image>();
-
-            var resultBox = UIFactory.Panel(_rpmRoot.transform, "ResultBox",
-                new UIFactory.Anchor(new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.55f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep);
-            _rpmResultText = UIFactory.Label(resultBox.transform, "RpmResult",
-                "点击「分析航线」查看综合评定与红绿灯", 17,
-                TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextPrimary);
-            var rt = _rpmResultText.GetComponent<RectTransform>();
-            rt.offsetMin = new Vector2(16, 12);
-            rt.offsetMax = new Vector2(-16, -12);
-
-            _rpmRoot.SetActive(false);
+                UITheme.PanelDeep, () => ShowTab(1), 12);
         }
 
         private void BuildComp(Transform panel)
@@ -225,10 +169,10 @@ namespace AirlineCEO.UI
 
         private void ShowTab(int tab)
         {
+            // 0 = 总览，1 = 竞争态势（原「RPM 评估」页签已并入 n35）
             if (_homeRoot != null) _homeRoot.SetActive(tab == 0);
-            if (_rpmRoot != null) _rpmRoot.SetActive(tab == 1);
-            if (_compRoot != null) _compRoot.SetActive(tab == 2);
-            if (tab == 2 && _competitionUi != null) _competitionUi.Refresh();
+            if (_compRoot != null) _compRoot.SetActive(tab == 1);
+            if (tab == 1 && _competitionUi != null) _competitionUi.Refresh();
             SetTabVisual(tab);
         }
 
@@ -237,8 +181,7 @@ namespace AirlineCEO.UI
         private void SetTabVisual(int active)
         {
             if (_tabHomeImg != null) { _tabHomeImg.color = active == 0 ? UITheme.Accent : UITheme.PanelDeep; var h = _tabHomeImg.GetComponent<UIHoverBrighten>(); if (h != null) h.RefreshBase(); }
-            if (_tabRpmImg != null) { _tabRpmImg.color = active == 1 ? UITheme.Accent : UITheme.PanelDeep; var h = _tabRpmImg.GetComponent<UIHoverBrighten>(); if (h != null) h.RefreshBase(); }
-            if (_tabCompImg != null) { _tabCompImg.color = active == 2 ? UITheme.Accent : UITheme.PanelDeep; var h = _tabCompImg.GetComponent<UIHoverBrighten>(); if (h != null) h.RefreshBase(); }
+            if (_tabCompImg != null) { _tabCompImg.color = active == 1 ? UITheme.Accent : UITheme.PanelDeep; var h = _tabCompImg.GetComponent<UIHoverBrighten>(); if (h != null) h.RefreshBase(); }
         }
 
         public void Refresh()
@@ -326,45 +269,5 @@ namespace AirlineCEO.UI
             }
         }
 
-        private void OnAnalyzeRpm()
-        {
-            string origin = _originInput != null ? _originInput.text.Trim() : "";
-            string dest = _destInput != null ? _destInput.text.Trim() : "";
-
-            bool isPekLhr =
-                (origin.Contains("北京") || origin.ToUpperInvariant().Contains("PEK")) &&
-                (dest.Contains("伦敦") || dest.ToUpperInvariant().Contains("LHR") || dest.ToUpperInvariant().Contains("LON"));
-
-            var macro = MacroEconomyManager.Instance;
-            float baseDemand = 1.2f;
-            if (macro != null)
-                baseDemand *= macro.GetDemandMultiplier("leisure");
-
-            var input = new RPMCalculator.RPMInput
-            {
-                distance = isPekLhr ? 8150f : 4500f,
-                fuelPricePerTon = GameState.Instance != null ? GameState.Instance.fuelPricePerTon : 850f,
-                competitorSupply = isPekLhr ? 0.65f : 0.4f,
-                demandMultiplier = baseDemand,
-                brandEquity = GameState.Instance != null ? GameState.Instance.brandAwareness : 55f
-            };
-
-            var output = RPMCalculator.Calculate(input);
-            _rpmResultText.text =
-                $"{origin} → {dest}\n" +
-                $"综合评定 {output.score} 分（{output.rating}）\n" +
-                $"日收入 {output.dailyRevenue:F2} / 成本 {output.dailyCost:F2}\n" +
-                $"日利润 {output.dailyProfit:F2} 万美元" +
-                (isPekLhr ? "" : "\n（非预设 OD，使用简化参数）");
-
-            _rpmLight.color = output.rating switch
-            {
-                "绿" => UITheme.Success,
-                "黄" => UITheme.Warning,
-                _ => UITheme.Danger
-            };
-        }
-
-        private void Toast(string msg) => Debug.Log("[MKT] " + msg);
     }
 }

@@ -41,8 +41,12 @@ namespace AirlineCEO.Logic
         public const float MaintPerFlightHourWan = 0.045f;
         /// <summary>机队月度基础适航维护（万美元/机），对齐 FleetManager。</summary>
         public const float FleetMonthlyMaintWan = 5f;
-        /// <summary>机龄每年对月维护的加成。</summary>
-        public const float MaintAgeUpliftPerYear = 0.06f;
+        /// <summary>
+        /// 机龄每年对月维护的加成。取 5% 与旧 <c>FleetManager.MonthlyMaintOf</c> 的硬编码系数一致：
+        /// 账本一直按 5% 扣钱，本参数原写 6% 使 UI（FleetSubpagePanel）与运力测算印出另一套数。
+        /// 统一时以**账本**为准（玩家每天看到的是账本），否则改的是经济数值而不是口径。
+        /// </summary>
+        public const float MaintAgeUpliftPerYear = 0.05f;
 
         // —— 默认机型 ——
         public const int DefaultNarrowbodySeats = 180;

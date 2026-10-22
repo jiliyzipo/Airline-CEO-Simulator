@@ -36,6 +36,21 @@ namespace AirlineCEO.Systems
 
         #region Credit / Unlock
 
+        /// <summary>
+        /// 存量贷款的**月均还本付息**（万美元/月）—— 局内入口。
+        ///
+        /// 为什么必须单列：贷款是**季末一次性**扣 3 个月（<see cref="ProcessQuarterRepayments"/>），
+        /// 逐日计提里根本没有它。于是 <see cref="GameState.EffectiveMonthlyBurn"/> 曾只统计
+        /// 「逐日成本 − 收入」，跑道读数比选司预览长 20~32%（2026-10-21 K10 收口核查发现：
+        /// ★2 9.7 vs 8.0 / ★3 7.9 vs 6.0 / ★4 5.0 vs 4.0 / ★5 3.6 vs 3.0）——
+        /// 玩家点进局里，跑道读数反而变长了，与「接管越难跑道越短」的叙事相反。
+        ///
+        /// 真正的算法在 <see cref="LoanEconomics.MonthlyDebtService"/>，因为选司预览也要用它；
+        /// 这里只是把 <c>GameState</c> 拆包，保证局内与预览永远同一个数。
+        /// </summary>
+        public static float MonthlyDebtService(GameState gs)
+            => gs == null ? 0f : LoanEconomics.MonthlyDebtService(gs.activeLoans);
+
         public static bool IsFinanceUnlocked(GameState gs)
         {
             if (gs == null) return false;

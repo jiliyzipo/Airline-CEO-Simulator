@@ -200,7 +200,9 @@ namespace AirlineCEO.UI
                 string detailId = route.routeId;
                 btn.onClick.AddListener(() =>
                 {
-                    OpsSubpageContext.SelectedRouteId = detailId;
+                    // 这里是航线卡片（不是某个班次）：写 -1 表示按第 0 班显示，
+                    // 顺带把「上一条线指定过的第 N 班」作废，免得停在一个不相干的班次上。
+                    OpsSubpageContext.SelectFlight(detailId, -1);
                     OpenOpsPage("n43_航班详细计划");
                 });
             }
@@ -352,5 +354,32 @@ namespace AirlineCEO.UI
         public static string SelectedRouteId;
         public static string SelectedRingNote;
         public static string SelectedRegistration;
+
+        /// <summary>
+        /// n43 要看的**班次下标**（0 起；-1 / 越界都按第 0 班处理）。
+        ///
+        /// 2026-10-19：n43「航班飞行计划」从航线级改成真正的单班页后，光有 routeId 定位不到班次 ——
+        /// 一条线一天可能 3 波，标题写 NS108 却给整条线的数据（旧版正是如此）。
+        /// 必须与「这个下标属于哪条航线」成对记录，否则从邮件点进 NS110 之后再从导航树打开
+        /// n43，会把别的航线也停在「第 3 班」—— 看着跳了，跳的是别人。
+        /// </summary>
+        public static int SelectedFlightIndex = -1;
+
+        /// <summary><see cref="SelectedFlightIndex"/> 属于哪条航线；空 / 不等即视为未指定。</summary>
+        static string _flightIndexRouteId;
+
+        /// <summary>成对写下「航线 + 班次」。凡是打开 n43 的入口都必须走这里。</summary>
+        public static void SelectFlight(string routeId, int flightIndex)
+        {
+            SelectedRouteId = routeId;
+            SelectedFlightIndex = flightIndex;
+            _flightIndexRouteId = routeId;
+        }
+
+        /// <summary>该航线上次被指定的班次下标；不是同一条线就返回 -1（按第 0 班处理）。</summary>
+        public static int FlightIndexOf(string routeId)
+            => string.Equals(_flightIndexRouteId, routeId, System.StringComparison.Ordinal)
+                ? SelectedFlightIndex
+                : -1;
     }
 }

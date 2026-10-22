@@ -22,7 +22,7 @@ namespace AirlineCEO.UI.Setup
         public static string Metrics(AirlineProfile p)
         {
             if (p == null) return "";
-            return $"机队 {p.fleetCount} 架 ｜ 航线 {p.routeCount} 条 ｜ 现金 {p.cash:F0} 万 ｜ 负债率 {p.debtRatio * 100f:F0}% ｜ 跑道约 {p.cashRunwayMonths:F1} 月";
+            return $"机队 {p.fleetCount} 架 ｜ 航线 {p.routeCount} 条 ｜ 现金 {p.cash:F0} 万 ｜ 负债率 {p.debtRatio * 100f:F0}% ｜ 跑道 {TakeoverWorldBuilder.RunwayText(p)}";
         }
 
         public static string Body(AirlineProfile p, int tab)
@@ -56,8 +56,20 @@ namespace AirlineCEO.UI.Setup
                     break;
                 case 2:
                     sb.AppendLine($"现金 {p.cash:F0} 万美元");
-                    sb.AppendLine($"月收入约 {p.monthlyRevenue:F0} 万（航线 + 过渡业务）");
-                    sb.AppendLine($"月成本约 {p.monthlyCost:F0} 万");
+                    sb.AppendLine($"月收入约 {p.monthlyRevenue:F0} 万（航线 + 过渡业务，已按机组缺员 {p.crewVacancyPercent}% 折算）");
+                    // 还本付息与保费单列：两者都是季末一次扣 3 个月的强制现金流，不并进「月成本」，
+                    // 否则与 LoanManager / FinanceManager 的记账重复。净烧钱/跑道含它们（标准 runway 口径）。
+                    sb.AppendLine($"月成本约 {p.monthlyCost + p.monthlyFixedCost + p.monthlyDebtService + p.monthlyInsurance:F0} 万"
+                                  + $"（总部/地面 {p.monthlyCost:F0} + 机队维护/租金/人力 {p.monthlyFixedCost:F0}"
+                                  + (p.monthlyDebtService > 0.01f ? $" + 还本付息 {p.monthlyDebtService:F0}" : "")
+                                  + (p.monthlyInsurance > 0.01f ? $" + 全险保费 {p.monthlyInsurance:F0}" : "")
+                                  + "）");
+                    // 净烧钱可能为负（收入覆盖成本），此时不该印「每月净烧钱 -27 万」——按 0 说，与本页跑道口径一致。
+                    sb.AppendLine($"每月净烧钱约 {Mathf.Max(0f, p.monthlyNetBurn):F0} 万 · 跑道 {TakeoverWorldBuilder.RunwayText(p)}");
+                    if (p.monthlyDebtService > 0.01f)
+                        sb.AppendLine($"其中每季一次性还本付息约 {p.monthlyDebtService * 3f:F0} 万（季末扣）");
+                    if (p.monthlyInsurance > 0.01f)
+                        sb.AppendLine($"其中每季一次性全险保费约 {p.monthlyInsurance * 3f:F0} 万（季末扣）");
                     sb.AppendLine($"负债率 {p.debtRatio * 100f:F0}%");
                     if (p.openingLoans != null)
                         for (int i = 0; i < p.openingLoans.Count; i++)

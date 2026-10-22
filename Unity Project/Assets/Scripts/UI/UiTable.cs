@@ -67,7 +67,7 @@ namespace AirlineCEO.UI
         }
 
         public static void AddRow(Transform tableContent, IList<string> cols, IList<float> weights,
-            bool header = false, UnityAction onClick = null)
+            bool header = false, UnityAction onClick = null, float rowHeight = 0f)
         {
             if (tableContent == null || cols == null || cols.Count == 0) return;
 
@@ -98,7 +98,12 @@ namespace AirlineCEO.UI
             hover.RefreshBase();
 
             var h = row.GetComponent<HorizontalLayoutGroup>();
-            h.padding = new RectOffset(10, 10, 8, 8);
+            // 紧凑行（rowHeight 由调用方指定）要相应收紧上下内边距：
+            // 否则 34 px 行高扣掉 8+8 只剩 18 px，15 号字连同行高被 Truncate 整行裁掉 ——
+            // 表现为「条纹行都画出来了，但没有一个字」（2026-10-19 单班页报障）。
+            h.padding = rowHeight > 0f
+                ? new RectOffset(10, 10, 3, 3)
+                : new RectOffset(10, 10, 8, 8);
             h.spacing = 8;
             h.childAlignment = TextAnchor.MiddleLeft;
             h.childControlWidth = true;
@@ -107,8 +112,11 @@ namespace AirlineCEO.UI
             h.childForceExpandHeight = true;
 
             var le = row.GetComponent<LayoutElement>();
-            le.minHeight = header ? 42f : 40f;
-            le.preferredHeight = header ? 42f : 40f;
+            // rowHeight > 0 时按调用方给的紧凑行高排版：单班页这类「字段 – 数值」密集表
+            // 要在一屏内放下 9 行，40 px 的行距在 720p 下会溢出可视区，逼出滚动条。
+            float rowH = rowHeight > 0f ? rowHeight : (header ? 42f : 40f);
+            le.minHeight = rowH;
+            le.preferredHeight = rowH;
             le.flexibleWidth = 1f;
 
             float sumW = 0f;
@@ -139,8 +147,60 @@ namespace AirlineCEO.UI
             }
         }
 
-        public static void AddCaption(Transform tableContent, string text)
+        /// <summary>
+        /// 让表格把可视区填满（不滚动、也不把内容全挤在顶部）。
+        ///
+        /// 为什么要这一步：表内容是 top 对齐的（pivot 在顶、ContentSizeFitter 按内容收高），
+        /// 一旦条目少于一屏，余量就全部堆在**下半屏**变成一块空白 —— 单班页固定 9 行时尤其明显
+        /// （2026-10-19 报障「页面下半部分留了太多空白」）。
+        ///
+        /// 两步：① 把余量摊给数据行（标题/脚注不动），单行高度封顶，免得三五条时被拉成巨条；
+        /// ② 封顶后仍多出来的部分上下均分，而不是继续往下堆。
+        /// 条目多到超过可视区时余量为负，本方法直接不做事 —— 该滚就滚。
+        /// </summary>
+        public static void FillVertically(Transform tableContent, float maxRowHeight = 52f)
         {
+            if (!(tableContent is RectTransform crt)) return;
+            var viewport = crt.parent as RectTransform;
+            if (viewport == null) return;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(crt);
+            float viewH = viewport.rect.height;
+            float contentH = crt.rect.height;
+            if (viewH <= 0f || contentH <= 0f) return;
+
+            var rows = new List<LayoutElement>();
+            for (int i = 0; i < crt.childCount; i++)
+            {
+                var child = crt.GetChild(i);
+                // Clear() 用的是延迟销毁：同帧内旧行还在层级里（fake null），必须跳过，
+                // 否则会把上一轮的行也当成待分配对象，余量摊错地方。
+                if (child == null || child.name != "Row") continue;
+                var le = child.GetComponent<LayoutElement>();
+                if (le != null) rows.Add(le);
+            }
+
+            float gap = viewH - contentH;
+            if (gap > 1f && rows.Count > 0)
+            {
+                float room = 0f;
+                for (int i = 0; i < rows.Count; i++)
+                    room += Mathf.Max(0f, maxRowHeight - rows[i].preferredHeight);
+                float add = Mathf.Min(gap / rows.Count, room > 0f ? room / rows.Count : 0f);
+                if (add > 0.5f)
+                {
+                    for (int i = 0; i < rows.Count; i++)
+                        rows[i].preferredHeight += add;
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(crt);
+                    contentH = crt.rect.height;
+                }
+            }
+
+            float rest = viewH - contentH;
+            crt.anchoredPosition = new Vector2(crt.anchoredPosition.x, rest > 1f ? -rest * 0.5f : 0f);
+        }
+
+        public static void AddCaption(Transform tableContent, string text)        {
             var go = new GameObject("Caption", typeof(RectTransform), typeof(LayoutElement), typeof(TextMeshProUGUI));
             go.transform.SetParent(tableContent, false);
             go.GetComponent<LayoutElement>().preferredHeight = 32f;

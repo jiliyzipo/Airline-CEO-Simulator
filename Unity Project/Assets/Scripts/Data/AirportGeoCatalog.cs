@@ -20,6 +20,15 @@ namespace AirlineCEO.Data
             ("FOC",119.6633f,25.9340f),("TAO",120.0885f,36.3616f),("TSN",117.3462f,39.1244f),("DLC",121.5386f,38.9657f),
             ("SHE",123.4825f,41.6401f),("HRB",126.2503f,45.6233f),("URC",87.4742f,43.9071f),("LHW",103.6206f,36.5152f),
             ("SYX",109.4120f,18.3029f),("HAK",110.4589f,19.9349f),
+            // 2026-10-21 批次 A（WGS-84，跑道基准点）
+            ("ZUH",113.3756f,22.0064f),("WUX",120.4294f,31.4944f),
+            ("NGB",121.4619f,29.8267f),("WNZ",120.8522f,27.9122f),
+            // 2026-10-22 批次 B（WGS-84，跑道基准点）
+            ("NNG",108.1722f,22.6083f),("KWE",106.8007f,26.5385f),
+            ("TYN",112.6284f,37.7469f),("HET",111.8241f,40.8514f),
+            ("TNA",117.2160f,36.8572f),
+            // 2026-10-22 批次 B'（K18 回补）：拉萨贡嘎（WGS-84，跑道基准点，海拔 3570 m）
+            ("LXA",90.9119f,29.2978f),
             ("ICN",126.4408f,37.4602f),("NRT",140.3863f,35.7719f),("HND",139.7798f,35.5494f),("KIX",135.2440f,34.4347f),
             ("HKG",113.9145f,22.3089f),("MFM",113.5917f,22.1496f),("TPE",121.2330f,25.0777f),("SIN",103.9915f,1.3644f),
             ("BKK",100.7476f,13.6900f),("KUL",101.7022f,2.7456f),("DEL",77.1030f,28.5562f),("BOM",72.8656f,19.0896f),
@@ -65,10 +74,23 @@ namespace AirlineCEO.Data
             return true;
         }
 
+        /// <summary>两点大圆距离（km），单位度。台风路径研判等「点对点」场景用它。</summary>
+        public static float PointKm(float lon1, float lat1, float lon2, float lat2)
+        {
+            const float R = 6371f;
+            const float Deg2Rad = 0.017453292f;
+            float p1 = lat1 * Deg2Rad;
+            float p2 = lat2 * Deg2Rad;
+            float dPhi = (lat2 - lat1) * Deg2Rad;
+            float dLam = (lon2 - lon1) * Deg2Rad;
+            float h = MathF.Sin(dPhi * 0.5f) * MathF.Sin(dPhi * 0.5f)
+                      + MathF.Cos(p1) * MathF.Cos(p2) * MathF.Sin(dLam * 0.5f) * MathF.Sin(dLam * 0.5f);
+            return 2f * R * MathF.Asin(Math.Clamp(MathF.Sqrt(h), 0f, 1f));
+        }
+
         /// <summary>两点大圆航距（km）。任一坐标缺失时返回 <see cref="UnknownKm"/>。</summary>
         public static float GreatCircleKm(string origin, string dest)
-        {
-            if (!TryLonLat(origin, out float lon1, out float lat1)) return UnknownKm;
+        {            if (!TryLonLat(origin, out float lon1, out float lat1)) return UnknownKm;
             if (!TryLonLat(dest, out float lon2, out float lat2)) return UnknownKm;
             const float R = 6371f;
             const float Deg2Rad = 0.017453292f; // Mathf.Deg2Rad 的等值常量

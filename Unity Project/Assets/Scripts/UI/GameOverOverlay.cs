@@ -41,9 +41,21 @@ namespace AirlineCEO.UI
 
             _body = UIFactory.Label(card.transform, "Body", "", 16,
                 TextAlignmentOptions.Top,
-                new UIFactory.Anchor(new Vector2(0.08f, 0.18f), new Vector2(0.92f, 0.76f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.08f, 0.20f), new Vector2(0.92f, 0.76f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
             _body.textWrappingMode = TextWrappingModes.Normal;
+
+            // 终局遮罩会挡住底栏，齿轮里的「退出到开始界面」此时点不到 —— 所以这里必须自带一个，
+            // 否则玩家唯一出路是重启进程（这正是加「退出到开始界面」之前的状况）。
+            UIFactory.Button(card.transform, "ExitToStart", "退出到开始界面",
+                new UIFactory.Anchor(new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.16f), Vector2.zero, Vector2.zero),
+                UITheme.Accent, ExitToStartScreen, 14);
+        }
+
+        static void ExitToStartScreen()
+        {
+            var setup = AirlineCEO.UI.Setup.SetupFlowController.Instance;
+            if (setup != null) setup.ReturnToStartScreen();
         }
 
         public static void ShowIfNeeded()
@@ -55,10 +67,16 @@ namespace AirlineCEO.UI
             if (ui._body != null)
             {
                 ui._body.text = (gs.gameOverReason ?? "董事会已解雇 CEO。") +
-                    "\n\n本局已结束。请重新开局，或用读档回到解雇之前。";
+                    "\n\n本局已结束。\n「退出到开始界面」可另开一局；F9 读档（或设置里的「读档」）可回到解雇之前。";
             }
             ui.gameObject.SetActive(true);
             ui.transform.SetAsLastSibling();
+        }
+
+        /// <summary>收起终局遮罩：退出到开始界面时用（下一局若又失败会由 <see cref="ShowIfNeeded"/> 重新弹出）。</summary>
+        public static void Hide()
+        {
+            if (_instance != null) _instance.gameObject.SetActive(false);
         }
     }
 }

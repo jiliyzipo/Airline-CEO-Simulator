@@ -247,6 +247,35 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
+        /// 去程 / 回程**各自的**起降时刻，如 `08:00-09:16` 与 `10:06-11:22`（跨日标 +1）。
+        ///
+        /// 为什么周计划和单班页要分两段印：<see cref="WindowLabel"/> 给的是一次往返的**总占窗**
+        /// （去程起飞 → 回程落地），印成 `08:00-11:26` 会被读成「单程航段的起降时刻」，
+        /// CEO 当场问「返程几点」。分两段印，去、回各自的起降一眼可见，也不必再心算。
+        /// </summary>
+        public static void LegClock(RouteData route, RouteFlight flight,
+            out string outbound, out string inbound)
+        {
+            outbound = inbound = "—";
+            if (route == null || flight == null) return;
+            var day = new DateTime(2026, 10, 1);   // 仅用于取时刻，日期无意义
+            LiveClockLogic.RoundTripWindow(day, flight.depTime, flight.arrTime,
+                route.distanceKm > 0 ? route.distanceKm : 1000f,
+                route.aircraftType, route.groundStaffAssigned,
+                out DateTime od, out DateTime oa, out DateTime rd, out DateTime ra);
+            outbound = $"{od:HH:mm}-{oa:HH:mm}{DayShift(od, oa)}";
+            inbound = $"{rd:HH:mm}-{ra:HH:mm}{DayShift(od, ra)}";
+        }
+
+        /// <summary>落地/起飞落在去程起飞日之后的第几天；当天返回为空串。</summary>
+        static string DayShift(DateTime from, DateTime to)
+        {
+            int d = (to.Date - from.Date).Days;
+            if (d <= 0) return "";
+            return d == 1 ? "+1" : $"+{d}";
+        }
+
+        /// <summary>
         /// 全局排班自检：把**周计划那一行**（航线级 班期/周班/时刻）与**单航线页**（班次级）逐条对账。
         /// 返回问题清单；空 = 两处口径一致。供 `slotcheck R31` / `LogicSelfTests R31` 与呈报共用。
         /// </summary>

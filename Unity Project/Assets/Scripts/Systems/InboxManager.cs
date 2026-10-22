@@ -1257,7 +1257,7 @@ namespace AirlineCEO.Systems
             var permit = FindPermitMail(gs, o, d);
             if (permit == null)
             {
-                message = "未找到对应的许可办理单，请重新由运营部召集研究。";
+                message = "未找到对应的许可办理单，请重新在「航线 → 开通新航线」申请开通。";
                 return false;
             }
 
@@ -1326,7 +1326,7 @@ namespace AirlineCEO.Systems
                 permit.effectPending = false;
             }
             Mark(gs, mail.id, "rejected");
-            message = $"已放弃 {mail.origin}-{mail.dest} 的准入申请，许可办理终止（日后可重新召集研究）。";
+            message = $"已放弃 {mail.origin}-{mail.dest} 的准入申请，许可办理终止（日后可重新申请开通）。";
             gs.AddDecisionLog("准入：放弃 " + mail.origin + "-" + mail.dest + " 航线经营许可申请");
             gs.NotifyChanged();
             return true;
@@ -1506,6 +1506,9 @@ namespace AirlineCEO.Systems
                 role = "执行回执",
                 glyph = "战",
                 kind = "report",
+                // 槽单回执沿用源件的航线（申请单存 slotRouteId，改时单也存）。
+                // 战略部自主提案没有航线，此处留空 —— 底栏于是只给部门入口。
+                origin = RouteIdOf(gs, src),
                 subject = subject,
                 body = body ?? "",
                 status = "approved",
@@ -2192,6 +2195,16 @@ namespace AirlineCEO.Systems
                 return false;
             }
 
+            // K19：提案必须写出「这笔钱花掉之后还剩多少个月」。
+            // 为什么：批次 B 把 tier 1 新机场（KWE / TNA）带进 ★2 档，一条槽 300 万；
+            // 该档开局现金 1434 万、净烧 179.5 万/月，玩家把现金花到 300 万上下时
+            // 会收到 300 万的报价，信里一个字没提后果。CEO 看不到跑道就点批准，等于蒙着眼睛签字。
+            // （早期记录写的「开局现金约 320 万 / 现金 325.5 万」是误读：那是底栏的季度支出
+            //   3,255,000 元 = 325.5 万，而底栏 StatusBarView 并不输出金。见 K19 回归头注释。）
+            // 交割期才会真正扣款（StrategyManager.AcquireSlotsAt 现金不足直接失败），
+            // 所以口径必须与那条判据同源：现金 − 报价，再除以 EffectiveMonthlyBurn。
+            string cashLine = FormatSlotCashImpact(gs, cost, out bool affordable, out float runwayAfter);
+
             Add(gs, new InboxMail
             {
                 id = mailId,
@@ -2211,13 +2224,18 @@ namespace AirlineCEO.Systems
                                        + $"06:30 与 08:00 是两条槽，不能互相顶替") +
                     InboxLetter.Bullet($"渠道　二级市场购入（向持槽航司买，需付款）") +
                     InboxLetter.Bullet($"估价　约 {cost:F0} 万美元") +
+                    InboxLetter.Bullet($"现金　{cashLine}") +
                     InboxLetter.Bullet($"池况　{RoutePermitLogic.SlotPoolLineAt(gs, apt, clk)}") +
                     InboxLetter.Section("时点与影响") +
                     InboxLetter.Bullet("批准：下季度扣款交割，交割后可按该时刻加密班次") +
                     InboxLetter.Bullet("拒绝：该时刻不扩容，该时刻的班次排不进去") +
                     InboxLetter.Bullet("若不愿付费：改走**协调池申请**（收件箱「申请时刻槽」，不收费、按序分配）") +
                     InboxLetter.Bullet("两端持槽：往返班次在两个离港机场各占 1 条**对应时刻**的槽") +
-                    InboxLetter.Bullet("持仓与进度见「航权与时刻槽」页"),
+                    InboxLetter.Bullet("持仓与进度见「航权与时刻槽」页") +
+                    (affordable && runwayAfter < 3f
+                        ? InboxLetter.Bullet($"风险　交割后跑道 {runwayAfter:F1} 个月，已跌破 3 个月危机线 —— "
+                                             + "先安排融资，或改用不收费的协调池申请")
+                        : ""),
                 tag = "提案",
                 receivedYear = gs.year,
                 receivedQuarter = gs.quarter,
@@ -2226,6 +2244,36 @@ namespace AirlineCEO.Systems
             });
             message = $"已提交收件箱：请批准购入 {apt} {clk} 时刻槽，下季度扣款交割。";
             return true;
+        }
+
+        /// <summary>
+        /// 时刻槽提案的「现金影响」一行（K19）。
+        ///
+        /// 单独成函数是为了能被隔离回归直接断言 —— 文案写在提案正文里，若只靠手测，
+        /// 「跑道数字算错」这种错会一直躺在信里没人发现。参数与判据同源：
+        /// 现金 − 报价 除以 <see cref="GameState.EffectiveMonthlyBurn"/>，与交割期
+        /// <c>StrategyManager.AcquireSlotsAt</c> 的「现金不足即失败」严格对齐。
+        /// </summary>
+        /// <param name="canPay">交割季能否成交（现金 ≥ 报价）。</param>
+        /// <param name="runwayAfter">扣款后的现金跑道（月）；无净烧钱时为 <see cref="CashRunnelCalculator.InfiniteRunwayMonths"/>。</param>
+        public static string FormatSlotCashImpact(GameState gs, float cost, out bool canPay, out float runwayAfter)
+        {
+            canPay = false;
+            runwayAfter = 0f;
+            if (gs == null) return "";
+
+            float cashAfter = gs.cash - cost;
+            float burnNow = gs.EffectiveMonthlyBurn;
+            runwayAfter = CashRunnelCalculator.GetRunwayMonths(cashAfter, burnNow);
+            canPay = cashAfter >= 0f;
+
+            if (!canPay)
+                return $"现有 {gs.cash:F0} 万，**不足以支付**（差 {-cashAfter:F0} 万）"
+                       + "；交割季无法成交，请先融资或改走免费的协调池申请";
+            if (runwayAfter >= CashRunnelCalculator.InfiniteRunwayMonths - 0.1f)
+                return $"现有 {gs.cash:F0} 万；按当前无净烧钱，交割扣款后约剩 {cashAfter:F0} 万";
+            return $"现有 {gs.cash:F0} 万；按当前净烧钱 {burnNow:F0} 万/月，"
+                   + $"交割扣款后约剩 {cashAfter:F0} 万 ≈ **{runwayAfter:F1} 个月**跑道";
         }
 
         /// <summary>时刻槽提案/交割单上的具体时刻（★2026-10-15：一切文案都写时刻，不写「早/中/晚/夜」）。</summary>
@@ -3336,9 +3384,39 @@ namespace AirlineCEO.Systems
             }, InboxCadence.ProgressReady(gs.SimUtc));
         }
 
-        public static void NotifyHedgeSettle(GameState gs, string settleText)
+        public static void NotifyFxQuoteConverge(GameState gs, string fxText)
         {
-            if (gs == null || string.IsNullOrEmpty(settleText)) return;
+            if (gs == null || string.IsNullOrEmpty(fxText)) return;
+            string id = "m_fx_quote_" + gs.year + "q" + gs.quarter;
+            if (HasMailId(gs, id)) return;
+            string subject = "进度汇报：汇率按现实行情收敛";
+            var core = new System.Text.StringBuilder();
+            core.Append(fxText);
+            core.Append($"\n收敛后 USD/CNY {gs.usdCny:F4}。");
+            Schedule(gs, new InboxMail
+            {
+                id = id,
+                sender = CfoSender,
+                role = "行情通报",
+                glyph = "财",
+                kind = "report",
+                action = FinanceProgressAction,
+                subject = subject,
+                body = InboxLetter.Frame(gs, CfoSender, "行情通报", subject, core.ToString(),
+                    "本封为进度汇报，无需批复。",
+                    gs.SimUtc.Add(GameState.LocalUtcOffset).ToString("yyyy年MM月dd日"),
+                    needDecision: false),
+                status = "approved",
+                tag = "行情",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            }, InboxCadence.ProgressReady(gs.SimUtc));
+        }
+
+        public static void NotifyHedgeSettle(GameState gs, string settleText)
+        {            if (gs == null || string.IsNullOrEmpty(settleText)) return;
             string id = "m_hedge_set_" + gs.year + "q" + gs.quarter;
             if (HasMailId(gs, id)) return;
             string subject = "进度汇报：燃油对冲本季结算";
@@ -3611,7 +3689,7 @@ namespace AirlineCEO.Systems
                 deadlineQuarters = DefaultDeadlineQuarters
             };
             Schedule(gs, draft, InboxCadence.StudyReady(gs.SimUtc));
-            gs.AddDecisionLog($"开航：运营部开始召集研究 {origin}-{dest}，纪要约 {InboxCadence.StudyBusinessDays} 个工作日后呈报。");
+            gs.AddDecisionLog($"开航：已申请开通 {origin}-{dest}，运营部召集会商，纪要约 {InboxCadence.StudyBusinessDays} 个工作日后呈报。");
             return true;
         }
 
@@ -4014,6 +4092,10 @@ namespace AirlineCEO.Systems
                 role = "执行回执",
                 glyph = "运",
                 kind = "report",
+                // 回执也要记下是哪条线：CEO 读完回执往往直接想去看这条线现在的班期与槽，
+                // 底栏的「详见 · 此航线」靠 origin 认线（2026-10-19）。
+                origin = route.routeId,
+                dest = route.destination,
                 subject = CapacityDirectiveLogic.ReceiptSubject(route.origin, route.destination, verdict, nowWaves, mail.capTargetWaves),
                 body = CapacityDirectiveLogic.FormatReceiptBody(gs, route, mail.ringIdsCsv,
                            mail.capTargetWaves, mail.capBeforeWaves, mail.capGapSection, slotInFlight)
@@ -4806,6 +4888,165 @@ namespace AirlineCEO.Systems
             return null;
         }
 
+        /// <summary>
+        /// 这封邮件**讲的是哪一条航线**（routeId；空 = 不属于任何具体航线）。
+        ///
+        /// 2026-10-19：收件箱底部要给「涉及具体航线的邮件」都摆一个「详见 · 此航线」入口，
+        /// 但各发信方存 routeId 的位置并不统一 —— 运力呈报/排班咨询把 routeId 放在
+        /// <see cref="InboxMail.origin"/>，时刻槽单（申请/改时/备选）放在
+        /// <see cref="InboxMail.slotRouteId"/>，而 <c>buy_slot</c>/<c>apply_right</c> 的 origin
+        /// 是**机场三字码**。所以不能只看 origin 非空，必须确认它真的是现存航线的 routeId，
+        /// 否则按钮会把 CEO 送到一条根本不存在的航线上。
+        /// </summary>
+        public static string RouteIdOf(InboxMail m)
+        {
+            var gs = GameState.Instance;
+            return gs == null ? "" : RouteIdOf(gs, m);
+        }
+
+        /// <summary>同上，显式传入存档（发信路径里手里已有 <c>gs</c>，不必再取单例）。</summary>
+        public static string RouteIdOf(GameState gs, InboxMail m)
+        {
+            if (m == null || gs == null) return "";
+            if (!string.IsNullOrEmpty(m.slotRouteId) && RouteById(gs, m.slotRouteId) != null)
+                return m.slotRouteId;
+            if (!string.IsNullOrEmpty(m.origin) && RouteById(gs, m.origin) != null)
+                return m.origin;
+            // 兜底：字段没写全的单子（早期回执、第三方派生件）按**正文/标题里的航线写法**认。
+            // 这是「以某条航线为主题」最直接的证据，也是 CEO 自己判断的依据。
+            return RouteIdInText(gs, m);
+        }
+
+        /// <summary>
+        /// 从标题与正文里认出是哪条航线：只认「现存航线自己的写法」（`PEK—PVG` / `PEK-PVG`），
+        /// 不做正则泛匹配 —— 否则正文里随手提到的任意两个三字码都会被当成主题航线。
+        /// 先看标题：标题写的是本函主旨，正文里可能顺带提到别的线做对比。
+        /// </summary>
+        static string RouteIdInText(GameState gs, InboxMail m)
+        {
+            if (gs?.activeRoutes == null) return "";
+            string byText = Scan(m.subject);
+            if (!string.IsNullOrEmpty(byText)) return byText;
+            return Scan(m.body);
+
+            string Scan(string text)
+            {
+                if (string.IsNullOrEmpty(text)) return "";
+                for (int i = 0; i < gs.activeRoutes.Count; i++)
+                {
+                    var r = gs.activeRoutes[i];
+                    if (r == null || string.IsNullOrEmpty(r.routeId)) continue;
+                    if (string.IsNullOrEmpty(r.origin) || string.IsNullOrEmpty(r.destination)) continue;
+                    // 破折号（正文最常用）、连字符，以及仓库里另外两种「航线对」写法：
+                    // 箭头 → （单向）与 ⇄ （往返）。漏掉后两种会整类邮件认不出线。
+                    for (int k = 0; k < RoutePairSeps.Length; k++)
+                    {
+                        if (text.Contains(r.origin + RoutePairSeps[k] + r.destination))
+                            return r.routeId;
+                    }
+                }
+                return "";
+            }
+        }
+
+        /// <summary>—— / – / - / → / ⇄：代码里出现过的全部「航线对」连接符。</summary>
+        static readonly string[] RoutePairSeps = { "—", "–", "-", "→", "⇄" };
+
+        /// <summary>
+        /// 旧档回填：给「执行回执」补上它讲的那条航线（<see cref="InboxMail.origin"/>）。
+        ///
+        /// 2026-10-19：回执由 <c>fx_&lt;源件 id&gt;_&lt;年&gt;&lt;季&gt;</c> 生成，早期版本没把航线抄进来，
+        /// 于是读档后底栏认不出线、只能给「航线总览 / 董事会」那对兜底按钮。
+        /// 源件 id 就在回执 id 里，故按**最长前缀**反查源件，抄它的 routeId / slotRouteId。
+        ///
+        /// 幂等：已有 origin 的回执直接跳过；只在能确认源件、且源件属于本线时写入。
+        /// </summary>
+        public static void BackfillReceiptRouteRefs(GameState gs)
+        {
+            if (gs?.inbox == null || gs.inbox.Count == 0) return;
+            // 源件 id 索引：同一 id 只可能有一封（发信方用确定性 id 去重）。
+            var byId = new Dictionary<string, InboxMail>(StringComparer.Ordinal);
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || string.IsNullOrEmpty(m.id)) continue;
+                byId[m.id] = m;
+            }
+
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var r = gs.inbox[i];
+                if (r == null || (r.role == null || !r.role.Contains("执行回执"))) continue;
+                if (!string.IsNullOrEmpty(r.origin)) continue;
+                if (string.IsNullOrEmpty(r.id)) continue;
+
+                // 回执 id 的前缀随发信方而变：运力调令回执是 `fx_cap_<源件 id>`，
+                // 其余是 `fx_<源件 id>`（再加年份季度）。只剥 `fx_` 会把运力回执剥成
+                // `cap_m_cap_…`，永远匹配不上源件 —— 这正是旧档回执认不出线的原因。
+                string rest = null;
+                if (r.id.StartsWith("fx_cap_", StringComparison.Ordinal)) rest = r.id.Substring(7);
+                else if (r.id.StartsWith("fx_", StringComparison.Ordinal)) rest = r.id.Substring(3);
+                if (string.IsNullOrEmpty(rest)) continue;
+
+                InboxMail src = null;
+                int best = -1;
+                foreach (var kv in byId)
+                {
+                    var cand = kv.Value;
+                    if (cand == r) continue;
+                    if (cand.role != null && cand.role.Contains("执行回执")) continue;
+                    if (cand.id == null || cand.id.Length <= best) continue;
+                    // 回执 id 以「源件 id + _」开头才算同一源件
+                    if (rest.Length > cand.id.Length
+                        && rest[cand.id.Length] == '_'
+                        && rest.StartsWith(cand.id, StringComparison.Ordinal))
+                    {
+                        best = cand.id.Length;
+                        src = cand;
+                    }
+                }
+                if (src == null) continue;
+
+                string routeId = RouteIdOf(gs, src);
+                if (string.IsNullOrEmpty(routeId)) continue;
+                r.origin = routeId;
+            }
+        }
+
+        /// <summary>
+        /// 这封邮件是否属于「运力 / 时刻槽」这条业务线（呈报、调令回执、槽单、加班提案）。
+        ///
+        /// 2026-10-19：这类邮件的底栏一律不挂「详见 · 董事会」—— 董事会页讲的是战略与治理，
+        /// 回答不了「这条线现在几班、槽卡在哪一步」。而且回执类邮件有时连航线都认不出
+        /// （航线已撤、或旧档没存 origin），此时也不能靠 <see cref="RouteIdOf"/> 来判断要不要摘按钮。
+        /// </summary>
+        public static bool IsCapacityOrSlotMail(InboxMail m)
+        {
+            if (m == null) return false;
+            switch (m.action)
+            {
+                case CapacityDirectiveAction:
+                case ApplySlotAction:
+                case ChangeSlotAction:
+                case SlotSelectAction:
+                case AssignFlightAction:
+                case AssignAircraftAction:
+                case "buy_slot":
+                case "apply_right":
+                case "ops_schedule":
+                case SeasonReviewAction:
+                    return true;
+            }
+            // 旧档 / 派生件的 role 未必是干净的「执行回执」（可能带后缀，如「执行回执 · 总监 …」），
+            // 故用包含匹配而不是相等；再按发信部门兜一层。运营部的回执讲调令落地，
+            // 战略发展部的讲时刻槽交割 —— 两者都不该把人送去董事会页。
+            if (!string.IsNullOrEmpty(m.role) && m.role.Contains("执行回执"))
+            {
+                if (m.sender == "运营部" || m.sender == "战略发展部") return true;
+            }
+            return false;
+        }
+
         /// <summary>本线是否已有时刻槽单在等交割（申请 / 改时；避免交割后重排对同一缺口再开一张）。</summary>
         static bool HasPendingApplyForRoute(GameState gs, string routeId)
         {
@@ -4912,6 +5153,8 @@ namespace AirlineCEO.Systems
                 role = "执行回执",
                 glyph = "运",
                 kind = "report",
+                origin = route.routeId,
+                dest = route.destination,
                 subject = $"{route.origin}—{route.destination} 加机已落班",
                 body = message + (n > 0 ? $"\n\n该线现有 {route.flights.Count} 班。" : ""),
                 status = "approved",
@@ -5150,7 +5393,7 @@ namespace AirlineCEO.Systems
                 tag = "答复",
                 status = "approved",
                 // origin/dest 与同部门的呈报件同一口径（origin=routeId、dest=机场三字码）：
-                // 信笺抬头、以及「详见 · 本航线」都靠它们认出是哪条线。
+                // 信笺抬头、以及「详见 · 此航线」都靠它们认出是哪条线。
                 origin = route.routeId,
                 dest = route.destination,
                 directiveNote = raw ?? "",
@@ -5170,6 +5413,79 @@ namespace AirlineCEO.Systems
         /// <summary>答复件 ID：同一航线 + 同一句问话用同一封（重复提问只刷新，不叠函）。</summary>
         static string QueryMailId(string routeId, string raw)
             => $"m_ops_query_{routeId ?? "x"}_{StableSuffix(CapacityDirectiveLogic.NormalizeRaw(raw))}";
+
+        /// <summary>
+        /// CEO 命令台：把某个部门的答复/汇报投进收件箱。
+        ///
+        /// 与 <see cref="QueueOpsQueryAnswer"/> 刻意保持同一套形状：
+        /// · **汇报件**（action 留空、status=approved）：一句提问不该占收件箱的待办，也不该挡住季度推进；
+        /// · **立刻投递**（不走办公节奏延迟）：CEO 正盯着底栏等结论；
+        /// · **按「部门 + 原话」去重**：同一句话在两面页上问两遍，只刷新同一封，不刷屏。
+        /// </summary>
+        public static bool QueueDeptAnswer(GameState gs, DeptReportLogic.DeptAnswer ans, string raw, out string message)
+            => QueueDeptAnswer(gs, ans, raw, null, out message);
+
+        /// <summary>
+        /// <paramref name="idSalt"/> 用来给同一句原话的**后续公函**另开一封：
+        /// 关线先出确认卡（不投递），确认后才有处置函 —— 若沿用同一个 id，
+        /// 它会把 CEO 提问那封覆盖掉，收件箱里只剩结论、没有来龙去脉。
+        /// </summary>
+        public static bool QueueDeptAnswer(GameState gs, DeptReportLogic.DeptAnswer ans, string raw,
+            string idSalt, out string message)
+        {
+            message = "";
+            if (gs == null || !ans.ok)
+            {
+                message = string.IsNullOrEmpty(ans.note) ? "没有可投递的答复。" : ans.note;
+                return false;
+            }
+
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            string id = $"m_ceo_ask_{ans.deptCode}_{StableSuffix(CapacityDirectiveLogic.NormalizeRaw(raw) + (idSalt ?? ""))}";
+            var existing = FindMail(gs, id);
+            if (existing != null)
+            {
+                existing.sender = ans.sender;
+                existing.role = ans.role;
+                existing.glyph = ans.glyph;
+                existing.subject = ans.subject;
+                existing.body = ans.body;
+                existing.directiveNote = raw ?? "";
+                existing.status = "approved";
+                existing.read = false;
+                existing.time = gs.DateLabel;
+                existing.receivedYear = gs.year;
+                existing.receivedQuarter = gs.quarter;
+                Changed?.Invoke();
+                message = $"已按最新台账更新答复（收件箱《{ans.subject}》）。";
+                gs.NotifyChanged();
+                return true;
+            }
+
+            Add(gs, new InboxMail
+            {
+                id = id,
+                sender = ans.sender,
+                role = ans.role,
+                glyph = ans.glyph,
+                kind = "report",
+                subject = ans.subject,
+                body = ans.body,
+                tag = "答复",
+                status = "approved",     // 汇报件：无需批复
+                directiveNote = raw ?? "",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            });
+
+            message = $"已由{ans.sender}答复（收件箱《{ans.subject}》）。";
+            gs.AddDecisionLog($"{ans.sender}：答复 CEO 的提问「{raw}」。");
+            gs.NotifyChanged();
+            return true;
+        }
+
 
         /// <summary>FNV-1a 摘要（不用 string.GetHashCode：跨会话不稳定，存档里的 ID 会变）。</summary>
         static string StableSuffix(string s)
@@ -5229,6 +5545,8 @@ namespace AirlineCEO.Systems
                 role = "执行回执",
                 glyph = "运",
                 kind = "report",
+                origin = route.routeId,
+                dest = route.destination,
                 subject = $"{route.origin}—{route.destination} 执飞机号已生效",
                 body = message + $"\n\n本线 {route.origin}—{route.destination} 自即日起由该机号执行；"
                                 + "如需调整班次（加密/减班），请在本航线页下运力调令。",

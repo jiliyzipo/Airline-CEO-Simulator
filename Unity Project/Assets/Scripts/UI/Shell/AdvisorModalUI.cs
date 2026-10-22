@@ -27,7 +27,11 @@ namespace AirlineCEO.UI.Shell
         const float PanelHeight = 815f;
         const float IconSize = 52f;
         const float DefaultIconRight = 10f;
-        const float DefaultIconBottom = 86f; // 落在状态栏高度带，不挡页面底栏按钮
+        // 停在「a 读数 + c 命令台」那条的正上方：84（底栏上缘）+ 42（那条高）+ 8 间隙。
+        // 落在这条之上而不是压在条里 —— 否则图标正好盖住命令台右端，点不到输入框。
+        const float DefaultIconBottom = 84f + BottomDockView.BarHeight + 8f;
+        /// <summary>停靠下缘不得低于这条带：老存档里存过 86 的用户，读档时也要被抬上来。</summary>
+        const float MinIconBottom = 84f + BottomDockView.BarHeight + 4f;
         const float DockMargin = 8f;
         const float DragClickSlop = 10f;
         const string PrefRight = "ACEO_AdvisorIconRight";
@@ -272,7 +276,8 @@ namespace AirlineCEO.UI.Shell
             float w = HostWidth();
             float h = HostHeight();
             _iconPadRight = Mathf.Clamp(_iconPadRight, DockMargin, Mathf.Max(DockMargin, w - DockMargin - IconSize));
-            _iconPadBottom = Mathf.Clamp(_iconPadBottom, DockMargin, Mathf.Max(DockMargin, h - DockMargin - IconSize));
+            // 下缘不低于 a+c 那条 —— 老存档存过 86（旧状态栏高度），读进来会正好压在命令台上
+            _iconPadBottom = Mathf.Clamp(_iconPadBottom, MinIconBottom, Mathf.Max(MinIconBottom, h - DockMargin - IconSize));
         }
 
         internal bool CanDockDrag() => _dockVisible && !_open && _revealK < 0.08f;
@@ -505,6 +510,9 @@ namespace AirlineCEO.UI.Shell
             yield return new WaitForSecondsRealtime(seconds);
             var gs = GameState.Instance;
             if (gs == null || gs.takeoverBriefingShown) yield break;
+            // 延时期间玩家可能已经「退出到开始界面」并被回滚成出厂状态：
+            // 这时 takeoverMode 已经为 false，再弹就会在开始界面上盖一层局内引导。
+            if (!AirlineCEO.UI.Setup.SetupFlowController.InGameplaySession) yield break;
             if (!IsOpen) Show();
         }
 
@@ -513,6 +521,7 @@ namespace AirlineCEO.UI.Shell
             yield return new WaitForSecondsRealtime(seconds);
             var gs = GameState.Instance;
             if (gs == null || gs.advisorTutorialCompleted || gs.advisorTutorialDeferred) yield break;
+            if (!AirlineCEO.UI.Setup.SetupFlowController.InGameplaySession) yield break;
             if (!IsOpen) Show();
         }
 
@@ -1067,7 +1076,8 @@ namespace AirlineCEO.UI.Shell
                 {
                     SetStep(AdvisorTutorialStep.Done);
                     Hide();
-                    Object.FindFirstObjectByType<PrefabNavIntegration>()?.SelectTab("n14_市场销售部");
+                    // n14 的「RPM 评估」页签已移除（与 n35 重复），统一打开 n35 评估台。
+                    StrategyPanelUI.OpenStrategyPage("n35_新航线_RPM_评估台");
                 },
                 "先熟悉一下界面", () => { SetStep(AdvisorTutorialStep.Done); Hide(); },
                 null, null);

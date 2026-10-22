@@ -16,10 +16,13 @@ namespace AirlineCEO.Logic
         {
             public readonly string pageId;
             public readonly string routeKey; // 如 PEK-SHA，可空
-            public Hit(string pageId, string routeKey = null)
+            /// <summary>班次下标（0 起；仅航班号链接给值，其余为 -1 = 未指定）。</summary>
+            public readonly int flightIndex;
+            public Hit(string pageId, string routeKey = null, int flightIndex = -1)
             {
                 this.pageId = pageId;
                 this.routeKey = routeKey;
+                this.flightIndex = flightIndex;
             }
         }
 
@@ -191,14 +194,24 @@ namespace AirlineCEO.Logic
                 return true;
             }
 
-            // 航班号（如 NS148）：落到该航班所属航线的「航班详细计划」。
+            // 航班号（如 NS148）：落到该航班所属航线的「航班飞行计划」。
             // 一个航班号唯一对应一条航线（号段按航线整块预留，见 FlightScheduleFormat.BlockStride），
             // 故链接 id 里直接带 routeId，落地页据 OpsSubpageContext.SelectedRouteId 选中该线。
+            // ★2026-10-19：n43 改成**单班页**后，光带 routeId 会把 CEO 送到这条线的第 1 班，
+            // 而不是他点的那一班 —— 故 id 末尾用 `#<班次下标>` 带上波次，落地页据此定位。
             if (linkId.StartsWith("flight:", StringComparison.Ordinal))
             {
-                string routeId = linkId.Substring(7);
+                string rest = linkId.Substring(7);
+                string routeId = rest;
+                int index = -1;
+                int hash = rest.LastIndexOf('#');
+                if (hash >= 0)
+                {
+                    routeId = rest.Substring(0, hash);
+                    if (!int.TryParse(rest.Substring(hash + 1), out index)) index = -1;
+                }
                 if (string.IsNullOrEmpty(routeId)) return false;
-                hit = new Hit("n43_航班详细计划", routeId);
+                hit = new Hit("n43_航班详细计划", routeId, index);
                 return true;
             }
 
@@ -258,7 +271,9 @@ namespace AirlineCEO.Logic
                 for (int i = 0; i < FlightScheduleFormat.BlockStride; i++)
                 {
                     string no = prefix + (num + i);
-                    if (seen.Add(no)) terms.Add((no, "flight:" + route.routeId));
+                    // 号块按「4 波 × 去/回」预留：偏移 i 的去程号属于第 i/2 个班次。
+                    // 带上这个下标，点击才落到**那一班**的飞行计划，而不是这条线的第 1 班。
+                    if (seen.Add(no)) terms.Add((no, "flight:" + route.routeId + "#" + (i / 2)));
                 }
             }
             if (terms.Count == 0) return s;
@@ -441,7 +456,11 @@ namespace AirlineCEO.Logic
                             start = idx - 1 - name.Length;
                     }
                     int end = idx + code.Length;
-                    string shown = AirportCatalog.Label(code);
+                    // 名字已经在正文里（可能已被上一步包成链接）时，只显示三字码，
+                    // 否则 `Label` 会把「北京首都 PEK」再拼一次 → 「北京首都 北京首都 PEK」。
+                    // 2026-10-20 报障：同一封函里两端机场名都印了两遍，就是这一行造成的。
+                    bool nameAlreadyShown = start < idx || VisibleTailEndsWith(s, idx, name);
+                    string shown = nameAlreadyShown ? code : AirportCatalog.Label(code);
                     string wrap = Markup(id, shown);
                     s = s.Substring(0, start) + wrap + s.Substring(end);
                     at = start + wrap.Length;
@@ -473,6 +492,28 @@ namespace AirlineCEO.Logic
                 }
             }
             return s;
+        }
+
+        /// <summary>
+        /// `idx` 之前的**可见文本**（跳过富文本标签）是否以 `name` 结尾。
+        /// 用来判断「机场中文名是否已经在正文里出现过」—— 出现过就只显示三字码，
+        /// 免得把 `Label()` 再拼一遍（同一封信里机场名印两遍）。
+        /// </summary>
+        static bool VisibleTailEndsWith(string s, int idx, string name)
+        {
+            if (string.IsNullOrEmpty(name) || idx < name.Length) return false;
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < idx; i++)
+            {
+                if (s[i] == '<')
+                {
+                    int gt = s.IndexOf('>', i);
+                    if (gt > i) { i = gt; continue; }
+                }
+                sb.Append(s[i]);
+            }
+            string tail = sb.ToString().TrimEnd(' ', '·', '\u3000');
+            return tail.EndsWith(name, StringComparison.Ordinal);
         }
 
         static bool InsideMarkup(string s, int idx)

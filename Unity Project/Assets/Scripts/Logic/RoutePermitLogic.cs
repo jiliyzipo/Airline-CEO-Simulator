@@ -33,7 +33,15 @@ namespace AirlineCEO.Logic
             _ => "未受理"
         };
 
-        /// <summary>是否国际/地区航线：任一端点在境外，或为港澳台。</summary>
+        /// <summary>
+        /// 是否国际/地区航线：任一端点在境外，或为港澳台。
+        ///
+        /// 判定顺序：**国家底表优先，经纬度包围盒兜底**。
+        /// 只用包围盒会错得离谱：`OutOfChina` 的矩形是 lon 72–137.8 / lat 0.83–55.83，
+        /// 把新加坡（lat 1.36）、吉隆坡、曼谷、东京、首尔全圈进了「中国境内」——
+        /// 于是 PEK—SIN 被判成国内航线，航权与国际运行资质两道闸直接从可行性报告里消失，
+        /// 报告只剩「时刻槽不足」这一条（2026-10-20 实测）。
+        /// </summary>
         public static bool IsInternational(string origin, string dest)
         {
             return Outside(origin) || Outside(dest) || IsRegion(origin) || IsRegion(dest);
@@ -51,6 +59,13 @@ namespace AirlineCEO.Logic
         static bool Outside(string code)
         {
             if (string.IsNullOrEmpty(code)) return false;
+
+            // ① 国家底表（权威）：CityEconomyCatalog 里写的是「中国 / 中国香港 / 韩国 / 新加坡…」
+            var eco = AirlineCEO.Data.CityEconomyCatalog.Find(code);
+            if (eco != null && !string.IsNullOrEmpty(eco.countryZh))
+                return !string.Equals(eco.countryZh.Trim(), "中国", System.StringComparison.Ordinal);
+
+            // ② 底表没收录才退回坐标矩形（0.1° 级，只够粗判）
             if (AirlineCEO.UI.MapWidget.TryLonLat(code, out float lon, out float lat))
                 return AirlineCEO.UI.CoordConverter.OutOfChina(lon, lat);
             return false;

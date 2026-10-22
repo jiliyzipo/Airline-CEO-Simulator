@@ -37,13 +37,92 @@ namespace AirlineCEO.Systems
             p.fleetCount = p.aircraft.Count;
             p.routeCount = p.routes.Count;
             p.avgFleetAge = AvgAge(p.aircraft);
-            p.monthlyRevenue = SumRouteMonth(p.routes) + SumTransitionMonth(p.transitionBusinesses);
-            p.monthlyCost = Mathf.Max(p.cash * 0.08f, p.fleetCount * 4.5f + p.routeCount * 2f);
-            p.cashRunwayMonths = p.monthlyCost > 0.01f
-                ? p.cash / Mathf.Max(1f, p.monthlyCost - Mathf.Max(0f, p.monthlyRevenue) * 0.35f)
-                : 12f;
-            p.crewVacancyPercent = p.difficulty <= 2 ? 5 : p.difficulty <= 3 ? 15 : p.difficulty <= 4 ? 18 : 22;
+
+            // —— 接管档案的经营口径 ——
+            // 必须与 Apply 之后的真实账同一条式子。Apply 把 monthlyCost 写进 gs.monthlyBurnRate
+            // （总部/地面固定开销），机队维护、租赁、存量人力由各自系统另算，航线收入按
+            // GameState.monthlyRevenue 的口径 × 机组战力乘数入账。
+            // 旧写法 `max(现金×8%, 机队×4.5 + 航线×2) − 35%×收入` 是一套孤儿公式：
+            // 既不等于接管前的账，也不等于接管后的账，才会出现「预览跑道 1200 月、接手就吃紧」。
+            float maint = 0f, lease = 0f;
+            if (p.aircraft != null)
+            {
+                for (int i = 0; i < p.aircraft.Count; i++)
+                {
+                    var a = p.aircraft[i];
+                    if (a == null) continue;
+                    maint += FleetEconomics.MonthlyMaintenance(a);
+                    lease += Mathf.Max(0f, a.monthlyLeaseWan);
+                }
+            }
+            float labor = HrEconomics.EffectiveAnnualLaborCostWan(p.fleetCount, 0f, 0f) / 12f;
+            p.monthlyFixedCost = maint + lease + labor;
+            p.monthlyCost = HqOverhead(p.fleetCount);
+            // 机组乘数必须取「接管后真实会生效的那个值」，而不是未建机组的保底 0.85。
+            // 旧写法打满 0.85，前提是「接手时一架机组都没有」——但 Apply 会调
+            // PersonnelGenerator.SeedInheritedCrew 按缺员率补出在册飞行员，
+            // 于是接手当天乘数就从 0.85 跳到 0.9669~0.9937，预览收入被系统性低估：
+            // ★5 每季低估约 457 万（152.4 万/月 × 3），显示跑道 3.1 月、实际 3.3 月。
+            // 2026-10-21 K10 第 13 项（整季对账）正是靠这一条才发现偏差方向完全一致。
+            p.crewVacancyPercent = CrewVacancy(p.difficulty);
+            p.monthlyRevenue = SumRouteMonth(p.routes) * InheritedCrewMultiplier(p.crewVacancyPercent)
+                             + SumTransitionMonth(p.transitionBusinesses);
+            // 还本付息必须进跑道：它是**合同强制**的现金流，按季扣 3 个月。
+            // 旧口径漏掉它，于是选司界面读「8 个月」、实际 6.9 个月——★5 更会从 3.1 掉到 2.6，
+            // 正好压在「跑道 < 3 月触发危机」这条线下却毫无预警（2026-10-21 跨季度复验发现）。
+            p.monthlyDebtService = SumDebtServiceMonth(p.openingLoans);
+            // 全险保费同样必须进跑道：按季一次性扣（★2~★5 约 48/207/549/883 万），
+            // 折成月均就是 16/69/183/294 万。它不进 monthlyFixedCost，因为逐日计提并不含它，
+            // 季末才一次扣——和还本付息是同一类「强制但不逐日」的现金流。
+            p.monthlyInsurance = SumInsuranceMonth(p.aircraft);
+            p.monthlyNetBurn = p.monthlyCost + p.monthlyFixedCost + p.monthlyDebtService
+                             + p.monthlyInsurance - p.monthlyRevenue;
+            p.cashRunwayUnbounded = p.monthlyNetBurn <= 0.01f;
+            p.cashRunwayMonths = p.cashRunwayUnbounded
+                ? 0f
+                : p.cash / p.monthlyNetBurn;
             _ = previewOnly;
+        }
+
+        /// <summary>接管缺员率（%）：与 <c>SeadInheritedCrew</c> 的入参同源，预览与落盘共用。</summary>
+        static int CrewVacancy(int difficulty)
+            => difficulty <= 2 ? 5 : difficulty <= 3 ? 15 : difficulty <= 4 ? 18 : 22;
+
+        /// <summary>
+        /// 接管后**真实生效**的机组战力乘数。预览必须用它，不能用未建机组的保底值。
+        ///
+        /// <c>SeedInheritedCrew</c> 生成的是「专员」档、来源为继承在册的飞行员，
+        /// 其战力恰好落在 <see cref="HrEconomics.CrewAdequacyBaseline"/> 上，故质量乘数为 1；
+        /// 编制覆盖率为 (1 − 缺员率)，代入三参公式后：
+        /// <c>0.85 + (1 − 0.85) × coverage = 1 − 0.15 × 缺员率</c>。
+        /// 与 K10 实测乘数对照（★2 0.9937 / ★3 0.9779 / ★4 0.9730 / ★5 0.9669）误差 &lt; 0.13%。
+        /// </summary>
+        static float InheritedCrewMultiplier(int vacancyPercent)
+        {
+            float coverage = Mathf.Clamp01(1f - vacancyPercent / 100f);
+            return HrEconomics.CrewUnstaffedMultiplier
+                 + (1f - HrEconomics.CrewUnstaffedMultiplier) * coverage;
+        }
+
+        /// <summary>
+        /// 总部与地面固定开销（万美元/月）。接管时整值写进 <c>gs.monthlyBurnRate</c>，
+        /// 故它就是「机队之外那层不动也会烧的钱」。按机队规模轻度放大（每架 2 万/月）：
+        /// 50 架航司的总部/运行控制/地面站不可能和 3 架航司一个价，但也不该线性翻 16 倍。
+        /// </summary>
+        public static float HqOverhead(int fleetCount) => 80f + Mathf.Max(0, fleetCount) * 2f;
+
+        /// <summary>
+        /// 各档「接管开局跑道」目标（月）——难度就是寿命：★2 有近三个季度翻身的余地，
+        /// ★5 只剩一个季度，正好压在游戏自带的「跑道 &lt; 3 月触发危机」线上。
+        /// 种子里的现金按本表反推（实测净烧钱 × 目标月数），不是拍脑袋的数；
+        /// <c>--routeinventory</c> 会断言每档实际平均跑道落在 ±20% 带内且逐档递减。
+        /// </summary>
+        public static float TargetRunwayMonths(int difficulty)
+        {
+            if (difficulty <= 2) return 8f;
+            if (difficulty == 3) return 6f;
+            if (difficulty == 4) return 4f;
+            return 3f;
         }
 
         // —— 过渡业务占机数量（干租 / 湿租 / 包机 / 培训）——
@@ -514,7 +593,7 @@ namespace AirlineCEO.Systems
             if (p.difficulty >= 3)
                 Add("iss_union", "工会合同即将到期", "准备谈判策略，避免停工风险。", "HR", 2, "n13_运营部");
 
-            if (p.cashRunwayMonths < 6f)
+            if (!p.cashRunwayUnbounded && p.cashRunwayMonths < 6f)
                 Add("iss_cash", $"现金跑道约 {p.cashRunwayMonths:F1} 个月", "削减成本或等待财务总监融资请示。", "Finance", 3, "n15_财务部");
 
             if (p.difficulty >= 3)
@@ -576,18 +655,57 @@ namespace AirlineCEO.Systems
             float s = 0f;
             if (routes == null) return s;
             for (int i = 0; i < routes.Count; i++)
-                if (routes[i] != null) s += routes[i].dailyProfit * 30f;
+                if (routes[i] != null)
+                    s += routes[i].dailyProfit
+                         * LiveClockLogic.OperatingDaysPerMonth(routes[i].daysOfWeek, routes[i].weeklyFlights);
             return s;
         }
 
+        /// <summary>
+        /// 过渡业务月收入（万美元/月）。与 <c>TransitionBusinessLogic.MonthlyIncome</c> 同口径：
+        /// 按**剩余档期**封顶，不把 5 天包机外推成永续月入。接管时合同已执行过若干天
+        /// （<c>daysUsed</c> 为随机初值），故「剩余」必须从落盘状态算起。
+        /// </summary>
         static float SumTransitionMonth(List<TransitionContract> list)
         {
             float s = 0f;
             if (list == null) return s;
             for (int i = 0; i < list.Count; i++)
-                if (list[i] != null) s += list[i].rateWanPerDay * 30f;
+            {
+                var c = list[i];
+                if (c == null) continue;
+                int days = Mathf.Min(30, Mathf.Max(0, c.totalDays - c.daysUsed));
+                if (days <= 0) continue;
+                s += Mathf.Max(0f, c.EffectiveDailyCash) * days;
+            }
             return s;
         }
+
+        /// <summary>
+        /// 月均全险保费（万美元/月）= 季度保费 / 3。用接管落盘后的同一套计价
+        /// （<see cref="FleetEconomics.ResidualValue"/> 残值 + 默认 B 级安全 + 全险），
+        /// 保证与 <c>FinanceManager.ChargeQuarterlyInsurance</c> 算出来的季度扣款一致。
+        /// </summary>
+        static float SumInsuranceMonth(List<Aircraft> fleet)
+        {
+            if (fleet == null) return 0f;
+            float value = 0f;
+            for (int i = 0; i < fleet.Count; i++)
+            {
+                var a = fleet[i];
+                if (a == null || !a.isActive) continue;
+                value += FleetEconomics.ResidualValue(a.purchasePrice, a.age);
+            }
+            return InsuranceEconomics.QuarterlyPremiumWan(value, SafetyRating.B, InsuranceCoverage.Full) / 3f;
+        }
+
+        /// <summary>
+        /// 存量贷款的月均还本付息（万美元/月）。口径与 <c>LoanManager.ProcessQuarterRepayments</c>
+        /// 完全一致；实现直接复用 <see cref="LoanEconomics.MonthlyDebtService"/>，
+        /// 保证「选司预览」与「局内财务面板」算的是同一笔钱（K11）。
+        /// </summary>
+        static float SumDebtServiceMonth(List<Loan> loans)
+            => LoanEconomics.MonthlyDebtService(loans);
 
         static int Hash(string id)
         {
@@ -688,6 +806,19 @@ namespace AirlineCEO.Systems
             var sb = new StringBuilder();
             for (int i = 0; i < n; i++) sb.Append('★');
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 现金跑道的唯一展示口径。净烧钱 ≤ 0 时说「无净烧钱」，不印一个假月份数 ——
+        /// 旧实现把分母夹成 1 后，★3/★4 的跑道恰好等于现金原值（1200.0 / 2000.0 月），
+        /// 玩家在选司界面据此比难度，实际比的是谁现金多。
+        /// </summary>
+        public static string RunwayText(AirlineProfile p)
+        {
+            if (p == null) return "—";
+            if (p.cashRunwayUnbounded) return "无净烧钱";
+            if (p.cashRunwayMonths >= 120f) return "120 月以上";
+            return $"{p.cashRunwayMonths:F1} 月";
         }
     }
 }

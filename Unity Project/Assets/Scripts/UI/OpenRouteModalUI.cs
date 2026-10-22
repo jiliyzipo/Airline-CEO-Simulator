@@ -29,11 +29,15 @@ namespace AirlineCEO.UI
         TextMeshProUGUI _hint;
         TextMeshProUGUI _title;
         TextMeshProUGUI _resultBody;
+        GameObject _rpmButton;
         bool _embedded;
         Transform _card;
 
         /// <summary>无 GameState（编辑器预览 / 未开局）时的基地兜底，保持改动前的旧行为。</summary>
         public const string FallbackBase = "PEK";
+
+        /// <summary>表单提交按钮文案。Build 与 Show 原先各存一份字面量，改一处必漏另一处。</summary>
+        public const string ConfirmLabel = "申请开通";
 
         /// <summary>总部基地原始值（可能为 null / 空 / 含空白）。</summary>
         static string PlayerHubRaw()
@@ -133,13 +137,13 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.05f, 0.9f), new Vector2(0.7f, 0.97f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary, FontStyles.Bold);
 
-            _base = AirportField.Build(_card, "基地名称",
+            _base = AirportField.Build(_card, "出发地",
                 new UIFactory.Anchor(new Vector2(0.05f, 0.7f), new Vector2(0.95f, 0.88f), Vector2.zero, Vector2.zero),
                 allowEmpty: false, defaultCode: null, CloseOtherPickers);
-            _dest = AirportField.Build(_card, "目的地名称",
+            _dest = AirportField.Build(_card, "目的地",
                 new UIFactory.Anchor(new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.68f), Vector2.zero, Vector2.zero),
                 allowEmpty: false, defaultCode: null, CloseOtherPickers);
-            _via = AirportField.Build(_card, "经停地名称",
+            _via = AirportField.Build(_card, "经停地",
                 new UIFactory.Anchor(new Vector2(0.05f, 0.3f), new Vector2(0.95f, 0.48f), Vector2.zero, Vector2.zero),
                 allowEmpty: true, defaultCode: null, CloseOtherPickers);
 
@@ -149,9 +153,15 @@ namespace AirlineCEO.UI
                 UITheme.TextMuted);
             _hint.textWrappingMode = TextWrappingModes.Normal;
 
-            UIFactory.Button(_card, "Confirm", "由运营部召集研究",
+            UIFactory.Button(_card, "Confirm", ConfirmLabel,
                 new UIFactory.Anchor(new Vector2(0.52f, 0.04f), new Vector2(0.88f, 0.12f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, OnConfirm, 15);
+
+            // 与「申请开通」并排：先按当前填好的出发地 / 目的地做一次 RPM 评估，
+            // 再决定要不要真的提研究。这正是原先表单左下角的空位（截图中标红的空白块）。
+            _rpmButton = UIFactory.Button(_card, "RpmEval", "RPM 评估",
+                new UIFactory.Anchor(new Vector2(0.12f, 0.04f), new Vector2(0.48f, 0.12f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep, OnOpenRpmEvaluation, 15).gameObject;
 
             _resultBody = UIFactory.ScrollableLabel(_card, "ResultBody",
                 new UIFactory.Anchor(new Vector2(0.05f, 0.18f), new Vector2(0.95f, 0.88f), Vector2.zero, Vector2.zero),
@@ -198,7 +208,7 @@ namespace AirlineCEO.UI
                 _hint.text = HintText();
             }
             var confirmLbl = _card != null ? _card.Find("Confirm")?.GetComponentInChildren<TextMeshProUGUI>() : null;
-            if (confirmLbl != null) confirmLbl.text = "由运营部召集研究";
+            if (confirmLbl != null) confirmLbl.text = ConfirmLabel;
             WireFooter(form: true);
         }
 
@@ -222,7 +232,7 @@ namespace AirlineCEO.UI
             CloseOtherPickers(null);
             if (!_base.TryGetAirport(out var o))
             {
-                Flash("请填写有效的基地机场（可输入代码/中文/英文，或从列表选择）。");
+                Flash("请填写有效的出发地机场（可输入代码/中文/英文，或从列表选择）。");
                 return;
             }
             if (!_dest.TryGetAirport(out var d))
@@ -232,7 +242,7 @@ namespace AirlineCEO.UI
             }
             if (string.Equals(o.code, d.code, StringComparison.OrdinalIgnoreCase))
             {
-                Flash("基地与目的地不能相同。");
+                Flash("出发地与目的地不能相同。");
                 return;
             }
             float odKm = MapWidget.GreatCircleKm(o.code, d.code);
@@ -250,7 +260,7 @@ namespace AirlineCEO.UI
                 if (string.Equals(v.code, o.code, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(v.code, d.code, StringComparison.OrdinalIgnoreCase))
                 {
-                    Flash("经停地不能与基地或目的地相同。");
+                    Flash("经停地不能与出发地或目的地相同。");
                     return;
                 }
                 viaCode = v.code;
@@ -309,12 +319,49 @@ namespace AirlineCEO.UI
             WireFooter(form: false);
         }
 
+        /// <summary>
+        /// 「RPM 评估」：用表单里当前的出发地 / 目的地直接打开 n35 评估台。
+        ///
+        /// 只校验端点，不要求其余字段（经停地）就绪 —— 评估台本来就是一班直飞的单班口径，
+        /// 经停在开线时才参与分段航距。校验失败留在本页用 Flash 提示，别把人送进一个空白评估页。
+        /// </summary>
+        void OnOpenRpmEvaluation()
+        {
+            CloseOtherPickers(null);
+            if (!_base.TryGetAirport(out var o))
+            {
+                Flash("请先填写有效的出发地机场，再做 RPM 评估。");
+                return;
+            }
+            if (!_dest.TryGetAirport(out var d))
+            {
+                Flash("请先填写有效的目的地机场，再做 RPM 评估。");
+                return;
+            }
+            if (string.Equals(o.code, d.code, StringComparison.OrdinalIgnoreCase))
+            {
+                Flash("出发地与目的地不能相同。");
+                return;
+            }
+
+            RpmPreview.Seed(o.code, d.code);
+            if (!_embedded) gameObject.SetActive(false);
+            StrategyPanelUI.OpenStrategyPage("n35_新航线_RPM_评估台");
+        }
+
         void SetSubmitted(bool submitted)
         {
-            SetChildActive("Field_基地名称", !submitted);
-            SetChildActive("Field_目的地名称", !submitted);
-            SetChildActive("Field_经停地名称", !submitted);
+            SetChildActive("Field_出发地", !submitted);
+            SetChildActive("Field_目的地", !submitted);
+            SetChildActive("Field_经停地", !submitted);
             if (_hint != null) _hint.gameObject.SetActive(!submitted);
+            if (_rpmButton == null && _card != null)
+            {
+                var rpm = _card.Find("RpmEval");
+                if (rpm != null) _rpmButton = rpm.gameObject;
+            }
+            // 已提交 / 地图直通（ShowSubmitted）时表单整体隐藏，评估入口随之隐藏。
+            if (_rpmButton != null) _rpmButton.SetActive(!submitted);
             var resultHost = _resultBody != null ? _resultBody.transform.parent : null;
             if (resultHost != null) resultHost.gameObject.SetActive(submitted);
             if (!submitted && _title != null) _title.text = "开通航线";
@@ -329,6 +376,8 @@ namespace AirlineCEO.UI
         void WireFooter(bool form)
         {
             var confirm = _card != null ? _card.Find("Confirm")?.GetComponent<Button>() : null;
+            var rpm = _card != null ? _card.Find("RpmEval") : null;
+            if (rpm != null) rpm.gameObject.SetActive(form);
             if (confirm == null) return;
             confirm.gameObject.SetActive(form);
             confirm.onClick.RemoveAllListeners();
@@ -351,6 +400,8 @@ namespace AirlineCEO.UI
             public bool AllowEmpty;
             string _defaultCode;
             Action<AirportField> _onOpen;
+            /// <summary>程序化改写输入框（默认值 / 选中行 / 回车补全）时置位，避免把回填当成「玩家在打字」而自动弹列表。</summary>
+            bool _suppress;
 
             public static AirportField Build(Transform parent, string label, UIFactory.Anchor area,
                 bool allowEmpty, string defaultCode, Action<AirportField> onOpen)
@@ -371,11 +422,12 @@ namespace AirlineCEO.UI
                     new UIFactory.Anchor(new Vector2(0.74f, 0.08f), new Vector2(1f, 0.55f), Vector2.zero, Vector2.zero),
                     UITheme.Accent, () => field.TogglePicker(), 14);
 
-                // 下拉列表（叠在字段下方）
-                field.PickerRoot = UIFactory.Panel(host.transform, "Picker",
-                    new UIFactory.Anchor(new Vector2(0f, -1.35f), new Vector2(1f, 0.05f), Vector2.zero, Vector2.zero),
-                    UITheme.PanelDeep);
-                field.PickerRoot.transform.SetAsLastSibling();
+                // ———— 下拉列表挂在**外层卡片**上，而不是字段内部 ————
+                // 字段彼此是兄弟节点，后建的「经停地」会盖住「目的地」自己的子节点 ——
+                // 这正是截图中「上面的下拉列表被下面的输入框覆盖」的来路。挂到卡片上才能
+                // SetAsLastSibling() 压住所有字段；位置与宽度在展开时按输入框实际矩形现算
+                // （见 PlacePicker），所以既对齐输入框、也不会被下面的字段切掉。
+                field.PickerRoot = UIFactory.Panel(parent, "Picker_" + label, UIFactory.Fill, UITheme.PanelDeep);
                 var scroll = field.PickerRoot.AddComponent<ScrollRect>();
                 field.PickerRoot.AddComponent<RectMask2D>();
                 var content = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
@@ -400,12 +452,17 @@ namespace AirlineCEO.UI
                 field.ListContent = content.transform;
                 field.PickerRoot.SetActive(false);
 
-                field.RebuildList();
-                field.Input.onValueChanged.AddListener(_ =>
+                // ———— 边打边筛：输入即展开 ————
+                // 旧实现只在点「选择」时展开，输入框打得再准也得先点一下按钮，
+                // 于是「输入机场名 → 看不到候选」被当成 bug 报了上来。
+                field.Input.onValueChanged.AddListener(text =>
                 {
-                    if (field.PickerRoot != null && field.PickerRoot.activeSelf)
-                        field.RebuildList(filter: field.Input.text);
+                    if (field._suppress) return;
+                    if (string.IsNullOrWhiteSpace(text)) { field.ClosePicker(); return; }
+                    field.OpenPicker();
                 });
+                // 点进另一个字段时收起自己的列表（否则两个列表会叠在一起）。
+                field.Input.onSelect.AddListener(_ => field._onOpen?.Invoke(field));
                 field.Input.onEndEdit.AddListener(text =>
                 {
                     if (string.IsNullOrWhiteSpace(text))
@@ -416,8 +473,15 @@ namespace AirlineCEO.UI
                         if (!allowEmpty) field.ResetToDefault(field._defaultCode);
                         return;
                     }
+                    // 只做「补全成标准写法」，不关闭列表也不重排：
+                    // 回车/失焦与「点中某一行」在同一帧发生，此时若把列表关掉，
+                    // 行按钮会先失活、onClick 就不再触发，选中会静默失败。
                     if (AirportCatalog.TryResolve(text, out var a))
+                    {
+                        field._suppress = true;
                         field.Input.text = a.Display;
+                        field._suppress = false;
+                    }
                 });
 
                 field.ResetToDefault(defaultCode);
@@ -426,15 +490,19 @@ namespace AirlineCEO.UI
 
             public void TogglePicker()
             {
-                bool open = PickerRoot != null && !PickerRoot.activeSelf;
-                if (open)
-                {
-                    _onOpen?.Invoke(this);
-                    RebuildList(filter: Input != null ? Input.text : "");
-                    PickerRoot.SetActive(true);
-                    PickerRoot.transform.SetAsLastSibling();
-                }
-                else ClosePicker();
+                if (PickerRoot != null && PickerRoot.activeSelf) ClosePicker();
+                else OpenPicker();
+            }
+
+            /// <summary>展开（幂等）：刷新候选、按输入框实际矩形定位、置顶。</summary>
+            public void OpenPicker()
+            {
+                if (PickerRoot == null || Input == null) return;
+                _onOpen?.Invoke(this);
+                RebuildList(filter: Input.text);
+                PickerRoot.SetActive(true);
+                PickerRoot.transform.SetAsLastSibling();
+                PlacePicker();
             }
 
             public void ClosePicker()
@@ -442,42 +510,89 @@ namespace AirlineCEO.UI
                 if (PickerRoot != null) PickerRoot.SetActive(false);
             }
 
-            void RebuildList(string filter = null)
+            /// <summary>
+            /// 把列表贴到输入框下沿、宽度等于输入框宽度。卡内下方空间不足时改为向上展开
+            /// （经停地在表单下半部，向下会被底部的 RPM / 申请按钮挤掉）。
+            /// 用实际世界矩形换算，不依赖写死的归一化锚点 —— 后者正是旧版盖住输入框的原因。
+            /// </summary>
+            void PlacePicker()
             {
-                if (ListContent == null) return;
-                for (int i = ListContent.childCount - 1; i >= 0; i--)
-                    UnityEngine.Object.Destroy(ListContent.GetChild(i).gameObject);
+                if (PickerRoot == null || Input == null) return;
+                var rt = PickerRoot.GetComponent<RectTransform>();
+                var cardRt = PickerRoot.transform.parent as RectTransform;
+                var inputRt = Input.GetComponent<RectTransform>();
+                if (rt == null || cardRt == null || inputRt == null) return;
 
-                if (AllowEmpty)
-                    AddPickRow("无经停", null);
+                Canvas.ForceUpdateCanvases();
+                var corners = new Vector3[4];
+                inputRt.GetWorldCorners(corners);                 // 0=左下 1=左上 2=右上 3=右下
+                Vector3 bl = cardRt.InverseTransformPoint(corners[0]);
+                Vector3 tr = cardRt.InverseTransformPoint(corners[2]);
+                Rect card = cardRt.rect;
 
-                string f = string.IsNullOrWhiteSpace(filter) ? null : filter.Trim();
-                var airports = AirportCatalog.Airports;
-                for (int i = 0; i < airports.Count; i++)
-                {
-                    var a = airports[i];
-                    if (f != null)
-                    {
-                        if (a.code.IndexOf(f, StringComparison.OrdinalIgnoreCase) < 0 &&
-                            (a.nameZh == null || a.nameZh.IndexOf(f, StringComparison.OrdinalIgnoreCase) < 0) &&
-                            (a.nameEn == null || a.nameEn.IndexOf(f, StringComparison.OrdinalIgnoreCase) < 0) &&
-                            a.Display.IndexOf(f, StringComparison.OrdinalIgnoreCase) < 0)
-                            continue;
-                    }
-                    AddPickRow(a.Display, a);
-                }
+                const float rowH = 32f, padH = 12f;
+                float want = Mathf.Clamp(_lastRows, 1, 7) * rowH + padH;
+                float width = Mathf.Max(220f, tr.x - bl.x);
+
+                float roomBelow = bl.y - card.yMin - 6f;
+                float roomAbove = card.yMax - tr.y - 6f;
+                bool down = roomBelow >= Mathf.Min(want, 100f) || roomBelow >= roomAbove;
+                float h = Mathf.Max(48f, Mathf.Min(want, down ? roomBelow : roomAbove));
+                float top = down ? bl.y : tr.y;
+
+                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);   // 卡片左上角为锚点
+                rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(width, h);
+                rt.anchoredPosition = new Vector2(bl.x - card.xMin, top - card.yMax);
             }
 
-            void AddPickRow(string label, AirportInfo? airport)
+            int _lastRows = 1;
+
+            /// <summary>重建候选行，返回行数（供 PlacePicker 算高度）。</summary>
+            int RebuildList(string filter = null)
+            {
+                if (ListContent == null) return 0;
+
+                // Destroy 要到帧末才生效，同一帧内多次重建会让旧行残留、与新行一起排进布局
+                //（「打了 NGB，下面却还挂着上一轮的行」）。先失活再销毁，布局立刻干净。
+                for (int i = ListContent.childCount - 1; i >= 0; i--)
+                {
+                    var go = ListContent.GetChild(i).gameObject;
+                    go.SetActive(false);
+                    UnityEngine.Object.Destroy(go);
+                }
+
+                int rows = 0;
+                if (AllowEmpty) { AddPickRow("无经停", null); rows++; }
+
+                var matches = AirportCatalog.Filter(filter);
+                for (int i = 0; i < matches.Count; i++)
+                {
+                    AddPickRow(matches[i].Display, matches[i]);
+                    rows++;
+                }
+                if (rows == 0 && !string.IsNullOrWhiteSpace(filter))
+                    AddPickRow($"无匹配机场：{filter.Trim()}", null, pickable: false);
+                else if (rows == 0)
+                    AddPickRow("输入中文 / 英文 / 代码后筛选…", null, pickable: false);
+
+                _lastRows = Mathf.Max(1, rows);
+                return rows;
+            }
+
+            void AddPickRow(string label, AirportInfo? airport, bool pickable = true)
             {
                 var btn = UIFactory.Button(ListContent, "Opt", label,
                     new UIFactory.Anchor(Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero),
-                    UITheme.Panel, () =>
+                    pickable ? UITheme.Panel : UITheme.PanelDeep, () =>
                     {
+                        if (!pickable) return;      // 「无匹配机场」只是提示行，点了不该清空输入框
+                        _suppress = true;           // 回填不是玩家在打字，不再自动弹出列表
                         if (airport.HasValue)
                             Input.text = airport.Value.Display;
                         else
                             Input.text = "";
+                        _suppress = false;
                         ClosePicker();
                     }, 13);
                 var le = btn.gameObject.AddComponent<LayoutElement>();
@@ -495,9 +610,12 @@ namespace AirlineCEO.UI
                 _defaultCode = code;
                 ClosePicker();
                 if (Input == null) return;
+                // 回填默认值是程序行为，不能触发「输入即展开」——否则每次 Show() 都会弹出列表。
+                _suppress = true;
                 if (string.IsNullOrEmpty(code))
                 {
                     Input.text = "";
+                    _suppress = false;
                     return;
                 }
                 var a = AirportCatalog.FindByCode(code);
@@ -505,6 +623,7 @@ namespace AirlineCEO.UI
                 // 留空有三重坏处：必填字段看起来没填；TryGetAirport 必然失败但玩家看不出原因；
                 // onEndEdit 对空值只做回落，玩家若不点「选择」会一直卡在空框。
                 Input.text = string.IsNullOrEmpty(a.code) ? code.Trim().ToUpperInvariant() : a.Display;
+                _suppress = false;
             }
 
             public bool TryGetAirport(out AirportInfo airport)

@@ -163,7 +163,8 @@ namespace AirlineCEO.UI.Setup
                             bool on = selectedId == p.id;
                             string label =
                                 $"{p.nameCN}  {p.iataCode}  ·  {p.hubAirport}\n" +
-                                $"{TakeoverWorldBuilder.Stars(p.difficulty)} · 机队 {p.fleetCount} · 航线 {p.routeCount} · 现金 {p.cash:F0} 万";
+                                $"{TakeoverWorldBuilder.Stars(p.difficulty)} · 机队 {p.fleetCount} · 航线 {p.routeCount}"
+                                + $" · 现金 {p.cash:F0} 万 · 跑道 {TakeoverWorldBuilder.RunwayText(p)}";
                             var btn = UIFactory.Button(content, "Al_" + p.id, label, UIFactory.Fill,
                                 on ? UITheme.Accent : UITheme.PanelDeep, () => onPick(p.id), 13);
                             UIFactory.PinFromTop(btn.gameObject, y, airlineH, 0.10f, 0.96f);

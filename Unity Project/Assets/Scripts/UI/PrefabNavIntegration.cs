@@ -16,7 +16,7 @@ namespace AirlineCEO.UI
         [SerializeField] bool openDefaultMarket = false;
 
         ShellBarView _shell;
-        StatusBarView _statusBar;
+        BottomDockView _dock;
         NavigationRouter _router;
         RectTransform _contentHost;
         RectTransform _overlayHost;
@@ -28,14 +28,18 @@ namespace AirlineCEO.UI
 
         /// <summary>Shell 底栏高度（像素）：prefab 与运行时构建保持一致。</summary>
         const float ShellBarHeight = 72f;
-        /// <summary>状态栏下缘（画布像素）：底栏上缘（8+72）+ 4 间距。</summary>
+        /// <summary>底栏上方那条（a 读数 + c 命令台）的下缘（画布像素）：底栏上缘（8+72）+ 4 间距。</summary>
         const float StatusBarBottomY = 84f;
-        /// <summary>内容区下缘（画布像素）：状态栏上缘（84+30）+ 4 间距。</summary>
-        const float ContentBottomY = 118f;
+        /// <summary>内容区下缘（画布像素）：那条的上缘（84+42）+ 4 间距。</summary>
+        const float ContentBottomY = StatusBarBottomY + BottomDockView.BarHeight + 4f;
 
         public NavigationRouter Router => _router;
         public ShellBarView Shell => _shell;
-        public StatusBarView StatusBar => _statusBar;
+        /// <summary>a 栏读数（财务/航线/机队）。保留旧属性名，调用点不必跟着改。</summary>
+        public StatusBarView StatusBar => _dock != null ? _dock.Stats : null;
+        /// <summary>c 栏 CEO 命令台。</summary>
+        public CommandBarView CommandBar => _dock != null ? _dock.Command : null;
+        public BottomDockView Dock => _dock;
         public bool GameplayReady => _gameplayReady;
 
         void Start()
@@ -127,13 +131,13 @@ namespace AirlineCEO.UI
             else
                 _shell.RebuildFromCatalog();
 
-            // 状态栏：悬在底栏正上方一条（财务/航线/机队实时状态）
-            _statusBar = StatusBarView.Build(canvasTf);
-            var brt = _statusBar.transform as RectTransform;
+            // 底栏上方那条：左 a（财务/航线/机队读数）+ 右 c（CEO 命令台）
+            _dock = BottomDockView.Build(canvasTf);
+            var brt = _dock.transform as RectTransform;
             if (brt != null)
             {
                 brt.offsetMin = new Vector2(12, StatusBarBottomY);
-                brt.offsetMax = new Vector2(-12, StatusBarBottomY + StatusBarView.BarHeight);
+                brt.offsetMax = new Vector2(-12, StatusBarBottomY + BottomDockView.BarHeight);
             }
 
             _topBar = canvasTf.Find("TopBar");
@@ -158,34 +162,70 @@ namespace AirlineCEO.UI
         }
 
         /// <summary>
-        /// 壳层 chrome 显隐。抽成**静态**是为了让「三条一起」这条规则可被测试直接钉住 ——
+        /// 壳层 chrome 显隐。抽成**静态**是为了让「一起显隐」这条规则可被测试直接钉住 ——
         /// 实例版本要跑起来得先把整套导航 `Attach` 起来，测试成本过高。
+        ///
+        /// <paramref name="dock"/> 是 a 读数 + c 命令台合成的那一条；老调用点只传 statusBar 时，
+        /// 这里也会顺手把它的父级（dock）收起 —— 免得出现「读数没了、命令台还在」的半条。
         /// </summary>
-        public static void ApplyChromeVisibility(bool visible, ShellBarView shell, StatusBarView statusBar, Transform topBar)
+        public static void ApplyChromeVisibility(bool visible, ShellBarView shell, StatusBarView statusBar, Transform topBar,
+            Transform dock = null)
         {
             if (shell != null) shell.gameObject.SetActive(visible);
             if (statusBar != null) statusBar.gameObject.SetActive(visible);
             if (topBar != null) topBar.gameObject.SetActive(visible);
+            if (dock != null) dock.gameObject.SetActive(visible);
         }
 
         /// <summary>
-        /// 壳层 chrome（顶栏 / 底栏 / 状态栏）随开局态显隐。
+        /// 壳层 chrome（顶栏 / 底栏 / a+c 那条）随开局态显隐。
         ///
-        /// 开局向导（主菜单 / 资料 / 选航司 / 公司注册 / 董事会…）是**全屏闸门**，此刻这三条都该收起来：
+        /// 开局向导（主菜单 / 资料 / 选航司 / 公司注册 / 董事会…）是**全屏闸门**，此刻这几条都该收起来：
         /// 顶栏上全是**局内**信息 —— 航司名、游戏内钟表、速度档、机场搜索。
         /// 向导阶段它们不是「暂时用不上」而是**错的**：`RefreshHud` 在 `companyNameZh` 为空时兜底成
         /// 默认的「天际航空」，`RefreshClock` 读的是默认 `GameState` 的财年 1 时钟，玩家看到的是
         /// 一家自己没选过的航司 + 一个还没开始的日期；而速度档按钮是**活的**，在菜单里点它会真的改
-        /// `Time.timeScale`。
-        ///
-        /// 底栏 `_shell` 与状态栏 `_statusBar` 此前已在向导期收起，**顶栏漏了** —— 补上这一个。
+        /// `Time.timeScale`。命令台同理：向导期它没有可答复的台账。
         /// </summary>
-        void ApplyChromeVisibility() => ApplyChromeVisibility(_gameplayReady, _shell, _statusBar, _topBar);
+        void ApplyChromeVisibility()
+            => ApplyChromeVisibility(_gameplayReady, _shell, null, _topBar, _dock != null ? _dock.transform : null);
 
-        /// <summary>开局 / 读档完成：放开玩法态闸门（壳层 chrome 上线）。不可逆。</summary>
+        /// <summary>开局 / 读档完成：放开玩法态闸门（壳层 chrome 上线）。退出到开始界面时由 <see cref="ExitGameplay"/> 收回。</summary>
         public void EnterGameplay()
         {
             _gameplayReady = true;
+            ApplyChromeVisibility();
+        }
+
+        /// <summary>
+        /// 「退出到开始界面」的收尾：把 <see cref="EnterGameplay"/> 放开的一切重新关上。
+        ///
+        /// 与向导期的差别在于**要多清一层残留**：向导期这些东西压根没建过，而退出时
+        /// 导航栈、模块子框、浏览历史都已经有内容，不清掉的话下一局一进来就停在上一局的页面上
+        /// （甚至停在「设置」浮层里）。
+        ///
+        /// 只管 UI；停表与丢弃内存状态由 <see cref="AirlineCEO.UI.Setup.SetupFlowController.ReturnToStartScreen"/> 负责。
+        /// </summary>
+        public void ExitGameplay()
+        {
+            _gameplayReady = false;
+
+            // 导航栈里的实例（含设置浮层 / 部门子页）全部销毁，而不是仅仅隐藏：
+            // 它们各自缓存着上一局的列表与选中项，留着只会让新局读到旧数据。
+            _router?.ClearStack(destroyInstances: true);
+            ModuleFrame.ReleaseHost();
+            _history.Clear();
+            RefreshHistoryButtons();
+
+            if (_contentHost != null)
+            {
+                _contentHost.gameObject.SetActive(false);
+                // 设置浮层打开时面板根被临时改到 _overlayHost，这里复位，
+                // 免得下一局的内容页全建在浮层宿主上
+                _router?.SetPanelRoot(_contentHost);
+            }
+
+            _bootstrap?.HideAllLegacyCenterPanels();
             ApplyChromeVisibility();
         }
 
@@ -196,8 +236,8 @@ namespace AirlineCEO.UI
             if (_router == null) Attach();
             if (_shell != null)
                 _shell.RefreshLocks(GameState.Instance != null ? GameState.Instance.year : 1);
-            if (_statusBar != null)
-                _statusBar.RefreshStats();
+            if (StatusBar != null)
+                StatusBar.RefreshStats();
             SelectTab("n6_主页_Dashboard");
 
             // P3 功能闸门：跟随状态变化刷新底栏锁（财年推进后自动解锁新部门）
@@ -273,7 +313,7 @@ namespace AirlineCEO.UI
             RegisterIfMissing("n113_部门信息", "部门信息", "L2", "n18_人力资源部");
             RegisterIfMissing("n112_职业介绍所", "职业介绍所", "L2", "n18_人力资源部");
             RegisterIfMissing("n41_单航线", "单航线", "L2", "n12_航线网络");
-            RegisterIfMissing("n35_新航线_RPM_评估台", "RPM 评估台", "L2", "n16_战略发展部");
+            RegisterIfMissing("n35_新航线_RPM_评估台", "RPM 评估台", "L2", "n12_航线网络");
         }
 
         void RegisterIfMissing(string pageId, string title, string level, string parentId)
@@ -1148,11 +1188,11 @@ namespace AirlineCEO.UI
             (pageId.StartsWith("n6_", System.StringComparison.Ordinal)
              || pageId.Contains("主页") || pageId.Contains("Dashboard"));
 
-        /// <summary>顶栏 / 底栏始终压在地图与夜幕之上。</summary>
+        /// <summary>顶栏 / a+c 那条 / 底栏始终压在地图与夜幕之上。</summary>
         void RaiseChrome()
         {
             if (_overlayHost != null) _overlayHost.SetAsLastSibling();
-            if (_statusBar != null) _statusBar.transform.SetAsLastSibling();
+            if (_dock != null) _dock.transform.SetAsLastSibling();
             if (_shell != null) _shell.transform.SetAsLastSibling();
             // 顶栏只在玩法态上浮：向导期它是隐藏的（见 ApplyChromeVisibility），
             // 一旦在此处 SetAsLastSibling，它就会压到 SetupOverlay 之上 —— 那正是
@@ -1161,12 +1201,11 @@ namespace AirlineCEO.UI
             FindFirstObjectByType<AdvisorModalUI>()?.BringToFront();
         }
 
-        /// <summary>主页地图全幅：ContentHost 贴左右屏幕边、上到顶栏下缘、下到状态栏上缘（无四周留白）；其他页恢复内边距。</summary>
+        /// <summary>主页地图全幅：ContentHost 贴左右屏幕边、上到顶栏下缘、下到 a+c 那条的上缘（无四周留白）；其他页恢复内边距。</summary>
         void ApplyContentHostEdgeToEdge(bool edge)
         {
-            float bottom = edge
-                ? StatusBarBottomY + StatusBarView.BarHeight + 4f
-                : ContentBottomY;
+            float dockTop = StatusBarBottomY + BottomDockView.BarHeight + 4f;
+            float bottom = edge ? dockTop : ContentBottomY;
             float top = edge ? -UITheme.TopBarHeight : -UITheme.TopBarHeight - 12f;
             float x = edge ? 0f : 20f;
             if (_contentHost != null)
@@ -1176,7 +1215,7 @@ namespace AirlineCEO.UI
             }
             if (_overlayHost != null)
             {
-                _overlayHost.offsetMin = new Vector2(0f, StatusBarBottomY + StatusBarView.BarHeight + 4f);
+                _overlayHost.offsetMin = new Vector2(0f, dockTop);
                 _overlayHost.offsetMax = new Vector2(0f, -UITheme.TopBarHeight);
             }
         }
@@ -1187,6 +1226,8 @@ namespace AirlineCEO.UI
             if (_router != null && IsSettingsPage(_router.CurrentPageId))
                 vis = _router.PageUnderTop ?? _history.Current;
             ApplyContentHostEdgeToEdge(IsMapHomePage(vis));
+            // 命令台的占位文字随页面变：这是「这一页能问什么」的第一层提示
+            if (_dock != null && _dock.Command != null) _dock.Command.RefreshPageHint(vis);
             RaiseChrome();
         }
 

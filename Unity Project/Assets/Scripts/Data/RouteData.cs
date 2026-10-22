@@ -219,6 +219,21 @@ namespace AirlineCEO.Data
         /// <summary>班次数（无 flights 时按 1 班计）。</summary>
         public int FlightCount => (flights != null && flights.Count > 0) ? flights.Count : 1;
 
+        /// <summary>
+        /// 单班日利（**净额**，万美元/班/日）= 航线日净利 ÷ 班次数。
+        ///
+        /// 口径来源：邮件里的「单班日利」一直按 <c>dailyProfit / 班次数</c> 算
+        /// （<c>OpsQueryLogic</c> 的答复件、运力呈报），周计划逐班行与 n43 班次详情必须同源，
+        /// 否则同一个 NS100 在两个页面会印出两个数。
+        ///
+        /// 为什么**不能**直接用 <see cref="RouteFlight.dailyProfit"/>：那是**毛贡献份额**，
+        /// 满足 Σ 各班 = <see cref="GrossDailyProfit"/>，未扣航线周期固定成本。
+        /// 单班航线拿它当「日利」印会比航线日利大出整笔固定成本（PEK—PVG 实测 0.42 vs 0.35），
+        /// 而这正是「两个页面数字对不上」那类报障的来源。
+        /// </summary>
+        public float FlightNetDailyProfit => dailyProfit / FlightCount;
+
+
         /// <summary>本航线是否有执飞机（接管局的机队缺口会造成无飞机的航线）。</summary>
         public bool HasAircraft => !string.IsNullOrEmpty(registration);
 

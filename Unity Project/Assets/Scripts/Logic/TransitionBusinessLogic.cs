@@ -555,8 +555,30 @@ namespace AirlineCEO.Logic
             return s;
         }
 
-        /// <summary>过渡业务月收入估计（日收入 × 30），供跑道与财务面板使用。</summary>
-        public static float MonthlyIncome(GameState gs) => DailyIncome(gs) * 30f;
+        /// <summary>
+        /// 过渡业务月收入估计（万美元/月），供跑道与财务面板使用。
+        ///
+        /// **必须按剩余档期封顶**：合同有 <c>totalDays</c>，原实现是 <c>DailyIncome × 30</c>，
+        /// 等于把一份 5 天包机（2.6 万/日）当成永续的月入 78 万、把 90 天干租按满额外推到未来无限月。
+        /// 接管局的跑道恰恰靠这笔收入撑起来，于是选司界面读「6 个月」、实际首季多烧 30%
+        /// （2026-10-21 K10 跨季度复验：★3 实测 1416.8 vs 预览×3 1088.8）。
+        /// 到期后收入本就归零，折成「剩余天数与 30 取小」才是月均的真实含义。
+        /// </summary>
+        public static float MonthlyIncome(GameState gs)
+        {
+            if (gs?.transitionContracts == null) return 0f;
+            long now = gs.SimUtc.Ticks;
+            float s = 0f;
+            for (int i = 0; i < gs.transitionContracts.Count; i++)
+            {
+                var c = gs.transitionContracts[i];
+                if (c == null || c.IsReserved(now)) continue;
+                int days = Mathf.Min(30, c.DaysLeft);
+                if (days <= 0) continue;
+                s += Mathf.Max(0f, c.EffectiveDailyCash) * days;
+            }
+            return s;
+        }
 
         public static int ContractCount(GameState gs) => gs?.transitionContracts?.Count ?? 0;
 

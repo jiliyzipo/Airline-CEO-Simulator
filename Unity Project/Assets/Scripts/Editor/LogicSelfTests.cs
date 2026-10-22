@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
@@ -1844,6 +1846,24 @@ namespace AirlineCEO.EditorTools
 
                 // R42: isolated assertions are shared with the batch regression entry.
                 CapacityReceiptRegression.Run();
+                // 2026-10-19：收件箱底栏「详见 · 此航线」的认线规则（含旧档回执回填）。
+                InboxRouteLinkRegression.Run();
+                // 2026-10-19：周计划 / 飞行计划两页从「每条航线一行」改成「每个班次一行 / 一页」。
+                SchedulePageRegression.Run();
+                // 2026-10-19：n35 RPM 评估台与「开通新航线」预览统一入参口径。
+                RpmPreviewRegression.Run();
+                // 2026-10-20：设置 →「退出到开始界面」后的内存重置口径（新局不得继承上一局）。
+                SessionResetRegression.Run();
+                // 2026-10-20：底栏 CEO 命令台的「按句子分派 + 汇报件 + 同句去重」口径。
+                CeoCommandRegression.Run();
+                // 2026-10-21：机场目录 / 城市经济 / 经纬度三表必须同集合（经济表会生成接管航司）。
+                AirportCatalogRegression.Run();
+
+                // 2026-10-21：局内跑道必须并入还本付息（选司 8 个月 ≠ 局内 9.7 个月的老事故）。
+                RunwayDebtRegression.Run();
+
+                // 2026-10-22 K19：时刻槽提案必须写出现金跑道后果（300 万的槽 vs 325 万的现金）。
+                SlotCashHintRegression.Run();
 
                 // —— R14：时刻槽**逐停站**建模（一条槽 = 某停站一次停留的一对「到场 + 离场」）——
                 //     本场端 1 条、对端 1 条；有经停时经停站一趟往返停两次 = **2 条**（共 4 条）。
@@ -4873,6 +4893,235 @@ namespace AirlineCEO.EditorTools
             {
                 var straySc = GameObject.Find("__r38_slot_candidates_gs__");
                 if (straySc != null) GameObject.DestroyImmediate(straySc);
+            }
+
+            // ================= GDB29：国内新闻源 / 汇率 / 关键词研判 / 气象实况 =================
+            try
+            {
+                // ① 中国民航网 WP REST（嵌套 rendered 字段 + \u 转义 + HTML 摘要）
+                string wpJson =
+                    "[{\"id\":1,\"date\":\"2026-10-20T13:59:16\",\"link\":\"https:\\/\\/a\\/1.html\","
+                    + "\"title\":{\"rendered\":\"\\u547c\\u4f26\\u8d1d\\u5c14\\u7a7a\\u7ba1\\u7ad9\\u53ec\\u5f00\\u5e72\\u90e8\\u5927\\u4f1a\"},"
+                    + "\"excerpt\":{\"rendered\":\"<p>\\u901a\\u8baf\\u5458</p>\"}},"
+                    + "{\"id\":2,\"date\":\"2026-10-20T13:58:44\",\"link\":\"https:\\/\\/a\\/2.html\","
+                    + "\"title\":{\"rendered\":\"\\u4e09\\u4e9a\\u673a\\u573a\\u53d1\\u5e03\\u670d\\u52a1\\u54c1\\u724c\"},"
+                    + "\"excerpt\":{\"rendered\":\"\"}}]";
+                var wps = ExternalDataFetcher.ParseText(wpJson, "https://www.ccaonline.cn/wp-json/wp/v2/posts");
+                bool wpOk = wps.Count == 2
+                            && wps[0].title.Contains("呼伦贝尔空管站")
+                            && wps[0].content.Contains("通迅员")
+                            && wps[0].source == "中国民航网";
+                Debug.Log($"GDB29 WP REST 解析 → {wps.Count} 条（期望 2）· 标题={wps[0].title}"
+                          + $" · 摘要={wps[0].content} · → {(wpOk ? "符合期望" : "★不符合期望")}");
+
+                // ② 汇率：腾讯行情 / 欧洲央行 JSON / 非法输入
+                bool fxA = ExternalDataFetcher.ParseFxRate(
+                    "v_whUSDCNY=\"310~美元人民币~USDCNY~6.6792~0~20261020141110\";", out float rA, out string lA);
+                bool fxB = ExternalDataFetcher.ParseFxRate(
+                    "{\"amount\":1.0,\"base\":\"USD\",\"date\":\"2026-10-19\",\"rates\":{\"CNY\":6.6807}}",
+                    out float rB, out string lB);
+                bool fxC = ExternalDataFetcher.ParseFxRate("<\u8bbf\u95ee\u5931\u8d25>", out _, out _);
+                bool fxOk = fxA && Mathf.Abs(rA - 6.6792f) < 0.0002f
+                            && fxB && Mathf.Abs(rB - 6.6807f) < 0.0002f && !fxC;
+                Debug.Log($"GDB29 汇率解析 → 腾讯={fxA}({rA:F4} {lA}) · 欧央行={fxB}({rB:F4} {lB})"
+                          + $" · 非法输入被拒={!fxC} → {(fxOk ? "符合期望" : "★不符合期望")}");
+
+                // ③ 关键词研判：台风+机场→冻结；航油→油价%；空管无机场→只降准点；股市噪声不判
+                var operated = new List<string> { "CAN" };
+                bool i1 = ExternalImpactRules.TryInfer(
+                    "台风“海葵”明日登陆粤东，广州白云机场航班大面积取消", "", operated, out var im1);
+                bool i2 = ExternalImpactRules.TryInfer(
+                    "多家航司上调燃油附加费，航油价格走高", "", operated, out var im2);
+                bool i3 = ExternalImpactRules.TryInfer(
+                    "华东空域实施流量控制，多个机场出现延误", "", operated, out var im3);
+                bool i4 = ExternalImpactRules.TryInfer(
+                    "航空股集体涨停，航油板块走强", "", operated, out _);
+                bool i5 = ExternalImpactRules.TryInfer(
+                    "民航局对某航司处以罚款并责令限期整改", "", operated, out var im5);
+                bool impOk = i1 && im1.type == "freezeFlights" && im1.region == "CAN"
+                             && i2 && im2.type == "fuelPrice" && im2.value > 0f
+                             && i3 && im3.type == "onTime" && string.IsNullOrEmpty(im3.region)
+                             && !i4
+                             && i5 && im5.type == "cash" && im5.value < 0f;
+                Debug.Log($"GDB29 关键词研判 → 台风={im1.type}/{im1.region}(期望 freezeFlights/CAN)"
+                          + $" · 航油={im2.type}{im2.value:+0.0;-0.0}(期望 fuelPrice+2.5)"
+                          + $" · 空管={im3.type}{im3.value:+0;-0}(期望 onTime−6，未定位机场)"
+                          + $" · 股市噪声被拒={!i4}(期望 True) · 处罚={im5.type}{im5.value:F0}(期望 cash−50)"
+                          + $" → {(impOk ? "符合期望" : "★不符合期望")}");
+
+                // ④ 气象实况：90 km/h 强风 → 冻结该场站；静风 → 不产事件
+                string wxJson = "[{\"current\":{\"wind_speed_10m\":90.0,\"precipitation\":0,\"weather_code\":1,\"visibility\":9000}},"
+                                + "{\"current\":{\"wind_speed_10m\":5.0,\"precipitation\":0,\"weather_code\":1,\"visibility\":20000}}]";
+                var wx = WeatherFeed.Parse(wxJson, new List<string> { "CAN", "PEK" });
+                bool wxOk = wx.Count == 1 && wx[0].effectType == "freezeFlights"
+                            && wx[0].affectedRegion == "CAN" && wx[0].durationHours == 6;
+                Debug.Log($"GDB29 气象实况解析 → {wx.Count} 条（期望 1：仅强风场站）"
+                          + $" · {wx[0].title} · {wx[0].effectType}/{wx[0].affectedRegion}"
+                          + $" → {(wxOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑤ 新浪财经 7×24：长文快讯拆标题+正文、北京时间转 UTC、泛财经稿被关键词过滤
+                string sinaJson = "{\"result\":{\"status\":{\"code\":0},\"data\":{\"feed\":{\"list\":["
+                    + "{\"id\":\"sn1\",\"rich_text\":\"\\u3010\\u53f0\\u98ce\\u6d77\\u8475\\u767b\\u9646\\u5e7f\\u4e1c\\u3011"
+                    + "\\u4e2d\\u592e\\u6c14\\u8c61\\u53f0\\u6d88\\u606f\\uff0c\\u5e7f\\u5dde\\u767d\\u4e91\\u673a\\u573a"
+                    + "\\u4eca\\u65e5\\u53d6\\u6d88\\u822a\\u73ed200\\u67b6\\u6b21\\u3002\","
+                    + "\"create_time\":\"2026-10-20 14:31:29\",\"docurl\":\"https:\\/\\/a\\/1\"},"
+                    + "{\"id\":\"sn2\",\"rich_text\":\"\\u73b0\\u8d27\\u9ec4\\u91d1\\u7a81\\u7834\\u5173\\u53e3\\u3002\","
+                    + "\"create_time\":\"2026-10-20 14:30:00\",\"docurl\":\"https:\\/\\/a\\/2\"}"
+                    + "]}}}}";
+                var sn = ExternalDataFetcher.ParseText(sinaJson, "https://zhibo.sina.com.cn/api/zhibo/feed");
+                bool snOk = sn.Count == 1
+                            && sn[0].title.Contains("台风海葵登陆广东")
+                            && sn[0].content.Contains("白云机场")
+                            && sn[0].source == "新浪财经"
+                            && sn[0].publishedAt.HasValue
+                            && sn[0].publishedAt.Value.Hour == 6
+                            && sn[0].publishedAt.Value.Minute == 31;
+                Debug.Log($"GDB29 新浪快讯解析 → {sn.Count} 条（期望 1：泛财经稿被滤）"
+                          + $" · 标题={sn[0].title} · 正文={sn[0].content}"
+                          + $" · 时间UTC={(sn[0].publishedAt.HasValue ? sn[0].publishedAt.Value.ToString("HH:mm") : "无")}"
+                          + $"（期望 06:31）→ {(snOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑥ 默认源必须大陆直连且不含已被 SEO 稿污染的中国民航网
+                bool srcOk = ExternalDataFetcher.DefaultUrl.Contains("zhibo.sina.com.cn")
+                             && ExternalDataFetcher.DefaultUrl.Contains("chinanews.com.cn")
+                             && !ExternalDataFetcher.DefaultUrl.Contains("ccaonline");
+                Debug.Log($"GDB29 默认源 → {ExternalDataFetcher.DefaultUrl}"
+                          + $" → {(srcOk ? "符合期望（国内直连，无污染源）" : "★不符合期望")}");
+
+                // ⑦ 油价：国内行情串（腾讯 hf_OIL）→ 桶价 ×7.82 + 裂解价差 = 航油吨价
+                string oilQ = "v_hf_OIL=\"110.35,0.73,110.25,110.27,111.05,109.00,14:36:08,109.55,109.15,0,1,3,2026-10-20,x\";";
+                bool oilOk = ExternalDataFetcher.ParseQuote(oilQ, out float ton, out string oilLabel, out _)
+                             && Mathf.Abs(ton - (110.35f * ExternalDataFetcher.BarrelsPerTonJet
+                                                + ExternalDataFetcher.DefaultCrackSpreadUsdPerTon)) < 1f
+                             && ExternalDataFetcher.DefaultQuoteUrl.Contains("qt.gtimg.cn");
+                Debug.Log($"GDB29 国内油价行情 → {oilLabel} · 桶价 110.35 → 航油 {ton:F0} 美元/吨"
+                          + $"（期望 {110.35f * ExternalDataFetcher.BarrelsPerTonJet + ExternalDataFetcher.DefaultCrackSpreadUsdPerTon:F0}）"
+                          + $" · 默认源={ExternalDataFetcher.DefaultQuoteUrl} → {(oilOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑧ 台风公报：编号清单只取在编（start）；路径+官方预报 → 24 小时内逼近 CAN 即冻结
+                string tyList = "typhoon_jsons_list_default(({\"typhoonList\":["
+                    + "[3359119,\"CHAMPI\",\"\u8537\u7435\",\"2630\",\"2630\",null,\"\u4E00\u79CD\u82B1\",\"start\"],"
+                    + "[3346033,\"KOGUMA\",\"\u5C0F\u718A\",\"2629\",\"2629\",null,\"\u5C0F\u718A\u661F\u5EA7\",\"stop\"]"
+                    + "]})"
+                    + "))";
+                var tyActive = TyphoonFeed.ParseActive(tyList);
+                bool tyListOk = tyActive.Count == 1
+                                && tyActive[0].nameCn == "\u8537\u7435"
+                                && tyActive[0].number == "2630";
+                var tyFirst = tyActive.Count > 0 ? tyActive[0]
+                    : new TyphoonFeed.ActiveTyphoon { nameEn = "CHAMPI", nameCn = "\u8537\u7435", number = "2630" };
+
+                string tyView = "typhoon_jsons_view_3359119({\"typhoon\":[3359119,\"CHAMPI\",\"\u8537\u7435\",2630,2630,null,\"\",\"start\",["
+                    + "[3359252,\"202610200600\",1792476000000,\"SuperTY\",118.0,20.0,915,62,\"WNW\",27,"
+                    + "[[\"30KTS\",450,320,280,320,3359252]],"
+                    + "{\"BABJ\":[[12,\"202610200600\",116.0,21.0,910,65,\"BABJ\",\"SuperTY\"],"
+                    + "[24,\"202610200600\",113.5,23.0,920,58,\"BABJ\",\"STY\"],"
+                    + "[48,\"202610200600\",110.0,25.0,950,45,\"BABJ\",\"TY\"]]},"
+                    + "[\"202610201400\",\"\",null,null]]"
+                    + "],null]})";
+                var tyNear = TyphoonFeed.ParseView(tyView, tyFirst, new List<string> { "CAN" });
+                var tyFar = TyphoonFeed.ParseView(tyView, tyFirst, new List<string> { "PEK" });
+                bool tyViewOk = tyNear != null && tyNear.effectType == "freezeFlights"
+                                && tyNear.affectedRegion == "CAN" && tyNear.durationHours == 24
+                                && tyNear.publishedAt.HasValue && tyNear.publishedAt.Value.Hour == 22
+                                && tyNear.title.Contains("\u8D85\u5F3A\u53F0\u98CE")
+                                && tyFar != null && string.IsNullOrEmpty(tyFar.effectType);
+                Debug.Log($"GDB29 台风公报解析 → 在编 {tyActive.Count} 场（期望 1：{tyFirst.nameCn} 第{tyFirst.number}号）"
+                          + $" · 逼近CAN={tyNear?.effectType}/{tyNear?.affectedRegion}/{tyNear?.durationHours}h（期望 freezeFlights/CAN/24）"
+                          + $" · 距PEK远={tyFar?.effectType ?? "无影响"}（期望空）"
+                          + $" · 发布时间UTC={(tyNear?.publishedAt.HasValue == true ? tyNear.publishedAt.Value.ToString("HH:mm") : "无")}（期望 22:00）"
+                          + $" → {(tyListOk && tyViewOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑨ 国际 SIGMET：多边形内机场才生效；火山灰冻结、雷暴只压准点；过期报文丢弃
+                long sigFrom = DateTimeOffset.UtcNow.AddHours(-1).ToUnixTimeSeconds();
+                long sigTo = DateTimeOffset.UtcNow.AddHours(5).ToUnixTimeSeconds();
+                string SigmetJson(string hazard, long to)
+                    => "[{\"icaoId\":\"ZBAA\",\"firId\":\"ZBPE\",\"firName\":\"ZBPE BEIJING\","
+                       + $"\"validTimeFrom\":{sigFrom},\"validTimeTo\":{to},\"seriesId\":\"02\","
+                       + $"\"hazard\":\"{hazard}\",\"qualifier\":\"ERUPTION MT TEST\",\"base\":0,\"top\":15000,"
+                       + "\"geom\":\"AREA\",\"coords\":[{\"lon\":116.0,\"lat\":39.5},{\"lon\":117.0,\"lat\":39.5},"
+                       + "{\"lon\":117.0,\"lat\":40.5},{\"lon\":116.0,\"lat\":40.5}],\"dir\":\"W\",\"spd\":\"10\","
+                       + "\"rawSigmet\":\"WVID21 ZBPE TEST SIGMET VA ERUPTION\"}]";
+
+                var sigVa = SigmetFeed.Parse(SigmetJson("VA", sigTo), new List<string> { "PEK" });
+                var sigOutside = SigmetFeed.Parse(SigmetJson("VA", sigTo), new List<string> { "CAN" });
+                var sigTs = SigmetFeed.Parse(SigmetJson("TS", sigTo), new List<string> { "PEK" });
+                var sigExpired = SigmetFeed.Parse(
+                    SigmetJson("VA", DateTimeOffset.UtcNow.AddHours(-2).ToUnixTimeSeconds()),
+                    new List<string> { "PEK" });
+                bool sigOk = sigVa.Count == 1
+                             && sigVa[0].effectType == "freezeFlights"
+                             && sigVa[0].affectedRegion == "PEK"
+                             && sigVa[0].durationHours == 6
+                             && sigVa[0].title.Contains("火山灰")
+                             && sigVa[0].content.Contains("SIGMET")
+                             && sigOutside.Count == 0
+                             && sigTs.Count == 1
+                             && sigTs[0].effectType == "onTime"
+                             && Mathf.Approximately(sigTs[0].effectValue, -3f)
+                             && sigExpired.Count == 0;
+                Debug.Log($"GDB29 SIGMET解析 → 多边形内VA={sigVa.Count} 条/{sigVa.FirstOrDefault()?.effectType}/"
+                          + $"{sigVa.FirstOrDefault()?.affectedRegion}（期望 1/freezeFlights/PEK）"
+                          + $" · 多边形外CAN={sigOutside.Count}（期望 0）"
+                          + $" · 雷暴TS={sigTs.FirstOrDefault()?.effectType}/{sigTs.FirstOrDefault()?.effectValue}（期望 onTime/-3）"
+                          + $" · 过期={sigExpired.Count}（期望 0）"
+                          + $" → {(sigOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑩ 全球风暴：西北太平洋交给中央气象台（不重复）；>72小时僵尸事件丢弃；按距离分档
+                string eonet =
+                    "{\"title\":\"EONET Events\",\"events\":["
+                    + "{\"id\":\"EONET_1\",\"title\":\"Hurricane Test\",\"geometry\":["
+                    + "{\"date\":\"2026-10-20T00:00:00Z\",\"type\":\"Point\",\"coordinates\":[-118.3,33.8]}]},"
+                    + "{\"id\":\"EONET_2\",\"title\":\"Tropical Storm Far\",\"geometry\":["
+                    + "{\"date\":\"2026-10-20T00:00:00Z\",\"type\":\"Point\",\"coordinates\":[-125.0,30.0]}]},"
+                    + "{\"id\":\"EONET_3\",\"title\":\"Super Typhoon Champi\",\"geometry\":["
+                    + "{\"date\":\"2026-10-20T00:00:00Z\",\"type\":\"Point\",\"coordinates\":[121.0,14.5]}]},"
+                    + "{\"id\":\"EONET_4\",\"title\":\"Tropical Storm Old\",\"geometry\":["
+                    + "{\"date\":\"2026-09-26T21:00:00Z\",\"type\":\"Point\",\"coordinates\":[-118.3,33.8]}]}"
+                    + "]}";
+                var eoStorms = GlobalStormFeed.ParseStorms(eonet);
+                var eoNow = new DateTime(2026, 10, 20, 12, 0, 0, DateTimeKind.Utc);
+                var eoHits = GlobalStormFeed.Parse(eonet, new List<string> { "LAX" }, eoNow);
+                bool eoOk = eoStorms.Count == 4
+                            && eoHits.Count == 1
+                            && eoHits[0].effectType == "freezeFlights"
+                            && eoHits[0].affectedRegion == "LAX"
+                            && eoHits[0].title.Contains("飓风")
+                            && eoHits[0].title.Contains("大西洋") == false   // 东太平洋
+                            && GlobalStormFeed.BasinName(-108f, 19.4f) == "东北太平洋"
+                            && GlobalStormFeed.IsWestPacific(135.6f, 15.9f)
+                            && !GlobalStormFeed.IsWestPacific(-156.8f, -20.7f)
+                            && GlobalStormFeed.NameKind("Super Typhoon Champi") == "超强台风"
+                            && GlobalStormFeed.NameBody("Hurricane Trudy") == "Trudy";
+                Debug.Log($"GDB29 全球风暴解析 → 事件 {eoStorms.Count}（期望 4）"
+                          + $" · 命中LAX {eoHits.Count} 条/{eoHits.FirstOrDefault()?.effectType}（期望 1/freezeFlights）"
+                          + $" · 标题={eoHits.FirstOrDefault()?.title}"
+                          + $" → {(eoOk ? "符合期望" : "★不符合期望")}");
+
+                // ⑪ 台风名编码：站点现在是 UTF-8（响应头无 charset），不能固定按 936 解
+                //    反例：UTF-8 的「蔷琵」按 GBK 解 → 三字乱码「钄风惖」（截图里就是这么错的）
+                string nameWant = "\u8537\u7435";
+                byte[] nameUtf8 = Encoding.UTF8.GetBytes(nameWant);
+                bool decUtf8Ok = TyphoonFeed.DecodeText(nameUtf8) == nameWant
+                                 && TyphoonFeed.DecodeText(nameUtf8).Length == 2;
+                bool decBomOk = TyphoonFeed.DecodeText(
+                    new byte[] { 0xEF, 0xBB, 0xBF }.Concat(nameUtf8).ToArray()) == nameWant;
+                bool decGbkOk;
+                try
+                {
+                    byte[] nameGbk = Encoding.GetEncoding(936).GetBytes(nameWant);
+                    decGbkOk = nameGbk.Length == 4 && TyphoonFeed.DecodeText(nameGbk) == nameWant;
+                }
+                catch (Exception) { decGbkOk = true; }   // 运行环境没有代码页表：不据此判失败
+                Debug.Log($"GDB29 台风名编码 → UTF-8 六字节解出「{TyphoonFeed.DecodeText(nameUtf8)}」"
+                          + $"（期望 {nameWant}） · BOM={decBomOk} · GBK 回退={decGbkOk}"
+                          + $" → {(decUtf8Ok && decBomOk && decGbkOk ? "符合期望" : "★不符合期望")}");
+
+                Debug.Log($"GDB29 结论 → {(wpOk && fxOk && impOk && wxOk && snOk && srcOk && oilOk && tyListOk && tyViewOk && sigOk && eoOk && decUtf8Ok && decBomOk && decGbkOk ? "十二项全部符合期望" : "★有不符合期望的项，见上")}");
+            }
+            catch (Exception gdb29)
+            {
+                Debug.LogWarning($"GDB29 用例异常（不阻断后续）：{gdb29.Message}");
             }
 
             EditorUtility.DisplayDialog("Logic Self Tests", "结果已逐行输出到 Console（Window → General → Console）", "确定");

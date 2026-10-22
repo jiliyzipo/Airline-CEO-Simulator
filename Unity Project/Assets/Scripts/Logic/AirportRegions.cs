@@ -27,7 +27,14 @@ namespace AirlineCEO.Logic
         {
             "PEK", "PKX", "SHA", "PVG", "CAN", "SZX", "CTU", "TFU", "CKG", "XIY",
             "KMG", "HGH", "NKG", "WUH", "CSX", "XMN", "FOC", "TAO", "TSN", "DLC",
-            "SHE", "HRB", "URC", "LHW", "SYX", "HAK"
+            "SHE", "HRB", "URC", "LHW", "SYX", "HAK",
+            // 2026-10-21 批次 A：珠海金湾 / 无锡硕放 / 宁波栎社 / 温州龙湾
+            "ZUH", "WUX", "NGB", "WNZ",
+            // 2026-10-22 批次 B：南宁吴圩 / 贵阳龙洞堡 / 太原武宿 / 呼和浩特白塔 / 济南遥墙
+            "NNG", "KWE", "TYN", "HET", "TNA",
+            // 2026-10-22 批次 B'（K18 回补）：拉萨贡嘎。此前注释里写了它、名单里却没有 —— 名实不符，
+            // 会让以后读代码的人以为 LXA 已被判定为国内机场。
+            "LXA"
         };
 
         /// <summary>中国机场中单独实行夜间限制的机场（仅首都 PEK；PKX 及其余中国机场 24 小时）。</summary>

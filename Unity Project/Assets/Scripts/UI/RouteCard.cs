@@ -62,9 +62,12 @@ namespace AirlineCEO.UI
 
             if (titleText != null)
             {
+                // 一条航线是一条双向的往返班：去程 + 过站 + 回程。计划类页面（本卡片、周总计划、
+                // 单班页）一律用 ⇄；单向 → 会让人以为只飞这一头（2026-10-19 CEO 报障）。
+                string od = AirportCatalog.OdRoundTrip(route.origin, route.destination);
                 titleText.text = grounded
-                    ? $"{AirportCatalog.Od(route.origin, route.destination)}　⚠ {FlightGroundLogic.Label(ground)}"
-                    : AirportCatalog.Od(route.origin, route.destination);
+                    ? $"{od}　⚠ {FlightGroundLogic.Label(ground)}"
+                    : od;
                 titleText.color = grounded ? UITheme.Warning : UITheme.TextPrimary;
             }
             if (profitText != null)

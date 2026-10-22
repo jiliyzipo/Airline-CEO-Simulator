@@ -274,6 +274,8 @@ namespace AirlineCEO.UI.Shell
             MessageCenter.Changed -= OnFeedChanged;
             MessageCenter.Changed += OnFeedChanged;
             InboxManager.SyncFeedIntoInbox(GameState.Instance);
+            // 旧档回填：早期回执没记航线，开箱时按源件 id 补一次（幂等）。
+            InboxManager.BackfillReceiptRouteRefs(GameState.Instance);
             TransitionBusinessLogic.Ensure(GameState.Instance);
             EnsureTutorialMailRecord();
             InboxManager.MaybeOfferAlliance(GameState.Instance);
@@ -842,6 +844,18 @@ namespace AirlineCEO.UI.Shell
             return string.IsNullOrEmpty(m.sender) ? "?" : m.sender.Substring(0, 1);
         }
 
+        /// <summary>底栏一个跳转按钮（收集后统一排版，见 <see cref="RebuildLinkButtons"/>）。</summary>
+        sealed class LinkEntry
+        {
+            public string Label;
+            public string PageId;
+            public string RouteKey;
+            public LinkEntry(string label, string pageId, string routeKey)
+            {
+                Label = label; PageId = pageId; RouteKey = routeKey;
+            }
+        }
+
         void RebuildLinkButtons()
         {
             if (_detailLinks == null) return;
@@ -849,19 +863,80 @@ namespace AirlineCEO.UI.Shell
                 DestroyImmediate(_detailLinks.GetChild(i).gameObject);
             if (_selected == null) return;
 
-            void AddLink(float x0, float x1, string label, string pageId, string routeKey)
+            var links = new List<LinkEntry>();
+            BuildLinkEntries(links);
+
+            // 「选定机号 / 选定时刻」这类多选题是**独占一栏**的：BuildLinkEntries 已经把候选
+            // 按钮直接铺满底栏并选择了「只给候选、不给跳转」。此时再补跳转按钮会与候选叠字，
+            // 故以「底栏是否已有子按钮」判断本栏是否已被占满。
+            if (_detailLinks.childCount == 0)
             {
-                UIFactory.Button(_detailLinks, "L_" + label, label,
-                    new UIFactory.Anchor(new Vector2(x0, 0f), new Vector2(x1, 1f), Vector2.zero, Vector2.zero),
-                    UITheme.PanelDeep, () => JumpTo(pageId, routeKey), 12);
+                // 2026-10-19（要求 1 / 2）：**以某条航线为主题的邮件**，底栏必须有一个
+                // 「详见 · 此航线」直达该线；运力 / 时刻槽这一路的邮件（含回执）一律不挂
+                // 「详见 · 董事会」—— 董事会页回答不了「这条线现在几班、槽卡在哪一步」，
+                // 占了位置反而把人带离主题。
+                string routeId = InboxManager.RouteIdOf(_selected);
+                // 工会谈判件是**三选一立场**，底栏刻意留空（见 BuildLinkEntries 的早退），
+                // 正文里即便提到某条线也不该插跳转按钮。
+                bool unionTalk = _selected.action == "union_talk";
+                if (!unionTalk && (!string.IsNullOrEmpty(routeId) || InboxManager.IsCapacityOrSlotMail(_selected)))
+                    links.RemoveAll(l => l.Label == BoardLinkLabel);
+
+                // 「此航线」放在最前面：CEO 读完这封最想做的就是照着去看这条线。
+                // 已有指向同一条线的按钮就复用（改措辞），避免出现两个都叫「航线」的入口。
+                if (!unionTalk && !string.IsNullOrEmpty(routeId))
+                {
+                    int at = links.FindIndex(l => IsRouteLink(l, routeId));
+                    if (at >= 0)
+                    {
+                        links[at].Label = RouteLinkLabel;
+                        var hit = links[at];
+                        links.RemoveAt(at);
+                        links.Insert(0, hit);
+                    }
+                    else links.Insert(0, new LinkEntry(RouteLinkLabel, "n41_单航线", routeId));
+                }
+
+                // 收集完再排版：按钮数随邮件变化，继续手写坐标会留空缝或叠字。
+                int n = links.Count;
+                float gap = n <= 2 ? 0.04f : 0.02f;
+                for (int i = 0; i < n; i++)
+                {
+                    var l = links[i];
+                    float x0 = (float)i / n;
+                    float x1 = (float)(i + 1) / n - (i == n - 1 ? 0f : gap);
+                    UIFactory.Button(_detailLinks, "L_" + l.Label, l.Label,
+                        new UIFactory.Anchor(new Vector2(x0, 0f), new Vector2(x1, 1f), Vector2.zero, Vector2.zero),
+                        UITheme.PanelDeep, () => JumpTo(l.PageId, l.RouteKey), 12);
+                }
             }
+        }
+
+        const string RouteLinkLabel = "详见 · 此航线";
+        const string BoardLinkLabel = "详见 · 董事会";
+
+        /// <summary>该底栏按钮是否就是「进 n41 并选中这条航线」（不认航线提案那种 IATA 组合键）。</summary>
+        static bool IsRouteLink(LinkEntry l, string routeId)
+            => l.PageId != null && l.PageId.StartsWith("n41", StringComparison.Ordinal)
+               && !string.IsNullOrEmpty(l.RouteKey)
+               && string.Equals(l.RouteKey, routeId, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 按邮件类型把底栏候选按钮填进 <paramref name="links"/>（只收集，不排版）。
+        /// 结果还会经过「此航线 / 董事会」的统一增删，见 <see cref="RebuildLinkButtons"/>。
+        ///
+        /// 传入列表而不是返回新列表：本方法有十几处「这一类邮件只有这两个入口」的早退分支，
+        /// 用 void 方法原地追加，每处就能保持一句 return，不必把已收集的列表再抄一遍。
+        /// </summary>
+        void BuildLinkEntries(List<LinkEntry> links)
+        {
+            void AddLink(string label, string pageId, string routeKey)
+                => links.Add(new LinkEntry(label, pageId, routeKey));
 
             void AddAction(float x0, float x1, string label, UnityEngine.Events.UnityAction act)
-            {
-                UIFactory.Button(_detailLinks, "L_" + label, label,
+                => UIFactory.Button(_detailLinks, "L_" + label, label,
                     new UIFactory.Anchor(new Vector2(x0, 0f), new Vector2(x1, 1f), Vector2.zero, Vector2.zero),
                     UITheme.PanelDeep, act, 12);
-            }
 
             if (_selected.action == "union_talk")
                 return;
@@ -888,8 +963,10 @@ namespace AirlineCEO.UI.Shell
 
             if (_selected.action == "transition_guide" || _selected.action == TransitionBusinessLogic.ProgressAction)
             {
-                AddAction(0f, 0.48f, "前往 · 机队过渡业务", () => FleetUI.OpenTransitionTab());
-                AddAction(0.52f, 1f, "前往 · 人员编制", () => JumpTo("n13_运营部", null));
+                // 2026-10-30（CEO 要求）：过渡业务的邮件只留「前往 · 机队过渡业务」。
+                // 摘掉「前往 · 人员编制」—— 这封信讲的是机队/合同交割（机号、期限、定金），
+                // 人员编制页回答不了它，摆在那里只会把人带离主题。
+                AddAction(0f, 1f, "前往 · 机队过渡业务", () => FleetUI.OpenTransitionTab());
                 return;
             }
 
@@ -913,8 +990,8 @@ namespace AirlineCEO.UI.Shell
                     }
                     return;
                 }
-                AddLink(0f, 0.48f, "详见 · 本航线", "n41_单航线", _selected.origin);
-                AddLink(0.52f, 1f, "详见 · 机队", "n9_机队", null);
+                AddLink("详见 · 此航线", "n41_单航线", _selected.origin);
+                AddLink("详见 · 机队", "n9_机队", null);
                 return;
             }
 
@@ -940,169 +1017,169 @@ namespace AirlineCEO.UI.Shell
                     }
                     return;
                 }
-                AddLink(0f, 0.48f, "详见 · 本航线", "n41_单航线", _selected.origin);
-                AddLink(0.52f, 1f, "详见 · 航权与时刻槽", "n77_航权与时刻槽", null);
+                AddLink("详见 · 此航线", "n41_单航线", _selected.origin);
+                AddLink("详见 · 航权与时刻槽", "n77_航权与时刻槽", null);
                 return;
             }
 
             if (_selected.action == InboxManager.FuelHedgeAction
                 || _selected.action == InboxManager.FinanceProgressAction)
             {
-                AddLink(0f, 0.48f, "详见 · 对冲工作台", "n31_对冲工作台", null);
-                AddLink(0.52f, 1f, "详见 · 财务总览", "n15_财务部", null);
+                AddLink("详见 · 对冲工作台", "n31_对冲工作台", null);
+                AddLink("详见 · 财务总览", "n15_财务部", null);
                 return;
             }
             if (_selected.action == InboxManager.AnnualBudgetAction)
             {
-                AddLink(0f, 0.48f, "详见 · 年度预算", "n22_年度预算编制_审批", null);
-                AddLink(0.52f, 1f, "详见 · 财务总览", "n15_财务部", null);
+                AddLink("详见 · 年度预算", "n22_年度预算编制_审批", null);
+                AddLink("详见 · 财务总览", "n15_财务部", null);
                 return;
             }
             if (_selected.action == InboxManager.CarbonBuyAction)
             {
-                AddLink(0f, 0.48f, "详见 · 碳配额", "n32_碳配额管理", null);
-                AddLink(0.52f, 1f, "详见 · 财务总览", "n15_财务部", null);
+                AddLink("详见 · 碳配额", "n32_碳配额管理", null);
+                AddLink("详见 · 财务总览", "n15_财务部", null);
                 return;
             }
             if (_selected.action == InboxManager.FinanceLoanAction)
             {
-                AddLink(0f, 0.48f, "详见 · 紧急融资", "n25_紧急融资_破产保护", null);
-                AddLink(0.52f, 1f, "详见 · 财务总览", "n15_财务部", null);
+                AddLink("详见 · 紧急融资", "n25_紧急融资_破产保护", null);
+                AddLink("详见 · 财务总览", "n15_财务部", null);
                 return;
             }
             if (_selected.action == InboxManager.FleetBuyAction)
             {
-                AddLink(0f, 0.48f, "详见 · 购机会议", "n97_购机决策会议", null);
-                AddLink(0.52f, 1f, "详见 · 机队", "n9_机队", null);
+                AddLink("详见 · 购机会议", "n97_购机决策会议", null);
+                AddLink("详见 · 机队", "n9_机队", null);
                 return;
             }
             if (_selected.action == InboxManager.HrRecruitAction)
             {
-                AddLink(0f, 1f, "详见 · 招聘", "n86_组织规划与招聘", null);
+                AddLink("详见 · 招聘", "n86_组织规划与招聘", null);
                 return;
             }
 
             if (_selected.action == "open_route" && !string.IsNullOrEmpty(_selected.origin))
             {
-                AddLink(0f, 0.32f, "详见 · 航线网络", "n12_航线网络", _selected.origin);
-                AddLink(0.34f, 0.66f, "详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
-                AddLink(0.68f, 1f, "详见 · RPM", "n35_新航线_RPM_评估台", null);
+                AddLink("详见 · 航线总览", "n12_航线网络", _selected.origin);
+                AddLink("详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
+                AddLink("详见 · RPM", "n35_新航线_RPM_评估台", null);
             }
             else if (_selected.action == "permit_progress" || _selected.action == "permit_objection"
                 || _selected.action == "permit_retry")
             {
-                AddLink(0f, 0.32f, "详见 · 航权时刻槽", "n77_航权与时刻槽", null);
-                AddLink(0.34f, 0.66f, "详见 · 航线网络", "n12_航线网络", null);
+                AddLink("详见 · 航权时刻槽", "n77_航权与时刻槽", null);
+                AddLink("详见 · 航线总览", "n12_航线网络", null);
                 if (!string.IsNullOrEmpty(_selected.origin))
-                    AddLink(0.68f, 1f, "详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
+                    AddLink("详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
             }
             else if (_selected.action == "irrops")
             {
-                AddLink(0f, 0.32f, "详见 · 航线网络", "n12_航线网络", null);
-                AddLink(0.34f, 0.66f, "详见 · 航班异常", "n24_危机_IRROPS_弹窗", null);
+                AddLink("详见 · 航线总览", "n12_航线网络", null);
+                AddLink("详见 · 航班异常", "n24_危机_IRROPS_弹窗", null);
             }
             else if (_selected.action == "annual_goals")
             {
-                AddLink(0f, 0.32f, "详见 · 年度目标", "n5_年度目标确认", null);
-                AddLink(0.34f, 0.66f, "详见 · 董事会", "n20_董事会", null);
+                AddLink("详见 · 年度目标", "n5_年度目标确认", null);
+                AddLink("详见 · 董事会", "n20_董事会", null);
             }
             else if (_selected.action == "capacity_plan")
             {
-                AddLink(0f, 0.32f, "详见 · 运力规划", "n76_机队与运力规划", null);
-                AddLink(0.34f, 0.66f, "详见 · 购机会议", "n97_购机决策会议", null);
+                AddLink("详见 · 运力规划", "n76_机队与运力规划", null);
+                AddLink("详见 · 购机会议", "n97_购机决策会议", null);
             }
             else if (_selected.action == "news")
             {
                 if (!string.IsNullOrEmpty(_selected.origin) && _selected.origin.StartsWith("n"))
-                    AddLink(0f, 0.32f, "详见 · 相关部门", _selected.origin, null);
+                    AddLink("详见 · 相关部门", _selected.origin, null);
             }
             else if (_selected.action == "comp_review")
             {
-                AddLink(0f, 0.32f, "详见 · 绩效薪酬", "n88_绩效与薪酬", null);
-                AddLink(0.34f, 0.66f, "详见 · 员工关系", "n89_员工关系与文化", null);
+                AddLink("详见 · 绩效薪酬", "n88_绩效与薪酬", null);
+                AddLink("详见 · 员工关系", "n89_员工关系与文化", null);
             }
             else if (_selected.action == "parts_order")
             {
-                AddLink(0f, 0.32f, "详见 · 航材", "n83_航材与供应链", null);
-                AddLink(0.34f, 0.66f, "详见 · 订单确认", "n105_订单确认", null);
+                AddLink("详见 · 航材", "n83_航材与供应链", null);
+                AddLink("详见 · 订单确认", "n105_订单确认", null);
             }
             else if (_selected.action == "reg_inspect")
             {
-                AddLink(0f, 0.32f, "详见 · 检查应对", "n100_检查应对弹窗", null);
-                AddLink(0.34f, 0.66f, "详见 · 局方法规", "n95_局方与法规事务", null);
+                AddLink("详见 · 检查应对", "n100_检查应对弹窗", null);
+                AddLink("详见 · 局方法规", "n95_局方与法规事务", null);
             }
             else if (_selected.action == "investment")
             {
-                AddLink(0f, 0.32f, "详见 · 投资并购", "n79_战略投资与并购", null);
-                AddLink(0.34f, 0.66f, "详见 · 财务预算", "n22_年度预算编制_审批", null);
-                AddLink(0.68f, 1f, "详见 · 董事会", "n20_董事会", null);
+                AddLink("详见 · 投资并购", "n79_战略投资与并购", null);
+                AddLink("详见 · 财务预算", "n22_年度预算编制_审批", null);
+                AddLink("详见 · 董事会", "n20_董事会", null);
             }
             else if (_selected.action == "codeshare" || _selected.action == "alliance_join")
             {
-                AddLink(0.34f, 0.66f, "详见 · 联盟合作", "n78_联盟与战略合作", null);
-                AddLink(0.68f, 1f, "详见 · 谈判", "n102_谈判弹窗", null);
+                AddLink("详见 · 联盟合作", "n78_联盟与战略合作", null);
+                AddLink("详见 · 谈判", "n102_谈判弹窗", null);
             }
             else if (_selected.action == "buy_slot" || _selected.action == InboxManager.ApplySlotAction
                      || _selected.action == InboxManager.ChangeSlotAction)
             {
-                AddLink(0f, 0.32f, "详见 · 航线网络", "n12_航线网络",
+                AddLink("详见 · 航线总览", "n12_航线网络",
                     string.IsNullOrEmpty(_selected.origin) ? null : _selected.origin);
-                AddLink(0.34f, 0.66f, "详见 · 航权时刻槽", "n77_航权与时刻槽", null);
+                AddLink("详见 · 航权时刻槽", "n77_航权与时刻槽", null);
                 // 时刻槽单的 origin/dest 存的是「机场 / 时段序号」，不是航线两端 ——
                 // 若照旧拼成 n41 的航线号就会跳到一个不存在的航线；交割后要办的事是回机队加机。
-                AddLink(0.68f, 1f, "交割后 · 机队加机", "n9_机队", null);
+                AddLink("交割后 · 机队加机", "n9_机队", null);
             }
             else if (_selected.action == "apply_right")
             {
-                AddLink(0f, 0.32f, "详见 · 航线网络", "n12_航线网络",
+                AddLink("详见 · 航线总览", "n12_航线网络",
                     string.IsNullOrEmpty(_selected.origin) ? null : _selected.origin);
-                AddLink(0.34f, 0.66f, "详见 · 航权时刻槽", "n77_航权与时刻槽", null);
+                AddLink("详见 · 航权时刻槽", "n77_航权与时刻槽", null);
                 if (!string.IsNullOrEmpty(_selected.origin) && !string.IsNullOrEmpty(_selected.dest))
-                    AddLink(0.68f, 1f, "详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
+                    AddLink("详见 · 航线提案", "n41_单航线", $"{_selected.origin}-{_selected.dest}");
             }
             else if (_selected.action == "finance_crisis")
             {
-                AddLink(0f, 0.32f, "详见 · 紧急融资", "n25_紧急融资_破产保护", null);
-                AddLink(0.34f, 0.66f, "详见 · 条款确认", "n103_条款确认", null);
-                AddLink(0.68f, 1f, "详见 · 重组", "n106_重组条件勾选", null);
+                AddLink("详见 · 紧急融资", "n25_紧急融资_破产保护", null);
+                AddLink("详见 · 条款确认", "n103_条款确认", null);
+                AddLink("详见 · 重组", "n106_重组条件勾选", null);
             }
             else if (_selected.action == "ops_schedule")
             {
-                AddLink(0f, 0.32f, "详见 · 周计划", "n42_航班周总计划", null);
-                AddLink(0.34f, 0.66f, "详见 · 飞行计划", "n43_航班详细计划", null);
+                AddLink("详见 · 周计划", "n42_航班周总计划", null);
+                AddLink("详见 · 飞行计划", "n43_航班详细计划", null);
             }
             else if (_selected.action == InboxManager.AssignFlightAction)
             {
-                AddLink(0f, 0.32f, "详见 · 本航线", "n41_单航线", _selected.origin);
-                AddLink(0.34f, 0.66f, "详见 · 周计划", "n42_航班周总计划", null);
-                AddLink(0.68f, 1f, "详见 · 机队", "n9_机队", null);
+                AddLink("详见 · 此航线", "n41_单航线", _selected.origin);
+                AddLink("详见 · 周计划", "n42_航班周总计划", null);
+                AddLink("详见 · 机队", "n9_机队", null);
             }
             else if (_selected.action == InboxManager.CapacityDirectiveAction)
             {
-                AddLink(0f, 0.32f, "详见 · 周计划", "n42_航班周总计划", null);
-                AddLink(0.34f, 0.66f, "详见 · 本航线", "n41_单航线", _selected.origin);
-                AddLink(0.68f, 1f, "详见 · 机队", "n9_机队", null);
+                AddLink("详见 · 周计划", "n42_航班周总计划", null);
+                AddLink("详见 · 此航线", "n41_单航线", _selected.origin);
+                AddLink("详见 · 机队", "n9_机队", null);
             }
             else if (_selected.role == InboxManager.OpsQueryRole)
             {
                 // 排班咨询答复：CEO 接过这封信最想核对的就是「本线班期 / 谁在飞 / 时刻槽」，
-                // 故三个按钮都指回**本线** —— 给「航线网络 / 董事会」那对兜底按钮等于让他自己再找一遍。
-                AddLink(0f, 0.32f, "详见 · 本航线", "n41_单航线", _selected.origin);
-                AddLink(0.34f, 0.66f, "详见 · 周计划", "n42_航班周总计划", null);
+                // 故三个按钮都指回**本线** —— 给「航线总览 / 董事会」那对兜底按钮等于让他自己再找一遍。
+                AddLink("详见 · 此航线", "n41_单航线", _selected.origin);
+                AddLink("详见 · 周计划", "n42_航班周总计划", null);
                 // n77 已内嵌进「航线」模块：JumpTo 会改投 n12 并直开「航权与时刻槽」页签。
                 // 这里**不能**自己写 n12 + 本线键 —— n12 的键是城市三字码，塞 routeId 进去会污染城市经济页。
-                AddLink(0.68f, 1f, "详见 · 航权时刻槽", "n77_航权与时刻槽", null);
+                AddLink("详见 · 航权时刻槽", "n77_航权与时刻槽", null);
             }
             else if (_selected.action == InboxManager.SeasonReviewAction)
             {
-                AddLink(0f, 0.32f, "详见 · 机队", "n9_机队", null);
-                AddLink(0.34f, 0.66f, "详见 · 周计划", "n42_航班周总计划", null);
-                AddLink(0.68f, 1f, "详见 · 航线网络", "n12_航线网络", null);
+                AddLink("详见 · 机队", "n9_机队", null);
+                AddLink("详见 · 周计划", "n42_航班周总计划", null);
+                AddLink("详见 · 航线总览", "n12_航线网络", null);
             }
             else
             {
-                AddLink(0f, 0.32f, "详见 · 航线网络", "n12_航线网络", null);
-                AddLink(0.34f, 0.66f, "详见 · 董事会", "n20_董事会", null);
+                AddLink("详见 · 航线总览", "n12_航线网络", null);
+                AddLink("详见 · 董事会", "n20_董事会", null);
             }
         }
 
@@ -1294,6 +1371,13 @@ namespace AirlineCEO.UI.Shell
         void OnKeywordClicked(string linkId)
         {
             if (!TermNavMap.TryResolve(linkId, out var hit)) return;
+            // 航班号链接带班次下标：n43 是单班页，不把下标写回去就会停在「上一次看的那一班」。
+            // 必须在 JumpTo 之前写 —— JumpTo 的 routeKey 分支会另行覆盖 SelectedRouteId。
+            if (hit.pageId != null && hit.pageId.StartsWith("n43", StringComparison.Ordinal)
+                && !string.IsNullOrEmpty(hit.routeKey))
+            {
+                OpsSubpageContext.SelectFlight(hit.routeKey, hit.flightIndex);
+            }
             if (hit.pageId == "n41_单航线" && string.IsNullOrEmpty(hit.routeKey)
                 && _selected != null && !string.IsNullOrEmpty(_selected.origin))
             {

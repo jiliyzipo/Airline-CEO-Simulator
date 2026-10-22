@@ -263,6 +263,7 @@ namespace AirlineCEO.Systems
             SaveSlotManager.ClearAllSlots();
             // 外部数据源的缓存与去重表属于运行时状态（源地址等配置保留）
             AirlineCEO.Logic.ExternalDataFetcher.Reset();
+            AirlineCEO.Logic.WeatherFeed.Reset();
             PlayerPrefs.Save();
         }
 
@@ -306,6 +307,10 @@ namespace AirlineCEO.Systems
 
         private void Update()
         {
+            // 开始界面 / 开局向导里不响应存档热键：那时 GameState 还是出厂值
+            // （刚「退出到开始界面」时更是被显式重置过），按一下 F5 就会把空局写进存档，
+            // 等于静默清档。F6/F7 是局内开发工具，同理只在局内生效。
+            if (!AirlineCEO.UI.Setup.SetupFlowController.InGameplaySession) return;
 #if ENABLE_INPUT_SYSTEM
             var kb = Keyboard.current;
             if (kb != null)
@@ -1357,6 +1362,7 @@ namespace AirlineCEO.Systems
                 }
                 catch (System.Exception e) { Debug.LogWarning($"[SaveManager] pendingInbox 反序列化失败：{e.Message}"); }
             }
+            InboxManager.BackfillReceiptRouteRefs(gs);
             string msgJson = GetS(KeyMessages, "");
             if (!string.IsNullOrEmpty(msgJson))
             {

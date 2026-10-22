@@ -45,6 +45,16 @@ namespace AirlineCEO.Logic
             R("LOC_CLEAR_SAVE", "清档（保留 API Key）", "Clear Save (keep API key)");
             R("LOC_CLEAR_SAVE_CONFIRM", "已清除游戏进度，请返回主菜单重新开局。", "Game progress cleared. Return to main menu to start over.");
 
+            // —— 退出到开始界面（FM 同款：局内设置里的一条，带确认与「先存档」）——
+            R("LOC_EXIT_START", "退出到开始界面", "Return to Start Screen");
+            R("LOC_EXIT_START_HINT", "本局未存档的进度将丢失", "Unsaved progress will be lost");
+            R("LOC_EXIT_START_BODY",
+                "回到开始界面后，本局的内存进度会被清空。\n已用 F5 存档的进度可在开始界面「继续 / 读档」恢复；未存档的进度无法找回。",
+                "The current session is discarded. Progress saved with F5 can be resumed from the start screen; unsaved progress cannot be recovered.");
+            R("LOC_EXIT_SAVE", "保存并退出", "Save and Quit");
+            R("LOC_EXIT_DISCARD", "不保存退出", "Quit Without Saving");
+            R("LOC_EXIT_CANCEL", "取消", "Cancel");
+
             // —— 色盲模式 ——
             R("LOC_CB_STANDARD", "标准", "Standard");
             R("LOC_CB_HIGHCONTRAST", "高对比度", "High Contrast");
@@ -68,7 +78,8 @@ namespace AirlineCEO.Logic
             R("LOC_EXT_TITLE", "外部信息源", "External News Source");
             R("LOC_EXT_ENABLED", "启用自动获取", "Auto Fetch");
             R("LOC_EXT_INTERVAL", "获取间隔（现实）", "Fetch Interval (real time)");
-            R("LOC_EXT_MAXPER", "每轮采纳条数", "Max Items per Fetch");
+            R("LOC_EXT_MAXPER", "单轮上限（去重后）", "Max Items per Fetch (after dedupe)");
+            R("LOC_EXT_DAILY", "每游戏日上限", "Max per Game Day");
             R("LOC_EXT_FILTER", "关键词过滤（只留民航相关）", "Keyword Filter (aviation only)");
             R("LOC_EXT_URL", "数据源地址（多个用 ; 分隔）", "Source URL(s), separate with ;");
             R("LOC_EXT_URL_HINT", "https://… 或 file://…（多个用 ; 分隔）", "https://… or file://… (separate with ;)");
@@ -88,9 +99,16 @@ namespace AirlineCEO.Logic
             R("LOC_EXT_SUM_OFF", "已关闭（仅手动）", "Off (manual only)");
             R("LOC_EXT_FETCHING", "获取中……", "Fetching…");
             R("LOC_EXT_QUEUE", "队列：待生效 {0} 条 · 库内 {1} 条", "Queue: {0} pending · {1} stored");
+            R("LOC_TYPHOON_ENABLED", "台风公报（中央气象台）", "Typhoon Bulletins (NMC)");
+            R("LOC_EXT_SUPP", "附加管道", "Extra Feeds");
+            R("LOC_FEED_TYPHOON", "台风", "Typhoon");
+            R("LOC_FEED_STORM", "全球风暴", "Global Storm");
+            R("LOC_FEED_SIGMET", "SIGMET", "SIGMET");
+            R("LOC_STORM_ENABLED", "全球风暴（NASA EONET）", "Global Storms (NASA EONET)");
+            R("LOC_SIGMET_ENABLED", "国际航行警告（SIGMET）", "Intl. SIGMET");
 
             // —— 行情源（油价；现实报价作参考基准，季度最多靠拢 ±8%）——
-            R("LOC_QUOTE_TITLE", "行情源 · 油价", "Market Data · Fuel");
+            R("LOC_QUOTE_TITLE", "行情源 · 油价 / 汇率", "Market Data · Fuel / FX");
             R("LOC_QUOTE_OPEN", "行情源 ▸", "Market Data ▸");
             R("LOC_QUOTE_OPEN_ON", "行情源 开 ▸", "Market Data On ▸");
             R("LOC_QUOTE_OPEN_OFF", "行情源 关 ▸", "Market Data Off ▸");
@@ -110,6 +128,11 @@ namespace AirlineCEO.Logic
             R("LOC_QUOTE_EVERY_DAY", "每 {0} 小时", "every {0} h");
             R("LOC_QUOTE_SUM_ON", "已开启 · {0}", "On · {0}");
             R("LOC_QUOTE_SUM_OFF", "未开启（按游戏自身宏观走）", "Off (game macro only)");
+
+            // —— 汇率（USD/CNY；现实汇率作参考基准，季度最多靠拢 ±3%）——
+            R("LOC_FX_ENABLED", "汇率行情（USD/CNY）", "FX Quote (USD/CNY)");
+            R("LOC_FX_INTERVAL", "汇率间隔（现实）", "FX Interval (real time)");
+            R("LOC_FX_GAME", "游戏汇率", "In-game Rate");
         }
 
         static void R(string key, string zh, string en) => _dict[key] = new[] { zh, en };

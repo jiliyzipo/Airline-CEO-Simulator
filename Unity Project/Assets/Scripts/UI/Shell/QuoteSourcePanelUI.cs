@@ -36,7 +36,8 @@ namespace AirlineCEO.UI.Shell
         static readonly float[] CrackChoices = { 100f, 150f, 200f, 250f, 300f };
         static readonly string[] RowKeys =
         {
-            "LOC_QUOTE_ENABLED", "LOC_QUOTE_INTERVAL", "LOC_QUOTE_CRACK"
+            "LOC_QUOTE_ENABLED", "LOC_QUOTE_INTERVAL", "LOC_QUOTE_CRACK",
+            "LOC_FX_ENABLED", "LOC_FX_INTERVAL"
         };
 
         readonly List<TextMeshProUGUI> _rowTitles = new List<TextMeshProUGUI>();
@@ -68,16 +69,17 @@ namespace AirlineCEO.UI.Shell
 
             panel._status = UIFactory.Label(root.transform, "Status", "", 14,
                 TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.315f), new Vector2(0.96f, 0.50f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.285f), new Vector2(0.96f, 0.455f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
 
             UIFactory.Label(root.transform, "Hint",
-                "现实报价只作参考基准，油价仍由游戏自身驱动（本项默认开启，可在此关掉）：\n" +
-                "· 开启后每季最多向现实价靠拢 ±8%，不会一次跳到现实价。\n" +
+                "现实行情只作参考基准，价格仍由游戏自身驱动（两项默认开启，可在此关掉）：\n" +
+                "· 油价：每季最多向现实价靠拢 ±8%，不会一次跳到现实价。\n" +
+                "· 汇率：每季最多向现实 USD/CNY 靠拢 ±3%，靠拢部分按净美元头寸结算汇兑损益。\n" +
                 "· 换算：原油（美元/桶）× 7.82 + 裂解价差，结果裁到 400–1600 美元/吨。\n" +
-                "· 关闭 / 断网 / 报价异常时，油价完全按游戏宏观引擎走，季报里不会有收敛条目。",
+                "· 关闭 / 断网 / 取数异常时，油价与汇率完全按游戏宏观引擎走。",
                 13, TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.155f), new Vector2(0.96f, 0.305f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.145f), new Vector2(0.96f, 0.275f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
             panel.BuildBottom(root.transform);
@@ -130,12 +132,27 @@ namespace AirlineCEO.UI.Shell
                 _note = "裂解价差已改：下一轮报价按新口径换算。";
                 RefreshAll();
             });
+            MakeRow(parent, 3, "LOC_FX_ENABLED", () =>
+            {
+                ExternalDataFetcher.FxEnabled = !ExternalDataFetcher.FxEnabled;
+                if (ExternalDataFetcher.FxEnabled) FetchNow();
+                RefreshAll();
+            });
+            MakeRow(parent, 4, "LOC_FX_INTERVAL", () =>
+            {
+                int cur = ExternalDataFetcher.FxIntervalSeconds;
+                int idx = 0;
+                for (int i = 0; i < IntervalChoices.Length; i++)
+                    if (IntervalChoices[i] == cur) { idx = i; break; }
+                ExternalDataFetcher.FxIntervalSeconds = IntervalChoices[(idx + 1) % IntervalChoices.Length];
+                RefreshAll();
+            });
         }
 
         void MakeRow(Transform parent, int index, string titleKey, UnityAction onClick)
         {
-            float top = 0.855f - index * 0.068f;
-            float bottom = top - 0.058f;
+            float top = 0.885f - index * 0.062f;
+            float bottom = top - 0.052f;
 
             var titleLabel = UIFactory.Label(parent, "Row" + index + "_Title", Loc.T(titleKey), 16,
                 TextAlignmentOptions.MidlineLeft,
@@ -156,11 +173,11 @@ namespace AirlineCEO.UI.Shell
         {
             UIFactory.Label(parent, "UrlTitle", Loc.T("LOC_QUOTE_URL"), 16,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.607f), new Vector2(0.9f, 0.650f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.545f), new Vector2(0.9f, 0.578f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
 
             _url = UIFactory.Input(parent, "UrlField", Loc.T("LOC_QUOTE_URL_HINT"),
-                new UIFactory.Anchor(new Vector2(0.04f, 0.528f), new Vector2(0.96f, 0.595f), Vector2.zero, Vector2.zero));
+                new UIFactory.Anchor(new Vector2(0.04f, 0.478f), new Vector2(0.96f, 0.538f), Vector2.zero, Vector2.zero));
             _url.text = ExternalDataFetcher.QuoteUrl;
             _url.onEndEdit.AddListener(ApplyUrl);
             _url.onSubmit.AddListener(ApplyUrl);
@@ -195,16 +212,17 @@ namespace AirlineCEO.UI.Shell
 
         void FetchNow()
         {
-            if (!ExternalDataFetcher.QuoteEnabled)
+            if (!ExternalDataFetcher.QuoteEnabled && !ExternalDataFetcher.FxEnabled)
             {
-                _note = "油价行情未开启：先在上一行打开，再取报价。";
+                _note = "油价与汇率行情都没开：先在上面打开至少一项，再取数。";
                 RefreshStatus();
                 return;
             }
-            _baseline = ExternalDataFetcher.QuoteStatus;
+            _baseline = ExternalDataFetcher.QuoteStatus + "|" + ExternalDataFetcher.FxStatus;
             _note = Loc.T("LOC_EXT_FETCHING");
             _polling = true;
             ExternalDataFetcher.RequestQuoteRefresh(true);
+            ExternalDataFetcher.RequestFxRefresh(true);
             RefreshStatus();
         }
 
@@ -213,6 +231,7 @@ namespace AirlineCEO.UI.Shell
             ExternalDataFetcher.QuoteUrl = ExternalDataFetcher.DefaultQuoteUrl;
             ExternalDataFetcher.QuoteIntervalSeconds = ExternalDataFetcher.DefaultQuoteIntervalSeconds;
             ExternalDataFetcher.CrackSpreadUsdPerTon = ExternalDataFetcher.DefaultCrackSpreadUsdPerTon;
+            ExternalDataFetcher.FxIntervalSeconds = ExternalDataFetcher.DefaultFxIntervalSeconds;
             if (_url != null) _url.text = ExternalDataFetcher.QuoteUrl;
             _note = "已恢复默认行情口径（开关未改动）。";
             RefreshAll();
@@ -241,14 +260,16 @@ namespace AirlineCEO.UI.Shell
 
             if (_polling)
             {
-                string cur = ExternalDataFetcher.QuoteStatus;
+                string cur = ExternalDataFetcher.QuoteStatus + "|" + ExternalDataFetcher.FxStatus;
                 if (cur != _baseline)
                 {
                     _polling = false;
                     _baseline = cur;
-                    _note = ExternalDataFetcher.CachedOilPricePerTon > 0f
-                        ? "报价已更新：下一季结算时按 ±8% 向该价格靠拢。"
-                        : "本轮没拿到报价（地址不可达或字段无法识别）。";
+                    bool gotOil = ExternalDataFetcher.CachedOilPricePerTon > 0f;
+                    bool gotFx = ExternalDataFetcher.CachedUsdCny > 0f;
+                    _note = gotOil || gotFx
+                        ? "取数已更新：下一季结算时按各自上限向现实行情靠拢（油 ±8% / 汇 ±3%）。"
+                        : "本轮没拿到行情（地址不可达或字段无法识别）。";
                 }
             }
 
@@ -272,6 +293,8 @@ namespace AirlineCEO.UI.Shell
             SetRow(0, Loc.T(ExternalDataFetcher.QuoteEnabled ? "LOC_ON" : "LOC_OFF"));
             SetRow(1, IntervalLabel(ExternalDataFetcher.QuoteIntervalSeconds));
             SetRow(2, ExternalDataFetcher.CrackSpreadUsdPerTon.ToString("F0"));
+            SetRow(3, Loc.T(ExternalDataFetcher.FxEnabled ? "LOC_ON" : "LOC_OFF"));
+            SetRow(4, IntervalLabel(ExternalDataFetcher.FxIntervalSeconds));
         }
 
         void SetRow(int index, string text)
@@ -296,6 +319,11 @@ namespace AirlineCEO.UI.Shell
             sb.Append('\n').Append(Loc.T("LOC_QUOTE_CALC")).Append("：")
               .Append(string.IsNullOrEmpty(st) ? Loc.T("LOC_EXT_NEVER") : st);
 
+            // 汇率：独立管道，口径与油价并列展示
+            sb.Append('\n').Append(ExternalDataFetcher.FxStatusLine());
+            string fxSt = ExternalDataFetcher.FxStatus;
+            if (!string.IsNullOrEmpty(fxSt)) sb.Append("　·　").Append(fxSt);
+
             var gs = GameState.Instance;
             if (gs != null)
             {
@@ -304,6 +332,12 @@ namespace AirlineCEO.UI.Shell
                 string forecast = MacroEconomyManager.QuoteConvergeForecast(gs);
                 if (!string.IsNullOrEmpty(forecast))
                     sb.Append("　·　").Append(Loc.T("LOC_QUOTE_NEXT")).Append("：").Append(forecast);
+
+                sb.Append('\n').Append(Loc.T("LOC_FX_GAME")).Append("：")
+                  .Append(gs.usdCny.ToString("F4"));
+                string fxForecast = AirlineCEO.Logic.FxEconomics.RateConvergeForecast(gs);
+                if (!string.IsNullOrEmpty(fxForecast))
+                    sb.Append("　·　").Append(Loc.T("LOC_QUOTE_NEXT")).Append("：").Append(fxForecast);
             }
 
             if (!string.IsNullOrEmpty(_note))

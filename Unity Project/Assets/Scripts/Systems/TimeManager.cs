@@ -227,6 +227,14 @@ namespace AirlineCEO.Systems
                 InboxManager.NotifyHedgeSettle(gs, hedgeText);
             }
 
+            // 现实汇率（默认开启，可在 n116 关掉）：先按现实汇率靠拢并结算该段汇兑损益，再走游戏自身的季度漂移
+            string fxRealText = AirlineCEO.Logic.FxEconomics.ConvergeToRealRate(gs);
+            if (!string.IsNullOrEmpty(fxRealText))
+            {
+                eventText = string.IsNullOrEmpty(eventText) ? fxRealText : eventText + "\n" + fxRealText;
+                InboxManager.NotifyFxQuoteConverge(gs, fxRealText);
+            }
+
             // 汇率（Phase 20）：与油价对冲同口径 —— 先按漂移前汇率结算本季汇兑损益，再漂移汇率
             string fxText = AirlineCEO.Logic.FxEconomics.SettleAndDrift(gs);
             if (!string.IsNullOrEmpty(fxText))

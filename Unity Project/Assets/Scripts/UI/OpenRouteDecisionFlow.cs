@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// 开通航线：选机场后由运营部召集研究，把各部门意见发到收件箱请 CEO 决策。
+    /// 开通航线：选机场后提交开航申请，运营部召集各部门会商，把意见发到收件箱请 CEO 决策。
     /// </summary>
     public class OpenRouteDecisionFlow : MonoBehaviour
     {
@@ -98,20 +98,13 @@ namespace AirlineCEO.UI
                 ? MapWidget.GreatCircleKm(sel.originCode, sel.destCode)
                 : MapWidget.GreatCircleKm(sel.originCode, sel.viaCode)
                   + MapWidget.GreatCircleKm(sel.viaCode, sel.destCode);
-            string ac = dist >= 5000f ? "B787-9" : "A320neo";
             var demand = RouteGravityModel.Evaluate(gs, sel.originCode, sel.destCode, dist);
-            float demandMul = CityEconomyLogic.OdDemandMultiplier(gs, sel.originCode, sel.destCode);
-            _previewRpm = RPMCalculator.Calculate(new RPMCalculator.RPMInput
-            {
-                distance = dist,
-                fuelPricePerTon = gs != null ? gs.fuelPricePerTon : 850f,
-                competitorSupply = 0.4f,
-                demandMultiplier = demandMul,
-                brandEquity = gs != null ? gs.brandAwareness : 55f,
-                aircraftType = ac,
-                seats = EconomyBalanceParams.DefaultSeatsFor(ac),
-                passengerType = "leisure"
-            });
+
+            // 与 n35「新航线 RPM 评估台」同一套入参装配，避免两个入口对同一条航线给出两个数。
+            var plan = RpmPreview.Build(gs, sel.originCode, sel.destCode,
+                aircraftType: null, competitorSupply: 0.4f, distanceKm: dist);
+            string ac = plan.aircraftType;
+            _previewRpm = plan.output;
 
             bool canAfford = cash >= cost;
             string affordLine = canAfford
@@ -143,7 +136,7 @@ namespace AirlineCEO.UI
             core.Append($"<b>议题：批准开通 {path}</b>\n");
 
             core.Append(InboxLetter.Section("航线与运力"));
-            core.Append(InboxLetter.Row("基地", sel.originLabel));
+            core.Append(InboxLetter.Row("出发地", sel.originLabel));
             core.Append(InboxLetter.Row("目的地", sel.destLabel));
             core.Append(InboxLetter.Row("经停", sel.viaLabel));
             core.Append(InboxLetter.Row("航程", $"{dist:F0} km · 建议机型 {ac}（单班示意）"));

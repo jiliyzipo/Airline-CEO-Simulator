@@ -120,6 +120,24 @@ namespace AirlineCEO.UI
             }
         }
 
+        /// <summary>
+        /// 「退出到开始界面」：收起只有局内才该出现的常驻件（顾问停靠 / 终局遮罩 / 消息弹窗），并停表。
+        ///
+        /// 顺序很重要：**先停表再收 UI**。季度结算是同步跑的，但「等待中」的邮件投递、
+        /// 顾问延时弹出这类协程还会在下一帧醒来 —— 如果先收 UI，它们会对着空壳再弹一次。
+        /// </summary>
+        public void OnSessionClosing()
+        {
+            TimeManager.SimulationEnabled = false;
+            GameSpeed.Pause();
+
+            _advisorModal?.Hide();
+            _advisorModal?.SetDockVisible(false);
+            GameOverOverlay.Hide();
+            if (_popupRoot != null) _popupRoot.SetActive(false);
+            if (_panelAi != null) _panelAi.SetActive(false);
+        }
+
         private void Awake()
         {
             EnsureCoreSystems();
@@ -169,6 +187,8 @@ namespace AirlineCEO.UI
             _advisorModal?.BringToFront();
             TimeManager.SimulationEnabled = true;
             TimeManager.Instance?.BeginPlaySession();
+            // 外部源预热：开局立刻发起一轮取数（结果仍按游戏时钟进箱）
+            ExternalEventManager.WarmUp(GameState.Instance);
             RefreshClock();
             // 过渡业务（开局三架飞机的盈利设计）：铺常驻报价 + 投递运营部建议信
             AirlineCEO.Logic.TransitionBusinessLogic.Bootstrap(GameState.Instance);
@@ -737,10 +757,12 @@ namespace AirlineCEO.UI
 
         private void BuildCenterPanels(Transform parent)
         {
-            // 全宽：无左侧导航；底部留给 Shell 底栏 + 状态栏（快讯条已移除，不留 TickerHeight）
+            // 全宽：无左侧导航；底部留给 Shell 底栏 + 「a 读数 / c 命令台」那条
+            // （快讯条已移除，不留 TickerHeight；底高与 PrefabNavIntegration 的 ContentBottomY 同源）
             var center = UIFactory.Panel(parent, "CenterHost",
                 new UIFactory.Anchor(new Vector2(0, 0), new Vector2(1, 1),
-                    new Vector2(20, 118), new Vector2(-20, -UITheme.TopBarHeight - 12)),
+                    new Vector2(20, 84f + AirlineCEO.UI.Shell.BottomDockView.BarHeight + 4f),
+                    new Vector2(-20, -UITheme.TopBarHeight - 12)),
                 new Color(0, 0, 0, 0), rounded: false);
             center.GetComponent<Image>().raycastTarget = false;
 
@@ -856,6 +878,11 @@ namespace AirlineCEO.UI
             while (true)
             {
                 RefreshClock();
+                // 现实源开箱即到：不等游戏分钟，按现实节拍把已抓到的稿子并入收件箱。
+                // 只负责「进箱」（后续生效仍由游戏时钟触发），因此暂停时也能看到新闻。
+                var gsLive = GameState.Instance;
+                if (gsLive != null && !gsLive.gameOver && TimeManager.SimulationEnabled)
+                    ExternalEventManager.DrainSource(gsLive);
                 yield return wait;
             }
         }

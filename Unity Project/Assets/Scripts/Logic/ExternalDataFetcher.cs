@@ -38,6 +38,7 @@ namespace AirlineCEO.Logic
         public const string PrefInterval = "ext.source.interval";
         public const string PrefMaxPerFetch = "ext.source.maxperfetch";
         public const string PrefFilter = "ext.source.filter";
+        public const string PrefDailyBudget = "ext.source.dailybudget";
 
         // ———— 行情源配置（油价；与新闻源分开，默认开启；玩家可在 n116 关掉）————
         public const string PrefQuoteEnabled = "ext.quote.enabled";
@@ -45,12 +46,26 @@ namespace AirlineCEO.Logic
         public const string PrefQuoteInterval = "ext.quote.interval";
         public const string PrefQuoteCrack = "ext.quote.crack";
 
+        // ———— 汇率源配置（USD/CNY；默认开启，独立于油价）————
+        public const string PrefFxEnabled = "ext.fx.enabled";
+        public const string PrefFxInterval = "ext.fx.interval";
+
         /// <summary>
-        /// 默认行情源：布伦特原油近月合约的 JSON 图表接口（无 Key）。
-        /// 任何返回「带 price / value / regularMarketPrice 字段的 JSON」或「纯数字」的地址都能顶替。
+        /// 默认行情源：布伦特原油近月合约。
+        /// ① 腾讯行情 <c>qt.gtimg.cn/q=hf_OIL</c> —— 大陆直连、无 Key，字段 0 = 美元/桶；
+        /// ② 新浪外盘 <c>hq.sinajs.cn/list=hf_OIL</c> —— 大陆直连（需 sina 域 Referer，代码里已按域补）；
+        /// ③ Yahoo 图表接口 —— 海外网络可用，大陆通常不可达。
+        /// 任何返回「带 price / value / regularMarketPrice 字段的 JSON」「纯数字」或「腾讯/新浪行情串」的地址都能顶替。
         /// </summary>
-        public const string DefaultQuoteUrl =
-            "https://query1.finance.yahoo.com/v8/finance/chart/BZ=F?interval=1d&range=1d";
+        public static readonly string[] DefaultQuoteUrls =
+        {
+            "https://qt.gtimg.cn/q=hf_OIL",
+            "https://hq.sinajs.cn/list=hf_OIL",
+            "https://query1.finance.yahoo.com/v8/finance/chart/BZ=F?interval=1d&range=1d"
+        };
+
+        /// <summary>默认行情地址（= 首个国内源）。</summary>
+        public const string DefaultQuoteUrl = "https://qt.gtimg.cn/q=hf_OIL";
 
         /// <summary>默认行情间隔（现实秒）：6 小时。0 = 不自动拉取。</summary>
         public const int DefaultQuoteIntervalSeconds = 21600;
@@ -58,22 +73,60 @@ namespace AirlineCEO.Logic
         public const float DefaultCrackSpreadUsdPerTon = 150f;
         /// <summary>1 吨航油 ≈ 7.82 桶（Jet A-1 密度 ≈0.804 kg/L；1 桶 =158.987 L → 127.8 kg）。</summary>
         public const float BarrelsPerTonJet = 7.82f;
+
+        /// <summary>
+        /// 汇率默认地址（按顺序回退，任一可用即止）：
+        /// ① 腾讯行情 <c>whUSDCNY</c> —— 大陆直连、无需 Key、返回 <c>v_whUSDCNY="…~6.6792~…"</c>；
+        /// ② Frankfurter（欧洲央行口径）—— 每天更新一次，JSON <c>rates.CNY</c>；
+        /// ③ open.er-api —— 备用日更源，JSON <c>rates.CNY</c>。
+        /// </summary>
+        public static readonly string[] DefaultFxUrls =
+        {
+            "https://qt.gtimg.cn/q=whUSDCNY",
+            "https://api.frankfurter.app/latest?from=USD&to=CNY",
+            "https://open.er-api.com/v6/latest/USD"
+        };
+
+        /// <summary>汇率拉取间隔（现实秒）：6 小时。0 = 不自动拉取。</summary>
+        public const int DefaultFxIntervalSeconds = 21600;
+        const float FxMin = 5.50f;
+        const float FxMax = 9.50f;
         /// <summary>换算式：航油（美元/吨）= 原油（美元/桶）× 7.82 + 裂解价差。</summary>
         const float QuoteMinUsdPerTon = 400f;
         const float QuoteMaxUsdPerTon = 1600f;
 
         /// <summary>
-        /// 默认源：航空主题的新闻聚合 RSS（需可访问外网；不可达时静默降级）。
-        /// 查询串刻意**不含「油价」** —— 那会把财经与商品期货新闻灌进来；油价由行情源（n116）单独取，
-        /// 新闻源只管「内容」不管「价格」，两条管道职责分开。
+        /// 国内默认源（**无需 VPN**，大陆网络可直连）：
+        /// ① 中新网滚动新闻 RSS（国内综合：政策、天气、突发事件，民航稿随新闻发生自然进入）；
+        /// ② 中新网财经 RSS（油价/宏观，只作内容，价格仍由行情源单独取）；
+        /// ③ 新浪财经 7×24 快讯 JSON（国内可直连的「全球资讯」：航司、油价、汇率、台风都在里面）。
+        /// <para>
+        /// 多个源用「;」分隔；任一源不可达只影响它自己，其余照常。
+        /// 想回到 Google News（需可访问外网）可整串替换为 <see cref="GlobalUrl"/>。
+        /// </para>
+        /// <para>
+        /// 已实测淘汰：<c>ccaonline.cn</c>（中国民航网）WP REST —— 最新文章栏被 SEO 广告稿占满，
+        /// 关键词过滤后几乎全丢，不适合做默认源；可另填其单篇/专栏地址自用。
+        /// </para>
         /// </summary>
-        public const string DefaultUrl =
+        public const string DomesticUrl =
+            "https://www.chinanews.com.cn/rss/scroll-news.xml"
+            + ";https://www.chinanews.com.cn/rss/finance.xml"
+            + ";https://zhibo.sina.com.cn/api/zhibo/feed?page=1&page_size=30&zhibo_id=152&tag_id=0&dire=f&dpc=1";
+
+        /// <summary>Google News 聚合（**需可访问外网**，大陆直连通常不可达）：留作海外网络环境的备选。</summary>
+        public const string GlobalUrl =
             "https://news.google.com/rss/search?q=%E8%88%AA%E7%A9%BA%20OR%20%E6%B0%91%E8%88%AA%E5%B1%80%20OR%20%E8%88%AA%E7%8F%AD%20OR%20%E8%88%AA%E7%BA%BF%20OR%20%E6%9C%BA%E5%9C%BA%20OR%20%E8%88%AA%E6%B2%B9%20OR%20%E5%8F%B0%E9%A3%8E&hl=zh-CN&gl=CN&ceid=CN:zh-Hans";
+
+        /// <summary>默认源 = 国内源（打开即用，不依赖翻墙）。</summary>
+        public const string DefaultUrl = DomesticUrl;
 
         /// <summary>默认拉取间隔（现实秒）。0 = 不自动拉取，仅手动/注入。</summary>
         public const int DefaultIntervalSeconds = 1800;
-        /// <summary>每轮最多采纳几条（按时间倒序），避免刷屏。</summary>
-        public const int DefaultMaxPerFetch = 2;
+        /// <summary>单轮最多采纳几条（去重后按重要度排序取前 N）。</summary>
+        public const int DefaultMaxPerFetch = 3;
+        /// <summary>每游戏日最多入队几条外部来文（含气象实况）：真正的防洪闸，默认 8。</summary>
+        public const int DefaultDailyBudget = 8;
         const int MaxSeenIds = 400;
         const int TimeoutSeconds = 12;
         const int MaxBodyChars = 2000;
@@ -83,6 +136,7 @@ namespace AirlineCEO.Logic
         static string _url = DefaultUrl;
         static int _intervalSeconds = DefaultIntervalSeconds;
         static int _maxPerFetch = DefaultMaxPerFetch;
+        static int _dailyBudget = DefaultDailyBudget;
         static bool _relevanceFilter = true;
 
         // 行情源运行时状态（报价仅缓存于内存：每次开局重新取，避免存档里留下失真的现实价）
@@ -97,9 +151,21 @@ namespace AirlineCEO.Logic
         static DateTime _oilQuoteAtUtc = DateTime.MinValue;
         static string _quoteStatus = "";
 
+        // 汇率源运行时状态（同样只缓存于内存）
+        static bool _fxEnabled;
+        static int _fxIntervalSeconds = DefaultFxIntervalSeconds;
+        static bool _fxInFlight;
+        static DateTime _fxLastAttemptUtc = DateTime.MinValue;
+        static float _usdCny;
+        static string _fxLabel = "";
+        static DateTime _fxAtUtc = DateTime.MinValue;
+        static string _fxStatus = "";
+
         static readonly object Gate = new object();
         static readonly List<ExternalEventPayload> Inbox = new List<ExternalEventPayload>();
         static readonly HashSet<string> Seen = new HashSet<string>();
+        /// <summary>标题指纹去重：同一件事被多家转载时只入队一次（按归一化标题，不含媒体名）。</summary>
+        static readonly HashSet<string> SeenTitles = new HashSet<string>();
         static bool _inFlight;
         static DateTime _lastAttemptUtc = DateTime.MinValue;
         static string _lastStatus = "";
@@ -134,6 +200,16 @@ namespace AirlineCEO.Logic
         {
             get { EnsureLoaded(); return _maxPerFetch; }
             set { EnsureLoaded(); _maxPerFetch = Mathf.Clamp(value, 1, 10); SaveInt(PrefMaxPerFetch, _maxPerFetch); }
+        }
+
+        /// <summary>
+        /// 每游戏日最多入队几条外部来文（默认 8）。条数门槛的真正意义在**节奏**而不是**相关性**：
+        /// 关键词过滤负责「要不要」，这里负责「一天最多几封」，否则一条事件被几十家转载就会刷满收件箱。
+        /// </summary>
+        public static int DailyBudget
+        {
+            get { EnsureLoaded(); return _dailyBudget; }
+            set { EnsureLoaded(); _dailyBudget = Mathf.Clamp(value, 1, 30); SaveInt(PrefDailyBudget, _dailyBudget); }
         }
 
         /// <summary>关键词过滤：滤掉股市/股市行情类噪声，只留与民航相关的内容。</summary>
@@ -270,6 +346,91 @@ namespace AirlineCEO.Logic
             return $"{hr / 24.0:F0} 天前";
         }
 
+        // ———— 汇率源配置读写 ————
+
+        /// <summary>
+        /// 是否拉取现实 USD/CNY。默认开启：开启后汇率每季最多向现实汇率靠拢 ±3%（见
+        /// <see cref="Logic.FxEconomics.ConvergeToRealRate"/>），现实汇率只作参考基准。
+        /// </summary>
+        public static bool FxEnabled
+        {
+            get { EnsureLoaded(); return _fxEnabled; }
+            set
+            {
+                EnsureLoaded();
+                _fxEnabled = value;
+                SaveInt(PrefFxEnabled, value ? 1 : 0);
+                if (!value)
+                {
+                    lock (Gate)
+                    {
+                        _usdCny = 0f;
+                        _fxAtUtc = DateTime.MinValue;
+                        _fxStatus = "";
+                    }
+                }
+            }
+        }
+
+        /// <summary>汇率拉取间隔（现实秒）；0 = 不自动拉取。</summary>
+        public static int FxIntervalSeconds
+        {
+            get { EnsureLoaded(); return _fxIntervalSeconds; }
+            set { EnsureLoaded(); _fxIntervalSeconds = Mathf.Max(0, value); SaveInt(PrefFxInterval, _fxIntervalSeconds); }
+        }
+
+        /// <summary>最近一次汇率拉取结果。</summary>
+        public static string FxStatus { get { EnsureLoaded(); return _fxStatus; } }
+
+        /// <summary>当前缓存的 USD/CNY；0 = 尚无。</summary>
+        public static float CachedUsdCny { get { EnsureLoaded(); return _usdCny; } }
+
+        /// <summary>汇率来源标签（如 whUSDCNY / 欧洲央行）。</summary>
+        public static string CachedFxLabel { get { EnsureLoaded(); return _fxLabel; } }
+
+        /// <summary>汇率取数时刻（现实 UTC）。</summary>
+        public static DateTime CachedFxAtUtc { get { EnsureLoaded(); return _fxAtUtc; } }
+
+        /// <summary>纯读缓存：不开网络请求，可安全用于季度结算路径。</summary>
+        public static bool TryGetExchangeRate(out float usdCny, out string label)
+        {
+            EnsureLoaded();
+            usdCny = _fxEnabled ? _usdCny : 0f;
+            label = _fxLabel;
+            return usdCny > 0f;
+        }
+
+        /// <summary>一行式汇率状态（各页面共用口径），绝不返回 null。</summary>
+        public static string FxStatusLine(bool compact = false)
+        {
+            EnsureLoaded();
+            if (!_fxEnabled)
+                return compact ? "现实汇率 未开启" : "现实汇率：未开启（汇率按游戏自身宏观引擎走）";
+            if (_usdCny <= 0f)
+            {
+                string st = _fxStatus;
+                return compact
+                    ? "现实汇率 已开启 · 尚未取到"
+                    : "现实汇率：已开启，尚未取到"
+                      + (string.IsNullOrEmpty(st) ? "（下一轮自动拉取）" : $"（上一轮：{st}）");
+            }
+            string body = $"USD/CNY {_usdCny:F4}（{(_fxLabel.Length > 0 ? _fxLabel : "行情源")}）";
+            return compact ? $"现实汇率 {body}" : $"现实汇率：{body} · {AgeLabel(_fxAtUtc)}取数";
+        }
+
+        /// <summary>直接投递一条汇率（离线自测），跳过网络。</summary>
+        public static void InjectExchangeRate(float usdCny, string label = "自测汇率")
+        {
+            EnsureLoaded();
+            lock (Gate)
+            {
+                _usdCny = Mathf.Clamp(usdCny, FxMin, FxMax);
+                _fxLabel = string.IsNullOrEmpty(label) ? "自测汇率" : label;
+                _fxAtUtc = DateTime.UtcNow;
+                _fxStatus = $"{DateTime.Now:MM-dd HH:mm} {_fxLabel} = {_usdCny:F4}（注入）";
+            }
+        }
+
         static void SaveInt(string key, int v)
         {
             PlayerPrefs.SetInt(key, v);
@@ -287,27 +448,34 @@ namespace AirlineCEO.Logic
                 _url = string.IsNullOrEmpty(u) ? DefaultUrl : u;
                 _intervalSeconds = PlayerPrefs.GetInt(PrefInterval, DefaultIntervalSeconds);
                 _maxPerFetch = PlayerPrefs.GetInt(PrefMaxPerFetch, DefaultMaxPerFetch);
-                        _relevanceFilter = PlayerPrefs.GetInt(PrefFilter, 1) != 0;
+                _dailyBudget = PlayerPrefs.GetInt(PrefDailyBudget, DefaultDailyBudget);
+                _relevanceFilter = PlayerPrefs.GetInt(PrefFilter, 1) != 0;
 
-                        _quoteEnabled = PlayerPrefs.GetInt(PrefQuoteEnabled, 1) != 0;
-                        string qu = PlayerPrefs.GetString(PrefQuoteUrl, DefaultQuoteUrl);
-                        _quoteUrl = string.IsNullOrEmpty(qu) ? DefaultQuoteUrl : qu;
-                        _quoteIntervalSeconds = PlayerPrefs.GetInt(PrefQuoteInterval, DefaultQuoteIntervalSeconds);
-                        _quoteCrackSpread = PlayerPrefs.GetFloat(PrefQuoteCrack, DefaultCrackSpreadUsdPerTon);
-                    }
-                    catch
-                    {
-                        // PlayerPrefs 不可用（极端环境）时退回默认值
-                        _enabled = true;
-                        _url = DefaultUrl;
-                        _intervalSeconds = DefaultIntervalSeconds;
-                        _maxPerFetch = DefaultMaxPerFetch;
-                        _relevanceFilter = true;
-                        _quoteEnabled = true;
-                        _quoteUrl = DefaultQuoteUrl;
-                        _quoteIntervalSeconds = DefaultQuoteIntervalSeconds;
-                        _quoteCrackSpread = DefaultCrackSpreadUsdPerTon;
-                    }
+                _quoteEnabled = PlayerPrefs.GetInt(PrefQuoteEnabled, 1) != 0;
+                string qu = PlayerPrefs.GetString(PrefQuoteUrl, DefaultQuoteUrl);
+                _quoteUrl = string.IsNullOrEmpty(qu) ? DefaultQuoteUrl : qu;
+                _quoteIntervalSeconds = PlayerPrefs.GetInt(PrefQuoteInterval, DefaultQuoteIntervalSeconds);
+                _quoteCrackSpread = PlayerPrefs.GetFloat(PrefQuoteCrack, DefaultCrackSpreadUsdPerTon);
+
+                _fxEnabled = PlayerPrefs.GetInt(PrefFxEnabled, 1) != 0;
+                _fxIntervalSeconds = PlayerPrefs.GetInt(PrefFxInterval, DefaultFxIntervalSeconds);
+            }
+            catch
+            {
+                // PlayerPrefs 不可用（极端环境）时退回默认值
+                _enabled = true;
+                _url = DefaultUrl;
+                _intervalSeconds = DefaultIntervalSeconds;
+                _maxPerFetch = DefaultMaxPerFetch;
+                _dailyBudget = DefaultDailyBudget;
+                _relevanceFilter = true;
+                _quoteEnabled = true;
+                _quoteUrl = DefaultQuoteUrl;
+                _quoteIntervalSeconds = DefaultQuoteIntervalSeconds;
+                _quoteCrackSpread = DefaultCrackSpreadUsdPerTon;
+                _fxEnabled = true;
+                _fxIntervalSeconds = DefaultFxIntervalSeconds;
+            }
         }
 
         // ———— 对外接口 ————
@@ -324,11 +492,16 @@ namespace AirlineCEO.Logic
             return string.IsNullOrEmpty(label) ? "国际油价" : label;
         }
 
-        /// <summary>尝试拉取人民币兑美元汇率。无数据返回 null。</summary>
+        /// <summary>
+        /// 取现实 USD/CNY。只读缓存 —— 数据由 <see cref="RequestFxRefresh"/> 在后台补上；
+        /// 未开启汇率源 / 尚未拿到报价时返回 null。返回值是来源标签（如 whUSDCNY）。
+        /// </summary>
         public static string TryFetchExchangeRate(out float usdCny)
         {
             usdCny = 0f;
-            return null;
+            if (!TryGetExchangeRate(out float rate, out string label)) return null;
+            usdCny = rate;
+            return string.IsNullOrEmpty(label) ? "USD/CNY" : label;
         }
 
         /// <summary>新闻另走事件管道（<see cref="FetchEvents"/>），此处不再单独返回。</summary>
@@ -400,13 +573,26 @@ namespace AirlineCEO.Logic
                     lock (Gate)
                     {
                         int max = Mathf.Clamp(_maxPerFetch, 1, 10);
+                        // 重要度优先：同一轮里「空管/台风/航油/事故」级别的消息先于泛行业稿进箱
+                        adopted.Sort((a, b) =>
+                        {
+                            int sa = ScoreOf(a), sb = ScoreOf(b);
+                            if (sa != sb) return sb.CompareTo(sa);
+                            var ta = a?.publishedAt ?? DateTime.MinValue;
+                            var tb = b?.publishedAt ?? DateTime.MinValue;
+                            return tb.CompareTo(ta);
+                        });
+
                         var fresh = new List<ExternalEventPayload>();
                         for (int i = 0; i < adopted.Count && fresh.Count < max; i++)
                         {
                             var p = adopted[i];
                             if (p == null || string.IsNullOrEmpty(p.id)) continue;
                             if (Seen.Contains(p.id)) continue;
+                            string tk = TitleKey(p.title);
+                            if (tk.Length > 0 && SeenTitles.Contains(tk)) continue;
                             Seen.Add(p.id);
+                            if (tk.Length > 0) SeenTitles.Add(tk);
                             fresh.Add(p);
                         }
                         while (Seen.Count > MaxSeenIds)
@@ -414,6 +600,12 @@ namespace AirlineCEO.Logic
                             var it = Seen.GetEnumerator();
                             if (!it.MoveNext()) break;
                             Seen.Remove(it.Current);
+                        }
+                        while (SeenTitles.Count > MaxSeenIds)
+                        {
+                            var it = SeenTitles.GetEnumerator();
+                            if (!it.MoveNext()) break;
+                            SeenTitles.Remove(it.Current);
                         }
                         Inbox.AddRange(fresh);
                         _inFlight = false;
@@ -456,6 +648,7 @@ namespace AirlineCEO.Logic
             {
                 Inbox.Clear();
                 Seen.Clear();
+                SeenTitles.Clear();
                 _inFlight = false;
                 _lastAttemptUtc = DateTime.MinValue;
                 _lastStatus = "";
@@ -467,6 +660,14 @@ namespace AirlineCEO.Logic
                 _quoteInFlight = false;
                 _quoteLastAttemptUtc = DateTime.MinValue;
                 _quoteStatus = "";
+
+                // 汇率同理
+                _usdCny = 0f;
+                _fxLabel = "";
+                _fxAtUtc = DateTime.MinValue;
+                _fxInFlight = false;
+                _fxLastAttemptUtc = DateTime.MinValue;
+                _fxStatus = "";
             }
         }
 
@@ -530,6 +731,15 @@ namespace AirlineCEO.Logic
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36");
                     http.DefaultRequestHeaders.Accept.ParseAdd("application/rss+xml,application/atom+xml,application/json,text/xml,*/*;q=0.8");
+                    // 国内站点（中国民航网等）的 WAF 会拦「无来源」的裸请求，带上同源 Referer 才稳定返回
+                    try
+                    {
+                        string referer = url.IndexOf("sinajs.cn", StringComparison.OrdinalIgnoreCase) >= 0
+                            ? "https://finance.sina.com.cn"
+                            : url;
+                        http.DefaultRequestHeaders.Referrer = new Uri(referer);
+                    }
+                    catch { }
                     using (var resp = await http.GetAsync(url).ConfigureAwait(false))
                     {
                         if (!resp.IsSuccessStatusCode) return null;
@@ -569,43 +779,51 @@ namespace AirlineCEO.Logic
 
             float crack = _quoteCrackSpread;
             string host = Short(url);
+            // 默认地址走多源回退（腾讯 → 新浪 → Yahoo）：任一可用即止
+            string[] chain = string.Equals(url, DefaultQuoteUrl, StringComparison.OrdinalIgnoreCase)
+                ? DefaultQuoteUrls
+                : new[] { url };
             Task.Run(async () =>
             {
                 float price = 0f;
                 string label = "";
                 string note = "不可达";
-                try
+                foreach (string src in chain)
                 {
-                    string text = await LoadTextAsync(url).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(text))
+                    try
                     {
+                        string text = await LoadTextAsync(src).ConfigureAwait(false);
+                        if (string.IsNullOrEmpty(text)) continue;
                         string unit;
-                        if (ParseQuote(text, out price, out label, out unit))
+                        float p;
+                        string l;
+                        if (ParseQuote(text, out p, out l, out unit))
+                        {
+                            price = p;
+                            label = l;
                             note = string.IsNullOrEmpty(unit) ? "已换算" : unit;
-                        else
-                            note = "无法识别报价字段";
+                            break;
+                        }
+                        note = "无法识别报价字段";
+                    }
+                    catch
+                    {
+                        // 同新闻源：任何异常都不向上冒，静默跳到下一个源
                     }
                 }
-                catch
+                lock (Gate)
                 {
-                    // 同新闻源：任何异常都不向上冒，静默跳过
-                }
-                finally
-                {
-                    lock (Gate)
+                    _quoteInFlight = false;
+                    if (price > 0f)
                     {
-                        _quoteInFlight = false;
-                        if (price > 0f)
-                        {
-                            _oilQuoteUsdPerTon = price;
-                            _oilQuoteLabel = string.IsNullOrEmpty(label) ? host : label;
-                            _oilQuoteAtUtc = DateTime.UtcNow;
-                            _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} {_oilQuoteLabel} → 航油 {price:F0} 美元/吨（{note}）";
-                        }
-                        else
-                        {
-                            _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} 无报价（{host} {note}）";
-                        }
+                        _oilQuoteUsdPerTon = price;
+                        _oilQuoteLabel = string.IsNullOrEmpty(label) ? host : label;
+                        _oilQuoteAtUtc = DateTime.UtcNow;
+                        _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} {_oilQuoteLabel} → 航油 {price:F0} 美元/吨（{note}）";
+                    }
+                    else
+                    {
+                        _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} 无报价（{host} {note}）";
                     }
                 }
             });
@@ -689,7 +907,29 @@ namespace AirlineCEO.Logic
             string unit = "";
             string symbol = "";
 
-            if (t.StartsWith("{", StringComparison.Ordinal) || t.StartsWith("[", StringComparison.Ordinal))
+            // 腾讯 / 新浪外盘行情串（国内直连，无需 Key）：
+            //   v_hf_OIL="110.35,0.73,110.25,…" / hq_str_hf_OIL="110.249,,110.150,…"
+            // 字段 0 = 最新价（美元/桶），只取数字，编码乱码不影响。
+            if (t.IndexOf("hf_OIL", StringComparison.OrdinalIgnoreCase) > 0
+                && (t.IndexOf("v_hf_", StringComparison.OrdinalIgnoreCase) >= 0
+                    || t.IndexOf("hq_str_", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                int eq = t.IndexOf('=');
+                int q1 = eq > 0 ? t.IndexOf('"', eq + 1) : -1;
+                int q2 = q1 > 0 ? t.IndexOf('"', q1 + 1) : -1;
+                if (eq > 0 && q1 > eq && q2 > q1)
+                {
+                    string first = t.Substring(q1 + 1, q2 - q1 - 1).Split(',')[0].Trim();
+                    if (float.TryParse(first, NumberStyles.Float, CultureInfo.InvariantCulture, out raw)
+                        && raw > 0f)
+                    {
+                        unit = "bbl";
+                        symbol = "布伦特原油";
+                    }
+                }
+            }
+
+            if (raw <= 0f && (t.StartsWith("{", StringComparison.Ordinal) || t.StartsWith("[", StringComparison.Ordinal)))
             {
                 try
                 {
@@ -729,7 +969,8 @@ namespace AirlineCEO.Logic
             }
             else
             {
-                float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out raw);
+                if (raw <= 0f)
+                    float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out raw);
             }
 
             if (raw <= 0f || float.IsNaN(raw) || float.IsInfinity(raw)) return false;
@@ -758,6 +999,137 @@ namespace AirlineCEO.Logic
             return 0f;
         }
 
+        // ———— 汇率源：后台抓取 + 多源回退 + 缓存 ————
+
+        /// <summary>
+        /// 发起一轮后台汇率拉取（非阻塞）。按 <see cref="DefaultFxUrls"/> 顺序回退，首个解析成功的即采用；
+        /// 与油价、新闻各自独立节流。未开启 / 间隔未到 / 已有在飞请求 → 直接返回。
+        /// </summary>
+        public static void RequestFxRefresh(bool force = false)
+        {
+            EnsureLoaded();
+            if (!_fxEnabled) return;
+
+            lock (Gate)
+            {
+                if (_fxInFlight) return;
+                if (!force && _fxIntervalSeconds <= 0) return;
+                if (!force && (DateTime.UtcNow - _fxLastAttemptUtc).TotalSeconds < _fxIntervalSeconds) return;
+                _fxInFlight = true;
+                _fxLastAttemptUtc = DateTime.UtcNow;
+            }
+
+            Task.Run(async () =>
+            {
+                float rate = 0f;
+                string label = "";
+                string note = "";
+                try
+                {
+                    for (int i = 0; i < DefaultFxUrls.Length && rate <= 0f; i++)
+                    {
+                        string url = DefaultFxUrls[i];
+                        string text = await LoadTextAsync(url).ConfigureAwait(false);
+                        if (string.IsNullOrEmpty(text)) { note += Short(url) + "=不可达 "; continue; }
+                        if (ParseFxRate(text, out float r, out string lb))
+                        {
+                            rate = r;
+                            label = lb;
+                        }
+                        else note += Short(url) + "=无法识别 ";
+                    }
+                }
+                catch
+                {
+                    // 同新闻源：任何异常静默跳过
+                }
+                finally
+                {
+                    lock (Gate)
+                    {
+                        _fxInFlight = false;
+                        if (rate > 0f)
+                        {
+                            _usdCny = Mathf.Clamp(rate, FxMin, FxMax);
+                            _fxLabel = string.IsNullOrEmpty(label) ? "USD/CNY" : label;
+                            _fxAtUtc = DateTime.UtcNow;
+                            _fxStatus = $"{DateTime.Now:MM-dd HH:mm} USD/CNY {_usdCny:F4}（{_fxLabel}）";
+                        }
+                        else
+                        {
+                            _fxStatus = $"{DateTime.Now:MM-dd HH:mm} 无汇率（{(note.Length > 0 ? note.Trim() : "不可达")}）";
+                        }
+                    }
+                }
+            });
+        }
+
+        static readonly Regex RxFxJson = new Regex(
+            @"""CNY""\s*:\s*([0-9]+(?:\.[0-9]+)?)", RegexOptions.Compiled);
+        static readonly Regex RxFxPlain = new Regex(
+            @"^\s*([0-9]+(?:\.[0-9]+)?)\s*$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// 解析 USD/CNY。公开以便离线自测。接受三种形态：
+        /// ① 腾讯行情 <c>v_whUSDCNY="310~美元人民币~USDCNY~6.6792~…"</c>（取 ~ 分隔的第 4 段）；
+        /// ② JSON 里含 <c>"CNY": 6.68</c>（Frankfurter / open.er-api）；
+        /// ③ 纯数字（自定义代理）。
+        /// </summary>
+        public static bool ParseFxRate(string text, out float rate, out string label)
+        {
+            rate = 0f;
+            label = "";
+            if (string.IsNullOrEmpty(text)) return false;
+            string t = text.Trim();
+
+            int vq = t.IndexOf("v_wh", StringComparison.OrdinalIgnoreCase);
+            if (vq >= 0)
+            {
+                int eq = t.IndexOf('=');
+                if (eq > vq)
+                {
+                    string payload = t.Substring(eq + 1).Trim().Trim('"', ';', ' ', '\r', '\n');
+                    string[] parts = payload.Split('~');
+                    for (int i = 0; i + 1 < parts.Length; i++)
+                    {
+                        if (parts[i].IndexOf("USDCNY", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        if (float.TryParse(parts[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out rate)
+                            && rate > 0f)
+                        {
+                            label = "腾讯行情";
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if (t.StartsWith("{", StringComparison.Ordinal))
+            {
+                var m = RxFxJson.Match(t);
+                if (m.Success
+                    && float.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out rate)
+                    && rate > 0f)
+                {
+                    label = t.IndexOf("frankfurter", StringComparison.OrdinalIgnoreCase) >= 0
+                        ? "欧洲央行"
+                        : t.IndexOf("er-api", StringComparison.OrdinalIgnoreCase) >= 0 ? "open.er-api" : "行情源";
+                    return true;
+                }
+                return false;
+            }
+
+            var plain = RxFxPlain.Match(t);
+            if (plain.Success
+                && float.TryParse(plain.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out rate)
+                && rate > 0f)
+            {
+                label = "自定义";
+                return true;
+            }
+            rate = 0f;
+            return false;
+        }
+
         // ———— 解析 ————
 
         /// <summary>按内容自动判别 JSON / RSS 并解析（公开以便离线自测与上游预检）。</summary>
@@ -770,9 +1142,18 @@ namespace AirlineCEO.Logic
         static List<ExternalEventPayload> Parse(string text, string origin)
         {
             string t = text.TrimStart('\uFEFF', '\u200B', ' ', '\r', '\n', '\t');
-            var list = t.StartsWith("{", StringComparison.Ordinal) || t.StartsWith("[", StringComparison.Ordinal)
-                ? ParseJson(t)
-                : ParseFeed(t, origin);
+            List<ExternalEventPayload> list;
+            if (t.StartsWith("{", StringComparison.Ordinal) || t.StartsWith("[", StringComparison.Ordinal))
+            {
+                if (t.IndexOf("\"rich_text\"", StringComparison.Ordinal) >= 0)
+                    list = ParseSinaFlash(t);
+                else if (t.IndexOf("\"rendered\"", StringComparison.Ordinal) >= 0)
+                    list = ParseWpPosts(t);
+                else
+                    list = ParseJson(t);
+            }
+            else
+                list = ParseFeed(t, origin);
             if (_relevanceFilter) list = Filter(list);
             return list;
         }
@@ -828,6 +1209,210 @@ namespace AirlineCEO.Logic
                 // 非法 JSON：静默丢弃
             }
             return result;
+        }
+
+        // WordPress REST（中国民航网等）：{"id":…,"date":…,"link":…,"title":{"rendered":"…"},"excerpt":{"rendered":"…"}}
+        // JsonUtility 解不了嵌套对象，这里按字段正则抽取，再按同序配对；字段缺失时退化为「只有标题也有内容」。
+        static readonly Regex RxWpTitle = new Regex(
+            @"""title""\s*:\s*\{\s*""rendered""\s*:\s*""((?:\\.|[^""\\])*)""",
+            RegexOptions.Compiled);
+        static readonly Regex RxWpExcerpt = new Regex(
+            @"""excerpt""\s*:\s*\{\s*""rendered""\s*:\s*""((?:\\.|[^""\\])*)""",
+            RegexOptions.Compiled);
+        static readonly Regex RxWpLink = new Regex(
+            @"""link""\s*:\s*""((?:\\.|[^""\\])*)""", RegexOptions.Compiled);
+        static readonly Regex RxWpDate = new Regex(
+            @"""date""\s*:\s*""([^""]*)""", RegexOptions.Compiled);
+
+        static List<ExternalEventPayload> ParseWpPosts(string text)
+        {
+            var result = new List<ExternalEventPayload>();
+            var titles = RxWpTitle.Matches(text);
+            if (titles.Count == 0) return result;
+            var excerpts = RxWpExcerpt.Matches(text);
+            var links = RxWpLink.Matches(text);
+            var dates = RxWpDate.Matches(text);
+
+            for (int i = 0; i < titles.Count; i++)
+            {
+                string title = Clean(UnescapeJson(titles[i].Groups[1].Value));
+                if (string.IsNullOrEmpty(title)) continue;
+                string content = i < excerpts.Count
+                    ? Clean(UnescapeJson(excerpts[i].Groups[1].Value)) : "";
+                string link = i < links.Count ? UnescapeJson(links[i].Groups[1].Value) : "";
+                string dateText = i < dates.Count ? dates[i].Groups[1].Value : "";
+
+                if (SameText(content, title)) content = "";
+                if (content.Length > 0 && content.StartsWith(title, StringComparison.Ordinal))
+                    content = content.Substring(title.Length).TrimStart(' ', '：', ':', '—', '-');
+
+                result.Add(new ExternalEventPayload
+                {
+                    id = "wp_" + StableId(string.IsNullOrEmpty(link) ? title : link),
+                    category = CategoryOf("中国民航网", title),
+                    title = title,
+                    content = content,
+                    source = "中国民航网",
+                    publishedAt = ParseDate(dateText),
+                    effectType = "",
+                    effectValue = 0f,
+                    affectedRegion = "",
+                    durationHours = 0,
+                    chainId = ""
+                });
+            }
+
+            result.Sort((a, b) =>
+            {
+                var ta = a.publishedAt ?? DateTime.MinValue;
+                var tb = b.publishedAt ?? DateTime.MinValue;
+                return tb.CompareTo(ta);
+            });
+            return result;
+        }
+
+        // ———— 新浪财经 7×24 快讯（国内可直连的「全球资讯」流）————
+
+        [Serializable] class SinaItem { public string id; public string rich_text; public string create_time; public string docurl; }
+        [Serializable] class SinaFeed { public SinaItem[] list; }
+        [Serializable] class SinaFeedHolder { public SinaFeed feed; }
+        [Serializable] class SinaData { public SinaFeedHolder data; }
+        [Serializable] class SinaRoot { public SinaData result; }
+
+        /// <summary>
+        /// 解析 <c>zhibo.sina.com.cn/api/zhibo/feed</c>：<c>result.data.feed.list[]</c>。
+        /// 一条快讯就是一段带【标题】的长文，拆成标题 + 正文再进通用管线。
+        /// </summary>
+        static List<ExternalEventPayload> ParseSinaFlash(string text)
+        {
+            var result = new List<ExternalEventPayload>();
+            SinaRoot root = null;
+            try { root = JsonUtility.FromJson<SinaRoot>(text); } catch { return result; }
+            var items = root != null && root.result != null && root.result.data != null
+                        && root.result.data.feed != null ? root.result.data.feed.list : null;
+            if (items == null) return result;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                var it = items[i];
+                if (it == null) continue;
+                string body = Clean(it.rich_text ?? "");
+                if (body.Length < 6) continue;
+
+                string title, content;
+                SplitFlash(body, out title, out content);
+                if (string.IsNullOrEmpty(title)) continue;
+
+                string key = string.IsNullOrEmpty(it.id) ? it.docurl : it.id;
+                if (string.IsNullOrEmpty(key)) key = title;
+
+                result.Add(new ExternalEventPayload
+                {
+                    id = "sina_" + StableId(key),
+                    category = CategoryOf("新浪财经", title),
+                    title = title,
+                    content = content,
+                    source = "新浪财经",
+                    publishedAt = ParseBeijingTime(it.create_time),
+                    effectType = "",
+                    effectValue = 0f,
+                    affectedRegion = "",
+                    durationHours = 0,
+                    chainId = ""
+                });
+            }
+
+            result.Sort((a, b) =>
+            {
+                var ta = a.publishedAt ?? DateTime.MinValue;
+                var tb = b.publishedAt ?? DateTime.MinValue;
+                return tb.CompareTo(ta);
+            });
+            return result;
+        }
+
+        /// <summary>【标题】快讯 → 方括号内为标题；否则在句读处截一段短标题，正文保留全文。</summary>
+        static void SplitFlash(string body, out string title, out string content)
+        {
+            title = "";
+            content = body;
+
+            if (body[0] == '【')
+            {
+                int close = body.IndexOf('】');
+                if (close > 2 && close <= 60)
+                {
+                    title = body.Substring(1, close - 1).Trim();
+                    string rest = body.Substring(close + 1).TrimStart(' ', '：', ':', '—', '-');
+                    if (!string.IsNullOrEmpty(title) && rest.Length >= 8) content = rest;
+                    return;
+                }
+            }
+
+            int cut = -1;
+            for (int i = 8; i < body.Length && i < 64; i++)
+            {
+                char c = body[i];
+                if (c == '。' || c == '，' || c == '；' || c == '：' || c == '！' || c == '？')
+                {
+                    cut = i;
+                    break;
+                }
+            }
+            if (cut > 0)
+            {
+                title = body.Substring(0, cut).Trim();
+                string rest = body.Substring(cut + 1).TrimStart(' ', '，', '。');
+                content = rest.Length >= 8 ? rest : body;
+            }
+            else
+            {
+                title = body.Length > 48 ? body.Substring(0, 48) + "…" : body;
+            }
+        }
+
+        /// <summary>北京时间字符串（无时区）→ UTC。</summary>
+        static DateTime? ParseBeijingTime(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return null;
+            DateTime dt;
+            if (!DateTime.TryParse(s.Trim(), CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out dt)) return null;
+            return DateTime.SpecifyKind(dt - TimeSpan.FromHours(8), DateTimeKind.Utc);
+        }
+
+        /// <summary>JSON 字符串反转义：\\uXXXX / \\/ / \\" / \\n / \\t。</summary>
+        static string UnescapeJson(string s)
+        {
+            if (string.IsNullOrEmpty(s) || s.IndexOf('\\') < 0) return s ?? "";
+            var sb = new StringBuilder(s.Length);
+            for (int i = 0; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c != '\\' || i + 1 >= s.Length) { sb.Append(c); continue; }
+                char n = s[++i];
+                switch (n)
+                {
+                    case 'n': sb.Append('\n'); break;
+                    case 'r': sb.Append('\r'); break;
+                    case 't': sb.Append('\t'); break;
+                    case 'b': sb.Append('\b'); break;
+                    case 'f': sb.Append('\f'); break;
+                    case '/': sb.Append('/'); break;
+                    case '"': sb.Append('"'); break;
+                    case '\\': sb.Append('\\'); break;
+                    case 'u':
+                        if (i + 4 < s.Length && int.TryParse(s.Substring(i + 1, 4),
+                                NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int code))
+                        {
+                            sb.Append((char)code);
+                            i += 4;
+                        }
+                        break;
+                    default: sb.Append(n); break;
+                }
+            }
+            return sb.ToString();
         }
 
         static ExternalEventPayload ToPayload(PayloadDto d)
@@ -1079,7 +1664,7 @@ namespace AirlineCEO.Logic
         static readonly Regex RxRelevant = new Regex(
             @"航空|民航|航班|航司|航线|航線|机场|機場|空港|飞机|飛機|客机|客機|货机|貨機|"
             + @"机队|機隊|机组|機組|飞行员|空乘|塔台|适航|適航|航权|航權|时刻槽|值机|登机|登機|航站楼|航站樓|"
-            + @"空域|飞行安全|空中管制|客座率|通用航空|支线|"
+            + @"空域|空管|航空管制|流量控制|跑道|机务|签派|航路|备降|迫降|复飞|飞行安全|空中管制|客座率|通用航空|支线|"
             + @"航油|航空煤油|航空燃油|可持续航空燃料|"
             + @"波音|空客|商飞|"
             + @"台风|雷暴|大雾|暴雪|寒潮|强对流|冰雹|沙尘|火山灰",
@@ -1099,6 +1684,39 @@ namespace AirlineCEO.Logic
                 kept.Add(p);
             }
             return kept;
+        }
+
+        /// <summary>
+        /// 重要度打分（同轮排序用）：直接带数值影响 &gt; 影响运行安全/成本的高权重词 &gt; 一般民航主体词。
+        /// 关键词只决定「要不要」，分数决定「先要哪条」；每日上限决定「最多要几条」。
+        /// </summary>
+        static readonly Regex RxHighImpact = new Regex(
+            @"民航局|空管局|空域|禁飞|停飞|停航|大面积延误|取消航班|关闭机场|机场关闭|"
+            + @"航油|燃油附加费|适航指令|紧急适航|事故|坠机|空难|罢工|台风|熔断|"
+            + @"恢复通航|复航|新增航线|时刻放量|免签",
+            RegexOptions.Compiled);
+
+        static int ScoreOf(ExternalEventPayload p)
+        {
+            if (p == null) return 0;
+            string hay = (p.title ?? "") + " " + (p.content ?? "");
+            int s = 0;
+            if (!string.IsNullOrEmpty(p.effectType)) s += 5;
+            if (RxHighImpact.IsMatch(hay)) s += 3;
+            if (RxRelevant.IsMatch(hay)) s += 2;
+            if (string.Equals(p.category, "监管", StringComparison.Ordinal)) s += 1;
+            if (p.publishedAt.HasValue
+                && (DateTime.UtcNow - p.publishedAt.Value).TotalHours < 6) s += 1;
+            return s;
+        }
+
+        /// <summary>标题指纹：去空白/标点后的小写串，用于「同一件事被多家转载只入队一次」。</summary>
+        public static string TitleKey(string title)
+        {
+            if (string.IsNullOrEmpty(title)) return "";
+            string s = Regex.Replace(title,
+                @"[\s\u3000…—\-_,，。；;：:、""'“”‘’（）()\[\]【】《》!！?？·|/\\]", "");
+            return s.ToLowerInvariant();
         }
 
         static string Short(string url)

@@ -12,7 +12,7 @@ namespace AirlineCEO.Systems
     {
         public static FleetManager Instance { get; private set; }
 
-        public const float BaseMaintPerAircraft = 5f; // 万美元/月 · 适航或维护中
+        public const float BaseMaintPerAircraft = EconomyBalanceParams.FleetMonthlyMaintWan; // 万美元/月 · 适航或维护中
 
         public event Action OnFleetChanged;
 
@@ -639,12 +639,9 @@ namespace AirlineCEO.Systems
 
         public static float MonthlyMaintOf(Aircraft a)
         {
-            if (a == null || a.status == AircraftStatuses.Retired) return 0f;
-            float factor = 1f + a.age * 0.05f;
-            float cost = BaseMaintPerAircraft * factor;
-            if (a.age > 20) cost *= 2f;
-            if (a.source == "二手引进" && a.age >= 12) cost *= 1.35f;
-            return cost;
+            // 唯一口径在 FleetEconomics：本类不再自带「5%/年」的第二套公式，
+            // 否则同一架飞机会在 FleetUI（本类）与 FleetSubpagePanel（Logic）上印出两个数。
+            return AirlineCEO.Logic.FleetEconomics.MonthlyMaintenance(a);
         }
 
         #endregion

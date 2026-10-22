@@ -4,11 +4,40 @@ using AirlineCEO.Data;
 
 namespace AirlineCEO.Logic
 {
-    /// <summary>客运航线是否符合现实：禁止同城双场互飞、过短航段。</summary>
+    /// <summary>客运航线是否符合现实：禁止同城双场互飞、过短航段、支线机场开国际线。</summary>
     public static class RouteGeography
     {
         /// <summary>已知坐标下短于该距离不作为定期客运（大兴—首都约 50 km）。</summary>
         public const float MinPassengerKm = 100f;
+
+        /// <summary>
+        /// 跨境航线的**门户门槛**：两端都必须是「本国口岸机场」。
+        ///
+        /// 为什么要这一条：目的地池对整个 <see cref="CityEconomyCatalog"/> 一视同仁，
+        /// 于是拉萨这类支线机场会被孟买 / 伊斯坦布尔选成好目的地（实测 `BOM→LXA`、`IST→LXA`，
+        /// 还顶掉了 `BOM→SIN`、`IST→BOS`）—— 现实中外国航司不飞中国支线机场，
+        /// 这类航线是「需求模型算得出、现实里不存在」的假线。
+        ///
+        /// **为什么不能只用等级**（第一版的教训，实测掉了 43 条真实航线和 8 座城市的目的地）：
+        /// `tier` 衡量的是**绝对规模**（客流 ≥ 2000 万 / 货邮 ≥ 50 万吨），而「是不是口岸」
+        /// 是**相对本国**的概念。按等级一刀切会把亚的斯亚贝巴（1400 万）、内罗毕、拉各斯、
+        /// 阿克拉、奥克兰、赫尔辛基、布宜诺斯艾利斯全判死 —— 这些恰恰是各自国家唯一的国际门户，
+        /// 现实中 `LHR–ACC`、`IST–ADD`、`SYD–AKL` 都在飞。一刀切还连累温哥华、珀斯、大连、沈阳。
+        ///
+        /// 现在三层判据（任一满足即算门户）：
+        /// ① 推导等级 ≤ <see cref="MinGatewayTier"/>（枢纽 / 干线）；
+        /// ② 年客流 ≥ <see cref="MinGatewayPaxMillion"/>（1000 万，够得着区域门户）；
+        /// ③ 该国在底表里只有这一座机场，且客流 ≥ <see cref="MinSoleAirportPaxMillion"/>
+        ///    （阿克拉 280 万也放行 —— 它是加纳唯一口岸）。
+        /// 拉萨 550 万、中国有 36 座机场，三条都不满足 → 仍被拦在跨境线之外，但国内线照飞。
+        /// </summary>
+        public const int MinGatewayTier = 1;
+
+        /// <summary>跨境航线的绝对客流门槛（万人次/年）。低于此且非「本国唯一机场」者不算门户。</summary>
+        public const float MinGatewayPaxMillion = 10f;
+
+        /// <summary>「本国唯一机场」也要有个下限，免得把几万人的通用机场当成国际口岸。</summary>
+        public const float MinSoleAirportPaxMillion = 2f;
 
         public static bool SameMetro(string origin, string dest)
         {
@@ -24,6 +53,49 @@ namespace AirlineCEO.Logic
             return true;
         }
 
+        /// <summary>是否跨境（国家/地区不同，含内地—港澳台）。任一端查不到国家即视为「不能判定」→ 不算跨境。</summary>
+        public static bool IsCrossBorder(string origin, string dest)
+        {
+            if (string.IsNullOrEmpty(origin) || string.IsNullOrEmpty(dest)) return false;
+            if (string.Equals(origin, dest, StringComparison.OrdinalIgnoreCase)) return false;
+            var a = CityEconomyCatalog.Find(origin);
+            var b = CityEconomyCatalog.Find(dest);
+            if (a == null || b == null) return false;
+            if (string.IsNullOrEmpty(a.countryZh) || string.IsNullOrEmpty(b.countryZh)) return false;
+            return !string.Equals(a.countryZh, b.countryZh, StringComparison.Ordinal);
+        }
+
+        /// <summary>该机场够不够格当跨境航线的端点：等级够高、客流够大，或是本国唯一口岸。</summary>
+        public static bool IsGateway(string code)
+        {
+            if (string.IsNullOrEmpty(code)) return false;
+            if (AirportCatalog.TierOfCode(code) <= MinGatewayTier) return true;
+
+            var eco = CityEconomyCatalog.Find(code);
+            if (eco == null) return false;           // 底表没有 → 不判定为门户（宁可保守）
+            if (eco.paxMillion >= MinGatewayPaxMillion) return true;
+            if (eco.paxMillion < MinSoleAirportPaxMillion) return false;
+
+            // 一国只有这一座机场 → 它就是该国唯一国际口岸，客流小也得算
+            //（阿克拉、内罗毕、拉各斯、奥克兰、赫尔辛基、布宜诺斯艾利斯…）。
+            return AirportsInCountry(eco.countryZh) <= 1;
+        }
+
+        /// <summary>底表里属于同一国家/地区的机场数量。</summary>
+        static int AirportsInCountry(string countryZh)
+        {
+            if (string.IsNullOrEmpty(countryZh)) return 0;
+            var all = CityEconomyCatalog.All;
+            int n = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                var e = all[i];
+                if (e == null || string.IsNullOrEmpty(e.iata)) continue;
+                if (string.Equals(e.countryZh, countryZh, StringComparison.Ordinal)) n++;
+            }
+            return n;
+        }
+
         /// <param name="km">大圆航距；未知坐标时调用方常传入约 2200，不得当真实短航。</param>
         public static bool IsPlausiblePassengerOd(string origin, string dest, float km)
         {
@@ -31,6 +103,8 @@ namespace AirlineCEO.Logic
             if (string.Equals(origin, dest, StringComparison.OrdinalIgnoreCase)) return false;
             if (SameMetro(origin, dest)) return false;
             if (km >= 0.5f && km < MinPassengerKm && km < 1500f) return false;
+            // 跨境航线两端都得是门户机场：支线机场的国际线不是「不好」，是现实里没有。
+            if (IsCrossBorder(origin, dest) && !(IsGateway(origin) && IsGateway(dest))) return false;
             return true;
         }
 
@@ -42,6 +116,13 @@ namespace AirlineCEO.Logic
                 return "同城机场之间没有定期客运航线（例如北京大兴与北京首都）。";
             if (km >= 0.5f && km < MinPassengerKm && km < 1500f)
                 return $"航距仅 {km:F0} 公里，过短，不符合现实客运航线。";
+            if (IsCrossBorder(origin, dest) && !(IsGateway(origin) && IsGateway(dest)))
+            {
+                string weak = !IsGateway(origin) ? origin : dest;
+                return $"{weak} 不是跨境口岸机场（{AirportCatalog.TierLabelOf(weak)}，"
+                       + $"年客流未达 {MinGatewayPaxMillion:F0} 百万且非该国唯一机场），"
+                       + "现实中不承接国际/地区定期客运；跨境航线请改用枢纽或干线机场。";
+            }
             return "";
         }
 

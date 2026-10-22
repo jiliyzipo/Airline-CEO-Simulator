@@ -315,6 +315,8 @@ namespace AirlineCEO.Logic
                 durationHours = payload?.durationHours ?? 0,
                 chainId = payload?.chainId ?? "",
                 generated = payload?.generated ?? false,
+                inferred = payload?.inferred ?? false,
+                impactNote = payload?.impactNote ?? "",
                 GameReceivedTime = EnsureUtc(gameReceived),
                 GameEffectiveTime = m.effective
             };

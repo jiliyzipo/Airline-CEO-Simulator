@@ -32,7 +32,10 @@ namespace AirlineCEO.Testing
                 float sum = 0f;
                 if (activeRoutes == null) return 0f;
                 for (int i = 0; i < activeRoutes.Count; i++)
-                    sum += activeRoutes[i].dailyProfit * 30f;
+                    if (activeRoutes[i] != null)
+                        sum += activeRoutes[i].dailyProfit
+                               * LiveClockLogic.OperatingDaysPerMonth(
+                                   activeRoutes[i].daysOfWeek, activeRoutes[i].weeklyFlights);
                 return sum;
             }
         }

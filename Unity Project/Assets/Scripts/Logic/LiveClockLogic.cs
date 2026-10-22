@@ -60,6 +60,25 @@ namespace AirlineCEO.Logic
             return s.IndexOf(num) >= 0;
         }
 
+        /// <summary>
+        /// 每月实际执飞天数（0~30）：把「执飞当日的航线日净利」折算成月度口径。
+        ///
+        /// 为什么不能直接 ×30：<see cref="RouteData.dailyProfit"/> 是**执飞当天**的净额
+        /// （<c>Land()</c> 只在起飞落地那天记账），2~3 班/周的航线一个月只飞 8~13 天。
+        /// 用 ×30 会把一周一次的亏损放大 2~3 倍，也把宽体长航线的盈利算成天天满班 ——
+        /// 计划口径与实收现金因此分叉（★5 实测 483 万/月 vs 真实 596 万/月）。
+        ///
+        /// 取 28 天整四周窗口（周一起算）取平均，再折算到 30 天，避免月份起点偏置。
+        /// </summary>
+        public static float OperatingDaysPerMonth(string daysOfWeek, int weeklyFlights)
+        {
+            var start = new DateTime(2026, 1, 5); // 周一
+            int days = 0;
+            for (int i = 0; i < 28; i++)
+                if (OperatesOn(daysOfWeek, start.AddDays(i), weeklyFlights)) days++;
+            return days * (30f / 28f);
+        }
+
         static bool ContainsZhWeekday(string s, int dowSun0)
         {
             switch (dowSun0)

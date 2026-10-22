@@ -27,6 +27,13 @@ namespace AirlineCEO.UI.Setup
         public SetupDraft Draft { get; private set; } = new SetupDraft();
         public bool IsInGameplay { get; private set; }
 
+        /// <summary>
+        /// 「现在是否在一局游戏里」。画布级常驻件（顾问延时弹出、自动存档提示等）用它判断
+        /// 自己该不该出声 —— 退出到开始界面后它们还活着，但已经不在局内了。
+        /// 没有控制器时按「不在局内」处理。
+        /// </summary>
+        public static bool InGameplaySession => Instance != null && Instance.IsInGameplay;
+
         GameObject _overlay;
         GameObject _pageRoot;
         TextMeshProUGUI _title;
@@ -175,6 +182,51 @@ namespace AirlineCEO.UI.Setup
             UIFactory.Button(actions, name, label,
                 new UIFactory.Anchor(new Vector2(x0, 0.15f), new Vector2(x1, 0.85f), Vector2.zero, Vector2.zero),
                 color, onClick, 16);
+        }
+
+        /// <summary>
+        /// 设置菜单「退出到开始界面」（FM 同款）：停表 → 收起局内 UI → 丢弃本局内存状态 → 回主菜单。
+        ///
+        /// **口径等同「关掉游戏再打开」**：内存里的这一局被清空，能回来的只有已存档进度
+        /// （主菜单「继续 / 读档」）。不清内存状态的话，接着点「新游戏」会继承上一局的财年、
+        /// 机队、航线与董事会 —— 这条路径在加这个入口之前不存在（只能重启进程），所以字段清理
+        /// 一并交给 <see cref="GameState.ResetForNewGame"/> 的模板抄写，而不是在开局流程里补漏。
+        ///
+        /// 停表必须排在重置之前：季度结算虽是同步的，但邮件投递 / 顾问延时这类协程会在下一帧醒来。
+        /// </summary>
+        public void ReturnToStartScreen()
+        {
+            if (!IsInGameplay)
+            {
+                // 已经在开始界面（例如主菜单里的设置）：什么都不用丢，回主菜单即可。
+                ShowMainMenu();
+                return;
+            }
+
+            TimeManager.SimulationEnabled = false;
+            GameSpeed.Pause();
+
+            _bootstrap?.OnSessionClosing();
+
+            if (_nav == null)
+                _nav = FindFirstObjectByType<PrefabNavIntegration>();
+            _nav?.ExitGameplay();
+
+            // 放到 UI 收完之后：重置会 NotifyChanged，此时已无人订阅着画面上的一堆旧控件。
+            GameState.Instance?.ResetForNewGame();
+
+            // 现实行情 / 去重表 / 滞留稿属运行时缓存：新局重新取，避免沿用上一局残留的汇率与已读标题
+            AirlineCEO.Systems.ExternalEventManager.ResetForNewGame();
+
+            // 开局草稿与接管预览也一并回到空白：它们是「这一局」的输入，
+            // 留着会让下一局的资料页预填上一局的公司名 / 二字码（进程重启时本来就没有）。
+            Draft = new SetupDraft();
+            _takeoverPreview = null;
+            _selectedIds.Clear();
+            _selectedCapsuleId = "";
+
+            IsInGameplay = false;
+            ShowMainMenu();
         }
 
         public void ShowMainMenu()

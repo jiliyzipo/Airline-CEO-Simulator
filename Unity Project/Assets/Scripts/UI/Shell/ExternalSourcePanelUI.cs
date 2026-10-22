@@ -33,11 +33,15 @@ namespace AirlineCEO.UI.Shell
         static readonly int[] IntervalChoices = { 0, 300, 900, 1800, 3600, 7200 };
         static readonly string[] RowKeys =
         {
-            "LOC_EXT_ENABLED", "LOC_EXT_INTERVAL", "LOC_EXT_MAXPER", "LOC_EXT_FILTER"
+            "LOC_EXT_ENABLED", "LOC_EXT_INTERVAL", "LOC_EXT_MAXPER", "LOC_EXT_FILTER", "LOC_EXT_DAILY"
         };
+
+        /// <summary>附加管道（与新闻源独立取数）的配置键：中央气象台 / NASA 全球风暴 / 国际 SIGMET。</summary>
+        static readonly string[] FeedKeys = { "LOC_TYPHOON_ENABLED", "LOC_STORM_ENABLED", "LOC_SIGMET_ENABLED" };
 
         readonly List<TextMeshProUGUI> _rowTitles = new List<TextMeshProUGUI>();
         readonly List<TextMeshProUGUI> _rowValues = new List<TextMeshProUGUI>();
+        readonly List<TextMeshProUGUI> _feedLabels = new List<TextMeshProUGUI>();
         TextMeshProUGUI _status;
         TextMeshProUGUI _quoteLabel;   // 「行情源 ▸」按钮上的文字，实时反映油价行情开/关
         TMP_InputField _url;
@@ -65,9 +69,9 @@ namespace AirlineCEO.UI.Shell
             panel.BuildUrl(root.transform);
 
             // 状态块：取数结果 + 队列（随时间/拉取实时刷新）
-            panel._status = UIFactory.Label(root.transform, "Status", "", 14,
+            panel._status = UIFactory.Label(root.transform, "Status", "", 13,
                 TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.45f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.246f), new Vector2(0.96f, 0.410f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
 
             // 行情源入口（油价现实报价作参考基准，配置与新闻源分开；按钮文字带开/关状态）
@@ -82,11 +86,12 @@ namespace AirlineCEO.UI.Shell
             // 说明块：机制口径（固定文案，不随状态跳动）
             UIFactory.Label(root.transform, "Hint",
                 "现实只提供内容，时间轴由游戏掌握：\n" +
-                "· 现实日期会换成相对措辞（明日零时 / 3天后），游戏里不出现现实日期。\n" +
-                "· 收到的内容先进队列，到游戏时间才生效；同一条只进一次收件箱。\n" +
-                "· 获取失败（断网 / 源不可达）静默跳过，不影响游戏，也不刷错误弹窗。",
+                "· 新闻默认走国内可直连站点（中新网 + 新浪财经），无需 VPN；断网静默降级。\n" +
+                "· 关键词决定「要不要」，重要度决定「先要哪条」，每游戏日上限决定「最多几条」。\n" +
+                "· 附加管道与新闻分开取数：台风走中央气象台，SIGMET 走国际航行警告，全球风暴走 NASA。\n" +
+                "· 额度不够时先保运行风险（SIGMET / 台风 / 风暴 / 气象实况），新闻进滞留队列补投。",
                 13, TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.155f), new Vector2(0.96f, 0.295f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.140f), new Vector2(0.96f, 0.240f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
             panel.BuildBottom(root.transform);
@@ -135,12 +140,61 @@ namespace AirlineCEO.UI.Shell
                 ExternalDataFetcher.RelevanceFilter = !ExternalDataFetcher.RelevanceFilter;
                 RefreshAll();
             });
+            MakeRow(parent, 4, "LOC_EXT_DAILY", () =>
+            {
+                int next = ExternalDataFetcher.DailyBudget + 2;
+                ExternalDataFetcher.DailyBudget = next > 20 ? 2 : next;
+                RefreshAll();
+            });
+            BuildFeedRow(parent, 5);
+        }
+
+        /// <summary>
+        /// 「附加管道」一行三钮：台风（中央气象台）/ 全球风暴（NASA EONET）/ SIGMET（国际航行警告）。
+        /// 三者与新闻源独立取数、独立开关，挤在一行是为了不把下面的 URL 与状态块顶出可视区。
+        /// </summary>
+        void BuildFeedRow(Transform parent, int index)
+        {
+            float top = 0.878f - index * 0.060f;
+            float bottom = top - 0.052f;
+
+            var titleLabel = UIFactory.Label(parent, "FeedTitle", Loc.T("LOC_EXT_SUPP"), 16,
+                TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.04f, bottom), new Vector2(0.28f, top), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary);
+            _rowTitles.Add(titleLabel);
+
+            float[] lefts = { 0.28f, 0.515f, 0.75f };
+            float[] rights = { 0.505f, 0.74f, 0.96f };
+            for (int i = 0; i < FeedKeys.Length; i++)
+            {
+                int idx = i;
+                var anchor = new UIFactory.Anchor(new Vector2(lefts[i], bottom + 0.006f),
+                    new Vector2(rights[i], top - 0.006f), Vector2.zero, Vector2.zero);
+                var btn = UIFactory.Button(parent, "Feed" + i, "", anchor, UITheme.PanelDeep,
+                    () => ToggleFeed(idx), 12);
+                var label = btn.transform.Find("Label").GetComponent<TextMeshProUGUI>();
+                label.alignment = TextAlignmentOptions.Center;
+                label.color = UITheme.AccentHover;
+                _feedLabels.Add(label);
+            }
+        }
+
+        void ToggleFeed(int index)
+        {
+            switch (index)
+            {
+                case 0: TyphoonFeed.Enabled = !TyphoonFeed.Enabled; break;
+                case 1: GlobalStormFeed.Enabled = !GlobalStormFeed.Enabled; break;
+                case 2: SigmetFeed.Enabled = !SigmetFeed.Enabled; break;
+            }
+            RefreshAll();
         }
 
         void MakeRow(Transform parent, int index, string titleKey, UnityAction onClick)
         {
-            float top = 0.855f - index * 0.068f;
-            float bottom = top - 0.058f;
+            float top = 0.878f - index * 0.060f;
+            float bottom = top - 0.052f;
 
             var titleLabel = UIFactory.Label(parent, "Row" + index + "_Title", Loc.T(titleKey), 16,
                 TextAlignmentOptions.MidlineLeft,
@@ -161,11 +215,11 @@ namespace AirlineCEO.UI.Shell
         {
             UIFactory.Label(parent, "UrlTitle", Loc.T("LOC_EXT_URL"), 16,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.535f), new Vector2(0.9f, 0.578f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.04f, 0.486f), new Vector2(0.9f, 0.514f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
 
             _url = UIFactory.Input(parent, "UrlField", Loc.T("LOC_EXT_URL_HINT"),
-                new UIFactory.Anchor(new Vector2(0.04f, 0.455f), new Vector2(0.96f, 0.522f), Vector2.zero, Vector2.zero));
+                new UIFactory.Anchor(new Vector2(0.04f, 0.420f), new Vector2(0.96f, 0.478f), Vector2.zero, Vector2.zero));
             _url.text = ExternalDataFetcher.SourceUrl;
             _url.onEndEdit.AddListener(ApplyUrl);
             _url.onSubmit.AddListener(ApplyUrl);
@@ -217,11 +271,18 @@ namespace AirlineCEO.UI.Shell
             ExternalDataFetcher.SourceUrl = ExternalDataFetcher.DefaultUrl;
             ExternalDataFetcher.IntervalSeconds = ExternalDataFetcher.DefaultIntervalSeconds;
             ExternalDataFetcher.MaxPerFetch = ExternalDataFetcher.DefaultMaxPerFetch;
+            ExternalDataFetcher.DailyBudget = ExternalDataFetcher.DefaultDailyBudget;
             ExternalDataFetcher.RelevanceFilter = true;
             ExternalDataFetcher.Enabled = true;
             ExternalDataFetcher.Reset();
+            TyphoonFeed.Enabled = true;
+            TyphoonFeed.Reset();
+            GlobalStormFeed.Enabled = true;
+            GlobalStormFeed.Reset();
+            SigmetFeed.Enabled = true;
+            SigmetFeed.Reset();
             if (_url != null) _url.text = ExternalDataFetcher.SourceUrl;
-            _note = "已恢复默认源。";
+            _note = "已恢复默认国内源（中新网 + 新浪财经），去重表与附加管道缓存已清空。";
             RefreshAll();
         }
 
@@ -272,6 +333,8 @@ namespace AirlineCEO.UI.Shell
             if (titleLabel != null) titleLabel.text = Loc.T("LOC_EXT_TITLE");
             for (int i = 0; i < _rowTitles.Count && i < RowKeys.Length; i++)
                 _rowTitles[i].text = Loc.T(RowKeys[i]);
+            if (_rowTitles.Count > RowKeys.Length)
+                _rowTitles[RowKeys.Length].text = Loc.T("LOC_EXT_SUPP");
             if (_url != null && !_url.isFocused)
                 _url.text = ExternalDataFetcher.SourceUrl;
             RefreshRowValues();
@@ -284,6 +347,21 @@ namespace AirlineCEO.UI.Shell
             SetRow(1, IntervalLabel(ExternalDataFetcher.IntervalSeconds));
             SetRow(2, Loc.T("LOC_EXT_ITEMS", ExternalDataFetcher.MaxPerFetch));
             SetRow(3, Loc.T(ExternalDataFetcher.RelevanceFilter ? "LOC_ON" : "LOC_OFF"));
+            SetRow(4, Loc.T("LOC_EXT_ITEMS", ExternalDataFetcher.DailyBudget));
+
+            for (int i = 0; i < _feedLabels.Count && i < FeedKeys.Length; i++)
+            {
+                bool on;
+                switch (i)
+                {
+                    case 0: on = TyphoonFeed.Enabled; break;
+                    case 1: on = GlobalStormFeed.Enabled; break;
+                    default: on = SigmetFeed.Enabled; break;
+                }
+                string name = Loc.T(i == 0 ? "LOC_FEED_TYPHOON" : i == 1 ? "LOC_FEED_STORM" : "LOC_FEED_SIGMET");
+                _feedLabels[i].text = name + "·" + (on ? "开" : "关");
+                _feedLabels[i].color = on ? UITheme.AccentHover : UITheme.TextMuted;
+            }
         }
 
         void SetRow(int index, string text)
@@ -304,13 +382,31 @@ namespace AirlineCEO.UI.Shell
             int pending = ExternalEventManager.Pending(gs).Count;
             sb.Append('\n').Append(Loc.T("LOC_EXT_QUEUE", pending, list != null ? list.Count : 0));
 
-            // 油价行情与新闻源是两条独立管道，这里一并给出实时状态，避免只看到新闻那一半
+            // 油价 / 汇率 / 气象各自独立管道，这里一并给出实时状态，避免只看到新闻那一半
             sb.Append('\n').Append(ExternalDataFetcher.QuoteStatusLine());
+            sb.Append('\n').Append(ExternalDataFetcher.FxStatusLine());
+            sb.Append('\n').Append("气象实况：")
+              .Append(string.IsNullOrEmpty(WeatherFeed.Status) ? "已开启，尚未取数" : WeatherFeed.Status);
+            sb.Append('\n').Append("台风公报：")
+              .Append(TyphoonFeed.Enabled
+                  ? (string.IsNullOrEmpty(TyphoonFeed.Status) ? "已开启，尚未取数" : TyphoonFeed.Status)
+                  : "已关闭");
+            sb.Append('\n').Append("全球风暴：")
+              .Append(GlobalStormFeed.Enabled
+                  ? (string.IsNullOrEmpty(GlobalStormFeed.Status) ? "已开启，尚未取数" : GlobalStormFeed.Status)
+                  : "已关闭");
+            sb.Append("　·　SIGMET：")
+              .Append(SigmetFeed.Enabled
+                  ? (string.IsNullOrEmpty(SigmetFeed.Status) ? "已开启，尚未取数" : SigmetFeed.Status)
+                  : "已关闭");
             if (gs != null)
             {
                 string forecast = MacroEconomyManager.QuoteConvergeForecast(gs);
                 if (!string.IsNullOrEmpty(forecast))
                     sb.Append("　·　本季收敛后 ").Append(forecast);
+                sb.Append('\n').Append("今日入队：")
+                  .Append(ExternalEventManager.ReceivedToday(gs))
+                  .Append(" / ").Append(ExternalDataFetcher.DailyBudget);
             }
 
             var latest = LatestReceived(list);

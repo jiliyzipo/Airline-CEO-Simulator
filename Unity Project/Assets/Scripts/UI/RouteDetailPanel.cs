@@ -176,6 +176,25 @@ namespace AirlineCEO.UI
             return null;
         }
 
+        /// <summary>
+        /// 这个键像不像**已开通航线**的 routeId（`PKX-SHA-1` / `FRA-ATL-2` / `...-great` 不算）？
+        ///
+        /// 区分「提案航线」与「已停飞」全靠最后一段：开通时序号是数字（见 ActionExecutor /
+        /// TakeoverWorldBuilder），提案则固定写作 `-great`（见 ExpansionProposalManager）。
+        /// 判错的代价是把一条刚停飞的线画成「尚未开通」，CEO 会以为关线没生效。
+        /// </summary>
+        static bool LooksLikeOpenedRouteId(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return false;
+            var parts = key.Split('-');
+            if (parts.Length < 3) return false;
+            string tail = parts[parts.Length - 1];
+            if (tail.Length == 0) return false;
+            for (int i = 0; i < tail.Length; i++)
+                if (tail[i] < '0' || tail[i] > '9') return false;
+            return true;
+        }
+
         public void RefreshBody()
         {
             ResolveRefs();
@@ -187,6 +206,23 @@ namespace AirlineCEO.UI
             {
                 string pending = FleetNetContext.SelectedRouteId;
                 if (string.IsNullOrEmpty(pending)) pending = OpsSubpageContext.SelectedRouteId;
+
+                // ★2026-10-20：航线刚被命令台停飞，键还留在上下文里，但它已经不在 activeRoutes。
+                //   旧版会把 `PKX-SHA-1` 按前两段拆成机场对，于是刚关掉的线在页面上变成
+                //   「提案航线，尚未开通」—— 提案与停飞是两件事，不能混着说。
+                if (LooksLikeOpenedRouteId(pending))
+                {
+                    OpsSubpageContext.SelectedRouteId = null;
+                    FleetNetContext.SelectedRouteId = null;
+                    L("H", "单航线", 0.0f, 0.90f, 1.0f, 0.97f, 16, UITheme.TextMuted, true);
+                    L("E", "本航线已停飞，不在在营航线清单内。\n\n"
+                         + "如需重新开通，请在命令台下达「分析开通…的可行性」，"
+                         + "或到「航线 → 开通航线」重新申请（航权记录仍在，但时刻槽需重新绑定）。",
+                        0.0f, 0.74f, 1.0f, 0.86f, 14, UITheme.TextPrimary);
+                    SetDirEnabled(false, "航线已停飞，无法下达运力指令。");
+                    return;
+                }
+
                 if (!string.IsNullOrEmpty(pending) && pending.Contains("-"))
                 {
                     string[] parts = pending.Split('-');
@@ -242,7 +278,7 @@ namespace AirlineCEO.UI
         /// <summary>航线总览：紧凑摘要 + 全部班次列表（点班次进入周排班）。</summary>
         void RenderOverview(RouteData r, GameState gs, OpsEconomics.ScheduleMetrics m)
         {
-            L1("H", AirportCatalog.Od(r.origin, r.destination), 0.0f, 0.945f, 0.55f, 1.0f, 18, UITheme.TextPrimary, true);
+            L1("H", AirportCatalog.OdRoundTrip(r.origin, r.destination), 0.0f, 0.945f, 0.55f, 1.0f, 18, UITheme.TextPrimary, true);
             string stop = string.IsNullOrEmpty(r.stopover) ? "直飞" : $"经停 {r.stopover}";
             FlightScheduleFormat.Numbers(r, 0, out string noA, out string noB);
             L1("Sub", $"{noA}/{noB} · {stop} · {r.season}季 · 开航 {r.openedDate}",
@@ -379,7 +415,10 @@ namespace AirlineCEO.UI
                 UITheme.PanelDeep);
             UIFactory.AddBorder(card, UITheme.Border, new Vector2(1f, -1f));
 
-            float weekProfit = f.dailyProfit * Mathf.Max(1, FlightScheduleFormat.WeeklyOf(f));
+            // 周利与单班日利都用**净额**（航线日利 ÷ 班次），与周计划逐班行、n43 单班页同一口径。
+            // 旧版直接用 f.dailyProfit（毛贡献份额，Σ 各班 = 毛贡献），比航线日利多出整笔周期固定成本，
+            // 于是同一个 NS100 在单航线页与邮件/周计划里会印出两个不同的「日利」。
+            float weekProfit = r.FlightNetDailyProfit * Mathf.Max(1, FlightScheduleFormat.WeeklyOf(f));
             ClampLines(UIFactory.Label(card.transform, "T",
                 (string.IsNullOrEmpty(f.registration) ? "Flight Schedule　班次周排班" : $"{f.registration} Flight Schedule")
                 + "　·　列 = 执飞日",
@@ -416,7 +455,7 @@ namespace AirlineCEO.UI
             WireKeywordNav(L1("Ac",
                 $"执飞　{TermNavMap.AircraftLink(reg)}　{r.aircraftType}　｜　" +
                 (string.IsNullOrEmpty(ring) ? "未串环（本线往返）" : "航班环 " + ring) +
-                $"　｜　单班日利 {f.dailyProfit:F2} 万 · 往返 {FlightScheduleFormat.Duration(trip.cycleMinutes)}（含过站 {trip.turnMinutes} 分）· {TotalSeats(r, reg)} 座",
+                $"　｜　单班日利 {r.FlightNetDailyProfit:F2} 万 · 往返 {FlightScheduleFormat.Duration(trip.cycleMinutes)}（含过站 {trip.turnMinutes} 分）· {TotalSeats(r, reg)} 座",
                 0.0f, BodyBottom, 1.0f, 0.348f, 12, f.dailyProfit >= 0 ? UITheme.Success : UITheme.Danger));
         }
 
@@ -839,6 +878,11 @@ namespace AirlineCEO.UI
                 {
                     FleetNetContext.SelectedCityIata = hit.routeKey;
                     FleetNetContext.OpenEconomyTab = true;
+                }
+                else if (hit.pageId.StartsWith("n43"))
+                {
+                    // 航班号 → n43 单班页：连班次下标一起写，否则会落到本线第 1 班。
+                    OpsSubpageContext.SelectFlight(hit.routeKey, hit.flightIndex);
                 }
                 else
                 {

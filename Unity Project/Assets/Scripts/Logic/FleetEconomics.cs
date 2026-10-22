@@ -84,6 +84,19 @@ namespace AirlineCEO.Logic
             return cost;
         }
 
+        /// <summary>
+        /// 单机月维护（含来源差异）= 账本唯一口径。旧版 FleetManager.MonthlyMaintOf 自己写了一套
+        /// 「机龄 5%/年 + 二手 1.35」的公式，而 UI 的 FleetSubpagePanel / 运力测算走的是本类 6%/年，
+        /// 同一架飞机在两个面板上印出两个数、账本按第三个数扣钱。此处收拢为一处，双方都调这里。
+        /// </summary>
+        public static float MonthlyMaintenance(AirlineCEO.Data.Aircraft a)
+        {
+            if (a == null || a.status == AirlineCEO.Data.AircraftStatuses.Retired) return 0f;
+            float cost = MonthlyMaintenance(a.age);
+            if (string.Equals(a.source, SourceUsed, StringComparison.Ordinal) && a.age >= 12) cost *= 1.35f;
+            return cost;
+        }
+
         /// <summary>大修预估成本（万美元），宽体 ×1.6。</summary>
         public static float OverhaulCost(string overhaulType, bool widebody)
         {

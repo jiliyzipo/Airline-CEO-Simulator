@@ -262,6 +262,12 @@ namespace AirlineCEO.Systems
             float pnl = flight.dailyProfit;
             if (Mathf.Abs(pnl) < 0.0001f) pnl = route.dailyProfit / Mathf.Max(1, route.FlightCount);
             pnl *= 0.5f;
+            // 航线周期固定成本必须逐航段实扣。`flight.dailyProfit` 存的是**毛贡献**份额
+            // （= RouteData.GrossDailyProfit / 班次数），而 RouteData.dailyProfit 才是净日利润。
+            // 旧实现只入毛、从不扣 FixedDailyCostWan，于是现金比报表净利更宽松：
+            // ★5 每季虚高约 594 万（固定 198 万/月 × 3），报表说亏、现金却在多出来。
+            // 按班次均摊再乘半程，与 pnl 的 0.5f 同口径。
+            pnl -= route.FixedDailyCostWan / Mathf.Max(1, route.FlightCount) * 0.5f;
             // 机组战力质量乘数：必须与 GameState.monthlyRevenue 同口径缩放，
             // 否则季结按 monthlyRevenue×3 轧差时会把缩掉的部分又补回来（等于白扣）。
             pnl *= gs.CrewQualityMultiplier;

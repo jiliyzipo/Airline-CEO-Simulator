@@ -843,24 +843,205 @@ namespace AirlineCEO.UI
         }
 
         // ================= n35 RPM 评估台 =================
+        // 与「航线 → 开通新航线」共用同一个 RPMCalculator 和同一套取数口径：
+        // 距离＝大圆距离，需求＝城市经济乘数，品牌＝品牌净值，油价＝当前油价，机型＝按航程自动（或手动指定）。
+        // 这样页面上的数字能和开线预览对上，不再是「班次 × 品牌」拼出来的假分。
+        static readonly string[] RpmAircraft = { "自动", "A320neo", "A321", "B737-800", "B787-9", "A330-300" };
+        string _rpmOrigin = "PEK";
+        string _rpmDest = "LHR";
+        int _rpmAcIndex;                     // 0 = 按航程自动
+        float _rpmCompetitor = 0.4f;         // 竞对运力占比
+        RPMCalculator.RPMOutput _rpmOut;     // RefreshBody 会重建内容层，结果得缓存
+        bool _rpmHasResult;
+        float _rpmDist;
+        float _rpmDemandMul;
+        string _rpmAircraftUsed;
+        int _rpmSeats;
+        string _rpmError;
+        TMP_InputField _rpmOriginInput;
+        TMP_InputField _rpmDestInput;
+
         void RenderRpm()
         {
             var gs = GameState.Instance;
             if (gs == null) return;
-            float freq = _rpmFreq;
-            float score = Mathf.Clamp(55f + freq * 2f + gs.brandAwareness * 0.15f, 0f, 100f);
+
+            if (!_rpmHasResult) EvaluateRpm(gs, toastOnError: false);
+
+            // 从「航线 → 开通新航线」跳进来时，出发地 / 目的地已由开线页填好，直接沿用。
+            if (RpmPreview.TryConsumeSeed(out string seedOrigin, out string seedDest))
+            {
+                _rpmOrigin = seedOrigin;
+                _rpmDest = seedDest;
+                _rpmOriginInput = null;
+                _rpmDestInput = null;
+                EvaluateRpm(gs, toastOnError: false);
+            }
+
+            float score = _rpmOut.score;
             Color band = score >= 70 ? UITheme.Success : score >= 40 ? UITheme.Warning : UITheme.Danger;
-            L("H", "新航线 RPM 评估台", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
-            L("Score", $"综合分：{score:F0}（{(score >= 70 ? "绿色·可开线" : score >= 40 ? "黄色·待观察" : "红色·不建议")}）",
-                0.0f, 0.80f, 1.0f, 0.90f, 14, band, true);
-            L("Hint", "调节周班次 · 机型 · 时刻 → 实时重算 · 纳入宏观与竞对参数", 0.0f, 0.70f, 1.0f, 0.80f, 12, UITheme.TextMuted);
 
-            B("Freq-", "班次 −1", 0.02f, 0.52f, 0.22f, 0.62f, UITheme.PanelDeep, () => { _rpmFreq = Mathf.Max(1, _rpmFreq - 1); RefreshBody(); }, 12);
-            B("Freq+", "班次 +1", 0.26f, 0.52f, 0.46f, 0.62f, UITheme.PanelDeep, () => { _rpmFreq = Mathf.Min(21, _rpmFreq + 1); RefreshBody(); }, 12);
-            L("FreqVal", $"当前周班次：{freq:F0}", 0.50f, 0.52f, 0.80f, 0.62f, 13);
+            L("H", "新航线 RPM 评估台 · 航线盈利预测模型", 0.0f, 0.94f, 1.0f, 1.0f, 15, UITheme.Accent, true);
 
-            B("Submit", "提交开线 / 发起会议", 0.02f, 0.34f, 0.46f, 0.44f, UITheme.Accent,
-                () => { Toast("开线会议已发起（跳转 CEO 决策会议）。"); }, 13);
+            // —— 航线输入 ——
+            L("OL", "出发", 0.0f, 0.85f, 0.045f, 0.915f, 12, UITheme.TextMuted);
+            _rpmOriginInput = UIFactory.Input(_content, "RpmOrigin", _rpmOrigin,
+                new UIFactory.Anchor(new Vector2(0.05f, 0.85f), new Vector2(0.18f, 0.915f), Vector2.zero, Vector2.zero));
+            L("DL", "到达", 0.19f, 0.85f, 0.235f, 0.915f, 12, UITheme.TextMuted);
+            _rpmDestInput = UIFactory.Input(_content, "RpmDest", _rpmDest,
+                new UIFactory.Anchor(new Vector2(0.24f, 0.85f), new Vector2(0.37f, 0.915f), Vector2.zero, Vector2.zero));
+
+            B("Swap", "⇄ 对调", 0.38f, 0.85f, 0.445f, 0.915f, UITheme.PanelDeep,
+                () =>
+                {
+                    CaptureRpmInputs();
+                    string t = _rpmOrigin; _rpmOrigin = _rpmDest; _rpmDest = t;
+                    _rpmOriginInput = null; _rpmDestInput = null;
+                    _rpmHasResult = false;
+                    RefreshBody();
+                }, 12);
+            B("Calc", "重新评估", 0.455f, 0.85f, 0.555f, 0.915f, UITheme.Accent,
+                () => { CaptureRpmInputs(); EvaluateRpm(gs, toastOnError: true); RefreshBody(); }, 12);
+            B("GoOpen", "前往开通新航线 →", 0.565f, 0.85f, 0.735f, 0.915f, UITheme.PanelDeep,
+                () =>
+                {
+                    BackOne();
+                    OpsPanelUI.OpenShellTab("n12_航线网络");
+                    FindFirstObjectByType<NetworkPanelUI>()?.ShowOpenRouteTab();
+                }, 12);
+            L("Tip", "支持三字码或城市名", 0.745f, 0.85f, 1.0f, 0.915f, 11, UITheme.TextMuted);
+
+            // —— 参数（点一下就重算）——
+            string acLabel = string.IsNullOrEmpty(_rpmAircraftUsed) ? "—" : _rpmAircraftUsed;
+            if (_rpmAcIndex == 0 && !string.IsNullOrEmpty(_rpmAircraftUsed)) acLabel += "（自动）";
+            L("AcVal", $"机型　{acLabel}", 0.0f, 0.775f, 0.33f, 0.835f, 12, UITheme.TextPrimary, true);
+            L("FreqVal", $"周班　{_rpmFreq:F0} 班/周", 0.34f, 0.775f, 0.56f, 0.835f, 12, UITheme.TextPrimary, true);
+            L("CompVal", $"竞对运力　{_rpmCompetitor * 100f:F0}%", 0.57f, 0.775f, 0.78f, 0.835f, 12, UITheme.TextPrimary, true);
+            L("DemVal", $"需求系数　{_rpmDemandMul:F2}", 0.79f, 0.775f, 1.0f, 0.835f, 12, UITheme.TextPrimary, true);
+
+            B("Ac-", "机型 ◀", 0.0f, 0.695f, 0.105f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); CycleRpmAircraft(-1); }, 11);
+            B("Ac+", "机型 ▶", 0.11f, 0.695f, 0.215f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); CycleRpmAircraft(+1); }, 11);
+            B("Freq-", "周班 −", 0.23f, 0.695f, 0.325f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); _rpmFreq = Mathf.Max(1f, _rpmFreq - 1f); EvaluateRpm(gs, false); RefreshBody(); }, 11);
+            B("Freq+", "周班 +", 0.33f, 0.695f, 0.425f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); _rpmFreq = Mathf.Min(21f, _rpmFreq + 1f); EvaluateRpm(gs, false); RefreshBody(); }, 11);
+            B("Comp-", "竞对 −", 0.44f, 0.695f, 0.535f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); _rpmCompetitor = Mathf.Max(0f, _rpmCompetitor - 0.05f); EvaluateRpm(gs, false); RefreshBody(); }, 11);
+            B("Comp+", "竞对 +", 0.54f, 0.695f, 0.635f, 0.765f, UITheme.PanelDeep,
+                () => { CaptureRpmInputs(); _rpmCompetitor = Mathf.Min(1f, _rpmCompetitor + 0.05f); EvaluateRpm(gs, false); RefreshBody(); }, 11);
+            B("Reset", "恢复默认", 0.65f, 0.695f, 0.76f, 0.765f, UITheme.PanelDeep,
+                () =>
+                {
+                    _rpmOrigin = "PEK"; _rpmDest = "LHR"; _rpmAcIndex = 0; _rpmCompetitor = 0.4f; _rpmFreq = 7f;
+                    _rpmOriginInput = null; _rpmDestInput = null;
+                    EvaluateRpm(gs, false); RefreshBody();
+                }, 11);
+
+            // —— 结果 ——
+            L("Od", _rpmError == null
+                    ? $"{AirportCatalog.Od(_rpmOrigin, _rpmDest)}　·　{_rpmDist:F0} km　·　单班（单向）口径"
+                    : "航线未识别",
+                0.0f, 0.615f, 1.0f, 0.685f, 13, UITheme.TextPrimary, true);
+
+            L("Score", _rpmError == null ? $"综合评分 {score:F0}（{_rpmOut.rating} · {RpmRatingWord(score)}）" : "—",
+                0.0f, 0.545f, 0.55f, 0.615f, 15, band, true);
+            L("Profit", _rpmError == null ? $"单班日利润 {_rpmOut.dailyProfit:F2} 万美元" : "—",
+                0.55f, 0.545f, 1.0f, 0.615f, 15,
+                _rpmOut.dailyProfit >= 0f ? UITheme.Success : UITheme.Danger, true);
+
+            var box = UIFactory.Panel(_content, "RpmBox",
+                new UIFactory.Anchor(new Vector2(0.0f, 0.02f), new Vector2(1.0f, 0.53f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep);
+            var body = UIFactory.Label(box.transform, "RpmBody", _rpmError ?? BuildRpmReport(), 13,
+                TextAlignmentOptions.TopLeft, UIFactory.Fill, _rpmError != null ? UITheme.Warning : UITheme.TextPrimary);
+            body.textWrappingMode = TextWrappingModes.Normal;
+            body.rectTransform.offsetMin = new Vector2(14f, 10f);
+            body.rectTransform.offsetMax = new Vector2(-14f, -10f);
+        }
+
+        /// <summary>把输入框里的文字存回字段：RefreshBody 会连同输入框一起销毁。</summary>
+        void CaptureRpmInputs()
+        {
+            if (_rpmOriginInput != null && !string.IsNullOrWhiteSpace(_rpmOriginInput.text))
+                _rpmOrigin = _rpmOriginInput.text.Trim();
+            if (_rpmDestInput != null && !string.IsNullOrWhiteSpace(_rpmDestInput.text))
+                _rpmDest = _rpmDestInput.text.Trim();
+        }
+
+        void CycleRpmAircraft(int step)
+        {
+            int n = RpmAircraft.Length;
+            _rpmAcIndex = ((_rpmAcIndex + step) % n + n) % n;
+            EvaluateRpm(GameState.Instance, false);
+            RefreshBody();
+        }
+
+        void EvaluateRpm(GameState gs, bool toastOnError)
+        {
+            _rpmError = null;
+
+            if (!AirportCatalog.TryResolve(_rpmOrigin, out var o) || !AirportCatalog.TryResolve(_rpmDest, out var d))
+            {
+                _rpmHasResult = false;
+                _rpmError = "机场未识别：请输入三字码（PEK / LHR）或城市名（北京 / 伦敦）。";
+                if (toastOnError) Toast(_rpmError);
+                return;
+            }
+            if (string.Equals(o.code, d.code, System.StringComparison.OrdinalIgnoreCase))
+            {
+                _rpmHasResult = false;
+                _rpmError = "出发与到达是同一个机场，请修改其中一端。";
+                if (toastOnError) Toast(_rpmError);
+                return;
+            }
+
+            _rpmOrigin = o.code;
+            _rpmDest = d.code;
+
+            var plan = RpmPreview.Build(gs, o.code, d.code,
+                _rpmAcIndex <= 0 ? null : RpmAircraft[_rpmAcIndex],
+                _rpmCompetitor);
+
+            _rpmOut = plan.output;
+            _rpmDist = plan.distanceKm;
+            _rpmAircraftUsed = plan.aircraftType;
+            _rpmSeats = plan.seats;
+            _rpmDemandMul = plan.demandMultiplier;
+            _rpmHasResult = true;
+            if (toastOnError) Toast("已按当前油价 / 品牌 / 竞对重算。");
+        }
+
+        static string RpmRatingWord(float score)
+        {
+            if (score >= 70f) return "绿色 · 可开线";
+            if (score >= 40f) return "黄色 · 待观察";
+            return "红色 · 不建议";
+        }
+
+        string BuildRpmReport()
+        {
+            var gs = GameState.Instance;
+            float weeklyRevenue = RpmPreview.WeeklyFromDaily(_rpmOut.dailyRevenue, _rpmFreq);
+            float weeklyProfit = RpmPreview.WeeklyFromDaily(_rpmOut.dailyProfit, _rpmFreq);
+            float margin = _rpmOut.dailyRevenue > 0.01f ? _rpmOut.dailyProfit / _rpmOut.dailyRevenue : 0f;
+            float fuel = gs != null ? gs.fuelPricePerTon : 850f;
+            float brand = gs != null ? gs.brandAwareness : 55f;
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("单班口径（1 班/日）\n");
+            sb.Append($"　日收入 {_rpmOut.dailyRevenue:F2}　日成本 {_rpmOut.dailyCost:F2}　日利润 {_rpmOut.dailyProfit:F2} 万美元　毛利率 {margin * 100f:F1}%\n");
+            sb.Append($"　成本拆分　油费 {_rpmOut.fuelCostWan:F2}　机场费 {_rpmOut.airportCostWan:F2}　机组 {_rpmOut.crewCostWan:F2}　可变维修 {_rpmOut.maintVarWan:F2}\n");
+            sb.Append("\n按周班折算\n");
+            sb.Append($"　{_rpmFreq:F0} 班/周 → 周收入 {weeklyRevenue:F1}　周利润 {weeklyProfit:F1} 万美元\n");
+            sb.Append("\n收益口径\n");
+            sb.Append($"　{_rpmAircraftUsed} · {_rpmSeats} 座 · 客座率 {EconomyBalanceParams.DefaultLoadFactor * 100f:F0}% · 商务舱 {EconomyBalanceParams.DefaultBusinessSeatShare * 100f:F0}%\n");
+            sb.Append($"　航程 {_rpmDist:F0} km　需求系数 {_rpmDemandMul:F2}　竞对运力 {_rpmCompetitor * 100f:F0}%　品牌净值 {brand:F0}　油价 {fuel:F0} 美元/吨\n");
+            sb.Append("\n评分口径\n");
+            sb.Append("　利润分 50% ＋ 毛利率分 30% ＋ 航程加分 − 竞对扣分，满分 100；≥70 绿 / ≥40 黄 / 其余红。\n");
+            sb.Append("　口径与「航线 → 开通新航线」的预览一致；实际开航还要过航权、时刻槽与现金门槛。");
+            return sb.ToString();
         }
 
         // ================= n102 谈判弹窗 =================

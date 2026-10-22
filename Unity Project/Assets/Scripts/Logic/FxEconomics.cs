@@ -116,8 +116,11 @@ namespace AirlineCEO.Logic
         /// <summary>
         /// 按给定目标汇率结算本季汇兑损益并落账（自测用 / 将来做剧本化汇率事件也用这里）。
         /// <paramref name="rateBefore"/> 传 0 表示取当前汇率。
+        /// <paramref name="chargeHedgeCost"/> = 是否在本步计收对冲成本：季度结算只收一次，
+        /// 现实汇率靠拢这一步传 false，避免同季重复扣费。
         /// </summary>
-        public static string ApplyRate(GameState gs, float rateAfter, float rateBefore = 0f)
+        public static string ApplyRate(GameState gs, float rateAfter, float rateBefore = 0f,
+            bool chargeHedgeCost = true)
         {
             if (gs == null) return "";
 
@@ -131,7 +134,7 @@ namespace AirlineCEO.Logic
             float hedge = Mathf.Clamp(gs.fxHedgeRatio, 0f, 0.8f);
 
             float pnl = exposure * deltaRatio * (1f - hedge);
-            float cost = Mathf.Abs(exposure) * hedge * HedgeCostPerQuarter;
+            float cost = chargeHedgeCost ? Mathf.Abs(exposure) * hedge * HedgeCostPerQuarter : 0f;
             float net = pnl - cost;
 
             gs.cash += net;
@@ -142,11 +145,54 @@ namespace AirlineCEO.Logic
             string dir = deltaRatio > 0.0005f ? "人民币贬值" : deltaRatio < -0.0005f ? "人民币升值" : "汇率基本持平";
             string mood = net >= 0f ? "汇兑收益" : "汇兑损失";
             string hedgeNote = hedge > 0.001f
-                ? $"已对冲 {hedge * 100f:F0}%（成本 {cost:F1} 万）"
+                ? (chargeHedgeCost ? $"已对冲 {hedge * 100f:F0}%（成本 {cost:F1} 万）" : $"已对冲 {hedge * 100f:F0}%")
                 : "未对冲";
 
             return $"汇率 {before:F2}→{after:F2}（{dir} {Mathf.Abs(deltaRatio) * 100f:F1}%）：{mood} {Mathf.Abs(net):F1} 万"
                  + $"（净美元头寸 {exposure:F0} 万 · {hedgeNote}）";
+        }
+
+        /// <summary>现实汇率收敛的单季幅度上限（±3%/季）：既跟得上现实，又不让一次取数掀翻损益。</summary>
+        public const float RateConvergeBand = 0.03f;
+
+        /// <summary>
+        /// 现实汇率收敛（默认开启，可在 n116 关掉）：按季向现实 USD/CNY 靠拢，单季最多 ±3%。
+        /// <para>
+        /// 刻意走 <see cref="ApplyRate"/> —— 靠拢本身也按净美元头寸结算汇兑损益，
+        /// 与季度漂移同一口径；未开启 / 断网 / 取数异常时返回空串，不产生任何影响。
+        /// </para>
+        /// </summary>
+        public static string ConvergeToRealRate(GameState gs)
+        {
+            if (gs == null) return "";
+            if (!ExternalDataFetcher.TryGetExchangeRate(out float real, out string label)) return "";
+
+            float before = RateOf(gs);
+            float target = Mathf.Clamp(real, MinUsdCny, MaxUsdCny);
+            float room = before * RateConvergeBand;
+            float step = Mathf.Clamp(target - before, -room, room);
+            if (Mathf.Abs(step) < 0.005f) return "";   // 已足够接近：不折腾，也不往汇率史里塞噪声
+
+            float after = Mathf.Clamp(before + step, MinUsdCny, MaxUsdCny);
+            string settle = ApplyRate(gs, after, before, chargeHedgeCost: false);
+            string src = string.IsNullOrEmpty(label) ? "现实汇率" : label;
+            return $"现实汇率（{src}）{target:F4}，本季靠拢 {before:F2}→{gs.usdCny:F2}"
+                 + $"（单季上限 ±{RateConvergeBand * 100f:F0}%）\n" + settle;
+        }
+
+        /// <summary>本季结算时汇率会收敛到哪（仅用于页面预告，不改任何状态）。</summary>
+        public static string RateConvergeForecast(GameState gs)
+        {
+            if (gs == null) return "";
+            if (!ExternalDataFetcher.TryGetExchangeRate(out float real, out _)) return "";
+            float target = Mathf.Clamp(real, MinUsdCny, MaxUsdCny);
+            float before = RateOf(gs);
+            float room = before * RateConvergeBand;
+            float step = Mathf.Clamp(target - before, -room, room);
+            if (Mathf.Abs(step) < 0.005f)
+                return $"已足够接近（差 {Mathf.Abs(target - before):F4}），本季不动";
+            return $"{Mathf.Clamp(before + step, MinUsdCny, MaxUsdCny):F4}"
+                 + $"（单季上限 ±{RateConvergeBand * 100f:F0}%）";
         }
 
         /// <summary>季度汇率漂移：财年首季跟宏观阶段同向，其余季度小幅噪声。</summary>
