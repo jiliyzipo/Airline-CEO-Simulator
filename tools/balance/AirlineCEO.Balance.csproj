@@ -49,6 +49,8 @@
              Link="Shared\Logic\CashRunnelCalculator.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\FinanceEconomics.cs"
              Link="Shared\Logic\FinanceEconomics.cs" />
+    <Compile Include="$(UnityScriptsDir)\Logic\LoanEconomics.cs"
+             Link="Shared\Logic\LoanEconomics.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\FleetEconomics.cs"
              Link="Shared\Logic\FleetEconomics.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\MktEconomics.cs"

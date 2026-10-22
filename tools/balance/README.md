@@ -37,8 +37,10 @@ dotnet run -- --seed 42 --year 1 --out out
 | `--out` | `out` | 输出目录 |
 | `--stress` | — | Phase 4 Week 13 全流程压测（60 组合扫参，输出 `STRESS_BALANCE_REPORT.md` + `out/stress_matrix.csv`） |
 | `--freq` | — | 班次模型响应曲线 + 6 项不变量（`Logic/RouteFrequencyModel.cs`） |
-| `--frequniverse` | — | 全 94 家可接管航司的班次直方图 + 航距分带（近/中/远）+ 双口径体检 + 10 项断言（链接真实 `TakeoverWorldBuilder`） |
-| `--fleetcheck` | — | 全 94 家可接管航司的「机队 ↔ 网络」自洽体检：无机航线 / 机型飞不到 / 机队规模下限 + 5 项断言 |
+| `--frequniverse` | — | 全 98 家可接管航司的班次直方图 + 航距分带（近/中/远）+ 双口径体检 + 10 项断言（链接真实 `TakeoverWorldBuilder`） |
+| `--routeinventory` | — | 全航司**航线级**清单（hub→dest/km/周班/机型）+ 新入表机场归属断言 + 按星级的接管读数（家数/机队/航线/现金/现金跑道） |
+| `--presets` | — | 四个**具名预设**（CAN/PEK/PVG/CTU）的接管读数与「建议现金」，回填 `PresetAirlines` 用这一档，不要用星级平均 |
+| `--fleetcheck` | — | 全 98 家可接管航司的「机队 ↔ 网络」自洽体检：无机航线 / 机型飞不到 / 机队规模下限 + 5 项断言 |
 | `--routefixed` / `--routefixed-sweep` | — | 航线周期固定成本档位表 / 扫参 |
 | `--routefixed-base` | 出厂值 | 覆盖固定成本基准（万/日/线） |
 | `--channels` / `--legacy` | — | 渠道收益 / 旧版余额复核（`--shortage` 默认 60） |
@@ -61,6 +63,19 @@ dotnet run -- --seed 42 --year 1 --out out
 - `Shims/UnityEngineShim.cs` —— 仅 `Mathf` / `MapWidget.GreatCircleKm` / `DataBase` 三处垫片。
 
 因此 `--frequniverse` 打印的就是接管界面里的真实航线班次。
+
+### 航线级清单（`--routeinventory`）
+
+`--frequniverse` 只出**分布**（直方图、分带占比），答不了「某座机场入表后，到底哪些航司的网络变了」。
+往 `CityEconomyCatalog` 加一座城市，`BuildDestinationPool` 的候选池对**所有**航司都变了；
+只比航司总数与航线总数，看不出「老航司的某条线被新城市顶掉」这种替换。本报告逐条打印
+`hub → dest / km / 周班 / 机型`，并断言：
+
+- 新机场**未被外站航司**纳入目的地（池按需求降序取前 N，落选即未挤入前 N，也就没顶掉任何既有目的地）；
+- 每座新机场的**本场**航司确实展开了出港航线（> 0）；
+- 另附按星级的接管读数（家数 / 机队 / 航线 / 现金 / 现金跑道），用于判断加城市是否把最易档堆厚。
+
+换批次时改 `RouteInventoryReport.Watched` 即可。
 
 ### 目的地池（`TakeoverWorldBuilder.BuildDestinationPool`）
 

@@ -34,6 +34,12 @@ internal static class Program
         if (args.Contains("--frequniverse"))
             return UniverseFrequencyReport.Run();
 
+        if (args.Contains("--routeinventory"))
+            return RouteInventoryReport.Run();
+
+        if (args.Contains("--presets"))
+            return PresetPreviewReport.Run();
+
         if (args.Contains("--fleetcheck"))
             return FleetNetworkReport.Run();
 
