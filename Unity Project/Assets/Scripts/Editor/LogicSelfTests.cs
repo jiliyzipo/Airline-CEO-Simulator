@@ -1865,6 +1865,11 @@ namespace AirlineCEO.EditorTools
                 // 2026-10-22 K19：时刻槽提案必须写出现金跑道后果（300 万的槽 vs 325 万的现金）。
                 SlotCashHintRegression.Run();
 
+                // 2026-10-22 K12：季末一次性项必须与月烧钱分开；预计区间要覆盖 K10 实测汇兑值。
+                QuarterlyOneOffRegression.Run();
+
+                // 2026-10-22 K14：压测的「机场池」缝不得扰动默认网络，且收窄必须被目的地池读到。
+                NetworkPoolVisibilityRegression.Run();
                 // —— R14：时刻槽**逐停站**建模（一条槽 = 某停站一次停留的一对「到场 + 离场」）——
                 //     本场端 1 条、对端 1 条；有经停时经停站一趟往返停两次 = **2 条**（共 4 条）。
                 var goTwoEnd = new GameObject("__slot_two_end__");

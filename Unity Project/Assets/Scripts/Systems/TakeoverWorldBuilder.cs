@@ -15,20 +15,29 @@ namespace AirlineCEO.Systems
         // 令伦敦/迪拜/洛杉矶等海外枢纽的整条网络都被判为洲际远程，班次清一色 2–5）。
         // 现由 BuildDestinationPool 按枢纽自身所在国/大洲生成，并以机队航程上限过滤。
 
-        public static AirlineProfile BuildPreview(string id)
+        public static AirlineProfile BuildPreview(string id) => BuildPreview(id, null);
+
+        /// <summary>
+        /// 同上，但可指定**目的地宇宙**（大写 IATA 集合）—— K14 的「机场数 × 批次规模」压测用。
+        ///
+        /// <paramref name="universe"/> 为 null 时行为完全不变（全目录）。非 null 时：
+        /// ① 目的地池只从该集合取；② 调用方仍可自选枢纽（枢纽本身不在集合里也允许，用于单城消融）。
+        /// 这条缝只影响**生成网络**，不影响任何运行时逻辑；生产调用点全部传 null。
+        /// </summary>
+        public static AirlineProfile BuildPreview(string id, ISet<string> universe)
         {
             var t = PresetAirlines.Resolve(id);
-            FillWorld(t, previewOnly: true);
+            FillWorld(t, previewOnly: true, universe);
             return t;
         }
 
-        public static void FillWorld(AirlineProfile p, bool previewOnly)
+        public static void FillWorld(AirlineProfile p, bool previewOnly, ISet<string> universe = null)
         {
             if (p == null) return;
             var rng = new System.Random(Hash(p.id));
             p.aircraft = BuildFleet(p, rng);
             p.transitionBusinesses = BuildTransitions(p, rng);
-            p.routes = BuildRoutes(p, rng);
+            p.routes = BuildRoutes(p, rng, universe);
             RouteGeography.PruneImplausible(p.routes, AirlineCEO.UI.MapWidget.GreatCircleKm);
             p.openingLoans = BuildLoans(p);
             p.legacyIssues = BuildIssues(p);
@@ -81,7 +90,56 @@ namespace AirlineCEO.Systems
             p.cashRunwayMonths = p.cashRunwayUnbounded
                 ? 0f
                 : p.cash / p.monthlyNetBurn;
+            // K12：净美元敞口只服务「季末一次性项预计 ±X 万」这一行，**不进** monthlyNetBurn。
+            // 口径必须与 FxEconomics.NetUsdExposureWan 同式：国际航线季净收入 −（余本 + 一年租赁承诺）。
+            p.netUsdExposureWan = ProfileNetUsdExposureWan(p);
             _ = previewOnly;
+        }
+
+        /// <summary>
+        /// 接管档案的净美元头寸（万美元，负 = 净美元负债）。
+        ///
+        /// 与 <c>FxEconomics.NetUsdExposureWan</c> 逐项对齐：
+        /// <c>UsdIncomeWan</c>（国际线日利润 × 30 × 3）− <c>UsdDebtWan</c>（购机应付款 + 贷款余本 + 月租 × 12）。
+        /// 接管档案里没有购机应付款（PDP 是接手后才会发生的事），故该项为 0。
+        /// 「国际」用 <see cref="AirportRegions.IsInternational"/> —— 与 <c>RoutePermitLogic</c>
+        /// 同一份国家底表，两边的相等性由 <c>QuarterlyOneOffRegression</c> 断言。
+        /// </summary>
+        internal static float ProfileNetUsdExposureWan(AirlineProfile p)
+        {
+            if (p == null) return 0f;
+            float daily = 0f;
+            if (p.routes != null)
+            {
+                for (int i = 0; i < p.routes.Count; i++)
+                {
+                    var r = p.routes[i];
+                    if (r == null) continue;
+                    if (!AirportRegions.IsInternational(r.origin, r.destination)) continue;
+                    daily += r.dailyProfit;
+                }
+            }
+            float usdIncome = daily * 30f * 3f;   // 日 → 季，与 FxEconomics.UsdIncomeWan 同口径
+
+            float leaseMonth = 0f;
+            if (p.aircraft != null)
+            {
+                for (int i = 0; i < p.aircraft.Count; i++)
+                {
+                    var a = p.aircraft[i];
+                    if (a != null) leaseMonth += Mathf.Max(0f, a.monthlyLeaseWan);
+                }
+            }
+            float loans = 0f;
+            if (p.openingLoans != null)
+            {
+                for (int i = 0; i < p.openingLoans.Count; i++)
+                {
+                    var l = p.openingLoans[i];
+                    if (l != null) loans += Mathf.Max(0f, l.remainingPrincipal);
+                }
+            }
+            return usdIncome - (loans + leaseMonth * 12f);
         }
 
         /// <summary>接管缺员率（%）：与 <c>SeadInheritedCrew</c> 的入参同源，预览与落盘共用。</summary>
@@ -223,7 +281,7 @@ namespace AirlineCEO.Systems
         /// 种子航线：目的地池按**枢纽自身**所处国/大洲生成（见 <see cref="BuildDestinationPool"/>），
         /// 班次与班期统一交由 <see cref="RouteFrequencyModel.Materialize"/> 给出。
         /// </summary>
-        static List<RouteData> BuildRoutes(AirlineProfile p, System.Random rng)
+        static List<RouteData> BuildRoutes(AirlineProfile p, System.Random rng, ISet<string> universe)
         {
             var list = new List<RouteData>();
             var busy = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -234,7 +292,7 @@ namespace AirlineCEO.Systems
                         busy.Add(p.transitionBusinesses[i].aircraftReg);
             }
 
-            var dests = BuildDestinationPool(p);
+            var dests = BuildDestinationPool(p, universe);
             int need = Mathf.Max(1, p.routeCount);
             int lose = p.difficulty <= 2 ? 0 : p.difficulty == 3 ? 2 : p.difficulty == 4 ? 6 : 12;
             int loseFrom = Math.Max(0, Math.Min(need, dests.Count) - lose);
@@ -337,7 +395,7 @@ namespace AirlineCEO.Systems
         /// 同时以**机队航程上限**过滤：A320neo（6,300 km）飞不了 PEK–JFK，这类目的地不会入池，
         /// 因此生成航线的机型必定飞得到（窄体机队的小航司自然只做短程网络）。
         /// </summary>
-        static List<string> BuildDestinationPool(AirlineProfile p)
+        static List<string> BuildDestinationPool(AirlineProfile p, ISet<string> universe)
         {
             string hub = p.hubAirport;
             float maxRange = FleetMaxRangeKm(p);
@@ -351,6 +409,8 @@ namespace AirlineCEO.Systems
             {
                 var e = catalog[i];
                 if (e == null || string.IsNullOrEmpty(e.iata)) continue;
+                // K14：目的地宇宙收窄（压测的「机场池」轴）。null = 全目录，生产路径不变。
+                if (universe != null && !universe.Contains(e.iata.Trim().ToUpperInvariant())) continue;
                 if (string.Equals(e.iata, hub, StringComparison.OrdinalIgnoreCase)) continue;
                 float km = AirlineCEO.UI.MapWidget.GreatCircleKm(hub, e.iata);
                 if (maxRange > 0f && km > maxRange * 1.05f) continue;   // 机队飞不到
