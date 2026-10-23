@@ -1,0 +1,14 @@
+{
+  "Seed": 42,
+  "Year": 1,
+  "GeneratedAt": "2026-10-23T01:12:22.900Z",
+  "Commit": "2743f4732bec9d8f1aa506847405a80a5e26227f",
+  "Branch": "cursor/phase10-fleet-management",
+  "Dirty": true,
+  "Delivery": "",
+  "SourceHash": "714b5ed424dbd17b1cc7cb2612d0b5e6555f95bfa285da9c3b2d88bedeeabb71",
+  "SourceFileCount": 86,
+  "SummarySha256": "21feea44704a4c0d0f0f213c72fff4e8153ef7ad4ecf1b86cc350e31072f7fa8",
+  "Command": "dotnet run -- --seed 42 --year 1 --out out",
+  "Note": ""
+}

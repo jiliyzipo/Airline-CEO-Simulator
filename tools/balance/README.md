@@ -36,6 +36,8 @@ dotnet run -- --seed 42 --year 1 --out out
 | `--year` | 1 | 财年编号（写入 CSV） |
 | `--out` | `out` | 输出目录 |
 | `--stress` | — | Phase 4 Week 13 全流程压测（60 组合扫参，输出 `STRESS_BALANCE_REPORT.md` + `out/stress_matrix.csv`） |
+| `--netstress` | — | **K14 网络池压测**：接真实机场三表与接管网络，扫「机场数 × 批次规模」× 繁荣/滞胀两条宏观，输出 `NETWORK_POOL_STRESS.md` + `out/netstress_matrix.csv`；含批次 A 消融断言与「默认路径零扰动 / 无宇宙外航线」机制守卫 |
+| `--netstress-diag` | — | K14 诊断：摊开前 6 家样本的档案 → 网络 → 一年模拟（现金/机队/航线/月收入/月固定/净烧钱 + 逐情景损益），用来判断宏观轴是否被打爆、指标是否饱和 |
 | `--freq` | — | 班次模型响应曲线 + 6 项不变量（`Logic/RouteFrequencyModel.cs`） |
 | `--frequniverse` | — | 全 98 家可接管航司的班次直方图 + 航距分带（近/中/远）+ 双口径体检 + 10 项断言（链接真实 `TakeoverWorldBuilder`） |
 | `--routeinventory` | — | 全航司**航线级**清单（hub→dest/km/周班/机型）+ 新入表机场归属断言 + 按星级的接管读数（家数/机队/航线/现金/现金跑道） |
@@ -128,6 +130,29 @@ dotnet run -- --seed 42 --year 1 --out out
 > 持续性停飞的航线，否则「幽灵收入」只是改在季末结账 —— 见设计文档 §12.9 第 6 条。
 > 本工具按出厂值跑通全航司（种子内 0 条无机航线），故该口径变化不影响 `compare_baseline` 的基准。
 
+### 网络池压测（`--netstress`，K14）
+
+旧 `--stress` 的 60 组合用的是 `StressTestRunner.AirlineTypes` 里**手写**的三四条航线，
+不读 `AirportCatalog` / `CityEconomyCatalog`。因此「批次 A 加了 ZUH/WUX/NGB/WNZ」这类改动
+在压测里等于没发生 —— 加机场只会改变**接管界面**的网络，不会改变压测的破产率。
+
+`--netstress` 换用真实航司池做样本：`PresetAirlines.AllSelectable()` 里枢纽属于被测机场池的
+**全部航司**，网络由 `TakeoverWorldBuilder.BuildPreview(id, universe)` 生成（与选司界面同一套
+目的地池/选机/班次模型，只收窄目的地宇宙），再逐家跑一年 `AirlineYearSimulator`。
+
+- 宏观固定**滞胀**（GDP −0.5% / 油价 1300 $/t / seed=42）：只有它能把这批按 8/6/4/3 月跑道
+  配好的现金压到破产边界；换繁荣期人人绿档，「破产率变化」会退化成 `0 = 0` 的无信息断言。
+- 只压**有执飞机**的航线（无机航线局内停飞，算收入会造假）；
+- `fixedMonthlyOpex` = 总部/地面 + 月租 + 月均还本付息 + 月均保费，机队维护与人力由 simulator
+  按同一批公式自算，不重复传。
+
+断言（K14.3）：去掉批次 A 四城后，① 航司数/航线数/网络指纹必须变化（证明读到三表）；
+② 破产率 / 平均跑道 / 航线密度至少一项变化（证明网络真的进了模型）。
+报告同时给出每一批的「新增枢纽航司 N 家 / 网络 +M 条」映射。
+
+> 与 `--stress` 的分工：`--stress` 是**档位 × 宏况**的粗网格（回答「哪一档最危险」），
+> `--netstress` 是**机场池**的消融实验（回答「加/删城市会不会改变结论」）。两者不可互相替代。
+
 ## 最小航司假设
 
 | 项 | 值 | 来源 |
@@ -144,18 +169,68 @@ dotnet run -- --seed 42 --year 1 --out out
 
 1. 改 `Unity Project/Assets/Scripts/Logic/RPMCalculator.cs`、`CashRunnelCalculator.cs`、`OpsEconomics.cs`、`OpsIrropsLogic.cs` 后，直接 `dotnet run` 即用新公式，无需复制。
 2. 宏观倾向公式在 `Economy/MacroEconomyEngine.cs`，与 `MacroEconomyManager` 对齐；若 Unity 侧改动，请同步此处并注明版本。
-3. 回归：固定 `--seed 42`，对比 `summary_*.txt` 是否变化。
+3. 回归：固定 `--seed 42`，用 `.\compare_baseline.ps1` 对比（见下节；**不要**只肉眼比 `summary_*.txt`）。
 4. **OPS 年闭环**：见 `OPS_YEAR_LOOP.md`（调度乘数 + 准点投影 + M6 IRROPS）。
 
-## 回归对比
+## 回归对比与基线出处（K13）
 
 ```powershell
 cd "C:\Users\jiliy\Airline-CEO-Simulator\tools\balance"
-.\compare_baseline.ps1              # 与 baseline/ 对比，不一致则 exit 1
-.\compare_baseline.ps1 -UpdateBaseline   # 接受当前结果为新基准
+.\compare_baseline.ps1                    # 先验出处，再比数值；不可比则 exit 3
+.\compare_baseline.ps1 -Tolerance 0.05    # 放宽到 ±5%（默认 ±3%）
+.\compare_baseline.ps1 -UpdateBaseline    # 重录基线并写下来源指纹
 ```
 
-基准文件：`baseline/summary_y1_seed42.txt`（含 OPS 年闭环字段，2026-08-12 更新）。
+### 退出码
+
+| 码 | 含义 | 该怎么办 |
+|---|---|---|
+| 0 | 与基线一致（容差内） | 无 |
+| 1 | 输入没变，但数值漂了 | 这是真回归，查改动 |
+| 2 | 缺基线 / 缺指纹 / seed-year 不符 | 先 `-UpdateBaseline` 重录 |
+| 3 | **输入已变，基线不可比** | 不要读成百分比；确认改动符合预期后重录 |
+
+### 基线随哪一版生效
+
+`baseline/BASELINE_SOURCE.json` 是基线的身份证，由 `--baseline-write` 自动生成：
+
+| 字段 | 作用 |
+|---|---|
+| `Commit` / `Branch` / `Dirty` | 人读的坐标：这条基线是在哪个提交、什么分支上录的；`Dirty=true` 表示录制时工作区有未提交改动 |
+| `SourceHash` / `SourceFileCount` | **机器判据**：参与计算的 86 个 `.cs`/`.csproj`（工具自身 + csproj 链入的 Unity 逻辑源码）的内容哈希 |
+| `SummarySha256` | 基线摘要自身的哈希，用于核对文件没被手改 |
+| `GeneratedAt` / `Seed` / `Year` | 时间与参数 |
+
+**能不能比，只看 `SourceHash`，不看 commit。** 三种组合的实际含义：
+
+- 文档/README 改了、模型没动 → commit 变了，`SourceHash` 不变 → **可比**；
+- 模型改了但没提交 → commit 没变，`SourceHash` 变了 → **不可比**（`Dirty=true` 时尤其容易踩）；
+- 改了 `EconomyBalanceParams` 一类参数常量 → `SourceHash` 变 → **不可比**。
+
+所以「基线是 2026-08-12 更新的」这种手写日期不再需要，也不可信；出处一律从 JSON 读。
+
+### 当前基线
+
+- 文件：`baseline/summary_y1_seed42.txt` + `baseline/pnl_y1_seed42.csv`
+- 录制于：**2026-10-23**（K12 展示层接线后按同 seed 重录；2026-10-22 K13 首录，K12/K14 落地后重录过一次），
+  commit `2743f473`、工作区脏（`Dirty=true`）
+- 输入指纹：`714b5ed424db`（86 文件，含 K14 新增的 `Stress/NetworkPoolStressReport.cs`）· seed=42 year=1
+- 关键读数：`closing=1707.90`、`net=1232.90`、`runway=99.00`
+- K12 只新增了「季末一次性项」的展示与档案字段（`netUsdExposureWan`），不参与月度收支；
+  K14 只新增压测可选参数与报告代码（`BuildPreview(id, universe)`，生产调用点不传）。两者都不改
+  月度收支，故重录前后 `closing` / `net` / `runway` 逐位相同 —— 这也是「一次性项不得进月烧钱」
+  与「压测缝零扰动」的数值证据。
+- 与旧基线的差：旧基线记录 `closing=1365.88`（2026-10-09），差 **+25.0%**。
+  这段差值来自 K08–K11 与 D2 的口径修正（还本付息、全险保费、过渡收入封顶、
+  机组缺员乘数、`×30` → 按实际执飞天数、星级与预设重排），**不是**本轮引入的回归。
+  旧基线因此作废（无法分辨「口径变了」与「代码坏了」），只作历史留存。
+
+### 交付版本与基线的关系
+
+基线与 DEL 不是一一绑定：一个 DEL 可能只改文档，也可能只改一个不影响模型的 UI 文件。
+需要回答「这条基线是哪一版生成的」时，读 `BASELINE_SOURCE.json` 的 `Commit`，
+再用 `git branch --contains <commit>` / 对应 DEL 的 `git` 字段反查交付编号。
+`--baseline-write --delivery DEL-xxx` 可以直接把交付号写进 `Delivery` 字段（可选）。
 
 ## 校准结果（seed=42）
 
@@ -166,6 +241,8 @@ cd "C:\Users\jiliy\Airline-CEO-Simulator\tools\balance"
 | 年末现金 | ~1,923 万 | **~1,288 万** |
 
 详见 `CALIBRATION_1.3.md` 与 `OPS_YEAR_LOOP.md`。
+
+> 上表是 Phase 1.3 的历史校准读数，**不是**当前基线；当前读数见 `baseline/summary_y1_seed42.txt`。
 
 ## 后续（计划内）
 

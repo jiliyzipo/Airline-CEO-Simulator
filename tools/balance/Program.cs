@@ -1,6 +1,7 @@
 using AirlineCEO.Balance.Economy;
 using AirlineCEO.Balance.Export;
 using AirlineCEO.Balance.Legacy;
+using AirlineCEO.Balance.Models;
 using AirlineCEO.Balance.Scenarios;
 using AirlineCEO.Balance.Sim;
 using AirlineCEO.Balance.Stress;
@@ -15,6 +16,12 @@ internal static class Program
     {
         if (!ApplyRouteFixedBaseOverride(args))
             return 2;
+
+        if (args.Contains("--netstress-diag"))
+            return NetworkPoolStressReport.Diag();
+
+        if (args.Contains("--netstress"))
+            return NetworkPoolStressReport.Run();
 
         if (args.Contains("--stress"))
             return RunStressTest();
@@ -43,6 +50,15 @@ internal static class Program
         if (args.Contains("--fleetcheck"))
             return FleetNetworkReport.Run();
 
+        if (args.Contains("--baseline-write"))
+            return RunBaselineWrite(args);
+
+        if (args.Contains("--baseline-compare"))
+            return RunBaselineCompare(args);
+
+        if (args.Contains("--oneoffcheck"))
+            return QuarterlyOneOffReport.Run();
+
         if (args.Contains("--channels"))
         {
             float shortage = ParseFloat(args, "--shortage", 60f);
@@ -58,6 +74,18 @@ internal static class Program
         Console.WriteLine($"seed={seed}  year={year}  out={Path.GetFullPath(outDir)}");
         Console.WriteLine();
 
+        RunSimulation(seed, year, outDir, print: true);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// 跑一年模拟并落盘 summary/csv。抽出来是为了让 `--baseline-write` /
+    /// `--baseline-compare` 与默认跑用**同一条**路径，避免基线由另一段代码生成。
+    /// </summary>
+    private static (YearSummary Summary, string SummaryPath, string CsvPath) RunSimulation(
+        int seed, int year, string outDir, bool print)
+    {
         // 冒烟：与 Unity LogicSelfTests 同输入对齐
         SmokeCheckRpm();
 
@@ -65,21 +93,127 @@ internal static class Program
         var sim = new AirlineYearSimulator(macro);
         var summary = sim.RunFiscalYear(year);
 
-        PrintSummary(summary);
+        if (print) PrintSummary(summary);
 
         Directory.CreateDirectory(outDir);
         string csvPath = Path.Combine(outDir, $"pnl_y{year}_seed{seed}.csv");
         string written = CsvExporter.WriteMonthlyPnL(csvPath, summary);
-        Console.WriteLine();
-        Console.WriteLine($"CSV written: {written}");
+        if (print)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"CSV written: {written}");
+        }
 
-        // 基准摘要（便于回归对比）
         string summaryPath = Path.Combine(outDir, $"summary_y{year}_seed{seed}.txt");
         File.WriteAllText(summaryPath, BuildSummaryText(summary, seed, year));
-        Console.WriteLine($"Summary: {Path.GetFullPath(summaryPath)}");
+        if (print) Console.WriteLine($"Summary: {Path.GetFullPath(summaryPath)}");
 
+        return (summary, summaryPath, csvPath);
+    }
+
+    /// <summary>
+    /// K13.1：以固定 seed 重录年度基线，并写入来源指纹。
+    /// 基线永远「自带出处」，不再靠 README 里手写的日期。
+    /// </summary>
+    private static int RunBaselineWrite(string[] args)
+    {
+        int seed = ParseInt(args, "--seed", 42);
+        int year = ParseInt(args, "--year", 1);
+        string delivery = ParseString(args, "--delivery", "");
+        string note = ParseString(args, "--note", "");
+        string projectDir = BaselineProvenance.LocateProjectDir();
+        string baselineDir = Path.Combine(projectDir, "baseline");
+
+        Console.WriteLine("=== 重录年度基线 ===");
+        var (_, summaryPath, csvPath) = RunSimulation(seed, year, baselineDir, print: false);
+
+        var stamp = BaselineProvenance.Create(seed, year, summaryPath, delivery, note);
+        BaselineProvenance.Save(baselineDir, stamp);
+
+        Console.WriteLine($"基线摘要: {Path.GetFullPath(summaryPath)}");
+        Console.WriteLine($"基线 CSV : {Path.GetFullPath(csvPath)}");
+        Console.WriteLine($"指纹文件 : {Path.GetFullPath(Path.Combine(baselineDir, BaselineProvenance.FileName))}");
+        Console.WriteLine($"来源     : {BaselineProvenance.Describe(stamp)}");
         return 0;
     }
+
+    /// <summary>
+    /// K13.2：先验证指纹可比，再按 ±tolerance 比数值。
+    /// 不可比时直接报错退出 —— 不打印一个只会在模型换版后被误读的百分比。
+    /// </summary>
+    private static int RunBaselineCompare(string[] args)
+    {
+        int seed = ParseInt(args, "--seed", 42);
+        int year = ParseInt(args, "--year", 1);
+        double tolerance = ParseFloat(args, "--tolerance", 0.03f);
+        string projectDir = BaselineProvenance.LocateProjectDir();
+        string baselineDir = Path.Combine(projectDir, "baseline");
+        string summaryName = $"summary_y{year}_seed{seed}.txt";
+
+        Log("=== 年度基线与当前工作区对比 ===");
+
+        string baselineSummary = Path.Combine(baselineDir, summaryName);
+        if (!File.Exists(baselineSummary))
+        {
+            Log($"[FAIL] 缺基线摘要：{baselineSummary}（先跑 --baseline-write）");
+            return 2;
+        }
+
+        var stamp = BaselineProvenance.Load(baselineDir);
+        if (stamp == null)
+        {
+            Log($"[FAIL] 缺指纹 {BaselineProvenance.FileName}：无法判断这条基线由哪一版生成");
+            Log("       旧基线没有出处，不能拿来比。请用 --baseline-write 重录。");
+            return 2;
+        }
+        if (stamp.Seed != seed || stamp.Year != year)
+        {
+            Log($"[FAIL] 基线指纹是 seed={stamp.Seed} year={stamp.Year}，本次是 seed={seed} year={year}：不是同一条基线");
+            return 2;
+        }
+
+        Log($"基线来源：{BaselineProvenance.Describe(stamp)}");
+
+        // 当前工作区跑一遍（落到 out/，不碰 baseline/）
+        var (_, currentSummary, _) = RunSimulation(seed, year, Path.Combine(projectDir, "out"), print: false);
+
+        var cmp = BaselineProvenance.Compare(baselineSummary, currentSummary, stamp, projectDir, tolerance);
+
+        if (!cmp.Comparable)
+        {
+            Log($"[FAIL] 不可比：{cmp.BlockReason}");
+            return 3;
+        }
+
+        string pct = double.IsNaN(cmp.MaxDeviation) ? "n/a" : (cmp.MaxDeviation * 100).ToString("F3") + "%";
+        Log($"字段 {cmp.MatchedKeys} 项（数值 {cmp.NumericKeys} 项）· 最大偏差 {pct} @ {cmp.MaxDeviationKey} · 容差 ±{tolerance * 100:F1}%");
+
+        if (cmp.MissingInCurrent.Count > 0)
+            Log($"[FAIL] 当前摘要缺字段：{string.Join(", ", cmp.MissingInCurrent)}");
+        if (cmp.ExtraInCurrent.Count > 0)
+            Log($"[WARN] 当前摘要多出字段（基线未收录）：{string.Join(", ", cmp.ExtraInCurrent)}");
+
+        if (cmp.OverTolerance.Count > 0)
+        {
+            Log($"[FAIL] 超出容差 {cmp.OverTolerance.Count} 项：");
+            foreach (var d in cmp.OverTolerance.Take(30))
+            {
+                string dev = d.Numeric ? (d.Deviation * 100).ToString("F2") + "%" : "文本不同";
+                Log($"        {d.Key,-28} 基线 {d.Baseline,-16} 当前 {d.Current,-16} {dev}");
+            }
+        }
+
+        if (!cmp.Passed)
+        {
+            Log("[FAIL] 基线对比未通过");
+            return 1;
+        }
+
+        Log($"[PASS] 与基线一致（容差 ±{tolerance * 100:F1}% 内）");
+        return 0;
+    }
+
+    private static void Log(string message) => Console.WriteLine(message);
 
     private static int RunLegacyCheck()
     {
@@ -115,7 +249,9 @@ internal static class Program
 
         int bad = results.Count(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW");
         int runaway = results.Count(r => r.Flag == "RUNAWAY");
+        int bankrupt = results.Count(r => r.Flag == "BANKRUPT");
         Console.WriteLine();
+        Console.WriteLine($"破产率(BANKRUPT)              : {bankrupt}/{results.Count} = {bankrupt * 100.0 / results.Count:F1}%");
         Console.WriteLine($"危险组合(BANKRUPT+RED+YELLOW) : {bad}");
         Console.WriteLine($"失控组合(RUNAWAY)             : {runaway}");
         Console.WriteLine(bad == 0
@@ -138,11 +274,30 @@ internal static class Program
 
     private static string BuildStressReport(IReadOnlyList<StressTestRunner.Result> results)
     {
+        var stamp = BaselineProvenance.Create(42, 1, "");
+        int bankruptCount = results.Count(r => r.Flag == "BANKRUPT");
+        int badCount = results.Count(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW");
+
         var lines = new List<string>
         {
             "# Airline CEO · 平衡压测报告（Phase 4 Week 13）",
             "",
             "> 生成：`tools/balance` · `dotnet run -- --stress`（seed=42，可复现）",
+            "",
+            "## 出处（K13.3：破产率必须与生成版本一起读）",
+            "",
+            "| 项 | 值 |",
+            "|---|---|",
+            $"| 生成时间（UTC） | {stamp.GeneratedAt} |",
+            $"| commit | `{(stamp.Commit.Length >= 8 ? stamp.Commit[..8] : stamp.Commit)}`（{stamp.Branch}）{(stamp.Dirty ? " · **工作区脏**" : "")} |",
+            $"| 输入指纹 | `{stamp.SourceHash[..Math.Min(12, stamp.SourceHash.Length)]}`（{stamp.SourceFileCount} 个 .cs/.csproj） |",
+            $"| 组合数 | {results.Count} |",
+            $"| **破产率** | **{bankruptCount}/{results.Count} = {bankruptCount * 100.0 / results.Count:F1}%** |",
+            $"| 告急率（BANKRUPT+RED+YELLOW） | {badCount}/{results.Count} = {badCount * 100.0 / results.Count:F1}% |",
+            "",
+            "> 口径：本报告的破产率**只在上面这个输入指纹下成立**。这 60 组合用的是四套写死的模板网络",
+            "> （PEK-SHA / PEK-ICN / PEK-LHR 等），不读机场三表，因此「加机场」对本表没有影响。",
+            "> 要判断新增城市/机场池的平衡性，看 `NETWORK_POOL_STRESS.md`（`dotnet run -- --netstress`）。",
             "",
             "## 范围",
             "",
@@ -215,7 +370,7 @@ internal static class Program
         lines.Add("");
         lines.Add("## 剩余告急与判断");
         lines.Add("");
-        lines.Add($"- 告急（BANKRUPT/RED/YELLOW）{bad} 组合 · 破产 {bankrupt} 组合 · 失控（RUNAWAY）{runaway} 组合。");
+        lines.Add($"- 告急（BANKRUPT/RED/YELLOW）{bad} 组合 · 破产 {bankrupt} 组合 · **破产率 {bankrupt * 100.0 / results.Count:F1}%** · 失控（RUNAWAY）{runaway} 组合。");
 
         bool onlyStagflation = results
             .Where(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW")

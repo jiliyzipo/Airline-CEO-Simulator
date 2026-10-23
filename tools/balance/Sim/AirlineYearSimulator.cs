@@ -27,6 +27,8 @@ public sealed class AirlineYearSimulator
     private readonly float _irropsSeverity;
     /// <summary>存量人力成本（万美元/月）：未逐人建模的全公司员工。</summary>
     private readonly float _laborMonthly;
+    /// <summary>是否打印逐季宏观/事件行（批量压测时关掉，否则几百行会淹没结论）。</summary>
+    private readonly bool _verbose;
 
     public AirlineYearSimulator(
         MacroEconomyEngine? macro = null,
@@ -42,7 +44,8 @@ public sealed class AirlineYearSimulator
         AncillarySettings? ancillary = null,
         PeakSeasonPackage? peakSeason = null,
         float irropsSeverity = 1f,
-        float? annualLaborCostWan = null)
+        float? annualLaborCostWan = null,
+        bool verbose = true)
     {
         _macro = macro ?? new MacroEconomyEngine();
         _fleet = fleet ?? MinimalAirline.CreateFleet();
@@ -65,6 +68,7 @@ public sealed class AirlineYearSimulator
             extendDays = 14
         };
         _irropsSeverity = irropsSeverity;
+        _verbose = verbose;
         // 人力随规模走：未显式给定时按在役机队推导（见 HrEconomics.EstablishmentLaborCostWan）。
         _laborMonthly = HrEconomics.MonthlyLaborCostWan(
             annualLaborCostWan
@@ -73,7 +77,8 @@ public sealed class AirlineYearSimulator
 
     public YearSummary RunFiscalYear(int year = 1)
     {
-        Console.WriteLine(_macro.TickYear(year));
+        string macroLine = _macro.TickYear(year);
+        if (_verbose) Console.WriteLine(macroLine);
 
         var months = new List<MonthlyPnL>(12);
         float cash = _openingCash;
@@ -120,8 +125,8 @@ public sealed class AirlineYearSimulator
                 otp = Clamp(otp + outcome.onTimeDelta, 40f, 99f);
                 irropsCash += irropsDelta;
                 irropsNote = $"M6 {OpsIrropsLogic.KindLabel(OpsIrropsLogic.IrropsKind.Weather)}/{outcome.label}";
-                Console.WriteLine($"[OPS] IRROPS {irropsNote}: cash {outcome.cashDeltaWan:F1}, otp→{otp:F1}");
-            }
+                if (_verbose)
+                    Console.WriteLine($"[OPS] IRROPS {irropsNote}: cash {outcome.cashDeltaWan:F1}, otp→{otp:F1}");            }
 
             var pnl = SimulateMonth(year, month, cash, activeAc, fleetMaint, ref otp);
             cash = pnl.CashEndWan;
@@ -144,7 +149,8 @@ public sealed class AirlineYearSimulator
                         loanMonthlyPay = loanPrincipal / 12f + loanPrincipal * (loanRate / 12f);
                         cash += loanPrincipal;
                         financingEvents++;
-                        Console.WriteLine($"[FIN] 跑道告急→银行贷款 {loanPrincipal:F0} 万 (年利率 {loanRate * 100:F1}%)");
+                        if (_verbose)
+                            Console.WriteLine($"[FIN] 跑道告急→银行贷款 {loanPrincipal:F0} 万 (年利率 {loanRate * 100:F1}%)");
                     }
                 }
 

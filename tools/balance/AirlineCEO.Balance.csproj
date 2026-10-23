@@ -51,6 +51,9 @@
              Link="Shared\Logic\FinanceEconomics.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\LoanEconomics.cs"
              Link="Shared\Logic\LoanEconomics.cs" />
+    <!-- K12 季末一次性项：只链接纯算式那一半（.State.cs 依赖 GameState，离线取不到）。 -->
+    <Compile Include="$(UnityScriptsDir)\Logic\QuarterlyOneOffLogic.cs"
+             Link="Shared\Logic\QuarterlyOneOffLogic.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\FleetEconomics.cs"
              Link="Shared\Logic\FleetEconomics.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\MktEconomics.cs"
