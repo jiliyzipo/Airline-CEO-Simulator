@@ -75,6 +75,7 @@ namespace AirlineCEO.Systems
         private const string KeyUsdCny = "ACEO_UsdCny";
         private const string KeyUsdCnyHistory = "ACEO_UsdCnyHistoryJson";
         private const string KeyCumFxPnl = "ACEO_CumFxPnlWan";
+        private const string KeyOneOffLast = "ACEO_OneOffLastJson";
         private const string KeyMkt = "ACEO_Mkt";
         private const string KeyCargo = "ACEO_Cargo";
         private const string KeyCommerce = "ACEO_Commerce";
@@ -161,7 +162,7 @@ namespace AirlineCEO.Systems
             KeyDeptHeads, KeyStaffPool, KeyStaffRecruits, KeyHr, KeyUsedMarket, KeyCityEconomy, KeyFuelPrice, KeyHedgeContracts, KeyActiveLoans, KeyFuelHistory,
             KeyLoanDefaults, KeyHasSeenHedgeTutorial, KeyBudget, KeyBudgetYear, KeyBudgetSubmitted,
             KeyBudgetApproved, KeyCarbon, KeyRestructuring, KeyPdpPayable, KeyFxHedgeRatio,
-            KeyUsdCny, KeyUsdCnyHistory, KeyCumFxPnl,
+            KeyUsdCny, KeyUsdCnyHistory, KeyCumFxPnl, KeyOneOffLast,
             KeyMkt, KeyCargo, KeyCommerce, KeySubsidies, KeyTransition, KeyAircraftOrders, KeyInsurance,
             KeyFuelProc, KeyCarbonComp, KeyCumTaxPaid, KeyYearTaxPaid, KeyDecision, KeyFleet,
             KeyActiveRoutes, KeyFlightRings, KeyTakeover, KeyLegacyIssues,
@@ -540,6 +541,7 @@ namespace AirlineCEO.Systems
             SetF(KeyFxHedgeRatio, gs.fxHedgeRatio);
             SetF(KeyUsdCny, gs.usdCny);
             SetF(KeyCumFxPnl, gs.cumulativeFxPnlWan);
+            SetS(KeyOneOffLast, JsonUtility.ToJson(gs.lastOneOff ?? new OneOffTally()));
             SetS(KeyUsdCnyHistory, JsonUtility.ToJson(new FloatListSave
             {
                 items = gs.usdCnyHistory != null ? gs.usdCnyHistory.ToArray() : Array.Empty<float>()
@@ -1085,6 +1087,17 @@ namespace AirlineCEO.Systems
             catch
             {
                 gs.usdCnyHistory = new System.Collections.Generic.List<float> { gs.usdCny };
+            }
+
+            // K12 季末一次性项（记录上一季实际值；旧档没有这条键时归零，不影响跑道口径）
+            try
+            {
+                var oneOffBlob = JsonUtility.FromJson<OneOffTally>(GetS(KeyOneOffLast, ""));
+                gs.lastOneOff = oneOffBlob ?? new OneOffTally();
+            }
+            catch
+            {
+                gs.lastOneOff = new OneOffTally();
             }
 
             // MKT（Phase 2 Week 7）读档

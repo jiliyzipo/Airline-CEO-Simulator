@@ -255,6 +255,14 @@ namespace AirlineCEO.Systems
         /// <summary>累计汇兑损益（万美元，正 = 累计收益）。</summary>
         public float cumulativeFxPnlWan;
 
+        [Header("季末一次性项（K12）")]
+        /// <summary>
+        /// 上一季**实际**发生的季末一次性项（万美元，正 = 增现金）。
+        /// 与 <see cref="EffectiveMonthlyBurn"/> 彻底分开：它不参与月烧钱、不参与跑道分母。
+        /// 由 <c>TimeManager</c> 在结算时逐段取现金差实测得到。
+        /// </summary>
+        public OneOffTally lastOneOff = new OneOffTally();
+
         [Header("财务细分（GDB 第15章 · P2 长线运营）")]
         /// <summary>航线补贴记录列表（GDB 15.4）。</summary>
         public List<RouteSubsidy> routeSubsidies = new List<RouteSubsidy>();

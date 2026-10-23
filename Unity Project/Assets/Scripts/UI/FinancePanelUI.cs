@@ -523,7 +523,12 @@ namespace AirlineCEO.UI
                 $"月收入　约 {rev:F0} 万　·　净月烧钱　{burn:F0} 万\n" +
                 $"过渡业务　月 +{gs.FleetMonthlyTransitionIncome:F0} 万（{gs.TransitionLeasedCount} 架在租）\n" +
                 $"{CashRunnelCalculator.FormatPlayerLabel(runway)}\n" +
-                $"状态　{CashRunnelCalculator.FormatWarningPlain(runway)}\n\n" +
+                $"状态　{CashRunnelCalculator.FormatWarningPlain(runway)}\n" +
+                $"季末一次性项　预计 ±{AirlineCEO.Logic.QuarterlyOneOffLogic.EstimateBandWan(gs):F0} 万"
+                    + "（以汇兑为主，货运/险损/随机事件不可预判；不计入月烧钱）\n" +
+                (gs.lastOneOff != null && !gs.lastOneOff.IsZero
+                    ? $"　上季实际　{AirlineCEO.Logic.QuarterlyOneOffLogic.Breakdown(gs.lastOneOff)}\n"
+                    : "") +
                 $"航油　${gs.fuelPricePerTon:F0} / 吨\n" +
                 $"汇率　1 美元 = {AirlineCEO.Logic.FxEconomics.RateOf(gs):F2} 元　·　累计汇兑 {(gs.cumulativeFxPnlWan >= 0f ? "+" : "")}{gs.cumulativeFxPnlWan:F0} 万\n" +
                 $"对冲合约　{hedges} 份　·　贷款/增资　{loans} 笔\n" +

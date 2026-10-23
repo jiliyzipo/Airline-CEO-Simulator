@@ -54,6 +54,12 @@ namespace AirlineCEO.Data
         public float cashRunwayMonths;
         /// <summary>净烧钱 ≤ 0：跑道无上限，<see cref="cashRunwayMonths"/> 不可当数字读。</summary>
         public bool cashRunwayUnbounded;
+        /// <summary>
+        /// K12：净美元头寸（万美元，负 = 净美元负债）。与 <c>FxEconomics.NetUsdExposureWan</c> 同口径，
+        /// 只是用接管档案的数据算：国际航线季净收入 −（存量贷款余本 + 一年租赁承诺）。
+        /// 只用于「季末一次性项预计 ±X 万」那一行，**不参与**月烧钱与跑道。
+        /// </summary>
+        public float netUsdExposureWan;
         public int routeCount;
         public int crewVacancyPercent;
         public int dryLeaseCount;

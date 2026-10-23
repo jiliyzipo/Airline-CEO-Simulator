@@ -211,6 +211,15 @@ namespace AirlineCEO.Systems
             if (BoardManager.Instance != null)
                 BoardManager.UpdateSimulatedKpis(gs);
 
+            // K12：季末一次性项按「每段结算前后取现金差」**实测**，不重算公式。
+            // 它只用于界面单列，绝不回灌月烧钱/跑道分母（见 QuarterlyOneOffLogic 的说明）。
+            var oneOff = new OneOffTally();
+            float cashMark;
+            // 预计区间必须在结算前取：敞口与季度都会被下面的结算改掉。
+            int oneOffQuarter = gs.quarter;
+            float oneOffExposureBefore = AirlineCEO.Logic.FxEconomics.NetUsdExposureWan(gs);
+            float oneOffHedgeBefore = gs.fxHedgeRatio;
+
             // Phase 15 修复：对冲结算应使用本季度（波动前）的油价，而非新季波动后价格
             // 先记录历史价格用于图表展示，再执行对冲结算
             string hedgeText = "";
@@ -218,8 +227,10 @@ namespace AirlineCEO.Systems
             float quarterEndPrice = gs.fuelPricePerTon;
             if (HedgeManager.Instance != null)
             {
+                cashMark = gs.cash;
                 HedgeManager.Instance.PushPriceHistory(quarterEndPrice);
                 hedgeText = HedgeManager.Instance.SettleQuarter(quarterEndPrice);
+                oneOff.AddFuel(gs.cash - cashMark);
             }
             if (!string.IsNullOrEmpty(hedgeText))
             {
@@ -228,6 +239,7 @@ namespace AirlineCEO.Systems
             }
 
             // 现实汇率（默认开启，可在 n116 关掉）：先按现实汇率靠拢并结算该段汇兑损益，再走游戏自身的季度漂移
+            cashMark = gs.cash;
             string fxRealText = AirlineCEO.Logic.FxEconomics.ConvergeToRealRate(gs);
             if (!string.IsNullOrEmpty(fxRealText))
             {
@@ -237,6 +249,7 @@ namespace AirlineCEO.Systems
 
             // 汇率（Phase 20）：与油价对冲同口径 —— 先按漂移前汇率结算本季汇兑损益，再漂移汇率
             string fxText = AirlineCEO.Logic.FxEconomics.SettleAndDrift(gs);
+            oneOff.AddFx(gs.cash - cashMark);
             if (!string.IsNullOrEmpty(fxText))
                 eventText = string.IsNullOrEmpty(eventText) ? fxText : eventText + "\n" + fxText;
 
@@ -267,6 +280,7 @@ namespace AirlineCEO.Systems
             LoanManager.ClearCrisisBurnIfRecovered(gs);
 
             string safetyText = "";
+            cashMark = gs.cash;
             if (SafetyEventManager.Instance != null)
                 safetyText = SafetyEventManager.Instance.TryRollQuarterEvent(gs);
             else
@@ -275,12 +289,14 @@ namespace AirlineCEO.Systems
                 go.AddComponent<SafetyEventManager>();
                 safetyText = SafetyEventManager.Instance.TryRollQuarterEvent(gs);
             }
+            oneOff.AddSafety(gs.cash - cashMark);
 
             if (!string.IsNullOrEmpty(safetyText))
                 eventText = string.IsNullOrEmpty(eventText) ? safetyText : eventText + "\n" + safetyText;
 
             // P2 长线运营：货运业务独立核算（腹舱 + 纯货机）
             string cargoText = "";
+            cashMark = gs.cash;
             if (CargoManager.Instance != null)
                 cargoText = CargoManager.Instance.OnQuarterTick();
             else
@@ -289,11 +305,13 @@ namespace AirlineCEO.Systems
                 go.AddComponent<CargoManager>();
                 cargoText = CargoManager.Instance.OnQuarterTick();
             }
+            oneOff.AddCargo(gs.cash - cashMark);
             if (!string.IsNullOrEmpty(cargoText))
                 eventText = string.IsNullOrEmpty(eventText) ? cargoText : eventText + "\n" + cargoText;
 
             // P2 长线运营：非航收入与临空商业（GDB 26.2）
             string commerceText = "";
+            cashMark = gs.cash;
             if (AirportCommerceManager.Instance != null)
                 commerceText = AirportCommerceManager.Instance.OnQuarterTick();
             else
@@ -302,6 +320,7 @@ namespace AirlineCEO.Systems
                 go.AddComponent<AirportCommerceManager>();
                 commerceText = AirportCommerceManager.Instance.OnQuarterTick();
             }
+            oneOff.AddOther(gs.cash - cashMark);
             if (!string.IsNullOrEmpty(commerceText))
                 eventText = string.IsNullOrEmpty(eventText) ? commerceText : eventText + "\n" + commerceText;
 
@@ -356,6 +375,7 @@ namespace AirlineCEO.Systems
 
             // Phase 12：随机事件（可占用大油价槽）
             string randomText = "";
+            cashMark = gs.cash;
             if (RandomEventManager.Instance != null)
                 randomText = RandomEventManager.Instance.OnQuarterTick();
             else
@@ -364,6 +384,7 @@ namespace AirlineCEO.Systems
                 go.AddComponent<RandomEventManager>();
                 randomText = RandomEventManager.Instance.OnQuarterTick();
             }
+            oneOff.AddRandom(gs.cash - cashMark);
             if (!string.IsNullOrEmpty(randomText))
                 eventText = string.IsNullOrEmpty(eventText) ? randomText : eventText + "\n" + randomText;
 
@@ -375,7 +396,9 @@ namespace AirlineCEO.Systems
                               RandomEventManager.Instance.ConsumedOilSlotThisQuarter;
             if (!oilBlocked)
             {
+                cashMark = gs.cash;
                 oilText = TryOilEvent(gs);
+                oneOff.AddFuel(gs.cash - cashMark);
                 if (!string.IsNullOrEmpty(oilText))
                 {
                     eventText = string.IsNullOrEmpty(eventText) ? oilText : eventText + "\n" + oilText;
@@ -399,7 +422,12 @@ namespace AirlineCEO.Systems
             string summary =
                 $"季度结算：实际航班收入 {liveIn:F0} 万 − 实际日常支出 {liveEx:F0} 万；" +
                 $"联盟季度收入 {allianceIncome:F0} 万；本次入账 {(net >= 0 ? "+" : "")}{net:F0} 万。" +
-                $" 时间 {Label(fromYear, fromQuarter)} → {gs.DateLabel}。";
+                $" 时间 {Label(fromYear, fromQuarter)} → {gs.DateLabel}。" +
+                "\n" + AirlineCEO.Logic.QuarterlyOneOffLogic.RetrospectiveLine(
+                    oneOff, oneOffExposureBefore, oneOffHedgeBefore, oneOffQuarter);
+
+            // K12：实测结果落盘，供财务页显示「上季实际」；不进月烧钱/跑道。
+            gs.lastOneOff = oneOff;
 
             gs.AddDecisionLog(summary + (string.IsNullOrEmpty(eventText) ? "" : " " + eventText));
 

@@ -66,6 +66,10 @@ namespace AirlineCEO.UI.Setup
                                   + "）");
                     // 净烧钱可能为负（收入覆盖成本），此时不该印「每月净烧钱 -27 万」——按 0 说，与本页跑道口径一致。
                     sb.AppendLine($"每月净烧钱约 {Mathf.Max(0f, p.monthlyNetBurn):F0} 万 · 跑道 {TakeoverWorldBuilder.RunwayText(p)}");
+                    // K12：季末一次性项单列，明确「不计入月烧钱」。它不进 monthlyNetBurn，
+                    // 也不进上面的跑道分母 —— 两行并存，玩家才不会把一次性收益当成跑道变长。
+                    sb.AppendLine(QuarterlyOneOffLogic.EstimateLine(
+                        p.netUsdExposureWan, 0f, 1));
                     if (p.monthlyDebtService > 0.01f)
                         sb.AppendLine($"其中每季一次性还本付息约 {p.monthlyDebtService * 3f:F0} 万（季末扣）");
                     if (p.monthlyInsurance > 0.01f)

@@ -61,5 +61,33 @@ namespace AirlineCEO.Logic
         /// <summary>是否为新加坡（企业所得税 17%，GDB 15.10）。</summary>
         public static bool IsSingapore(string iata) =>
             string.Equals(iata, "SIN", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 端点是否在中国内地以外（港澳台算境外）。**纯函数**，供 `tools/balance` 离线使用。
+        ///
+        /// 判定顺序与 <c>RoutePermitLogic.IsInternational</c> 的①相同：国家底表优先
+        /// （<see cref="AirlineCEO.Data.CityEconomyCatalog"/>，写的是「中国 / 中国香港 / 韩国…」），
+        /// 底表没收录时退回本类的 <see cref="IsChina"/> 名单。
+        /// 选司界面要在**接管之前**算净美元敞口（K12 的「季末一次性项预计 ±X 万」），
+        /// 而那时没有 <c>GameState</c>，故不能直接问 <c>RoutePermitLogic</c>。
+        ///
+        /// 两套判定的口径一致性由 `QuarterlyOneOffRegression` 断言：对每档预设航司的全部航线，
+        /// 本函数与 <c>RoutePermitLogic.IsInternational</c> 必须给出相同答案 —— 新增机场只进了一边
+        /// （例如只加进 AirportCatalog 而没进 CityEconomyCatalog）时回归会红，而不是默默把国际线
+        /// 算成国内、让预告的敞口小一截。
+        /// </summary>
+        public static bool IsForeignEndpoint(string iata)
+        {
+            if (string.IsNullOrEmpty(iata)) return false;
+            string c = iata.Trim().ToUpperInvariant();
+            var eco = AirlineCEO.Data.CityEconomyCatalog.Find(c);
+            if (eco != null && !string.IsNullOrEmpty(eco.countryZh))
+                return !string.Equals(eco.countryZh.Trim(), "中国", StringComparison.Ordinal);
+            return !IsChina(c);
+        }
+
+        /// <summary>航线是否国际/地区（任一端点在境外）。与 <c>RoutePermitLogic.IsInternational</c> 同口径，见上。</summary>
+        public static bool IsInternational(string origin, string dest)
+            => IsForeignEndpoint(origin) || IsForeignEndpoint(dest);
     }
 }
