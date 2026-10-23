@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 332,
-  "updatedAt": "2026-10-22T09:39:41.921Z",
+  "revision": 345,
+  "updatedAt": "2026-10-23T01:57:41.635Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -117,12 +117,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-22T09:28:39.536Z"
+    },
+    "S07-Balance": {
+      "title": "阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-22T13:18:57.941Z"
     }
   },
-  "lastDeliveryId": "DEL-20261022092843-6e9303",
+  "lastDeliveryId": "DEL-20261023012853-918599",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

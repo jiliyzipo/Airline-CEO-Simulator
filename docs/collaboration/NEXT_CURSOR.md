@@ -13,3 +13,4 @@
 - S04-UI: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S05-P2Close: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S06-BatchB: 按缺陷修复后重新 deliver。
+- S07-Balance: 已交付，等待 Codex；不要自行勾选独立验收通过。
