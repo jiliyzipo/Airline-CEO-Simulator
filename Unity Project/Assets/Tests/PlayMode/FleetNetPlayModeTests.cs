@@ -53,10 +53,14 @@ namespace AirlineCEO.Tests.PlayMode
             Assert.AreEqual(11000f * 0.91f, FleetEconomics.ResidualValue(11000f, 3), 0.01f);
             Assert.AreEqual(11000f * 0.10f, FleetEconomics.ResidualValue(11000f, 40), 0.01f);
 
-            // 月维护：基础 5 万 × (1 + 机龄 × 6%)；>20 年翻倍
+            // 月维护：基础 5 万 × (1 + 机龄 × 5%/年)；>20 年翻倍。
+            // 5% 是《EconomyBalanceParams.MaintAgeUpliftPerYear》的定案值（与账本一致），
+            // 旧断言写死 6% 是当年 UI 口径，2026-10-19 统一到账本后未同步，本行据此更正。
             Assert.AreEqual(5f, FleetEconomics.MonthlyMaintenance(0), 0.001f);
-            Assert.AreEqual(5f * 1.60f, FleetEconomics.MonthlyMaintenance(10), 0.001f);
-            Assert.Greater(FleetEconomics.MonthlyMaintenance(21), 5f * 1.20f * 2f - 0.01f);
+            Assert.AreEqual(5f * (1f + 10 * EconomyBalanceParams.MaintAgeUpliftPerYear),
+                FleetEconomics.MonthlyMaintenance(10), 0.001f);
+            Assert.AreEqual(5f * (1f + 21 * EconomyBalanceParams.MaintAgeUpliftPerYear) * 2f,
+                FleetEconomics.MonthlyMaintenance(21), 0.001f);
 
             // 大修成本：D 检 > C 检 > B 检 > A 检；宽体 ×1.6
             Assert.Greater(FleetEconomics.OverhaulCost(FleetEconomics.OverhaulD, false),

@@ -62,6 +62,45 @@ internal static class RouteInventoryReport
         Console.WriteLine();
         Console.WriteLine("#hub\tdest\tkm\tweekly\taircraft");
 
+        // —— K17 / D4：四段式 ↔ 部门账本必须逐家同账 ——
+        // 预览跑道的分母是四段式之和，接管时的部门预算则由同一份账本的部门占比摊出来。
+        // 二者若对不上（漏一段 / 权重没归一到 1 / 某段为负），部门账就是另一套数，
+        // 而 K10 的 8/6/4/3 断言只盯总额，看不见「部门少了钱」。
+        int ledgerMissing = 0, ledgerDrift = 0, shareSumBad = 0, budgetDrift = 0;
+        var ledgerSamples = new List<string>();
+        foreach (var p in airlines)
+        {
+            if (p?.costLedger == null) { ledgerMissing++; continue; }
+            var ledger = p.costLedger;
+            float deptSum = 0f;
+            for (int i = 0; i < FinanceEconomics.DeptShares.Length; i++)
+                deptSum += ledger.DeptMonthlyWan(FinanceEconomics.DeptShares[i].id);
+            float fourSeg = p.monthlyCost + p.monthlyFixedCost + p.monthlyDebtService + p.monthlyInsurance;
+            bool drift = Math.Abs(deptSum - ledger.TotalMonthlyWan) > 0.05f
+                         || Math.Abs(ledger.TotalMonthlyWan - fourSeg) > 0.05f;
+            if (drift)
+            {
+                ledgerDrift++;
+                if (ledgerSamples.Count < 5)
+                    ledgerSamples.Add($"{p.hubAirport} 部门 {deptSum:F2} / 账本 {ledger.TotalMonthlyWan:F2} / 四段 {fourSeg:F2}");
+            }
+            var shares = ledger.DeptShares();
+            float shareSum = 0f;
+            for (int i = 0; i < shares.Length; i++) shareSum += shares[i];
+            if (Math.Abs(shareSum - 1f) > 0.0001f) shareSumBad++;
+            // 接管时的预算摊分：8 个部门、总额恰好等于董事会规则（现金 × 50%）。
+            float budget = FinanceEconomics.RecommendedBudget(p.cash);
+            var items = ledger.ToBudgetItems(budget);
+            float itemSum = 0f;
+            for (int i = 0; i < items.Count; i++) itemSum += items[i].amountWan;
+            if (items.Count != FinanceEconomics.DeptShares.Length
+                || Math.Abs(itemSum - budget) > 0.05f)
+            {
+                budgetDrift++;
+                if (ledgerSamples.Count < 5) ledgerSamples.Add($"{p.hubAirport} 预算合计 {itemSum:F2}");
+            }
+        }
+
         int routeTotal = 0;
         var destUse = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         // 新入表机场被「外站航司」当成目的地的次数 —— 这才是既有网络被动过的证据：
@@ -77,6 +116,10 @@ internal static class RouteInventoryReport
         // 只看新机场不够 —— 规则一旦失效，最先坏的可能是既有枢纽飞支线（如 IST→某支线）。
         int intlViolations = 0;
         var intlSamples = new List<string>();
+        // K16 护栏：中国境内两端 < 250 km 的「高铁走廊」不得成为定期客运航线。
+        // 判据只认 RouteGeography.IsChinaDomesticTooShort，不在这里另写一份阈值。
+        int shortHaulViolations = 0;
+        var shortHaulSamples = new List<string>();
         for (int i = 0; i < Watched.Length; i++)
         {
             foreignDest[Watched[i]] = 0;
@@ -108,6 +151,18 @@ internal static class RouteInventoryReport
                                 intlSamples.Add($"{r.origin}(t{AirportCatalog.TierOfCode(r.origin)})→"
                                                 + $"{r.destination}(t{AirportCatalog.TierOfCode(r.destination)})");
                         }
+                    }
+                }
+
+                // K16：中国境内 250 km 以内（高铁覆盖）不得生成定期客运。
+                // 用**大圆航距**复核，而不是信任 r.distanceKm —— 后者可能是历史存档里带进来的旧值。
+                {
+                    float kmReal = AirlineCEO.UI.MapWidget.GreatCircleKm(r.origin, r.destination);
+                    if (RouteGeography.IsChinaDomesticTooShort(r.origin, r.destination, kmReal))
+                    {
+                        shortHaulViolations++;
+                        if (shortHaulSamples.Count < 8)
+                            shortHaulSamples.Add($"{r.origin}–{r.destination} {kmReal:F0}km");
                     }
                 }
 
@@ -199,6 +254,10 @@ internal static class RouteInventoryReport
             $"跨境航线两端都是门户机场（越界 {intlViolations} 条"
             + (intlSamples.Count > 0 ? "：`" + string.Join("`、`", intlSamples) + "`" : "")
             + "；判据见 RouteGeography.IsGateway）");
+        Assert(ref failures, shortHaulViolations == 0,
+            $"中国境内 250 km 以内不作为定期客运（残留 {shortHaulViolations} 条"
+            + (shortHaulSamples.Count > 0 ? "：`" + string.Join("`、`", shortHaulSamples) + "`" : "")
+            + "；判据见 RouteGeography.IsChinaDomesticTooShort，K16 裁定）");
         for (int i = 0; i < Watched.Length; i++)
         {
             string w = Watched[i];
@@ -207,6 +266,12 @@ internal static class RouteInventoryReport
         }
         Assert(ref failures, runwayBad == 0,
             $"现金跑道与净烧钱自洽（不自洽 {runwayBad} 家；无上限时必须是「无净烧钱」，不得印现金原值当月数）");
+        Assert(ref failures, ledgerMissing == 0 && ledgerDrift == 0,
+            $"接管成本账本与四段式逐家同账（缺账本 {ledgerMissing} 家；金额漂移 {ledgerDrift} 家"
+            + (ledgerSamples.Count > 0 ? "：" + string.Join("；", ledgerSamples) : "")
+            + "；K17 裁定：部门账本是四段式的唯一归属）");
+        Assert(ref failures, shareSumBad == 0 && budgetDrift == 0,
+            $"部门占比归一到 1 且预算总额等于董事会规则（占比异常 {shareSumBad} 家；预算漂移 {budgetDrift} 家）");
 
         // —— 星级必须是客流的单调函数（2026-10-22 D2 修复的回归）——
         // 修复前 ★4/★5 用 IATA 字符串哈希分界（h % 5 == 0 ? 5 : 4）：

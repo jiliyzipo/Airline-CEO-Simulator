@@ -6089,6 +6089,120 @@ namespace AirlineCEO.Systems
             }
         }
 
+        /// <summary>
+        /// 收件箱状态标签（T05.2）。
+        ///
+        /// 旧版「已批准」同时覆盖两种情况：① 批了、事已办完（已办结）；② 批了、但要等下一个
+        /// 交割季才落地（`effectPending`）。两者在列表里长得一模一样，CEO 无法判断「这封还要不要跟」。
+        /// 这里把 ② 单独标成「已批准·待交割」，并带上交割季，读者不必点开正文去数季度。
+        /// </summary>
+        public static string StatusLabel(GameState gs, InboxMail m)
+        {
+            if (m == null) return "待处理";
+            string baseLabel = StatusLabel(m.status);
+            if (m.status == "approved" && m.effectPending)
+            {
+                bool future = m.effectYear > 0 && m.effectQuarter > 0
+                              && (gs == null || Turn(m.effectYear, m.effectQuarter) > Turn(gs.year, gs.quarter));
+                return future || gs == null ? $"{baseLabel}·待交割" : $"{baseLabel}·交割中";
+            }
+            return baseLabel;
+        }
+
+        /// <summary>
+        /// 统一状态行（T05.2）：「在等什么 · 何时推进 · 是否需 CEO」三件事一句话说完。
+        ///
+        /// 旧版这三件事散落在命令条回执、详情页底注、公文正文里，且六阶段用词各不相同；
+        /// 玩家必须读完整封信才知道「这封是在等我，还是在等别人」。
+        /// 本函数是**唯一出口**：详情页底注、在途提示都从这里取词。
+        /// </summary>
+        public static string StatusLine(GameState gs, InboxMail m)
+        {
+            if (m == null) return "";
+            string waiting, when, need;
+            bool needsMe;
+
+            if (m.action == "news" || m.kind == "media" || m.kind == "alert")
+            {
+                // 外部通报：不是「在等谁」，也不用 CEO 批复；只说明这条是已生效还是预告
+                waiting = "不适用（外部通报）";
+                when = m.tag == "生效" ? "已生效"
+                     : m.tag == "预告" ? "待生效（正文有生效时点）"
+                     : "—";
+                needsMe = false;
+            }
+            else if (m.status == "approved" && m.effectPending)
+            {
+                waiting = "交割 / 落地";
+                when = m.effectYear > 0 && m.effectQuarter > 0
+                    ? $"第{m.effectYear}年 Q{m.effectQuarter}"
+                    : "下季内";
+                needsMe = false;
+            }
+            else if (m.status == "rejected")
+            {
+                waiting = "无（已拒绝）";
+                when = "—";
+                needsMe = false;
+            }
+            else if (m.status == "deferred")
+            {
+                waiting = "补条件后重新上会";
+                when = "条件齐备即办";
+                needsMe = true;
+            }
+            else if (IsOpen(m))
+            {
+                bool decide = RequiresDecision(m);
+                waiting = decide ? "CEO 批复" : "CEO 知悉（无需批复）";
+                if (gs != null)
+                {
+                    int rem = RemainingQuarters(m, gs.year, gs.quarter);
+                    when = rem < 0 ? "已到期" : $"本季内（还可搁置 {rem + 1} 个季度）";
+                }
+                else when = "本季内";
+                needsMe = decide;
+            }
+            else
+            {
+                waiting = "无（已办结）";
+                when = "—";
+                needsMe = false;
+            }
+
+            need = needsMe ? "是" : "否";
+            return $"在等　{waiting}　｜　何时推进　{when}　｜　需 CEO　{need}";
+        }
+
+        /// <summary>
+        /// 在途送达提示（T05.2）：`pendingInbox` 里躺着将要送达的邮件，
+        /// 但旧版**没有任何 UI 读取它** —— 玩家下了令、部门说「约 2 小时后送达」，
+        /// 然后收件箱一动不动，看起来像没生效。这里给出「在途几封、最近一封何时到」。
+        ///
+        /// 时间按游戏时钟算（1× 下 1 游戏小时 = 1 现实小时），不是现实 UTC 差值。
+        /// </summary>
+        public static string InflightLine(GameState gs)
+        {
+            if (gs?.pendingInbox == null || gs.pendingInbox.Count == 0) return "";
+            int n = 0;
+            long earliest = long.MaxValue;
+            for (int i = 0; i < gs.pendingInbox.Count; i++)
+            {
+                var p = gs.pendingInbox[i];
+                if (p?.mail == null) continue;
+                n++;
+                if (p.deliverUtcTicks < earliest) earliest = p.deliverUtcTicks;
+            }
+            if (n == 0) return "";
+            double hours = (earliest - gs.SimUtc.Ticks) / (double)TimeSpan.TicksPerHour;
+            string eta = hours <= 0.01
+                ? "正在送达"
+                : hours < 1
+                    ? $"约 {Math.Max(1, (int)Math.Ceiling(hours * 60))} 分钟后送达"
+                    : $"约 {Math.Ceiling(hours)} 小时后送达";
+            return $"在途 {n} 封（最近一封{eta}）";
+        }
+
         public static OpsIrropsLogic.IrropsKind ParseIrropsKind(InboxMail mail)
         {
             if (mail == null || !int.TryParse(mail.origin, out int k))

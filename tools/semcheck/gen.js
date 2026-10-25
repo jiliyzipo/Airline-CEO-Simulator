@@ -38,7 +38,25 @@ for (const f of csprojs) {
 // 测试程序集**看不到**的程序集（照 AirlineCEO.PlayModeTests.asmdef 的口径）。
 // 只列 Unity.TextMeshPro / .Editor 两项：这是实测被 Unity 拒绝的那一支。
 // 不在此处顺手扩大封锁名单 —— 名单开错会把 Unity 本来允许的写法判成错误（假阳性比漏报更坏）。
-const notInTestAsm = name => /^Unity\.TextMeshPro($|\.)/.test(name);
+//
+// 名单必须**读 asmdef**，不能手写死：2026-10-25 起测试 asmdef 加了 "Unity.TextMeshPro"
+// （T038 的界面用例要读 TMP 文本），若这里仍按旧口径剔除，semcheck 会把 Unity 编译通过的
+// 代码判成 CS0246 —— 正是本文件开头要防的那类假阳性，只是这次方向反过来。
+const testAsmdef = path.join(unityProj, 'Assets', 'Tests', 'PlayMode', 'AirlineCEO.PlayModeTests.asmdef');
+const testAsmRefs = new Set();
+try {
+  const asm = JSON.parse(fs.readFileSync(testAsmdef, 'utf8'));
+  for (const r of asm.references || []) {
+    const s = String(r);
+    // GUID 形式（GUID:xxxx）在这里无法反查名字 —— 按「未引用」处理，宁可多报也不少报。
+    if (/^GUID:/i.test(s)) continue;
+    const at = s.lastIndexOf(':');
+    testAsmRefs.add(at >= 0 ? s.slice(at + 1) : s);
+  }
+} catch (e) {
+  // 读不到 asmdef（工程未就绪）时退回旧行为：全部剔除 TMPro，与 2026-10 之前的边界一致。
+}
+const notInTestAsm = name => /^Unity\.TextMeshPro($|\.)/.test(name) && !testAsmRefs.has(name);
 
 const refItems = filter => [...refs.entries()]
   .filter(([name]) => !filter || !filter(name))

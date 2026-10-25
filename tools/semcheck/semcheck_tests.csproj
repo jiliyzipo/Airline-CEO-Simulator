@@ -1083,6 +1083,10 @@
       <HintPath>C:\Users\jiliy\Airline-CEO-Simulator\Unity Project\Library\ScriptAssemblies\UnityEditor.UI.Analytics.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>C:\Users\jiliy\Airline-CEO-Simulator\Unity Project\Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="PsdPlugin">
       <HintPath>C:\Users\jiliy\Airline-CEO-Simulator\Unity Project\Library\ScriptAssemblies\PsdPlugin.dll</HintPath>
       <Private>false</Private>

@@ -259,10 +259,12 @@ namespace AirlineCEO.EditorTools
             bool searchOk = ngbOnly && noCkg && wordPrefixOk && zhPrefixOk && newCityOk && codePrefixOk && resolveSame;
 
             // ⑦ 批次 B 的选址口径要能被回归守住：新机场到**任何**既有/新增机场都不得小于 245 km。
-            //    为什么钉这条：`RouteGeography` 只拦 <100 km，100–250 km 的航段会照常计价，
-            //    单位座公里收益偏高（K16 未裁定）。批次 A 已因此留下 3 条（ZUH–CAN 154、
-            //    WUX–PVG 136、NGB–PVG 150），批次 B 的名单是按「不加重这个坑」选的，
-            //    若日后有人往这批里塞惠州/泉州/烟台之类，这里必须先红。
+            //    为什么钉这条：`MinPassengerKm` 只拦 100 km 以内的「同城距离」，而中国境内
+            //    100–250 km 是高铁的绝对主场 —— 批次 A 因此留下 3 条（ZUH–CAN 154、WUX–PVG 136、
+            //    NGB–PVG 150）。**K16 已于 2026-10-23 裁定并落地**：`RouteGeography.MinChinaDomesticKm`
+            //    = 250，境内两端 100–250 km 一律不生成（判据与正反两面见 `ShortHaulRegression`）。
+            //    本段保留为**选址**护栏：批次 B/B' 的名单是按「不加重这个坑」选的，日后若有人
+            //    往这批里塞惠州/泉州/烟台之类，这里先红 —— 与 K16 的航线判据是两道不同的闸。
             const float UltraShortGuardKm = 245f;
             bool noUltraShort = true;
             var ultra = new StringBuilder();

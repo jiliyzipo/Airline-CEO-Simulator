@@ -576,11 +576,14 @@ namespace AirlineCEO.EditorTools
                 var mT = gsX.inbox.Find(m => m != null && m.id != null && m.id.StartsWith("ext_r_typhoon"));
                 Debug.Log($"外事 公文口吻 立项={mN != null} 含尊敬的={mN != null && mN.body.Contains("尊敬的")}（期望 False）"
                     + $" 含特此通知={mN != null && mN.body.Contains("特此通知")} 落款含游戏日期={mN != null && mN.body.Contains("2030年5月10日")}");
-                Debug.Log($"外事 预告文种 {mT?.role}（期望 预警通报） 分类={InboxManager.KindLabel(mT?.kind)}（期望 来文）"
-                    + $" 含特此通报={mT != null && mT.body.Contains("特此通报")} 标题式={mT != null && mT.body.StartsWith("关于")}");
+                Debug.Log($"外事 预告文种 {mT?.role}（期望 新闻官 · 预警通报） 分类={InboxManager.KindLabel(mT?.kind)}（期望 来文）"
+                    + $" 含特此通报={mT != null && mT.body.Contains("特此通报")} 标题式={mT != null && mT.body.Contains("\n关于")}"
+                    + $" 发件人为新闻官={mT != null && PressDesk.IsPressOfficer(gsX, mT.sender)}（期望 True）"
+                    + $" 含转呈抬头={mT != null && mT.body.Contains("整理转呈")} 原文落款未丢={mT != null && mT.body.Contains("中央气象台")}");
                 var mTb = gsX.inbox.Find(m => m != null && m.id != null && m.id.StartsWith("ext_t_typhoon"));
-                Debug.Log($"外事 施行通报 {(mTb != null ? "有" : "无")} 文种={mTb?.role}（期望 施行通报） 含已自施行={mTb != null && mTb.body.Contains("已自")}"
-                    + $" 影响行={mTb != null && mTb.body.Contains("起降受限")}");
+                Debug.Log($"外事 施行通报 {(mTb != null ? "有" : "无")} 文种={mTb?.role}（期望 新闻官 · 施行通报） 含已自施行={mTb != null && mTb.body.Contains("已自")}"
+                    + $" 影响行={mTb != null && mTb.body.Contains("起降受限")}"
+                    + $" 含转呈抬头={mTb != null && mTb.body.Contains("整理转呈")}");
             }
             finally
             {
@@ -1870,6 +1873,14 @@ namespace AirlineCEO.EditorTools
 
                 // 2026-10-22 K14：压测的「机场池」缝不得扰动默认网络，且收窄必须被目的地池读到。
                 NetworkPoolVisibilityRegression.Run();
+
+                // 2026-10-23 K16：中国境内 250 km 以内（高铁覆盖）不得生成为定期客运；
+                // 同时不得误伤 LAX–SAN 176 / YVR–SEA 205 这类真实短途。
+                ShortHaulRegression.Run();
+
+                // 2026-10-23 K17：接管成本继承粒度 —— 四段式与部门账本同账、
+                // 跑道路标 8/6/4/3 不漂移、落盘预算与季度问责同尺。
+                TakeoverCostLedgerRegression.Run();
                 // —— R14：时刻槽**逐停站**建模（一条槽 = 某停站一次停留的一对「到场 + 离场」）——
                 //     本场端 1 条、对端 1 条；有经停时经停站一趟往返停两次 = **2 条**（共 4 条）。
                 var goTwoEnd = new GameObject("__slot_two_end__");
@@ -3774,12 +3785,20 @@ namespace AirlineCEO.EditorTools
                 // 另一句纯疑问（问法不同 → 另开一封；同一句话才复用）
                 bool q4 = InboxManager.QueueOpsQueryAnswer(gsQ, rQ, "这条线每周飞几班？", out string msg4);
                 bool separate = q4 && gsQ.inbox.Count == 2;
-                // 带方向词的问句**不是**咨询（「还能不能加密？」是在请办事 → 走调令），
-                // 判据须在调用方（两处接线都靠它分流），故这里只钉判据本身。
-                bool q3 = CapacityDirectiveLogic.LooksLikeQuestion("为什么这条线只有 1 班，还能不能加密？");
+                // 判定口径（★2026-10-23 更正，K17 同轮）：**先看是不是在问「为什么」**。
+                // 「为什么这条线只有 1 班，还能不能加密？」是解释型问句（含方向词也不办），
+                // 运营部的答复会写清「要加密就下『加密到每天 N 班』」；只有显式命令
+                // （「请/立即/马上 + 加密/削减…」）才走调令。旧断言写死「带方向词 = 调令」，
+                // 与 `LooksLikeQuestion` 里已落地的「解释优先」规则相反，故长期报红。
+                bool q3Explain = CapacityDirectiveLogic.LooksLikeQuestion("为什么这条线只有 1 班，还能不能加密？");
+                bool q3Order = !CapacityDirectiveLogic.LooksLikeQuestion("请把这条线加密到每天 2 班。");
+                bool q3Plain = !CapacityDirectiveLogic.LooksLikeQuestion("能不能加密到每天 3 班？");
+                bool q3Contract = q3Explain && q3Order && q3Plain;
                 Debug.Log($"R26 重复提问 → 刷新不叠函={deduped}（期望 True：同一航线同一问题只有一封）"
                           + $"　换问一句 → 另开一封={separate}（期望 True：收件箱={gsQ.inbox.Count}）"
-                          + $"\n　带方向词的问句不算咨询={!q3}（期望 True：「还能不能加密」走调令）"
+                          + $"\n　解释型问句（含方向词）仍按咨询={q3Explain}（期望 True：「为什么…还能不能加密」只答复不办）"
+                          + $"\n　显式命令仍走调令={q3Order}（期望 True：「请…加密到每天 2 班」）"
+                          + $"　无「为什么」的方向请求={q3Plain}（期望 True：「能不能加密到每天 3 班」走调令）"
                           + $"\n　刷新回执：「{msg2}」　另一问：「{msg4}」");
 
                 // —— ③ 兜底闸门：调用点若只写 Parse → Execute，问句同样必须零改动 ——
@@ -3868,7 +3887,7 @@ namespace AirlineCEO.EditorTools
                           + $"\n　答复件记住本线（origin=routeId / dest=三字码）={mailCarriesRoute}（期望 True）");
 
                 bool okR26 = q1 && isAnswer && noButton && bodyLedger && bodyAnswersOffDays && untouched
-                             && deduped && separate && !q3 && execBlocked && revUntouched
+                             && deduped && separate && q3Contract && execBlocked && revUntouched
                              && headOnce && noDupRaw && noDupPainted && deepLink && mailCarriesRoute;
                 Debug.Log($"R26 结论 → {(okR26 ? "全部符合期望" : "★有不符合期望的项，见上")}");
             }
@@ -3914,11 +3933,26 @@ namespace AirlineCEO.EditorTools
                     routeId = "FRA-ATL-2", origin = "FRA", destination = "ATL", distanceKm = 7409f,
                     aircraftType = "A330-300", flightNumber = "FR106", registration = "B-2007",
                     depTime = "08:00", arrTime = "02:16", daysOfWeek = "周一/周三/周五/周日", weeklyFlights = 4,
-                    baseDailyProfit = 6.12f, dailyProfit = 6.12f, groundStaffAssigned = 3
+                    baseDailyProfit = 6.12f, dailyProfit = 6.12f,
+                    // 地勤按宽体推荐值配齐（5 人）：过站 50 分是**本用例**唯一的轮挡口径。
+                    // 若这里留 3 人（过站 74 分），而 `Execute` 成功后会把地勤改成推荐值，
+                    // 同一波的回程离港就横跳 17:57→17:33（系列 18:00→17:30），
+                    // 后面的「部分办成」段会拿调令前的槽口径去比调令后的时刻 → 恒红。
+                    groundStaffAssigned = OpsEconomics.RecommendedGroundStaff("A330-300")
                 };
                 rT.SyncFlightsFromPrimary();
                 gsC.activeRoutes.Add(rT);
                 gsC.fleet.Add(new Aircraft { registration = "B-2007", type = "A330-300", isActive = true, status = AircraftStatuses.Airworthy, age = 3 });
+                // ★2026-10-23（K17 同轮修 fixture）：这条调令的前提是「08:00 有一条款可用」。
+                // 旧 fixture 一条槽都没铺，`ApplyWaves` 排不出任何波次 → 退回单班草案 →
+                // 班期仍是「周一/三/五/日」、周班次 4→4，于是「每日 / 周班次变大」两项恒红，
+                // 而失败原因实际是「缺时刻槽」—— 用例测的根本不是它想验的那件事。
+                // 槽的身份是「该停站这一次停留的**离场**时刻」（`SlotNeed.time` = 该站离场），不是到场：
+                //   本场端 → 去程 08:00 离港（正是本用例要排的那一波）；
+                //   对端   → 8h43m 轮挡（7,409 km ÷ 850 km/h）→ 16:43 到场，配齐地勤过站 50 分
+                //            → 回程 17:33 离港，吸附到系列时刻 17:30。
+                gsC.stg.slots.Add(new SlotHolding { airport = "FRA", slotTime = "08:00" });
+                gsC.stg.slots.Add(new SlotHolding { airport = "ATL", slotTime = "17:30" });
 
                 string rawT = "把FR106/FR107调整为每日一段往返。";
                 var dT = CapacityDirectiveLogic.Parse(rawT);
@@ -4914,7 +4948,9 @@ namespace AirlineCEO.EditorTools
                 var wps = ExternalDataFetcher.ParseText(wpJson, "https://www.ccaonline.cn/wp-json/wp/v2/posts");
                 bool wpOk = wps.Count == 2
                             && wps[0].title.Contains("呼伦贝尔空管站")
-                            && wps[0].content.Contains("通迅员")
+                            && wps[0].content.Contains("通讯员")   // ★2026-10-23：原断言写成「通迅员」，
+                                                                    // 与 JSON 里的 \u8baf（讯）不符，故恒红；
+                                                                    // 这是断言笔误，不是解析器缺陷。
                             && wps[0].source == "中国民航网";
                 Debug.Log($"GDB29 WP REST 解析 → {wps.Count} 条（期望 2）· 标题={wps[0].title}"
                           + $" · 摘要={wps[0].content} · → {(wpOk ? "符合期望" : "★不符合期望")}");

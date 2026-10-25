@@ -25,6 +25,7 @@ param(
     [int]$Year = 1,
     [double]$Tolerance = 0.03,
     [string]$Delivery = "",
+    [string]$Note = "",
     [switch]$UpdateBaseline
 )
 
@@ -44,6 +45,9 @@ try {
         $writeArgs = @("run", "--configuration", "Release", "--", "--baseline-write",
                        "--seed", $Seed, "--year", $Year)
         if ($Delivery) { $writeArgs += @("--delivery", $Delivery) }
+        # `--note` 是 Program.cs 支持的字段，但旧版脚本不转发：传 -Note 进来会被静默丢掉，
+        # 于是 BASELINE_SOURCE.json 的 Note 恒为空，没人看得出这次重录是为什么。
+        if ($Note) { $writeArgs += @("--note", $Note) }
         & dotnet @writeArgs | Out-Host
         if ($LASTEXITCODE -ne 0) {
             Write-Host "FAIL: 重录基线失败（exit $LASTEXITCODE）" -ForegroundColor Red

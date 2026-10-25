@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261025103525-a76682",
+  "deliveryId": "DEL-20261025094638-6f76b0",
+  "taskId": "S11-T043Windows",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "unity-playmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "PlayMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity PlayMode tests in the isolated snapshot; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "4fae624cc38cf0eb1fb0117c9ba253c6e1fb966e577027fb5a2a2c1d053617f3",
+    "verification": "7663d9b3c678c5fb8e66164bd060a0cc2a5e858f33bd5b613692d0e5cdfb8c65",
+    "contract": "82176a5a3ce28e165dee0c2fd293dbcbf3ae3a841fa69915851b2ef0e9fef267"
+  },
+  "snapshotPath": "out/collab/DEL-20261025094638-6f76b0",
+  "createdAt": "2026-10-25T10:35:26.576Z",
+  "updatedAt": "2026-10-25T10:37:04.987Z",
+  "runs": [
+    {
+      "at": "2026-10-25T10:35:29.386Z",
+      "finishedAt": "2026-10-25T10:37:00.498Z",
+      "runToken": "729cba6e600afb7a",
+      "profile": "unity-playmode",
+      "deliveryId": "DEL-20261025094638-6f76b0",
+      "subjectImplementationFingerprint": "4fae624cc38cf0eb1fb0117c9ba253c6e1fb966e577027fb5a2a2c1d053617f3",
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "PlayMode",
+        "-RunName",
+        "729cba6e600afb7a"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261025094638-6f76b0",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261025103525-a76682/run-729cba6e600afb7a/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261025103525-a76682/run-729cba6e600afb7a/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261025103525-a76682/run-729cba6e600afb7a/stdout.txt",
+        "sha256": "90da095dcca0f811a39d60d0fd8a8218c58254ebae0605ea74e5a69985b81dd8",
+        "bytes": 65,
+        "runToken": "729cba6e600afb7a"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261025103525-a76682/run-729cba6e600afb7a/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "729cba6e600afb7a"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_729cba6e600afb7a.xml",
+        "runToken": "729cba6e600afb7a",
+        "profile": "unity-playmode",
+        "deliveryId": "DEL-20261025094638-6f76b0",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "ad61ecef644d3c87c7ab70ceb0485363ac999c76c864dd2c02bf095e249c73a7",
+          "bytes": 189946,
+          "mtimeMs": 1792924618724.1985
+        },
+        "producedByRun": true,
+        "sha256": "ad61ecef644d3c87c7ab70ceb0485363ac999c76c864dd2c02bf095e249c73a7"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=729cba6e600afb7a counters={\"total\":135,\"failed\":0,\"skipped\":0,\"passed\":135} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=729cba6e600afb7a counters={\"total\":135,\"failed\":0,\"skipped\":0,\"passed\":135} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=729cba6e600afb7a counters={\"total\":135,\"failed\":0,\"skipped\":0,\"passed\":135} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-25T10:35:29.351Z",
+  "assertions": {
+    "total": 135,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_729cba6e600afb7a.xml",
+      "sha256": "ad61ecef644d3c87c7ab70ceb0485363ac999c76c864dd2c02bf095e249c73a7",
+      "total": 135,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 135
+    },
+    "counters": {
+      "total": 135,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 135
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261025103525-a76682-1792924621645.json",
+  "finishedAt": "2026-10-25T10:37:04.987Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "729cba6e600afb7a",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_729cba6e600afb7a.xml",
+      "runToken": "729cba6e600afb7a",
+      "profile": "unity-playmode",
+      "deliveryId": "DEL-20261025094638-6f76b0",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "ad61ecef644d3c87c7ab70ceb0485363ac999c76c864dd2c02bf095e249c73a7",
+        "bytes": 189946,
+        "mtimeMs": 1792924618724.1985
+      },
+      "producedByRun": true,
+      "sha256": "ad61ecef644d3c87c7ab70ceb0485363ac999c76c864dd2c02bf095e249c73a7"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261025094638-6f76b0"
+  }
+}

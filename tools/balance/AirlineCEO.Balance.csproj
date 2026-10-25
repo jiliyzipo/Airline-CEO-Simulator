@@ -138,6 +138,9 @@
              Link="Shared\Data\AirportGeoCatalog.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\RouteGeography.cs"
              Link="Shared\Logic\RouteGeography.cs" />
+    <!-- K17 / D4：接管成本的部门账本（四段式 → 8 个部门）。纯数据，无 GameState 依赖。 -->
+    <Compile Include="$(UnityScriptsDir)\Logic\TakeoverCostLedger.cs"
+             Link="Shared\Logic\TakeoverCostLedger.cs" />
     <Compile Include="$(UnityScriptsDir)\Data\Aircraft.cs"
              Link="Shared\Data\Aircraft.cs" />
     <Compile Include="$(UnityScriptsDir)\Data\AircraftCatalog.cs"

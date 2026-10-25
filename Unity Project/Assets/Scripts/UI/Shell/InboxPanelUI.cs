@@ -462,7 +462,10 @@ namespace AirlineCEO.UI.Shell
             if (_listCount != null)
             {
                 string suffix = _filter == 1 ? " · 筛选：待处理" : _filter == 2 ? " · 筛选：未读" : "";
-                _listCount.text = $"邮件列表（{countAll}）{suffix}";
+                // T05.2：在途送达提示（`pendingInbox` 以前没有任何 UI 读取）
+                string inflight = InboxManager.InflightLine(GameState.Instance);
+                _listCount.text = $"邮件列表（{countAll}）{suffix}"
+                                  + (string.IsNullOrEmpty(inflight) ? "" : "　·　" + inflight);
             }
             PaintChips(open, unread);
 
@@ -645,7 +648,7 @@ namespace AirlineCEO.UI.Shell
                 TextAlignmentOptions.Center, UIFactory.Fill, titleCol, titleStyle);
 
             // 发件人（左上）+ 时间（右上）
-            UIFactory.Label(row.transform, "Sender", InboxLetter.NormalizeSender(m.sender), 14,
+            UIFactory.Label(row.transform, "Sender", SenderText(m), 14,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.10f, 0.55f), new Vector2(0.68f, 0.95f), Vector2.zero, Vector2.zero),
                 titleCol, titleStyle);
@@ -675,6 +678,18 @@ namespace AirlineCEO.UI.Shell
             btn.onClick.AddListener(() => SelectMail(mail));
 
             _rows.Add(row);
+        }
+
+        /// <summary>
+        /// 列表的发件人字样：外部来文统一写成「新闻官 沈其昌」。
+        /// 只写姓名的话，CEO 在列表上认不出这是谁 —— 这个身份只在详情页的角色行里出现一次。
+        /// </summary>
+        static string SenderText(InboxMail m)
+        {
+            string s = InboxLetter.NormalizeSender(m != null ? m.sender : null);
+            if (string.IsNullOrEmpty(s)) return s;
+            if (PressDesk.IsPressOfficer(GameState.Instance, s)) return PressDesk.Title + " " + s;
+            return s;
         }
 
         /// <summary>详情页角色行：部门邮件显示「事由 · 总监 姓名」，与「人员 → 管理团队」名单一致。</summary>
@@ -761,7 +776,8 @@ namespace AirlineCEO.UI.Shell
                 }
                 else
                 {
-                    _detailTag.text = InboxManager.StatusLabel(_selected.status);
+                    // T05.2：「已批准」拆成「已批准·待交割」（还在等交割季）与「已批准」（已办结）
+                    _detailTag.text = InboxManager.StatusLabel(GameState.Instance, _selected);
                     _detailTagImg.color = StatusColor(_selected.status);
                 }
             }
@@ -784,27 +800,37 @@ namespace AirlineCEO.UI.Shell
                 {
                     _detailDeadline.color = UITheme.TextMuted;
                     string mo = InboxManager.MeetingOutcomeOf(_selected);
+                    // T05.2：走统一状态行 —— 「已办结」与「已批准·待交割」必须各自说清在等什么
                     _detailDeadline.text = mo == "approved"
-                        ? "本函已由 CEO 决策会议批准，无需再次批复。"
+                        ? "决策会议已批准，无需再批。　" + InboxManager.StatusLine(gs, _selected)
                         : mo == "rejected"
-                            ? "本函已由 CEO 决策会议拒绝，无需再次批复。"
-                            : IsReceiptMail(_selected)
-                                ? "本封为告知类邮件，无需批复。" : "";
+                            ? "决策会议已拒绝，无需再批。　" + InboxManager.StatusLine(gs, _selected)
+                            : InboxManager.StatusLine(gs, _selected);
                 }
                 else if (gs != null)
                 {
                     int rem = InboxManager.RemainingQuarters(_selected, gs.year, gs.quarter);
-                    _detailDeadline.text = rem < 0
-                        ? (_selected.action == "union_talk"
+                    if (rem < 0)
+                    {
+                        _detailDeadline.text = _selected.action == "union_talk"
                             ? "已到期！请立即选择让步 / 强硬 / 拖延（否则时间无法推进）。"
-                            : "已到期！请立即批准或拒绝（否则时间无法推进）。")
-                        : $"待办截止：还可搁置 {rem + 1} 个季度。";
-                    _detailDeadline.color = rem < 0 ? UITheme.Danger : UITheme.TextMuted;
+                            : "已到期！请立即批准或拒绝（否则时间无法推进）。";
+                        _detailDeadline.color = UITheme.Danger;
+                    }
+                    else
+                    {
+                        // T05.2：统一状态行（在等什么 · 何时推进 · 是否需 CEO）
+                        _detailDeadline.text = InboxManager.StatusLine(gs, _selected);
+                        _detailDeadline.color = UITheme.TextMuted;
+                    }
                 }
             }
         }
 
-        /// <summary>告知类邮件（办理回执、进度汇报、执行回执等）：只读，不显示批复按钮。</summary>
+        /// <summary>
+        /// 告知类邮件（办理回执、进度汇报、执行回执等）：只读，不显示批复按钮。
+        /// ★T05.2：详情页底注改走 <see cref="InboxManager.StatusLine"/>，本判定仍供按钮层使用。
+        /// </summary>
         static bool IsReceiptMail(InboxMail m)
             => m != null && m.action != "news" && !InboxManager.RequiresDecision(m);
 
@@ -1397,7 +1423,11 @@ namespace AirlineCEO.UI.Shell
         void JumpTo(string pageId, string routeKey)
         {
             // n77 航权与时刻槽已内嵌进「航线」模块页签：深链统一改投 n12 并直开该页签。
-            if (pageId != null && pageId.StartsWith("n77", StringComparison.Ordinal))
+            // 意图必须在这里先记下来：n12 页面若尚未建过，NetworkPanelUI.OnEnable 会消费掉
+            // OpenRightsTab，随后 BuildContent 末尾的 SetTab(0) 又把页签抹回总览，
+            // 只靠下面那句 `&& OpenRightsTab` 就会漏掉这次深链（首次进 n12 停错页签）。
+            bool openRightsTab = pageId != null && pageId.StartsWith("n77", StringComparison.Ordinal);
+            if (openRightsTab)
             {
                 FleetNetContext.OpenRightsTab = true;
                 pageId = "n12_航线网络";
@@ -1481,9 +1511,11 @@ namespace AirlineCEO.UI.Shell
                 var net = FindFirstObjectByType<NetworkPanelUI>(FindObjectsInactive.Include);
                 net?.ShowEconomyForCity(routeKey);
             }
-            else if (pageId != null && pageId.StartsWith("n12") && FleetNetContext.OpenRightsTab)
+            else if (pageId != null && pageId.StartsWith("n12") && (openRightsTab || FleetNetContext.OpenRightsTab))
             {
-                // n12 已是激活页签时 OnEnable 不会重发，这里直接切到「航权与时刻槽」页签。
+                // n12 已是激活页签时 OnEnable 不会重发；首次构建时 OnEnable 又会被 BuildContent
+                // 末尾的 SetTab(0) 覆盖 —— 两种情况都靠这里按入口意图再切一次，口径与
+                // PrefabNavIntegration.OpenGameplayPage 的 n77 分支一致。
                 var net = FindFirstObjectByType<NetworkPanelUI>(FindObjectsInactive.Include);
                 net?.ShowRightsTab();
             }

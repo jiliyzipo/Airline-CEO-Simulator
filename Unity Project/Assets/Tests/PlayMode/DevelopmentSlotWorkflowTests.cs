@@ -71,8 +71,11 @@ namespace AirlineCEO.Tests.PlayMode
         {
             var gs = Fixture(out var route); float cash = gs.cash;
             var report = CapacityDirectiveLogic.Execute(gs, route, CapacityDirectiveLogic.Parse("增加到每日3段往返"));
-            Assert.IsTrue(InboxManager.QueueCapacityReport(gs, route, report));
+            // delayHours: 0 = 立即入箱。线上路径按 InboxCadence.ReportHours 延后投递（2026-10-19 改），
+            // 本用例断言的是「驳回能不能把方案退回去」，所以必须直接拿箱里那封，而不是等计时器。
+            Assert.IsTrue(InboxManager.QueueCapacityReport(gs, route, report, delayHours: 0));
             var mail = gs.inbox.Find(x => x.action == InboxManager.CapacityDirectiveAction && InboxManager.IsOpen(x));
+            Assert.IsNotNull(mail, "呈报应已入箱（delayHours=0）；否则驳回路径拿到 null 会直接 NRE。");
             Assert.IsTrue(InboxManager.RejectCapacityDirective(gs, mail, out _));
             Assert.AreEqual("rejected", mail.status);
             Assert.AreEqual(1, route.FlightCount);

@@ -1280,6 +1280,10 @@ namespace AirlineCEO.Systems
                 gs.legacyIssues = new System.Collections.Generic.List<LegacyIssue>();
             }
 
+            // K17 / D4 遗留：旧存档的部门预算按继承成本结构重摊（只换摊分键，总额与投票状态不动）。
+            // 放在 takeoverMode / takeoverAirlineId 恢复之后 —— 提前调用会因「不是接管局」直接跳过。
+            FinanceManager.MigrateLegacyBudget(gs);
+
             if (AIManager.Instance != null)
                 AIManager.Instance.FromJson(GetS(KeyAiAirlines, ""));
             else

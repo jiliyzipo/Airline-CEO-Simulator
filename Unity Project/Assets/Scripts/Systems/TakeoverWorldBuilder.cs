@@ -65,8 +65,6 @@ namespace AirlineCEO.Systems
                 }
             }
             float labor = HrEconomics.EffectiveAnnualLaborCostWan(p.fleetCount, 0f, 0f) / 12f;
-            p.monthlyFixedCost = maint + lease + labor;
-            p.monthlyCost = HqOverhead(p.fleetCount);
             // 机组乘数必须取「接管后真实会生效的那个值」，而不是未建机组的保底 0.85。
             // 旧写法打满 0.85，前提是「接手时一架机组都没有」——但 Apply 会调
             // PersonnelGenerator.SeedInheritedCrew 按缺员率补出在册飞行员，
@@ -79,13 +77,25 @@ namespace AirlineCEO.Systems
             // 还本付息必须进跑道：它是**合同强制**的现金流，按季扣 3 个月。
             // 旧口径漏掉它，于是选司界面读「8 个月」、实际 6.9 个月——★5 更会从 3.1 掉到 2.6，
             // 正好压在「跑道 < 3 月触发危机」这条线下却毫无预警（2026-10-21 跨季度复验发现）。
-            p.monthlyDebtService = SumDebtServiceMonth(p.openingLoans);
+            float debt = SumDebtServiceMonth(p.openingLoans);
             // 全险保费同样必须进跑道：按季一次性扣（★2~★5 约 48/207/549/883 万），
             // 折成月均就是 16/69/183/294 万。它不进 monthlyFixedCost，因为逐日计提并不含它，
             // 季末才一次扣——和还本付息是同一类「强制但不逐日」的现金流。
-            p.monthlyInsurance = SumInsuranceMonth(p.aircraft);
-            p.monthlyNetBurn = p.monthlyCost + p.monthlyFixedCost + p.monthlyDebtService
-                             + p.monthlyInsurance - p.monthlyRevenue;
+            float insurance = SumInsuranceMonth(p.aircraft);
+
+            // —— K17 / D4：四段式 → 部门账本（唯一依据）——
+            // 四个字段仍原样保留（K10 的 8/6/4/3 跑道断言只认这四个数），但每一项的**归属**从此有账：
+            // 总部/地面 → 运营/市场/战略/财务/董事会/安全；机队/人力 → 机务/人力/运营；
+            // 还本付息 → 财务；保费 → 安全质量。`Apply` 再按这份比例生成接管时的部门预算。
+            // 旧实现只有四个裸数字，部门预算另按「现金 × 50% × 全行业固定份额」凭空生成，
+            // 于是「预览烧 183 万 / 月」与「8 个部门额度」之间没有任何可追溯关系。
+            p.costLedger = TakeoverCostLedger.Build(HqOverhead(p.fleetCount), maint + lease + labor, debt, insurance);
+            p.monthlyCost = p.costLedger.hqMonthlyWan;
+            p.monthlyFixedCost = p.costLedger.fleetMonthlyWan;
+            p.monthlyDebtService = p.costLedger.debtMonthlyWan;
+            p.monthlyInsurance = p.costLedger.insuranceMonthlyWan;
+            // 求和顺序与旧实现一致（hq + fleet + debt + insurance − revenue），逐位不变。
+            p.monthlyNetBurn = p.costLedger.TotalMonthlyWan - p.monthlyRevenue;
             p.cashRunwayUnbounded = p.monthlyNetBurn <= 0.01f;
             p.cashRunwayMonths = p.cashRunwayUnbounded
                 ? 0f

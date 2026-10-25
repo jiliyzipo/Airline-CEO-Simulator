@@ -56,7 +56,19 @@ const manifest = { schemaVersion: 1, sourceHead: execFileSync('git', ['rev-parse
     .map(e => e.path + ':' + e.sha256).join('\n')).digest('hex'),
   overlay: 'Only exported ProjectSettings companyName/productName changed to isolate player data.', entries, excluded };
 const report = path.join(repo, 'docs/handoff/Baseline_2026-10-17.json');
-fs.writeFileSync(report, JSON.stringify(manifest, null, 2) + '\n');
-fs.writeFileSync(path.join(destination, 'baseline-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+const body = JSON.stringify(manifest, null, 2) + '\n';
+// 先把清单写进导出目录（它才是本次运行的权威副本），再回写仓库里的交接清单。
+// 回写偶然会撞上 ERROR_USER_MAPPED_FILE：别的进程（编辑器/索引器/杀软）在这几百毫秒里
+// 正把这个 260 KB 的 JSON 映射着读。此时导出本身已经完成，不该整体判失败 —— 重试几次即可。
+fs.writeFileSync(path.join(destination, 'baseline-manifest.json'), body);
+let written = false;
+for (let attempt = 0; attempt < 5 && !written; attempt++) {
+  try { fs.writeFileSync(report, body); written = true; }
+  catch (e) {
+    if (attempt === 4) throw new Error('Export done but could not update ' + report + ' (' + e.code + '). '
+      + 'Copy ' + path.join(destination, 'baseline-manifest.json') + ' over it manually; do not re-export.');
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+  }
+}
 console.log(JSON.stringify({ destination, files: entries.length, untrackedRequired: entries.filter(e => !e.tracked).length,
   bytes: entries.reduce((n, e) => n + e.bytes, 0), manifest: report }));

@@ -239,6 +239,31 @@ static class Program
             && decoVisible.Contains("新加坡樟宜 SIN")
             && !decoVisible.Contains("新加坡樟宜 新加坡樟宜"), decoVisible);
 
+        // ⑧ 新闻官（外部来文的统一转呈人）
+        //    GameState 在进程外读不到（MonoBehaviour），故只验纯函数核心：
+        //    同存档恒定、不同存档不同名、姓名来自人事生成器的国别表。
+        {
+            string keyA = "天际航空|SKYLINE AIR|NV|SKY|PEK|阿斯芬|中国|1985";
+            string keyB = "天际航空|SKYLINE AIR|NV|SKY|PEK|阿斯芬|中国|1985";
+            string keyC = "远洋航空|OCEAN AIR|OY|OYA|CAN|李海|中国|1985";
+            string nA1 = PressDesk.NameOf(keyA, "中国");
+            string nA2 = PressDesk.NameOf(keyB, "中国");
+            string nC = PressDesk.NameOf(keyC, "中国");
+            Check("新闻官 同存档恒定", nA1 == nA2 && nA1.Length >= 2, nA1);
+            Check("新闻官 不同存档不同名", nA1 != nC, $"{nA1} / {nC}");
+            Check("新闻官 改名后仍稳定", PressDesk.NameOf(keyA, "中国") == nA1);
+            Check("新闻官 空存档走兜底", PressDesk.NameOf("", "") == PressDesk.FallbackName);
+
+            // 角色行保留原文种；转呈抬头点名来文机关与整理人
+            Check("新闻官 角色行", PressDesk.RoleLine("预警通报") == "新闻官 · 预警通报",
+                PressDesk.RoleLine("预警通报"));
+            string head = PressDesk.ForwardHead("中央气象台", nA1);
+            Check("新闻官 转呈抬头",
+                head.Contains("中央气象台") && head.Contains("整理转呈") && head.Contains("新闻官" + nA1),
+                head.Replace("\n", " "));
+            Check("新闻官 无来源兜底", PressDesk.ForwardHead("", nA1).Contains("有关方面"));
+        }
+
         Console.WriteLine(fails == 0 ? "ALL PASS" : $"{fails} FAILED");
         Environment.Exit(fails == 0 ? 0 : 1);
     }

@@ -185,6 +185,29 @@ namespace AirlineCEO.EditorTools
                                         && closeUnknownAns.body.Contains("佛山沙堤")
                                         && closeUnknownAns.subject.Contains("未改动台账");
 
+                // ⑧b2 T05.5「拒绝确认不产生后果」：取消只收起卡片，台账/收件箱一个字节都不许动。
+                //      这里把「取消」建模成「拿到确认卡后什么都不执行」——正是 CommandBarView.CancelClose 的全部行为；
+                //      再断言重新下令仍能拿到同一张卡（取消没有消耗掉待办意图）。
+                int routesAtCancel = gs.activeRoutes.Count;
+                int inboxAtCancel = gs.inbox.Count;
+                int ringsAtCancel = gs.flightRings.Count;
+                int subsidiesAtCancel = gs.routeSubsidies.Count;
+                float cashAtCancel = gs.cash;
+                bool slotStillInUse = StrategyManager.EnsureState(gs).slots[0].inUse;
+                // —— 取消：不调用 ExecuteClose，只丢掉这张卡 ——
+                var reissued = DeptReportLogic.Build(gs, close);
+                bool cancelNoSideEffect = DeptReportLogic.CloseCancelNotice.Contains("未停飞")
+                                          && DeptReportLogic.CloseCancelNotice.Contains("台账未改动")
+                                          && gs.activeRoutes.Count == routesAtCancel
+                                          && gs.inbox.Count == inboxAtCancel
+                                          && gs.flightRings.Count == ringsAtCancel
+                                          && gs.routeSubsidies.Count == subsidiesAtCancel
+                                          && Math.Abs(gs.cash - cashAtCancel) < 0.01f
+                                          && StrategyManager.EnsureState(gs).slots[0].inUse == slotStillInUse;
+                bool cancelReissuable = reissued.ok && reissued.needsConfirm
+                                        && reissued.routeKey == confirm.routeKey
+                                        && reissued.confirmBody == confirm.confirmBody;
+
                 // ⑧c 点「确认停飞」：一次办完退槽 / 撤环 / 终止补贴 / 摘航线，并出两封公函
                 bool execOk = DeptReportLogic.ExecuteClose(gs, confirm.routeKey,
                     "取消北京大兴--上海虹桥的航线", out var opsLetter, out var stgLetter, out string execMsg);
@@ -447,6 +470,7 @@ namespace AirlineCEO.EditorTools
                            && gibberishOk && finBody && hrBody && feasBody && sameProfit && sameVerdict
                            && gateOrder && noSlotFirst && intlPin && feasAltOk && decoOk && domNoRightWord
                            && confirmOk && closeUnknownBody && execOk && execLedger && execLetters
+                           && cancelNoSideEffect && cancelReissuable
                            && execOnce && dupOk && bareCloseOk && bareFreqOk && bareWhyOk && capRouteOk && capLedger && capNoGuess && capQuery
                            && capDaysOnly && capDup && capGone
                            && qRouteOk && qLetter && qDedupe && qNoLedger && badFnOk && genStillWorks && companyOk && bareOk && noClueOk && ambQOk && fnOk && legOk
@@ -459,7 +483,7 @@ namespace AirlineCEO.EditorTools
                           + $"　目录外关线={closeUnknownOk}（{closeUnknown.originText}—{closeUnknown.destText}）"
                           + $"　乱码不派件={gibberishOk}"
                           + $"　财务信={finBody}　人力信={hrBody}　可行性信={feasBody}"
-                          + $"　关线确认卡={confirmOk}（不动账）　目录外复核={closeUnknownBody}"
+                          + $"　关线确认卡={confirmOk}（不动账）　取消确认={cancelNoSideEffect}　取消后可再下令={cancelReissuable}　目录外复核={closeUnknownBody}"
                           + $"　关线执行={execOk}　台账清账={execLedger}　双部门公函={execLetters}　重复确认作废={execOnce}"
                           + $"　同城对不猜={dupOk}"
                           + $"　裸关线（不带「航线」）={bareCloseOk}　带班次不关线={bareFreqOk}　疑问不关线={bareWhyOk}"

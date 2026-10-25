@@ -1,9 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-23T01:58:32.320Z
-状态 revision：345
-Cursor 最近确认读取：revision 345 @ 2026-10-23T01:58:32.196Z
-Codex 最近确认读取：revision 340 @ 2026-10-23T01:50:50.243Z
+生成时间：2026-10-25T10:42:53.230Z
+状态 revision：389
+Cursor 最近确认读取：revision 389 @ 2026-10-25T10:42:52.950Z
+Codex 最近确认读取：revision 384 @ 2026-10-25T10:35:15.925Z
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -35,8 +35,16 @@ Codex 最近确认读取：revision 340 @ 2026-10-23T01:50:50.243Z
   - Historical review REV-20261022011140-9e5b0b passed delivery DEL-20261022010306-fcd5d6; current workspace needs re-review.
 - **S06-BatchB** 阶段 S06-BatchB：Logic/UI/Editor · 开发=rework · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261022025040-a46f56 passed delivery DEL-20261022023213-67df8c; current workspace needs re-review.
-- **S07-Balance** 阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测 · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
-  - Review REV-20261023015616-582178 still applies to delivery DEL-20261023012853-918599.
+- **S07-Balance** 阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261023015616-582178 passed delivery DEL-20261023012853-918599; current workspace needs re-review.
+- **S08-ShortHaul** 阶段 S08-ShortHaul：Balance/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261023065836-eecd5f passed delivery DEL-20261023032726-42cba0; current workspace needs re-review.
+- **S09-Residual** 阶段 S09-Residual：Editor/Assets-Tests/Balance · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261024021702-057abf passed delivery DEL-20261024020739-7b9e30; current workspace needs re-review.
+- **S10-PressDesk** 阶段 S10-PressDesk：Editor/Assets-Tests/Logic · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261024132317-f6bf86 passed delivery DEL-20261024124546-40a7ec; current workspace needs re-review.
+- **S11-T043Windows** 阶段 S11-T043Windows：T04.3 五个 PlayMode 实时窗口 + 工具修复与文档收口 · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261025103525-a76682 still applies to delivery DEL-20261025094638-6f76b0.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
@@ -52,11 +60,11 @@ Codex 最近确认读取：revision 340 @ 2026-10-23T01:50:50.243Z
 
 ## 最新交付
 
-- DEL-20261023012853-918599 → S07-Balance @ 2026-10-23T01:28:55.681Z
+- DEL-20261025094638-6f76b0 → S11-T043Windows @ 2026-10-25T09:46:43.066Z
 
 ## 最新检测
 
-- REV-20261023015616-582178 → delivery DEL-20261023012853-918599 status=passed · 独立检测角色 @ 2026-10-23T01:56:35.323Z
+- REV-20261025103525-a76682 → delivery DEL-20261025094638-6f76b0 status=passed · 独立检测角色 @ 2026-10-25T10:37:04.987Z
 
 ## 开放缺陷
 

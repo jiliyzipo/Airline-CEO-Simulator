@@ -257,7 +257,7 @@ namespace AirlineCEO.UI.Shell
         void CancelClose()
         {
             HideConfirm();
-            ShowAnswer("已取消：未停飞任何航线，台账未改动。", true);
+            ShowAnswer(DeptReportLogic.CloseCancelNotice, true);
         }
 
         void ConfirmClose()

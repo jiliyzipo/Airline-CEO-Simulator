@@ -66,6 +66,62 @@ namespace AirlineCEO.Logic
             }
         }
 
+        /// <summary>
+        /// 下季交割的**绝对时点**（「第X年 QY」）。
+        /// ★T05.6：任务书要求每个备选都给出「预计办理时点」；旧文案只写「下季交割」，
+        /// 玩家无法把这句话换算成屏幕上的赛季，等于没给时点。
+        /// 离线工具（`tools/slotcheck`）会以 `gs == null` 调本类，此时退回相对说法。
+        /// </summary>
+        public static string NextQuarterLabel(GameState gs)
+        {
+            if (gs == null) return "下季";
+            InboxManager.NextQuarter(gs.year, gs.quarter, out int ny, out int nq);
+            return $"第{ny}年 Q{nq}";
+        }
+
+        /// <summary>本季的绝对时点（「第X年 QY」）；无 GameState 时退回「本季」。</summary>
+        public static string ThisQuarterLabel(GameState gs)
+            => gs == null ? "本季" : $"第{gs.year}年 Q{gs.quarter}";
+
+        /// <summary>
+        /// 单条备选的「预计办理时点」：从台账事实推出，不臆测。
+        /// 优先级：立刻能排 → 只需改时（批准即用）→ 需新申请（下季交割）。
+        /// </summary>
+        public static string EtaText(GameState gs, SlotOption o)
+        {
+            if (o == null) return "";
+            string thisQ = ThisQuarterLabel(gs);
+            string nextQ = NextQuarterLabel(gs);
+            if (o.readyNow) return gs == null ? "本季即可排班" : $"本季即可排班（{thisQ}）";
+
+            bool apply = HasEndState(o, EndApply);
+            bool change = HasEndState(o, EndChange);
+            if (apply && change)
+                return gs == null
+                    ? "改时部分批准即用；新申请部分协调池下季交割（二级市场同期）"
+                    : $"改时部分批准即用（{thisQ}内）；新申请部分协调池 {nextQ} 交割（二级市场同期）";
+            if (apply)
+                return $"协调池申请 → {nextQ} 交割（二级市场同期）"
+                       + (gs == null ? "" : "；两渠道都齐后运营部自动重排本线");
+            if (change)
+                return gs == null
+                    ? "改时批准即用，不占新槽"
+                    : $"改时批准即用（{thisQ}内），不占新槽、不必等 {nextQ}";
+            return $"{nextQ} 交割";
+        }
+
+        /// <summary>该备选是否有任一停站处于指定可得性档（含经停端）。</summary>
+        static bool HasEndState(SlotOption o, string state)
+        {
+            if (o.outState == state || o.inState == state) return true;
+            string word = EndStateName(state);
+            if (o.endNotes == null) return false;
+            for (int i = 0; i < o.endNotes.Count; i++)
+                if (o.endNotes[i] != null && o.endNotes[i].IndexOf(word, StringComparison.Ordinal) >= 0)
+                    return true;
+            return false;
+        }
+
         /// <summary>一个备选时刻对（去程离港时刻为身份，回程时刻由轮挡 + 过站推出）。</summary>
         public class SlotOption
         {
@@ -276,7 +332,7 @@ namespace AirlineCEO.Logic
             // —— 与本线现有班次的最近间隔（够不够过站 → 能不能串飞同一架）——
             opt.nearestGapMin = NearestGap(route, m);
 
-            BuildProsCons(route, opt, block, turn);
+            BuildProsCons(gs, route, opt, block, turn);
             return opt;
         }
 
@@ -323,10 +379,13 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>逐条利弊。**只写台账里算得出来的事实**，不编「客流会更好」这类无据之说。</summary>
-        static void BuildProsCons(RouteData route, SlotOption opt, int block, int turn)
+        static void BuildProsCons(GameState gs, RouteData route, SlotOption opt, int block, int turn)
         {
             var pros = new List<string>();
             var cons = new List<string>();
+            // ★T05.6：利弊里的交割时点也写绝对值，与「办理时点」行同一口径
+            string nextQ = NextQuarterLabel(gs);
+            string thisQ = ThisQuarterLabel(gs);
 
             string bandName = StrategyManager.SlotBandName(opt.band);
             int pegMin = ScheduleSlots.ParseClock(opt.pegClock);
@@ -335,13 +394,13 @@ namespace AirlineCEO.Logic
 
             // ① 各停站可得性 —— 最硬的一条：决定要不要花钱、要不要等一季
             if (opt.readyNow)
-                pros.Add("各停站此刻都有可用持仓，**不必申请、不必花钱、本季即可排班**");
+                pros.Add($"各停站此刻都有可用持仓，**不必申请、不必花钱、{thisQ} 即可排班**");
             else
             {
                 if (opt.outState == EndApply)
-                    cons.Add($"本场端 {opt.outAirport} {opt.depClock} 无空闲持仓，需走协调池申请（免费，下季交割）");
+                    cons.Add($"本场端 {opt.outAirport} {opt.depClock} 无空闲持仓，需走协调池申请（免费，{nextQ} 交割）");
                 if (opt.inState == EndApply)
-                    cons.Add($"对端 {opt.inAirport} {opt.inClock} 无空闲持仓，需走协调池申请（免费，下季交割）");
+                    cons.Add($"对端 {opt.inAirport} {opt.inClock} 无空闲持仓，需走协调池申请（免费，{nextQ} 交割）");
                 if (opt.outState == EndReady) pros.Add($"本场端 {opt.outAirport} {opt.depClock} 已有持仓，这一段不用再办");
                 if (opt.inState == EndReady) pros.Add($"对端 {opt.inAirport} {opt.inClock} 已有持仓，这一段不用再办");
                 // ★2026-10-16 第四十一次修订：**需改时** —— 本线在该站已有槽，只是时刻滑点。
@@ -349,10 +408,10 @@ namespace AirlineCEO.Logic
                 //   但仍要协调人按系列余量批，故写成「要办但要批」的一条利弊。
                 if (opt.outState == EndChange)
                     cons.Add($"本场端 {opt.outAirport} {opt.depClock} 缺槽，但本线在该站已有一条槽 —— "
-                             + "需向协调人提**时刻变更申请**（改时，免费），批准即用，不必等新槽");
+                             + $"需向协调人提**时刻变更申请**（改时，免费），批准即用（{thisQ} 内），不必等新槽");
                 if (opt.inState == EndChange)
                     cons.Add($"对端 {opt.inAirport} {opt.inClock} 缺槽，但本线在该站已有一条槽 —— "
-                             + "需向协调人提**时刻变更申请**（改时，免费），批准即用，不必等新槽");
+                             + $"需向协调人提**时刻变更申请**（改时，免费），批准即用（{thisQ} 内），不必等新槽");
                 // ★2026-10-16：经停端两条（去程/回程各一次停留）也逐条进利弊 —— 它们同样要办、同样要花钱
                 for (int i = 0; i < (opt.endNotes == null ? 0 : opt.endNotes.Count); i++)
                 {
@@ -517,6 +576,8 @@ namespace AirlineCEO.Logic
                           + (o.sameDay ? "（当日回场）" : "（跨夜回场）") + "\n");
                 if (o.priceWan > 0.01f)
                     sb.Append($"　取槽成本　协调池申请 0（排队）／二级市场约 {o.priceWan:F0} 万\n");
+                // ★T05.6：把「预计办理时点」做成独立一行（不再只藏在利弊里，也不再只有「下季」这种相对说法）
+                sb.Append($"　办理时点　{EtaText(gs, o)}\n");
                 if (!string.IsNullOrEmpty(o.pros))
                     sb.Append("　有利　" + o.pros.Replace("\n", "\n　　　　") + "\n");
                 if (!string.IsNullOrEmpty(o.cons))
@@ -528,12 +589,14 @@ namespace AirlineCEO.Logic
                       + $"{ScheduleSlots.SlotToleranceMinutes} 分容差内的班次才算数（{ScheduleSlots.SlotToleranceMinutes * 2} 分以外的槽帮不上这一刻）；\n");
             sb.Append("　② 一停站一对槽　飞机在哪一站停一次，那一站就要一对（到场 + 离场）：本场端 1 对、对端 1 对；"
                       + "**经停站一趟往返停两次，故要 2 对**（去程一次、回程一次）。各站时刻由轮挡 + 过站（+ 停站）推出并吸附到系列；\n");
-            sb.Append("　③ 两条渠道　协调池分配（WASG 正常渠道，免费，下季交割）／二级市场购入（付费，同期交割）；"
+            sb.Append("　③ 两条渠道　协调池分配（WASG 正常渠道，免费，" + NextQuarterLabel(gs) + " 交割）／"
+                      + "二级市场购入（付费，同期交割）；"
                       + "**另有第三条：已持有该站槽、只是时刻滑点 → 时刻变更申请（改时，WASG 9.1.3，免费）**；\n");
             sb.Append("　④ 排序口径　即刻可排 → 那一刻派得出机 → 当日回场 → 价格低 → 离原计划近。\n");
 
             sb.Append("\n批准后的动作：按选定时刻为**仍然缺槽的每一个停站**各开一张单 ——"
-                      + "没持有过就走协调池申请（免费，下季交割）；**已持有、只是时刻滑点的走时刻变更申请（改时，免费）**，"
+                      + "没持有过就走协调池申请（免费，" + NextQuarterLabel(gs) + " 交割）；"
+                      + "**已持有、只是时刻滑点的走时刻变更申请（改时，免费）**，"
                       + "两类都齐了运营部自动重排本线并呈报加机。\n");
             sb.Append("退回则本线维持现状，不申请、不改时、不花钱。");
             return sb.ToString();

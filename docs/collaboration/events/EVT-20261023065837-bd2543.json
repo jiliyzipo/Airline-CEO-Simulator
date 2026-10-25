@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261023065837-bd2543",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 353,
+  "at": "2026-10-23T06:58:37.634Z",
+  "actor": "codex",
+  "action": "review-start",
+  "taskId": "S08-ShortHaul",
+  "deliveryId": "DEL-20261023032726-42cba0",
+  "reviewId": "REV-20261023065836-eecd5f",
+  "parentEventId": null,
+  "summary": "review-start REV-20261023065836-eecd5f profile=unity-editmode",
+  "data": {}
+}

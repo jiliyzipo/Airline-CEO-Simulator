@@ -284,6 +284,10 @@ internal static class Program
             "",
             "> 生成：`tools/balance` · `dotnet run -- --stress`（seed=42，可复现）",
             "",
+            "> **这张矩阵是「不作为基线」，不是玩家存活率。** 每个组合都是「CEO 一整年不做任何决策」的",
+            "> 自动年循环投影：破产 = 在给定的期初现金 / 机队 / 网络下，什么都不做会被最恶劣的宏观情景打到资不抵债。",
+            "> 它是难度设计的锚点。把本表读成「玩家存活率」是错的。",
+            "",
             "## 出处（K13.3：破产率必须与生成版本一起读）",
             "",
             "| 项 | 值 |",
@@ -302,6 +306,9 @@ internal static class Program
             "## 范围",
             "",
             "- 难度：简单（现金×1.25 / 事件×0.8）/ 标准（×1.0）/ 困难（现金×0.8 / 事件×1.25）",
+            "- **难度只改期初现金**：60 组合 = 20 个损益情景 × 3 个起始现金（625 / 500 / 400）。"
+                + "同一（航司, 宏观）在三档难度下净利逐位相同；事件倍率只作用于一次性 IRROPS 现金冲击"
+                + "（全年 ±6 万量级），不作用于需求/票价/维护系数。这是设计意图，详见 `README.md`「压测口径」。",
             "- 航司类型：全服务 FSC / 低成本 LCC / 支线 Regional / 包机 Charter（机队 + 航线 + 品牌净值不同）",
             "- 宏观情景：繁荣 / 复苏 / 衰退 / 油价冲击（1400$/t）/ 滞胀（1300$/t + 衰退）",
             "- 共 60 组合，各跑一个财年，复用 `AirlineYearSimulator`（含 OPS/FIN/FLEET/MKT/STG/MNT/HR/SAF 年闭环）",
@@ -316,6 +323,10 @@ internal static class Program
             "| YELLOW | 年末跑道 < 3 个月 |",
             "| RUNAWAY | 年净利 > 4× 期初现金（过于简单） |",
             "| GREEN | 健康 |",
+            "",
+            "> **净利 ≠ 期末 − 期初。** `TotalNetProfit` 不含 IRROPS 现金冲击与跑道告急贷款，"
+                + "所以同（航司, 宏观）三档难度的净利相同、期末却各差 100 万。本表是**情景投影，不是台账**，"
+                + "不能拿来当现金对账的 oracle。",
             "",
             "## 健康度分布",
             ""
@@ -378,10 +389,25 @@ internal static class Program
         if (bad > 0 && onlyStagflation)
             lines.Add("- 剩余告急全部落在**滞胀**（衰退 + 油价 1300$/t）情景，为最坏宏观组合，属真实行业梯度而非参数缺陷。");
 
-        bool fscHealthy = results.Any(r => r.AirlineType == "全服务")
-            && !results.Any(r => r.AirlineType == "全服务" && r.Flag is "BANKRUPT" or "RED" or "YELLOW" or "RUNAWAY");
-        if (fscHealthy)
-            lines.Add("- **全服务 15/15 全 GREEN**：繁荣期净利 1319 万 → 滞胀 -208 万的梯度平滑，作为基线难度锚点合理。");
+        // 旧版这里写着一条「全服务 15/15 全 GREEN」自检。但全服务在滞胀下已落到 YELLOW（约 2.0 月跑道），
+        // 条件恒为假 —— 这一支**永远不会触发**，读者拿到的是一份「没有全服务结论」的报告，
+        // 而自检本身却让人以为锚点仍然健康。
+        //
+        // 2026-10-24 设计裁定 A（docs/handoff/T04_8_告急组合裁定_2026-10-24.md §3.2）：
+        // 保留滞胀硬度、改口径。这里改成「按实际结果如实印」，不再让它随数据漂移后静默消失。
+        var fsc = results.Where(r => r.AirlineType == "全服务").ToList();
+        if (fsc.Count > 0)
+        {
+            var fscBad = fsc.Where(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW" or "RUNAWAY").ToList();
+            if (fscBad.Count == 0)
+                lines.Add($"- **全服务 {fsc.Count}/{fsc.Count} 全 GREEN**：基线难度锚点全部落在健康区间。");
+            else
+                lines.Add($"- **全服务锚点已不全是 GREEN**（{fscBad.Count}/{fsc.Count} 告急："
+                    + string.Join("、", fscBad.Select(r => $"{r.Difficulty}/{r.Scenario} {r.Flag} 跑道 {r.Runway:F1} 月"))
+                    + "）。**这是设计裁定 A 承认的张力**，不是待修缺陷："
+                    + "「标准难度 + 滞胀 + 一整年不操作 ≈ 2 月跑道」属不作为基线；"
+                    + "详见 `docs/handoff/T04_8_告急组合裁定_2026-10-24.md` §3.2。");
+        }
 
         if (bad == 0 && runaway == 0)
             lines.Add("- 60 组合全部落于绿色区间，数值梯度健康，无需调参。");

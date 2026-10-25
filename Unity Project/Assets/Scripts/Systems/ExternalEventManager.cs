@@ -516,8 +516,11 @@ namespace AirlineCEO.Systems
         {
             if (gs.inbox == null) gs.inbox = new List<InboxMail>();
             string date = ExternalTimeMapper.GameDateLabel(ev.GameReceivedTime);
-            string role = OfficialBulletin.RoleLabel(ev.source, ev.category);
-            string body = OfficialBulletin.Compose(ev, date, triggered: false);
+            // 发件人一律是新闻官（不拿发布单位当发件人）；发布单位退到正文，原文照登。
+            string officer = PressDesk.Name(gs);
+            string role = PressDesk.RoleLine(OfficialBulletin.RoleLabel(ev.source, ev.category));
+            string body = PressDesk.ForwardHead(ev.source, officer)
+                + OfficialBulletin.Compose(ev, date, triggered: false);
             if (ev.isolated)
                 body += "\n\n" + InboxLetter.Bullet("（未见前置来文，本条按孤立事件归档。）");
             if (HasImpact(ev))
@@ -529,9 +532,9 @@ namespace AirlineCEO.Systems
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_r_" + ev.id + "_" + ev.gameReceivedTicks,
-                sender = ev.source,
+                sender = officer,
                 role = role,
-                glyph = "讯",
+                glyph = PressDesk.Glyph,
                 kind = KindOf(ev.source),
                 action = "news",
                 origin = ev.affectedRegion ?? "",
@@ -551,10 +554,13 @@ namespace AirlineCEO.Systems
         static void PushTriggerMail(GameState gs, ExternalEvent ev)
         {
             string date = ExternalTimeMapper.GameDateLabel(ev.GameEffectiveTime);
-            string role = OfficialBulletin.StyleOf(ev.source) == OfficialBulletin.Style.News
+            string officer = PressDesk.Name(gs);
+            string docLabel = OfficialBulletin.StyleOf(ev.source) == OfficialBulletin.Style.News
                 ? "后续报道"
                 : "施行通报";
+            string role = PressDesk.RoleLine(docLabel);
             var body = new StringBuilder();
+            body.Append(PressDesk.ForwardHead(ev.source, officer));
             body.Append(OfficialBulletin.Compose(ev, date, triggered: true));
             body.Append("\n\n").Append(AnnotLine).Append('\n');
             body.Append(InboxLetter.Section("对公司的影响"));
@@ -563,9 +569,9 @@ namespace AirlineCEO.Systems
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_t_" + ev.id + "_" + ev.gameEffectiveTicks,
-                sender = ev.source,
+                sender = officer,
                 role = role,
-                glyph = "讯",
+                glyph = PressDesk.Glyph,
                 kind = KindOf(ev.source),
                 action = "news",
                 origin = ev.affectedRegion ?? "",

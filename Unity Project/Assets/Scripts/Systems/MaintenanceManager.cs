@@ -170,7 +170,16 @@ namespace AirlineCEO.Systems
 
         public bool ScheduleCheck(string registration, string checkType, int dueMonth, out string message)
         {
-            var gs = GameState.Instance;
+            return ScheduleCheck(GameState.Instance, registration, checkType, dueMonth, out message);
+        }
+
+        /// <summary>
+        /// 显式传入 <paramref name="gs"/> 的重载：自测与工具不必依赖 <c>GameState.Instance</c> 单例
+        /// （EditMode 里 <c>AddComponent</c> 不会触发 <c>Awake</c>，单例恒为 null —— 与
+        /// <see cref="FleetManager.TryRetireAircraft(GameState, string, out string)"/> 同一处理）。
+        /// </summary>
+        public bool ScheduleCheck(GameState gs, string registration, string checkType, int dueMonth, out string message)
+        {
             if (gs == null) { message = "无 GameState"; return false; }
             var mnt = EnsureState(gs);
             int fleet = gs.fleet != null ? gs.fleet.Count : 1;

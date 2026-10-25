@@ -14,3 +14,7 @@
 - S05-P2Close: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S06-BatchB: 按缺陷修复后重新 deliver。
 - S07-Balance: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S08-ShortHaul: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S09-Residual: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S10-PressDesk: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S11-T043Windows: 已交付，等待 Codex；不要自行勾选独立验收通过。

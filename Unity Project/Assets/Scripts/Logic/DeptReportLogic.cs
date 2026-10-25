@@ -20,6 +20,13 @@ namespace AirlineCEO.Logic
     /// </summary>
     public static class DeptReportLogic
     {
+        /// <summary>
+        /// 命令条「取消」确认卡时显示的原文（T05.5）。
+        /// 抽成常量是为了让回归能断言**取消路径的对外说法**：
+        /// 取消只收起卡片、不写台账，这句话必须同时声明「未停飞」与「台账未改动」。
+        /// </summary>
+        public const string CloseCancelNotice = "已取消：未停飞任何航线，台账未改动。";
+
         public struct DeptAnswer
         {
             public bool ok;         // false = 不派件，只把 note 显示在命令条上

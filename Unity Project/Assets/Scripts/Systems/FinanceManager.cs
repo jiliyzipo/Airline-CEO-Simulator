@@ -35,15 +35,27 @@ namespace AirlineCEO.Systems
 
         #region 预算
 
-        /// <summary>若尚无预算，按默认部门份额 × 建议预算生成草案。</summary>
+        /// <summary>
+        /// 若尚无预算（或台账已退化为 8 个 0），按默认部门份额 × 建议预算生成草案。
+        ///
+        /// 为什么不能只看 <c>Count &gt; 0</c>：现金为 0 时 <see cref="FinanceEconomics.RecommendedBudget"/>
+        /// 也是 0，「摊」出来的就是 8 个 0。若把这种退化台账当成「已有预算」挡住重建，那么
+        /// 现金恢复后 8 行仍是 0，`EstimateBoardVotes` 又按 `total/cash` 分档给 0 票 ——
+        /// 预算永远提不交、永远过不了，且没有任何界面能把它改回来（玩家只能改单个部门额度）。
+        /// 所以退化台账必须视同空台账。
+        /// </summary>
         public void EnsureDefaultBudget(GameState gs)
         {
             if (gs == null) return;
             if (gs.budgetItems == null)
                 gs.budgetItems = new List<BudgetItem>();
-            if (gs.budgetItems.Count > 0) return;
+            if (!IsDegenerateBudget(gs)) return;
 
             float total = FinanceEconomics.RecommendedBudget(gs.cash);
+            // 现金 ≤ 0：没有可摊的总量。保留现状（不写 8 个 0），等现金恢复后由下一次调用重建。
+            if (total <= 0.01f) return;
+
+            gs.budgetItems.Clear();
             for (int i = 0; i < FinanceEconomics.DeptShares.Length; i++)
             {
                 var d = FinanceEconomics.DeptShares[i];
@@ -55,6 +67,26 @@ namespace AirlineCEO.Systems
                     spentWan = 0f
                 });
             }
+        }
+
+        /// <summary>
+        /// 退化台账：没有条目，或「8 项额度全为 0 且无执行数」。
+        /// 后者只可能来自现金 ≤ 0 时摊出来的空账（见 <see cref="EnsureDefaultBudget"/>）——
+        /// 它不代表玩家真的编了一个 0 预算，所以不该被当成「已有预算」。
+        /// 只要有一项额度 &gt; 0 或任一项有执行数，就不是退化（那是玩家或季结留下的真实数据）。
+        /// </summary>
+        static bool IsDegenerateBudget(GameState gs)
+        {
+            var items = gs?.budgetItems;
+            if (items == null || items.Count == 0) return true;
+            for (int i = 0; i < items.Count; i++)
+            {
+                var it = items[i];
+                if (it == null) return false;
+                if (it.spentWan > 0.01f) return false;
+                if (it.amountWan > 0.01f) return false;
+            }
+            return true;
         }
 
         public static float BudgetTotal(GameState gs)
@@ -110,19 +142,114 @@ namespace AirlineCEO.Systems
         #region 预算 · 超支问责（GDB 28.1 见习期软保护）
 
         /// <summary>
-        /// 季度结算时把季度支出按部门默认份额分摊累计到各预算项 spentWan，
-        /// 作为财年末「超支问责」的判定依据。
+        /// 季度结算时把季度支出按部门分摊累计到各预算项 spentWan，作为财年末「超支问责」的判定依据。
+        ///
+        /// K17 / D4：分摊键从「全行业固定份额」改为「该部门自己的额度占比」。
+        /// 理由：接管时部门额度是按继承的成本结构摊的（见 <see cref="TakeoverCostLedger"/>），
+        /// 若支出仍按固定份额（运营 20% / 机务 18% …）分摊，两把尺子不同 —— 一个维修重的老机队，
+        /// 额度大头在机务，支出却被记到运营，超支告警从第一天起就是错位的。
+        /// 默认预算本身就是「总量 × 固定份额」，故按额度占比分摊对默认路径**等价**（逐项同值），
+        /// 只有玩家改过额度或接管继承了别的结构时才有差别。
         /// </summary>
         public static void AccrueBudgetSpend(GameState gs, float quarterExpenseWan)
         {
             if (gs?.budgetItems == null || quarterExpenseWan <= 0f) return;
+            float totalAmount = BudgetTotal(gs);
             for (int i = 0; i < gs.budgetItems.Count; i++)
             {
                 var b = gs.budgetItems[i];
-                float share = FinanceEconomics.ShareOf(b.deptId);
+                float share = totalAmount > 0.01f
+                    ? Mathf.Max(0f, b.amountWan) / totalAmount
+                    : FinanceEconomics.ShareOf(b.deptId);
                 if (share <= 0f) continue;
                 b.spentWan += quarterExpenseWan * share;
             }
+        }
+
+        /// <summary>
+        /// K17 / D4 遗留：把**旧存档**的部门预算迁到「继承成本结构」这一套。
+        ///
+        /// 为什么需要这一步：K17 之前接管落地不写 <c>budgetItems</c>，要等玩家第一次打开财务页，
+        /// 才由 <see cref="EnsureDefaultBudget"/> 按全行业固定份额凭空生成；K17 之后 Apply 直接按账本
+        /// 摊分。于是同一家航司、同样的现金，**旧档与新档看到 8 个部门的额度不一样** ——
+        /// 不迁移的话，老玩家的季度超支问责会一直按错位的分母跑，而新开一局却是对的。
+        ///
+        /// 只迁「看得出是旧默认值」的档，不碰玩家手改过的额度：
+        /// · 空预算（从未打开财务页）→ 迁；
+        /// · 8 个部门齐全、且每项都等于 <c>总额 × FinanceEconomics.ShareOf(dept)</c>（旧默认的指纹）→ 迁；
+        /// · 有任何 <c>spentWan &gt; 0</c>（已跑过季结，换摊分键会把历史记到错的部门）→ **不迁**；
+        /// · 部门数不是 8、或额度对不上旧指纹（玩家自己改过）→ **不迁**。
+        ///
+        /// 迁的时候只换**摊分键**，总额沿用存档里的既有总额（老档额度是当年按当时的现金生成的，
+        /// 之后现金天天在变，按现值重算就不是「总额不变」了），并保留已提交/已通过状态 ——
+        /// 董事会投票按「总额 / 现金」分档，总额不变故票数结论不变。
+        ///
+        /// 账本来源用 `TakeoverWorldBuilder.BuildPreview(takeoverAirlineId)` 重建，而不是往存档里塞一份：
+        /// 旧档本来就没有这份数据，而这条路径与选司界面用的是**同一个**生成器（同 id → 同结果，确定性），
+        /// 所以迁出来的比例与玩家当初在预览里看到的口径一致。代价是读档时多跑一次预览构建（单家航司）。
+        /// </summary>
+        /// <returns>真的迁了才返回 true（供回归与日志判断）。</returns>
+        public static bool MigrateLegacyBudget(GameState gs)
+        {
+            if (gs == null || !gs.takeoverMode || string.IsNullOrEmpty(gs.takeoverAirlineId)) return false;
+            if (!IsLegacyFixedShareBudget(gs)) return false;
+
+            var profile = TakeoverWorldBuilder.BuildPreview(gs.takeoverAirlineId);
+            if (profile == null) return false;
+            var ledger = profile.costLedger
+                         ?? TakeoverCostLedger.Build(profile.monthlyCost, profile.monthlyFixedCost,
+                                                     profile.monthlyDebtService, profile.monthlyInsurance);
+            if (ledger == null || ledger.TotalMonthlyWan <= 0.01f) return false;
+
+            // 总额**沿用存档里既有的总额**，不用「当前现金 × 50%」重算。
+            // 老存档的额度多是当年按当时的现金生成的，之后现金每天都在变；若这里按现值重算，
+            // 就违反了「只换摊分键、总额不变」的承诺 —— 现金跌到 0 的旧档会被摊成 8 个 0，
+            // 玩家本来还能看见的 250 万台账直接被抹掉（2026-10-23 实机复现）。
+            // 只有连台账都没有（空 / 全 0）时，才退回董事会规则现算。
+            float existingTotal = BudgetTotal(gs);
+            float total = existingTotal > 0.01f ? existingTotal : FinanceEconomics.RecommendedBudget(gs.cash);
+            // 既无既存总额、现金又 ≤ 0：没有任何可摊的总量。此时什么都不写（保留现状），
+            // 免得把「无台账」变成「8 个 0 的台账」——后者会被 EnsureDefaultBudget 的旧逻辑永久钉死。
+            if (total <= 0.01f) return false;
+
+            // 只换摊分键：总额、投票状态、财年都不动。
+            bool submitted = gs.budgetSubmitted;
+            bool approved = gs.budgetApproved;
+            int fiscalYear = gs.budgetFiscalYear;
+            gs.budgetItems = ledger.ToBudgetItems(total);
+            gs.budgetSubmitted = submitted;
+            gs.budgetApproved = approved;
+            gs.budgetFiscalYear = fiscalYear;
+            gs.AddDecisionLog($"财务：旧存档部门预算已按继承成本结构重摊（合计 {BudgetTotal(gs):F0} 万/年，"
+                              + "总额与投票状态未变，仅调整 8 个部门的比例）。");
+            return true;
+        }
+
+        /// <summary>旧默认预算的指纹：空，或「8 个部门 × 全行业固定份额」且尚无执行数。</summary>
+        static bool IsLegacyFixedShareBudget(GameState gs)
+        {
+            var items = gs.budgetItems;
+            if (items == null || items.Count == 0) return true;
+
+            float total = 0f;
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null) return false;
+                if (items[i].spentWan > 0.01f) return false; // 已有执行历史，换键会错记
+                total += items[i].amountWan;
+            }
+            if (total <= 0.01f) return true;                  // 额度全 0 = 等于没有台账
+            if (items.Count != FinanceEconomics.DeptShares.Length) return false;
+
+            float tol = Mathf.Max(0.5f, total * 0.005f);
+            for (int i = 0; i < items.Count; i++)
+            {
+                var b = items[i];
+                float want = total * FinanceEconomics.ShareOf(b.deptId);
+                if (want <= 0f) return false;                 // 未知部门 id：不是本系统生成的
+                if (Mathf.Abs(b.amountWan - want) > tol) return false;
+            }
+            return true;
         }
 
         /// <summary>

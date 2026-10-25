@@ -136,6 +136,11 @@
 - [x] T04.1 列出现金流来源与计提频率：航班、固定开销、人员工资、机队维护、租赁、过渡业务、融资本息及其他季度／年度结算；明确单位、正负号与权威来源。
 - [x] T04.2 核对 `LiveClockSimulator` 每日／落地入账、`GameState.monthlyRevenue`、`TimeManager` 季度补差；以逐项账本验证不重复计入、不漏计。
 - [ ] T04.3 覆盖停飞、无机、缺员、维护、退租、转入过渡业务、贷款偿还和季度中途业务变化，核对实际现金及应计项目。
+      2026-10-25 进度：8 场景全覆盖到行为断言层 —— 维护/退租/贷款为 EditMode（`AccountingScenarioRegression`），
+      停飞/无机/缺员/过渡/中途变更为 PlayMode 实时窗口（`DevelopmentAccountingScenarioTests`，5 例）。
+      隔离快照全量 PlayMode 135/135、EditMode 36/36；`REV-20261025103525-a76682` passed（`unity-playmode` 135/135、issues=[]）。
+      **总项勾选归 Codex/user**；`cleanGitCheckoutVerified` 仍为 false，S4/S5/S7 只到 EditMode 层。
+      见 `docs/handoff/T04_3_账务验证矩阵_2026-10-18.md` §9。
 - [x] T04.4 比较正常走时、开发推进和中途存读档；固定外部输入与随机条件，说明补差、舍入与时间边界允许的差异，不强行要求不同事件序列数值相同。
 - [x] T04.5 更新离线平衡工具对当前玩法的覆盖；缺少对应模型时明确补齐或标明缺口，不以旧版离线数据代表当前 Runtime。
 - [x] T04.6 刷新现有难度 × 航司类型 × 宏观情景的 60 组合矩阵；记录实际参数、seed 和源码版本指纹。先固定 seed=42 复现，再按发现的问题选择必要的额外 seed。

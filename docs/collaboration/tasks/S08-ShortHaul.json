@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S08-ShortHaul",
+  "title": "阶段 S08-ShortHaul：Balance/Editor/Assets-Tests",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Balance、Editor、Assets-Tests、Logic",
+    "改动文件数 11，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S08-ShortHaul）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S08-ShortHaul）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S08-ShortHaul）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-23T02:46:43.657Z",
+  "updatedAt": "2026-10-23T07:56:06.843Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historical review REV-20261023065836-eecd5f passed delivery DEL-20261023032726-42cba0; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261023065836-eecd5f"
+}

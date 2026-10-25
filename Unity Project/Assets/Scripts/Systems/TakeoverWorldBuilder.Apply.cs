@@ -27,6 +27,10 @@ namespace AirlineCEO.Systems
             gs.companyIcao = profile.icaoCode;
             gs.hubIata = profile.hubAirport;
             gs.cash = profile.cash;
+            // K17 / D4：部门预算按**继承下来的成本结构**摊分（总量仍按董事会的「现金 50%」规则）。
+            // 旧路径要等玩家第一次打开财务页才由 EnsureDefaultBudget 按全行业固定份额生成，
+            // 与这家航司真实的成本构成（老机队维修重 / 租赁多 / 贷款多）无关。
+            SeedInheritedBudget(gs, profile);
             gs.crewVacancyPercent = profile.crewVacancyPercent;
             gs.firstFlightCompleted = true;
             gs.advisorTutorialCompleted = true;
@@ -93,6 +97,30 @@ namespace AirlineCEO.Systems
             // monthlyRevenue 在 GameState 多为计算属性；烧钱用 monthlyBurnRate。
             _ = routeMonthRev;
             _ = gs;
+        }
+
+        /// <summary>
+        /// K17 / D4：把继承的成本结构写进部门预算。
+        ///
+        /// 总量不动：仍按 <see cref="FinanceEconomics.RecommendedBudget"/>(现金) = 现金 × 50%，
+        /// 因为董事会投票（`EstimateBoardVotes` 按 总额/现金 分档）与 K10 的现金反推都以这个量为准；
+        /// 变的只是**部门之间的比例** —— 由该航司四段式成本的归属决定，而不是全行业同一套固定份额。
+        /// 这样财务页上的每个部门额度都能回答「为什么是这个数」，季度超支问责也按同一把尺子分摊。
+        /// </summary>
+        static void SeedInheritedBudget(GameState gs, AirlineProfile profile)
+        {
+            if (gs == null || profile == null) return;
+            var ledger = profile.costLedger
+                         ?? TakeoverCostLedger.Build(profile.monthlyCost, profile.monthlyFixedCost,
+                                                     profile.monthlyDebtService, profile.monthlyInsurance);
+            float total = FinanceEconomics.RecommendedBudget(gs.cash);
+            gs.budgetItems = ledger.ToBudgetItems(total);
+            gs.budgetFiscalYear = gs.year;
+            gs.budgetSubmitted = false;
+            gs.budgetApproved = false;
+            if (gs.budgetItems.Count > 0)
+                gs.AddDecisionLog($"财务：接管部门预算按继承成本结构摊分（合计 {total:F0} 万/年，"
+                                  + $"{gs.budgetItems.Count} 个部门；总量仍按现金 50% 的董事会规则）。");
         }
     }
 }

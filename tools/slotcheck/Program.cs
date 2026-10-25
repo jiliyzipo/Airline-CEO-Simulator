@@ -948,6 +948,11 @@ namespace SlotCheck
                 && body.Contains("经停站") && body.Contains("协调池") && body.Contains("二级市场"), ref fail);
             Check("正文交代批准后的动作（开申请单 → 交割 → 自动重排并呈报）",
                 body.Contains("批准后的动作") && body.Contains("自动重排"), ref fail);
+            // ★T05.6：每个备选都要有「预计办理时点」，且不得只剩「下季」这种相对说法
+            Check("[关键] 每个备选给出「办理时点」一行（T05.6：旧版只有「下季交割」，玩家换算不出赛季）",
+                body.Contains("办理时点"), ref fail);
+            Check("无 GameState 的离线路径也要给得出时点（退回「本季 / 下季」，不得空着）",
+                body.Contains("办理时点　本季") || body.Contains("办理时点　下季"), ref fail);
 
             // —— 8. 受阻汇报件必须给「下一步」，不许只报坏消息 ——
             string blocked = SlotCandidateLogic.FormatBlockedBody(null, routeB, "08:00");

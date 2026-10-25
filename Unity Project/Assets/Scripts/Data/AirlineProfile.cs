@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AirlineCEO.Logic;
 
 namespace AirlineCEO.Data
 {
@@ -45,6 +46,14 @@ namespace AirlineCEO.Data
         /// ≤ 0 表示不烧钱，跑道无上限。
         /// </summary>
         public float monthlyNetBurn;
+        /// <summary>
+        /// K17 / D4：接管成本的部门账本（四段式 → 8 个部门）。
+        ///
+        /// 它不参与跑道计算（跑道的分母仍是上面四个字段之和，逐位不变），
+        /// 只决定「接管时继承哪 8 个部门的预算、各占多少」——`Apply` 用它生成 <c>budgetItems</c>。
+        /// 为 null 时（旧档 / 手工构造的档案）退回 <see cref="Logic.FinanceEconomics.DeptShares"/> 固定份额。
+        /// </summary>
+        public TakeoverCostLedger costLedger;
         public float debtRatio;
         /// <summary>
         /// 现金跑道（月）。仅当 <see cref="cashRunwayUnbounded"/> 为 false 时有意义 ——

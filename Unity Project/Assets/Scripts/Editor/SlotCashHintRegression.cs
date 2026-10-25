@@ -3,6 +3,7 @@ using System.Text;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
+using AirlineCEO.UI;
 using UnityEngine;
 
 namespace AirlineCEO.EditorTools
@@ -85,6 +86,15 @@ namespace AirlineCEO.EditorTools
                 //    反面：跑道充足 → **不得**出现风险行（只钉正面的话，一个「无脑追加一行」的实现也能过）。
                 //    跑道刻意按 burn 反推（cost + burn × 10），这样断言不依赖烧钱的绝对值。
                 bool riskShown = bodyOk && body.Contains("风险") && body.Contains("危机线");
+                // ⑤b **渲染层**（H3b 补）：正文里写了不等于玩家看得见 ——
+                //     UI 的显示链路是「正文 → InboxLetter.FrameIfNeeded（补称谓落款）→ TermNavMap.Decorate（包链接）」，
+                //     风险行里的「3 个月」与机场三字码都可能被装饰逻辑吃掉/改写。这里走一遍真链路，
+                //     断言风险行在**渲染后的文本**里仍完整存在（与 R26 抬头去重同一口径）。
+                InboxMail riskMail = gs.inbox.Count > 0 ? gs.inbox[gs.inbox.Count - 1] : null;
+                string paintedRisk = riskMail != null
+                    ? TermNavMap.Decorate(InboxLetter.FrameIfNeeded(gs, riskMail, riskMail.body ?? ""))
+                    : "";
+                bool riskPainted = paintedRisk.Contains("风险") && paintedRisk.Contains("危机线");
                 gs.inbox.Clear();
                 gs.cash = cost + burn * 10f;                     // 扣款后恰剩 10 个月跑道
                 bool queued2 = InboxManager.QueueSlotDecision(gs, "TNA", "12:00", "m_k19_test2", out _);
@@ -92,7 +102,7 @@ namespace AirlineCEO.EditorTools
                 bool riskHidden = queued2 && body2.Contains("个月") && !body2.Contains("风险");
 
                 bool all = tightMath && tightText && okMath && okText && shortOk && bodyOk
-                           && riskShown && riskHidden;
+                           && riskShown && riskPainted && riskHidden;
 
                 var sb = new StringBuilder();
                 sb.Append("K19 时刻槽提案现金跑道 → ")
@@ -102,6 +112,7 @@ namespace AirlineCEO.EditorTools
                   .Append(" 差额=").Append(shortOk)
                   .Append(" 信件正文=").Append(bodyOk)
                   .Append(" 风险行=").Append(riskShown)
+                  .Append(" 风险行渲染后仍可见=").Append(riskPainted)
                   .Append(" 风险行不滥发=").Append(riskHidden)
                   .Append("　").Append(all ? "✓" : "✗")
                   .Append($"\n　烧钱={burn:F0} 万/月　{cashTight:F0}→{cost:F0} 剩 {runwayAfter:F2} 月（期望 {expectRunway:F2}）");

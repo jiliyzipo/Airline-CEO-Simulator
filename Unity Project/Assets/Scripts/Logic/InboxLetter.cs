@@ -102,6 +102,15 @@ namespace AirlineCEO.Logic
             post = "";
             name = "";
 
+            // 新闻官转呈件：发件人是具名个人，对外身份是「新闻官」而非某个部门。
+            // 不设职务层级（签「新闻官 沈其昌」），否则会拼成「新闻官 · 负责人 沈其昌」。
+            if (PressDesk.IsPressOfficer(gs, dept))
+            {
+                dept = PressDesk.Title;
+                name = PressDesk.Name(gs);
+                return;
+            }
+
             string code = DeptCodeOf(dept);
             if (code != null)
             {
@@ -219,7 +228,11 @@ namespace AirlineCEO.Logic
         public static string Sign(GameState gs, string sender, string role, string dateText = null)
         {
             Identify(gs, sender, role, out string dept, out string post, out string name);
-            string title = string.IsNullOrEmpty(name) ? $"{dept} · {post}" : $"{dept} · {post} {name}";
+            string title;
+            if (!string.IsNullOrEmpty(name))
+                title = string.IsNullOrEmpty(post) ? $"{dept} {name}" : $"{dept} · {post} {name}";
+            else
+                title = string.IsNullOrEmpty(post) ? dept : $"{dept} · {post}";
             string date = string.IsNullOrEmpty(dateText) ? DateTime.Now.ToString("yyyy年MM月dd日") : dateText;
             return $"{title}\n{date}";
         }

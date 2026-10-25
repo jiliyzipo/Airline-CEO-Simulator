@@ -3,6 +3,7 @@
     "rootNamespace": "AirlineCEO.Tests",
     "references": [
         "UnityEngine.TestRunner",
+        "Unity.TextMeshPro",
         "AirlineCEO.Runtime"
     ],
     "includePlatforms": [],

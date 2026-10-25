@@ -474,6 +474,15 @@ namespace AirlineCEO.Logic
             return p;
         }
 
+        /// <summary>
+        /// 取一个**不进入人事名单**的单一名字（不做去重）。
+        ///
+        /// 给「新闻官」这类只有姓名、没有任何资料的角色用：他不在 `<see cref="PersonnelData"/>` 池里，
+        /// 不占编制、不领薪、不能任命，因此没有「重名要换一个」的问题；
+        /// 但同一个种子必须永远取到同一个名字，否则读档后新闻官会换人。
+        /// </summary>
+        public static string SingleName(string nation, int seed) => DraftName(nation ?? "", seed);
+
         static string ComposeName(string nation, int seed, HashSet<string> used)
         {
             if (used == null) used = new HashSet<string>();

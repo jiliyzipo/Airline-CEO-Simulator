@@ -4,7 +4,7 @@
 **工程：** `Unity Project/`，Unity 6000.3.21f1
 **依据：** 本轮 P0/P1/P2 的实现与会话反馈；`Airline_CEO_Dev_Task_2026-10-17.md` 的勾选与证据规则；`docs/GameDesignBible/MVP/V3.0/航班排班与时刻槽_重构方案_v1.0.md` §12.7（三表同集合红线）
 **编写时基线：** HEAD `93ea3b6`，工作区 85 项已跟踪改动（另有未跟踪源码与资产），未提交、未推送
-**执行顺序：** 已完成 K03 → K04、K07、K08、K09、K10（六轮收敛 84/84）、**K02（Codex `REV-20261022011140-9e5b0b` passed）**、**K06 批次 B（5 座入表、EditMode 26/26、界面五条手测全通过；`REV-20261022020524-8f1a7e` passed，总项已勾）**、**K18 / K19（拉萨回补 + 时刻槽现金跑道；`REV-20261022025040-a46f56` 27/27 passed，界面 H1–H4 通过、风险行单元层已验）**、**K12 / K13 / K14（季末一次性项 + 基线刷新 + 压测补盲；`DEL-20261023012853-918599` → `REV-20261023015616-582178` passed，30/30、AC1–3 全 passed）**；剩余未开工仅 K16（超短航段）与 K17（接管成本继承），二者待裁定（见 §18）。
+**执行顺序：** 已完成 K03 → K04、K07、K08、K09、K10（六轮收敛 84/84）、**K02（Codex `REV-20261022011140-9e5b0b` passed）**、**K06 批次 B（5 座入表、EditMode 26/26、界面五条手测全通过；`REV-20261022020524-8f1a7e` passed，总项已勾）**、**K18 / K19（拉萨回补 + 时刻槽现金跑道；`REV-20261022025040-a46f56` 27/27 passed，界面 H1–H4 通过、风险行单元层已验）**、**K12 / K13 / K14（季末一次性项 + 基线刷新 + 压测补盲；`DEL-20261023012853-918599` → `REV-20261023015616-582178` passed，30/30、AC1–3 全 passed）**；**K16 / K17 同轮验收（2026-10-23）**：K16（超短航段，裁定窄口径 A）与 K17（接管成本继承，裁定「保四段式总量 + 增部门账本粒度」，§24）并入 `DEL-20261023032726-42cba0`，经 Codex 独立检测 **`REV-20261023065836-eecd5f` passed**（`unity-editmode` 32/32、failed=0/skipped=0、AC1–AC3 全 passed、issues=[]），总项已勾。§19 的排除项本轮仍未开工（教程文案、命令台历史/回执/收藏、其他写指令、发布/商店/云存档/Mod）。
 
 本任务书是**本轮**的执行入口，不新增或改变玩法设计。历史任务书（v1.0～v1.7、2026-10-17 版）与合并计划保留为历史依据；旧勾选不自动成为本轮完成标记。
 
@@ -37,13 +37,14 @@
 | **R1 P2 手测** | K01.4–K01.7 四条主路径（关线三步 / 运力调令 / 问句引导 / 公司整体） | **四条全部通过（2026-10-22）**；K01.4 首轮报缺陷已修复复测 |
 | **R2 阶段收口** | `stage-close --task S05-P2Close` → DEL + 交接单 → Codex 独立检测 | **已验收（2026-10-22）**：`DEL-20261022010306-fcd5d6` → `REV-20261022011140-9e5b0b` passed、independent、25/25、零缺陷 |
 | **批次 B 机场** | NNG / KWE / TYN / HET / TNA 三表 + 回归 + 平衡观测 | **已验收（2026-10-22）**：`DEL-20261022020026-d99bbb` → `REV-20261022020524-8f1a7e` passed、26/26 |
-| **K18 跨境门户** | 支线机场不接国际线 + 拉萨 LXA 回补（批次 B'） | **已验收（2026-10-22）**：762 航线 / 88 目的地 / 新增 2 删 0；`DEL-…67df8c` → `REV-…a46f56` 27/27；界面 H1/H2 通过 |
-| **K19 时刻槽现金跑道** | 提案正文写出「扣款后现金 ≈ X 月跑道」 | **已验收（2026-10-22）**：`SlotProposalShowsCashRunway` Passed；界面 H3/H4 通过（189 万现金实测走通「不足以支付」分支）；风险行 H3b 单元层实跑通过、界面层未取样 |
+| **K18 跨境门户** | 支线机场不接国际线 + 拉萨 LXA 回补（批次 B'） | **已验收（2026-10-22）**：762 航线 / 88 目的地 / 新增 2 删 0（K14 全集缝后当前 823 / 94）；`DEL-…67df8c` → `REV-…a46f56` 27/27；界面 H1/H2 通过 |
+| **K19 时刻槽现金跑道** | 提案正文写出「扣款后现金 ≈ X 月跑道」 | **已验收（2026-10-22）**：`SlotProposalShowsCashRunway` Passed；界面 H3/H4 通过（189 万现金实测走通「不足以支付」分支）；风险行 H3b 单元层 + 渲染管线层通过（2026-10-23 补），界面截图未取样 |
 | **K15 / D2 星级分档** | ★4/★5 改客流阈值；★2 连续标度；四个具名预设一档一座按客流升序 | **已验收（2026-10-22）**：`DEL-20261022092843-6e9303` → `REV-20261022093922-eb9aad` passed、28/28；预设 CTU★2 / PEK★3 / CAN★4 / PVG★5，跑道 8.00/6.01/4.00/3.00 未漂移 |
 | **K12 季末一次性项** | 财务页/季报把一次性项与月烧钱分开；`EstimateBandWan` 预计区间 + 实测分项 | **已验收（2026-10-23）**：同批 DEL/REV 30/30；一次性项不进 `EffectiveMonthlyBurn`，基线读数逐位不变 |
 | **K13 基线刷新** | 源指纹纳入基线；`compare_baseline.ps1` 先验指纹再比数值 | **已验收（2026-10-23）**：指纹 `714b5ed424db` / 86 文件，偏差 0.000%，压测 13/60 = 21.7% |
 | **K14 压测补盲** | `BuildPreview(id, universe)` 生产缝 + `--netstress` 真实机场池压测 | **已验收（2026-10-23）**：boom 35.1%→41.3%、消融 41.3%→39.0%；零扰动/无越界守卫通过 |
-| **K16 / K17** | 超短航段经济模型；接管成本继承粒度 | **待裁定、未开工**（§18，裁定前不得按默认值开工） |
+| **K16 超短航段** | 中国境内 <250 km 航线过滤（裁定窄口径 A：只删境内 11 条，保留跨境与国际） | **已验收（2026-10-23，§23）**：`DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` passed、32/32；11 删 11 换、越界 0；四预设跑道 8.00/6.01/4.00/3.00 未漂移；基线 `closing/net/runway` 逐位不变 |
+| **K17 接管成本继承** | 四段式（总部/地面 + 机队/人力 + 还本付息 + 保费）vs 逐部门预算继承 | **已验收（2026-10-23，§24）**：同批 `DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` passed、32/32；裁定「四段式总量不动、新增部门账本粒度」，四预设跑道仍 8.00/6.01/4.00/3.00，基线 `closing/net/runway` 逐位不变 |
 
 **已验证（本轮最新一次）**
 
@@ -51,18 +52,22 @@
 node tools/semcheck/run.js        errors=0 (raw=0)   tests-asm: errors=0   enc: errors=0
 dotnet run tools/cmdcheck         ALL PASS（57 条，含 8 条机场搜索/批次 A、4 条关线判据断言）
 dotnet build tools/semcheck       errors=0
-tools/balance --frequniverse      104 家 / 762 条 / 88 座目的地，断言全 OK
-tools/balance --routeinventory    104 家 / 762 条 / 88 座目的地，断言全 OK（含跑道分档 8 条 + 跨境门户 1 条）
+tools/balance --frequniverse      104 家 / 823 条 / 94 座目的地，断言全 OK
+tools/balance --routeinventory    104 家 / 823 条 / 94 座目的地，断言全 OK（跑道分档 8 条 + 跨境门户 1 条 + 超短航段 1 条 + K17 账本同账 2 条）
 tools/balance --fleetcheck        exit 0，无机可配 0 条
-tools/balance --presets           四预设跑道 8.00 / 6.01 / 4.00 / 3.01，全部在 ±3% 内
-tools/balance --oneoffcheck       6/6 PASS；档案头寸 ★2 −1169 / ★3 −4424 / ★4 −8633 / ★5 −13062 万
-tools/balance --netstress         exit 0；boom 35.1→37.8→40.8→41.3%（池级）；stag 100% 饱和已标注
+tools/balance --presets           四预设跑道 8.00 / 6.01 / 4.00 / 3.00，全部在 ±3% 内
+tools/balance --oneoffcheck       6/6 PASS；档案头寸 ★2 −1169 / ★3 −4424 / ★4 −8633 / ★5 −13089 万
+tools/balance --netstress         exit 0；boom 31.9→34.7→37.9→38.5%（池级，K16 前为 35.1→37.8→40.8→41.3%）；stag 100% 饱和已标注
 tools/balance（seed 42 年跑）      exit 0；closing 1707.90 / net 1232.90 / runway 99.00
-compare_baseline.ps1              exit 0；源指纹 714b5ed424db（86 文件），86 字段最大偏差 0.000%
-Unity Run Logic Self Tests        CEO 命令台 ✓（58 项）· 机场底表三表贯通 ✓ · K12 ✓（9 项）· K14 ✓（4 项）
-Unity Test Runner（EditMode）      30/30 Passed（failed=0 skipped=0），8 个 fixture
-Unity Test Runner（PlayMode）      TakeoverSolvencyTests 6/6 Passed（failed=0 skipped=0 inconclusive=0）
+compare_baseline.ps1              exit 0；源指纹 bb18c1b9eabd（87 文件，K17 新增 TakeoverCostLedger.cs），86 字段最大偏差 0.000%
+Unity Run Logic Self Tests        CEO 命令台 ✓（58 项）· 机场底表三表贯通 ✓ · K12 ✓（9 项）· K14 ✓（4 项）· K16 ✓（`ShortHaulRegression`）· K17 ✓（`TakeoverCostLedgerRegression`，8.00/6.01/4.00/3.00 与 K10 零漂移）· R26 / R28 / GDB29 三项历史红项均已转绿
+Unity Test Runner（EditMode）      **32/32 Passed**（failed=0 skipped=0），10 个 fixture（含 K16 `ShortHaulEditModeTests` 与 K17 新增 `TakeoverCostLedgerEditModeTests`）
+Codex 独立检测（`stage-review`）    **`REV-20261023065836-eecd5f` passed**：`unity-editmode` 32/32、failed=0/skipped=0、AC1–AC3 全 passed、issues=[]、`workspaceMatchesDelivery=true`（K16 + K17 本轮验收依据）
+Unity Test Runner（PlayMode）      TakeoverSolvencyTests 6/6 Passed（2026-10-21 K10 轮读数；K17 不改四段之和，本轮未重跑，见 §24.5）
 ```
+
+> 计数口径：航线由 **762 → 823 条、目的地 88 → 94 座**，来自 K14 的「机场全集缝」
+> （`DEL-20261023012853-918599` 同批），不是 K16 造成的；K16 本身是 **11 删 11 换、总数不变**（§23.2）。
 
 > 基线口径：`baseline/` 已于 2026-10-23 按最终源指纹重录，旧读数 `closing 1365.88` 作废的原因见 K08–K11
 > 与 §16；`compare_baseline.ps1` 现在**先验指纹再比数值**，源码一变即返回 `3`（不可比）而不是打印无意义的百分比。
@@ -76,7 +81,7 @@ Unity Test Runner（PlayMode）      TakeoverSolvencyTests 6/6 Passed（failed=0
    `--netstress` 以真实机场池 × 真实接管网络跑两条情景，批次 A 消融可区分（繁荣 41.3% → 39.0%）；
    60 组合表仍用写死模板（见其报告顶部口径），机场池结论一律以 `NETWORK_POOL_STRESS.md` 为准。
    **Unity EditMode 侧 2026-10-23 已补跑**：`NetworkPoolVisibilityEditModeTests` 通过（整套 30/30）。
-5. **K11 已完成（2026-10-21 21:16 引擎内通过）**：局内财务页跑道原比选司承诺高 21~32%（★2 9.7 vs 8.0 / ★3 7.9 vs 6.0 / ★4 5.0 vs 4.0 / ★5 3.6 vs 3.0），因 `EffectiveMonthlyBurn` 未含还本付息。已并入，实测 7.98/8.00 与 3.01/3.01。剩余未收口项见 §14 末尾「未覆盖」。
+5. **K11 已完成（2026-10-21 21:16 引擎内通过）**：局内财务页跑道原比选司承诺高 21~32%（★2 9.7 vs 8.0 / ★3 7.9 vs 6.0 / ★4 5.0 vs 4.0 / ★5 3.6 vs 3.0），因 `EffectiveMonthlyBurn` 未含还本付息。已并入，实测 7.98/8.00 与 3.01/3.01。~~剩余未收口项见 §14 末尾「未覆盖」~~ → **2026-10-23 已收口**：逐季 `monthsRemaining` 递减时的读数变化已补断言并进快照预检，见 §14 末尾与 §25.1。
 
 > 口径：Cursor 只能写“已实现，待检测”；不得写“Codex 已通过”。
 
@@ -102,15 +107,20 @@ Unity Test Runner（PlayMode）      TakeoverSolvencyTests 6/6 Passed（failed=0
 - [x] **K13：年度基线刷新**——固定 seed 重录 `tools/balance/baseline/`，README 写明基线随哪版 DEL 生效。（§16；**已验收 2026-10-23**，同批 DEL/REV：按最终源指纹 `714b5ed424db` / 86 文件重录，exit 0/1/2/3 语义、`--baseline-compare` 返回 0 且最大偏差 0.000%；K13.3 压测 13/60 = 21.7%）
 - [x] **K14：压测口径补盲**——压测接真实航线池，对「加机场」不再结构性失明。（§17；**已验收 2026-10-23**，同批 DEL/REV：`--netstress` exit 0；繁荣情景可区分（破产率 35.1%→41.3%、消融 41.3%→39.0%）、滞胀情景饱和已如实标注；机制守卫「默认零扰动 / 无宇宙外航线」通过；快照内 `NetworkPoolVisibilityEditModeTests` Passed、`LogicSelfTests` 的 K14 行 4 项全 True）
 - [x] **K15 / D2：星级分档重定（★2 分层）**——三步全部落地：★4/★5 分界由 IATA 哈希改为客流阈值（§18.2）、★2 由「59 家克隆」改为连续标度（机队 2~8 / 航线 1~5 / 现金 1044+193×机队，§18.3）、四个具名预设改为一档一座并按客流严格升序（CTU★2 青禾 / PEK★3 北辰 / CAN★4 东海 / PVG★5 天枢，§18.4）。跑道 8.00 / 6.01 / 4.00 / 3.00 未漂移（±0.2% 内）。交付 `DEL-20261022092843-6e9303` → 独立检测 **`REV-20261022093922-eb9aad` passed、28/28、issues=[]**。新增守卫：具名预设之间档位严格递增（不再整组豁免）、分支表与 `Base` 枢纽一致、`--presets` 标签改从被测 profile 读。
-- [ ] **K16 / D3：超短航段经济模型**——<200 km 航线（如 WUX→PVG 136 km）现按普通航线计价，单位座公里收益偏高；批次 A 尚有 3 条在网。**待裁定**，未开工（§18）。
-- [ ] **K17 / D4：接管成本继承粒度**——四段式（总部/地面 + 机队/人力 + 还本付息 + 保费）与逐部门预算继承存在口径差。**待裁定**，未开工（§18）。
+- [x] **K16 / D3：超短航段经济模型**——**2026-10-23 已裁定窄口径 A、实现并经独立检测通过**（首轮 `DEL-20261023024646-8c0b59` 预检 31/31；并入 `DEL-20261023032726-42cba0` 后 **`REV-20261023065836-eecd5f` passed、32/32、issues=[]**，含新增 `ShortHaulEditModeTests.ChinaDomesticShortHaulIsNotGenerated`）：新增 `RouteGeography.MinChinaDomesticKm = 250f` + `IsChinaDomesticTooShort`，只拦「中国境内（港澳台按 `AirportRegions.IsChina` 口径）<250 km」的国内航段，共 **11 删 11 换、总数仍 823**；跨境/国际短程（CAN–HKG 136 km、MFM–CAN 141 km、LAX–SAN 176 km、YVR–SEA 205 km、XMN–TPE 319 km）全部保留。**未覆盖**：界面手测（开线目的地下拉与拒绝文案）、`LogicSelfTests` 汇总行未跑（同源回归已由 fixture 覆盖）；**未做**：短程系数/独立经济模型（裁定为不需要，见 §23.1）。详见 §23。
+- [x] **K17 / D4：接管成本继承粒度**——**2026-10-23 已裁定、实现并经独立检测通过**（`DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` passed、32/32、AC1–AC3 全 passed、issues=[]；§24）。裁定：「四段式**总量不动**，新增**部门账本粒度**」—— 保留 `monthlyCost` / `monthlyFixedCost` / `monthlyDebtService` / `monthlyInsurance` 四段（K10 的 8/6/4/3 跑道算式一字未改），另建 `TakeoverCostLedger` 把四段按「谁在花钱」摊到 8 个部门（总部/地面 → 运营 45 / 市场 10 / 战略 10 / 财务 10 / 董事会 15 / 安全 10；机队/人力 → 机务 55 / 人力 25 / 运营 20；还本付息 → 财务 100；保费 → 安全 100）。接管落地时 `budgetItems` 由账本比例 × 董事会规则额度（现金 × 50%）生成，季度超支问责改按**部门额度占比**分摊（此前是固定份额），两把尺子合一。**未覆盖**：界面手测（财务页 8 部门额度与季度超支提示未取样，属已有页面未改版）。详见 §24。
 - [x] **K18 / D5：二级机场与跨境航线**——跨境航线两端必须是「本国口岸机场」，不用白名单（`RouteGeography.IsGateway` 同源实现 + 全表断言）；批次 B' 回补拉萨 LXA。762 航线 / 88 座目的地、新增 2 删 0。交付 `DEL-20261022023213-67df8c` → 独立检测 **`REV-20261022025040-a46f56` passed、27/27**；界面 H1/H2 通过。
 - [x] **K19 / D6：时刻槽提案的现金跑道提示**——`buy_slot` 提案正文补「扣款后现金 X 万 ≈ Y 月跑道」，口径统一到 `EffectiveMonthlyBurn`（`InboxManager.FormatSlotCashImpact` + 提案「现金」「风险」两行 + NUnit 回归）。同批 `DEL-…67df8c` → `REV-…a46f56` 27/27；界面 H3/H4 通过（含 189 万现金走通「不足以支付」分支）。**H3b 风险行仅单元层通过、界面层未取样**，见 §9b.1。
 
 > 本节与 §18 裁定表、§21 执行顺序三处同步维护；K15–K19 原只登记于 §18 裁定表，
 > 2026-10-22 按用户要求回填主清单，避免「主清单只到 K14」造成已完成项在账外。
-> 2026-10-23 K12 / K13 / K14 经 `REV-20261023015616-582178` 独立检测通过后勾选，
-> 至此 **§3 主清单未勾选项只剩 K16（超短航段）与 K17（接管成本继承）**，二者均为待裁定、未开工。
+> 2026-10-23 K12 / K13 / K14 经 `REV-20261023015616-582178` 独立检测通过后勾选。
+> 2026-10-23 晚 K16 按裁定窄口径 A 实现；**K17 按裁定「保四段式总量 + 增部门账本粒度」实现**，
+> 两项与三项历史红项修复同轮收口为 `DEL-20261023032726-42cba0`。
+> **2026-10-23 15:06 Codex 独立检测 `REV-20261023065836-eecd5f` passed（`unity-editmode` 32/32、
+> failed=0/skipped=0、AC1–AC3 全 passed、issues=[]）→ K16、K17 于同日勾选。**
+> 至此 **§3 主清单本轮范围内已无未勾选项**；§19 的排除项（教程文案、命令台历史/回执/收藏、
+> 开线/购机/招聘/融资写指令、发布/商店/云存档/Mod）本轮仍未开工，仍是下一轮候选。
 
 ## 4. K01 · P2 引擎内回归
 
@@ -738,12 +748,12 @@ EditMode 回归实跑通过（K06.6，26/26）；界面五条手测通过（K06.
 
 **仍未完成：界面手测。** 见 §9b.1 —— 总项在两条手测通过前不勾。
 
-### 9b.1 K18 / K19 界面手测清单（H1–H4 通过；H3b 单元层通过、界面层未取样）
+### 9b.1 K18 / K19 界面手测清单（H1–H4 通过；H3b 已补渲染管线层）
 
 代码与工具层已验收（27/27 独立检测通过），界面按下列条目走。任何一条不过就登记 ISSUE，
 不靠「引擎里断言过了」推定界面没问题。
 
-**状态（2026-10-22 12:06）：H1 / H2 / H3 / H4 界面实测通过；H3b 单元层实跑通过、界面层无截图。**
+**状态（2026-10-22 12:06）：H1 / H2 / H3 / H4 界面实测通过；H3b 已补**渲染管线层**证据（2026-10-23），界面截图仍未取样。**
 
 > **⚠ 2026-10-22 后续变更：本清单的 H1 读数已过期。** D2 第二步把 ★2 改为连续标度后，
 > `LXA 拉萨`（档内客流最低 5.5M）由「机队 3 / 航线 2 / 现金 1434 / 跑道 8.0」变为
@@ -777,6 +787,11 @@ EditMode 回归实跑通过（K06.6，26/26）；界面五条手测通过（K06.
       >   `TestResults.xml`：`testcasecount=1 passed=1 failed=0 skipped=0`、该用例 `result="Passed"`。
       > · **界面层：未取样**。上述证明的是「信件正文会带风险行」，**没有**一帧界面截图显示它在屏幕上渲染出来。
       >   与 H3/H4 不同（那两项有实机截图），故此项只记单元层通过，不得写成界面完整通过。
+      > · **渲染管线层：2026-10-23 补验通过**。把「正文 → `InboxLetter.FrameIfNeeded`（补称谓/落款）→
+      >   `TermNavMap.Decorate`（包航线链接）」这条**真实显示链路**跑一遍，断言风险行在**装饰后的文本**里
+      >   仍完整存在（`SlotCashHintRegression` 新增 ⑤b `风险行渲染后仍可见`，与 R26 抬头去重同一口径）。
+      >   这条钉住的是「风险行不是被排版/链接包装吃掉的」——它比纯函数层进一步，但**仍不是屏幕像素**。
+      >   故 H3b 的结论是：**代码层 + 渲染管线层通过，界面层待取样**。
       >
       > **为什么不靠界面验**：`Force Cash Crisis` 只把现金压到 189 万（低于报价 → 走「不足」分支，
       > **按设计要求不出风险行**），Debug 里没有能精确设现金的入口；靠 Dev 速度从 1434 万烧到
@@ -1191,6 +1206,10 @@ EditMode 回归实跑通过（K06.6，26/26）；界面五条手测通过（K06.
 
 **未覆盖**：季度推进到第 2、3 季后 `monthsRemaining` 递减时的读数变化未逐季留痕
 （属 K10 的跨季度用例职责，本轮只验证接管瞬间的一致性与首季后不崩）。
+→ **2026-10-23 已补**：`RunwayDebtRegression` 新增第 ⑧ 项逐季推进断言，并接进快照
+`RunwayDebtEditModeTests`（此前只挂在 `LogicSelfTests` 菜单上，预检永远跑不到）。实测
+`月数[12,9,6,3,0] 烧钱[600.5,600.5,600.5,600.5,500.5] 跑道[5.00,5.00,5.00,5.00,5.99]`
+—— 未清期烧钱恒定、清偿季恰好降一个月供、跑道不倒退、尾季按剩余月份摊薄，五项全 True。详见 §25.1。
 
 ---
 
@@ -1384,16 +1403,17 @@ K14.3 判据按实测重写（见下），快照内 Unity EditMode 30/30（含 `
 这四项是**已识别但未立项**的工作。没有裁定就不写代码 —— 每项都涉及玩法取舍，
 不是实现细节问题。裁定后按对应编号单独立项。
 
-> **2026-10-23 结算：** 表内 6 项中 4 项已裁定并收口（K06 / K15 / K18 / K19），
-> **真正待裁定的只剩 K16（超短航段）与 K17（接管成本继承）两项，均未开工**。
-> 其余编号保留在表内仅为追溯裁定原文，不再当作「待办」。
+> **2026-10-23 结算：** 表内 6 项全部裁定并收口（K06 / K15 / K18 / K19 / K16 / K17）。
+> 最后两项 **K16 与 K17** 同轮交付 `DEL-20261023032726-42cba0`，Codex 独立检测
+> **`REV-20261023065836-eecd5f` passed（32/32、AC1–AC3 全 passed、issues=[]）**。
+> **本表至此没有「待裁定」项**；其余编号保留在表内仅为追溯裁定原文。
 
 | 编号 | 对应 | 待裁定的问题 | 裁定后的第一步 |
 |---|---|---|---|
 | **K06 / D1** | 机场批次 B | **已裁定（2026-10-22）：5 座 NNG / KWE / TYN / HET / TNA**，选址口径「地理空白 + 到任何机场 ≥245 km」；★2 继续加厚留待 D2 | 已完成入表与工具验证；K06.6 EditMode 26/26、K06.7 界面五条手测均通过，`REV-20261022020524-8f1a7e` passed |
 | **K15 / D2** | ★2 分层 | **三步全部完成（2026-10-22）**：第一步（★4/★5 分界）§18.2、第二步（★2 连续标度）§18.3、第三步（四个具名预设一档一座、按客流升序）§18.4。★2 由「59 家克隆」变为「机队 2~8 / 航线 1~5 / 现金 1044+193×机队」的连续标度，档位与 8 月目标跑道不变；具名预设已改为 CTU★2 / PEK★3 / CAN★4 / PVG★5 | 已完成：`DEL-20261022092843-6e9303` → `REV-20261022093922-eb9aad` passed、28/28、issues=[] |
-| **K16 / D3** | 超短航段 | <200 km（如 WUX→PVG 136 km）现按普通航线计价，单位座公里收益偏高，是否要单独经济模型。批次 B 已按 ≥245 km 回避，但批次 A 的 3 条仍在 | **未开工**。定是否加「短程系数」→ 改 `RPMCalculator`/`RouteFrequencyModel` 并回归 |
-| **K17 / D4** | 接管成本继承 | 继续用「总部/地面 + 机队/人力 + 还本付息 + 保费」四段式，还是改为按部门预算逐项继承（四段式与真实部门账有口径差） | **未开工**。定继承粒度 → 重做 `TakeoverWorldBuilder.BuildPreview` 与 K10 用例 |
+| **K16 / D3** | 超短航段 | **已裁定（2026-10-23）：窄口径 A —— 只删「中国境内 <250 km」的 11 条国内航段**（WUX→PVG 136 / SHA→HGH 138 / MFM 除外的跨境不动）；不做短程系数、不动 `RPMCalculator` 单位收益 | **已完成并验收**：并入 `DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` passed、32/32。实际为 11 删 11 换、总数 823 不变；四预设跑道 8.00/6.01/4.00/3.00 未漂移，基线 `closing/net/runway` 逐位不变。定案依据：`RPMCalculator` 单位座公里收益本就是常数，超短航段的真实病灶是「接管种子按距离无关的固定日利润」与「落地/机组固定成本」，删航段比改系数更贴近现实（§23.1） |
+| **K17 / D4** | 接管成本继承 | **已裁定（2026-10-23）：四段式总量不动，继承粒度改为「部门账本」** —— 四段仍是预览/跑道的算账单位（`monthlyCost` + `monthlyFixedCost` + `monthlyDebtService` + `monthlyInsurance`），部门账本 `TakeoverCostLedger` 只回答「这笔钱归谁」并按部门额度写入 `budgetItems`；董事会额度规则（现金 × 50%）不变 | **已完成并验收**：同批 `DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` passed、32/32（§24）。四预设跑道 8.00/6.01/4.00/3.00 未漂移、基线逐位不变；`--routeinventory` 新增「账本与四段式逐家同账」「部门占比归一且预算总额等于董事会规则」两条断言；季度超支问责改按部门额度占比分摊 |
 | **K18 / D5** | 二级机场与跨境航线 | **已裁定并实现（2026-10-22）：** 跨境航线两端必须是「本国口岸机场」，不用白名单（详见 §9b） | 已完成：`RouteGeography.IsGateway` 同源实现 + 全表断言 + LXA 回补（批次 B'）；`REV-20261022025040-a46f56` 27/27 passed；界面 H1/H2 **通过** |
 | **K19 / D6** | 时刻槽提案的现金提示 | **已裁定并实现（2026-10-22）：** 给 `buy_slot` 提案补「扣款后现金 X 万 ≈ Y 月跑道」，口径统一到 `EffectiveMonthlyBurn`（详见 §9c） | 已完成：`InboxManager.FormatSlotCashImpact` + 提案正文「现金」「风险」两行 + NUnit 回归；`REV-20261022025040-a46f56` 27/27 passed；界面 H3/H4 **通过**，H3b 风险行待验 |
 
@@ -1802,7 +1822,10 @@ XML 的 `test-run` 根节点：`testcasecount="28" total="28" passed="28" failed
 - 命令台历史指令、回执回溯、指令收藏等体验增强。
 - 新增其他写指令（开线、购机、招聘、融资）——现有邮件/呈报管线已覆盖，命令台不另造第三套。
 - 发布、商店、云存档、Mod 商店等运营层内容。
-- 机场批次 B 之后是否再扩城（当前 104 家 / 762 航线 / 88 目的地，先看体验再定）。
+- （2026-10-23 重申，本轮 K16/K17 收口时仍未开工）教程/引导文案重写、命令台历史/回执回溯/指令收藏、
+  新增其他写指令（开线/购机/招聘/融资）、发布/商店/云存档/Mod 商店 —— 这四类明确不在本轮交付范围
+  （本轮交付 `DEL-20261023032726-42cba0` 已由 `REV-20261023065836-eecd5f` 判定 passed，四类仍未动工）。
+- 机场批次 B 之后是否再扩城（当前 104 家 / 823 航线 / 94 目的地，先看体验再定）。
 - 西藏 / 高原机场（LXA 拉萨）—— **已由 K18 / D5 落地**：LXA 以批次 B' 回补四表，跨境目的地规则同源实现；本条不再视为待评审。
 
 ---
@@ -1823,7 +1846,7 @@ node tools/semcheck/enccheck.js
 
 ## 21 · 执行顺序（2026-10-21 裁定）
 
-用户已裁定：**K11 → R1 → R2 → D1 → D2**。D5 / D6 亦已随该轮完成；**D3、D4 仍未裁定**，裁定前不动。
+用户已裁定：**K11 → R1 → R2 → D1 → D2**。D5 / D6 亦已随该轮完成；**D3（K16）与 D4（K17）2026-10-23 已裁定、实现并经独立检测通过（`REV-20261023065836-eecd5f` passed / 32/32），§21 九步全部收口**。
 
 | 顺序 | 项 | 内容 | 前置条件 / 出口 |
 |---|---|---|---|
@@ -1835,7 +1858,7 @@ node tools/semcheck/enccheck.js
 | 6 | **K18 / D5** ✅ | 国际目的地门槛 + LXA 回补（§9b） | **已验收**：`DEL-20261022023213-67df8c` → `REV-20261022025040-a46f56` **passed / 27/27**；界面 H1/H2 通过 |
 | 7 | **K19 / D6** ✅ | 时刻槽提案现金跑道提示（§9c） | **已验收**：同批 DEL / REV；界面 H3/H4 通过（含 189 万现金的「不足以支付」实机截图），H3b 风险行待验 |
 | 8 | **K12 / K13 / K14** ✅ | 季末一次性项显式化（§15）、年度基线刷新（§16）、压测口径补盲（§17） | **已验收（2026-10-23）**：`DEL-20261023012853-918599` → `REV-20261023015616-582178` **passed / 30/30 / AC1–AC3 全 passed**；预检（快照内真实 EditMode）亦为 30/30 |
-| 9 | **K16 / K17** ⏸ | 超短航段经济模型（§18 D3）、接管成本继承粒度（§18 D4） | **待裁定，未开工**。裁定前不动 —— 二者都会反向影响 K10 的 8/6/4/3 跑道断言 |
+| 9 | **K16 + K17** ✅ | 超短航段（§18 D3）、接管成本继承粒度（§18 D4） | **两项均已验收（2026-10-23）**：`DEL-20261023032726-42cba0` → `REV-20261023065836-eecd5f` **passed / 32/32 / AC1–AC3 全 passed / issues=[]**。K16 窄口径 A（11 删 11 换，§23）；K17 保四段式总量 + 增部门账本粒度（§24）。跑道 8.00/6.01/4.00/3.00 未漂移、基线 `closing/net/runway` 逐位不变；快照内 `TakeoverCostLedgerEditModeTests` 与 `ChinaDomesticShortHaulIsNotGenerated` 均 Passed |
 
 **R3**（K05 总项勾选）不单独占一步：跨季度 Runtime 已由 K10 覆盖，
 等 R2 的独立检测结论回来即一并回填。
@@ -1848,6 +1871,20 @@ node tools/semcheck/enccheck.js
 ---
 
 ## 22. 编制记录
+
+2026-10-23（K16 + K17 独立检测通过 · 本轮收口）：用户转达 Codex `stage-review` passed，逐份核对记录文件后回填。该轮此前「待检测」的两项随之转正：
+
+| 检测记录 | 交付 | profile / 计数 | 结论 | 勾选 |
+|---|---|---|---|---|
+| `REV-20261023065836-eecd5f` | `DEL-20261023032726-42cba0` | `unity-editmode` / **32 passed、failed=0、skipped=0** | `status=passed`、`independent=true`、AC1–AC3 全 `passed`、`issues=[]` | **K16 / D3**、**K17 / D4** |
+
+核对要点（均取自记录文件原文，不引用口头结论）：`runs[0].exitCode=0`；`machineResult.parsed={total:32,failed:0,skipped:0,passed:32}` 且 `unverified=false`；`resultFile.producedByRun=true`（`Tasks20261017_f3b787395034411f.xml`，sha256 `f9e5f187…`）；`finishApplicability.workspaceMatchesDelivery=true` 且四项 change 全 `false`（无 stale）；`issues=[]`。本次只回填勾选与状态文字，**未改动任何业务代码、未重跑测试**。
+
+仍保留的缺口（不因本次 passed 而消失）：交接单里的**界面手测**（K16 开线目的地下拉与拒绝文案；K17 财务页 8 部门额度与季度超支提示；K19 H3b 界面截图）与 **PlayMode `TakeoverSolvencyTests` 本轮未重跑**。未提交、未推送。
+
+2026-10-23（K17 接管成本继承 + 三项历史红项 · 裁定、实现与同轮收口）：用户裁定 D4 并开工 K17。**裁定取第三种口径**：四段式总量与求和顺序一字不动（故 K10 的 8/6/4/3 跑道断言零漂移），新增 `TakeoverCostLedger` 把四段按「谁花钱」摊到 8 个部门；接管落地时 `budgetItems` = 董事会额度（现金 × 50%）× 继承比例，季度超支问责改按部门额度占比分摊，两把尺子合一。新增 `TakeoverCostLedgerRegression` + `TakeoverCostLedgerEditModeTests` + `--routeinventory` 两条账本断言，`LogicSelfTests` 挂 K17 行。同一轮修掉三项历史红项：**R26**（问句契约：解释性问句优先于调令）、**R28**（fixture 缺 `FRA 08:00` / `ATL 17:30` 槽，且地勤 3 人→5 人会让回程离港横跳 17:57→17:33，改用推荐地勤配齐后槽口径稳定）、**GDB29 WP REST**（断言把「通讯员」写成「通迅员」）。K19 的 H3b 补上**渲染管线层**证据（`InboxMessageView` 的 `FrameIfNeeded → TermNavMap.Decorate` 全链路后风险行仍在），界面截图仍未取样。实测：跑道 8.00/6.01/4.00/3.00 未漂移；基线按 `bb18c1b9eabd`（87 文件）重录后 `closing/net/runway` 逐位不变；`LogicSelfTests` 12 条结论全绿、无异常。收口：`stage-close --task S08-ShortHaul` → **`DEL-20261023032726-42cba0`**（16 文件、快照 1263 文件、`unlistedAtCreation=0`），隔离快照预检 **32/32 Passed**（failed=0/skipped=0，含新用例 `TakeoverCostLedgerEditModeTests`）。**K17 未勾选 —— 等独立检测。** 未覆盖：财务页界面手测、PlayMode `TakeoverSolvencyTests` 未重跑（§24.5）。
+
+2026-10-23（K16 超短航段 · 裁定、实现与交付）：用户裁定 **A 窄口径（只删中国境内 11 条）**，并允许微调 ★2 常数（实测无需）。据原判断被证伪（`RPMCalculator` 单位收益本就是常数、短航段本就亏钱；病灶在接管种子与航距无关的固定日利润），改为「中国境内 <250 km 国内航段不入网」，种子与新开同一判定。新增 `RouteGeography.MinChinaDomesticKm` / `IsChinaDomesticTooShort` + `ShortHaulRegression` + `ShortHaulEditModeTests` + `--routeinventory` 越界断言。实测 **11 删 11 换、总数 823 不变**；跑道 8.00/6.01/4.00/3.00 未漂移、基线 `closing/net/runway` 逐位不变；压测整池破产率下移 2.8 pp（41.3% → 38.5%）。收口：`stage-close --task S08-ShortHaul` → **`DEL-20261023024646-8c0b59`**（11 文件、快照 1257 文件、`unlistedAtCreation=0`），隔离快照预检 **31/31 Passed**（failed=0/skipped=0，含新用例 `ChinaDomesticShortHaulIsNotGenerated`）。同步：§2 状态表拆出 K16/K17 两行并刷新验证读数（含 762→823 / 88→94 的 K14 计数更正）、§3 主清单 K16 条目与脚注、§18 D3 行、§19 当前计数、§21 第 9 步、新增 §23。**K16 未勾选 —— 等独立检测。** 未覆盖：界面手测、`LogicSelfTests` 汇总行（§23.4）。
 
 2026-10-23（K12 / K13 / K14 独立检测通过 · 总清单收口）：用户转达 Codex `stage-review` 结论，逐份核对记录文件后回填。
 
@@ -2091,3 +2128,549 @@ D2 星级随客流单调 → 逆序=True 档间不重叠=True 四档齐全=True 
 4. 新增隔离回归 `Editor/AirportCatalogRegression.cs`：三表集合相等、码无重复、坐标可用且中国机场落在东亚包围盒、批次 A 的 tier/宵禁/解析/航距、`hub_*` 接管航司存在且司码唯一、FUO 反例仍在目录外。已挂入 `LogicSelfTests`。
 5. 复跑：`semcheck` errors=0（raw=0）/ tests-asm errors=0 / enc errors=0；`cmdcheck` ALL PASS（46 条）；`tools/balance` seed 42 基线数值未变。
 6. 未做：`AirportCatalogRegression` 的引擎内执行、开线下拉/地图标签/`NetworkAirports.Pick` 手测、K05 平衡对比、K02 阶段收口（等用户明确指令）。
+
+## 23. K16 · 超短航段经济模型（2026-10-23，裁定窄口径 A）
+
+**状态：** **已交付，待 Codex 独立检测**（按角色口径不写"已通过"）。交付 `DEL-20261023024646-8c0b59`（任务 `S08-ShortHaul`，profile `unity-editmode`），预检在隔离快照内 **31/31 Passed**（failed=0 / skipped=0），其中新增用例 `ShortHaulEditModeTests.ChinaDomesticShortHaulIsNotGenerated` 通过。裁定来源：用户 2026-10-23 选定 **A 窄口径 —— 只删中国境内 11 条**，并允许微调 ★2 常数把跑道拉回 8 月（实测无需微调，见 23.3）。
+
+### 23.1 裁定与依据（为什么是"删航段"而不是"改系数"）
+
+- **先证伪原判断**：`RPMCalculator.Calculate` 的单位收益本来就是常数（0.067 $/座公里，与航距无关），短航段并没有被高估；按该公式 200 km 以下的航线在落地/机组固定成本下**本来就亏**（约 −0.43 $/班）。
+- **真实病灶**：`TakeoverWorldBuilder.BuildRoutes` 给种子航线写死日利润 `0.6 + (i%5)×0.15` 万/天，**与航距无关** —— 于是 136 km 的 WUX→PVG 在接管世界里赚钱，玩家新开同一条却亏钱。同一航段两个入口两种经济，是自相矛盾。
+- **裁定**：不引入短程系数（那只会把两条口径一起改歪），直接让"中国境内 <250 km"的国内航段不入网。种子与新开走同一条判定，口径自洽；高铁走廊的现实性也由这条规则承担。
+- **边界**：只拦 `AirportRegions.IsChina(origin) && IsChina(dest) && 0.5 ≤ km < 250`；**跨境**（`CAN–HKG` 136 km、`MFM–CAN` 141 km）与**国际短程**（`LAX–SAN` 176 km、`YVR–SEA` 205 km、`XMN–TPE` 319 km）全部保留 —— 窄口径的要点就是"只认境内"。
+
+### 23.2 实现
+
+| 文件 | 改动 |
+|---|---|
+| `Unity Project/Assets/Scripts/Logic/RouteGeography.cs` | `MinChinaDomesticKm = 250f`；`IsChinaDomesticTooShort(origin, dest, km)`（`km < 0.5` 视为航距未知、不拦）；接入 `IsPlausiblePassengerOd` 与 `RejectReason` |
+| `Unity Project/Assets/Scripts/Editor/ShortHaulRegression.cs` + `.meta` | 新增隔离回归：11 条境内反例、跨境/国际正例、全种子扫描零违规 |
+| `Unity Project/Assets/Tests/EditMode/ShortHaulEditModeTests.cs` + `.meta` | 新增 NUnit fixture（转调 `ShortHaulRegression.Run()`） |
+| `Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs` | 挂 K16 行（`ShortHaulRegression.Run()`） |
+| `Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs` | K16 注释口径改为「已裁定窄口径 A」 |
+| `tools/balance/RouteInventoryReport.cs` | 新增断言「中国境内 250 km 以内不作为国内航段（越界 0）」 |
+
+**实测替换（`--routeinventory`，池内自动顺位补位，总数 823 不变）**
+
+| 删除（境内 <250 km） | km | 补位 | km |
+|---|---|---|---|
+| TSN→PEK | 125 | TSN→HND | 2017 |
+| WUX→PVG | 136 | WUX→HND | 1846 |
+| SHA→HGH | 138 | SHA→SZX | 1208 |
+| NGB→PVG | 150 | NGB→CAN | 1081 |
+| ZUH→CAN | 154 | ZUH→ICN | 2127 |
+| HGH→PVG | 166 | HGH→PEK | 1150 |
+| TFU→CKG | 222 | TFU→KMG | 598 |
+| NKG→SHA | 242 | NKG→HND | 1978 |
+| PVG→NGB | 150 | PVG→DLC | 870 |
+| PVG→HGH | 166 | PVG→WNZ | 371 |
+| HGH→SHA | 138 | HGH→TPE | 578 |
+
+> 保留证据：`CAN–HKG` 136 km、`MFM–CAN` 141 km、`LAX–SAN` 176 km、`YVR–SEA` 205 km、`XMN–TPE` 319 km 均在网未动。
+
+### 23.3 实测（2026-10-23，全部离线，exit 0）
+
+| 命令 | 结果 |
+|---|---|
+| `node tools/semcheck/run.js` | `errors=0 (raw=0)`、`tests-asm errors=0`、`enc errors=0` |
+| `dotnet run tools/cmdcheck` | `ALL PASS` |
+| `--routeinventory` | 104 家 / 823 条 / 94 目的地，断言全 OK（含新增超短航段断言） |
+| `--presets` | 跑道 **8.00 / 6.01 / 4.00 / 3.00**（目标 8/6/4/3，偏差 +0.0% / +0.2% / −0.1% / +0.1%）→ **不需要微调 1044/193 常数** |
+| `--baseline-compare` | exit 0；源指纹 `714b5ed424db` → `0bb4975f34a9`（86 文件），按新指纹重录后 **86 字段最大偏差 0.000%**，`closing 1707.90 / net 1232.90 / runway 99.00` 逐位不变 → **K16 对年跑基线零影响** |
+| `--oneoffcheck` | 6/6 PASS；★5 头寸 −13062 → **−13089** 万（PVG 少两条短线的直接结果，仍在断言带内） |
+| `--netstress` | exit 0；boom 消融 **31.9% → 34.7% → 37.9% → 38.5%**（K16 前为 35.1 → 37.8 → 40.8 → 41.3），整池破产率下降 2.8 pp；stagflation 仍 100% 饱和并已标注 |
+| `--frequniverse` / `--fleetcheck` | 全部通过 |
+| Unity EditMode（预检，隔离快照） | `UNITY_EXIT=0`、`NUNIT result=Passed passed=31 failed=0 skipped=0`（含 K16 新 fixture）；快照 `copiedFileCount=1257`、`unlistedAtCreation=0` |
+
+### 23.4 未覆盖 / 待办
+
+1. **Unity 内已覆盖（2026-10-23 预检）**：`ShortHaulEditModeTests` 在隔离快照内实跑通过（整套 31/31、failed=0/skipped=0，`UNITY_EXIT=0`）。**仍未跑**：`LogicSelfTests` 的 K16 汇总行（菜单入口，同源 `ShortHaulRegression` 已被 fixture 覆盖，逻辑无差异）。→ **2026-10-23 晚口径收敛**：菜单入口与隔离批处理调的是同一个 `Run()`，差异只在「谁点按钮」，见 §25.3。
+2. **界面未手测**：开线目的地下拉里中国境内 <250 km 的目的地应不再出现；命令台按句子开线的拒绝文案未取样。
+   → **2026-10-23 晚 CEO 裁定 + A1 实测**：裁定「**保持现状（拦截点只在提交）**」，不改选择器。
+   故本条原文「下拉里应不再出现」**作废**，正确口径是「**下拉仍列出，点『申请开通』时被拒且无副作用**」——
+   这不是妥协，是判定层级问题：`AirportField.RebuildList` 只按机场名过滤，OD 判定发生在
+   `RouteGeography.RejectReason`，把判定前移到下拉会让「输入代码直接开通」等路径失去统一拦截点。
+   实测（★北星快线，PVG → WUX 136 km）：红字原文「航距仅 136 公里：中国境内 250 公里以内的城市之间，
+   现实中没有定期客运（高铁直达覆盖），请改用其他目的地。」；底部状态栏 `航线 8 条 / 机队 12 架`
+   与操作前一致（该栏只有收入 / 支出 / 盈利，**没有现金字段**，收入支出随游戏时间推进本就会变，
+   不能拿它判副作用）；点「申请开通」后没有新航线卡片、收件箱未增，重复点文案照旧。**A1 通过**。
+2. **A2 跨境短程（CAN → HKG 136 km）实测通过**：未出现高铁文案，进到「已提交运营部研究 /
+   就开通 CAN → HKG 进行会商」，航线数仍 8 条 —— 说明提交是研究请求而非立即建线，
+   且港澳不在 `AirportRegions.IsChina` 内，`IsChinaDomesticTooShort` 未误伤。
+3. **压测读数换代**：`NETWORK_POOL_STRESS.md` 与 `tools/balance/README.md` 里的 35.1/37.8/40.8/41.3 已被 31.9/34.7/37.9/38.5 取代，需随本轮交付同步，避免两套数并存。→ **2026-10-23 已收口**：`tools/balance/` 下两份已同步；仓库根目录那份游离副本（跑工具时工作目录不对留下的未跟踪同名文件）已移出仓库。详见 §25.6。
+4. **未做（按裁定不作）**：短程系数、`RPMCalculator` 单位收益调整、`RouteFrequencyModel` 短程频次偏置 —— 裁定为"不需要"，本条不视为缺陷。
+
+> **2026-10-23 独立检测结论：`REV-20261023065836-eecd5f` passed**（`independent=true`、`unity-editmode`
+> 32/32、failed=0/skipped=0、AC1–AC3 全 passed、`issues=[]`）→ K16 已于同日勾选。
+> 但 23.4 的界面手测与 `LogicSelfTests` 汇总行仍未执行，验收不等于这两条补上。
+
+---
+
+## 24. K17 · 接管成本继承粒度（2026-10-23，裁定「保总量、增粒度」）
+
+### 24.1 裁定了什么（§18 D4 的答复）
+
+问题原样是：**四段式（总部/地面 + 机队/人力 + 还本付息 + 保费）要不要换成按部门预算逐项继承？**
+两个候选都有硬伤，故裁定取**第三种**：
+
+- 只留四段式 → 玩家在财务页看到的是 8 个部门额度，预览却只报四个数，**答不出「钱花在哪个部门」**；
+  接管的部门预算由 `FinanceManager.EnsureDefaultBudget` 按「现金 × 50% × 全行业固定份额」凭空生成，
+  与这家航司真实的成本结构（老机队维修重 / 租赁多 / 贷款多）无关。
+- 只留部门预算 → 预览净烧钱、`EffectiveMonthlyBurn`、K10 的 8/6/4/3 跑道全部要重解；
+  且若把「年度预算总量」改成 `12 × 月成本`，★5 的额度（约 2.5 亿）会远超现金，
+  董事会投票（`EstimateBoardVotes` 按 total / cash 分档）永远只剩 2 票 —— **把口径问题换成了可玩性问题**。
+- **裁定：四段式总量不动，新增部门账本作为「归属层」**。
+  四段仍是预览与跑道的算账单位（`monthlyCost` / `monthlyFixedCost` / `monthlyDebtService` / `monthlyInsurance`，
+  求和顺序与逐位结果都不变），`TakeoverCostLedger` 只回答「这笔钱归谁」；
+  部门额度 = 董事会的总额度规则（`FinanceEconomics.RecommendedBudget(cash)` = 现金 × 50%）× **继承来的部门比例**。
+  **继承的是结构，不是把董事会规则也一起改掉。**
+
+### 24.2 归属表（谁花钱，记谁头上；每段权重合计 1.00，一笔只记一次）
+
+| 成本段 | 部门归属 |
+|---|---|
+| 总部 / 地面 | 运营 45% · 市场销售 10% · 战略 10% · 财务 10% · 董事会 15% · 安全质量 10% |
+| 机队 / 人力（维护 + 月租 + 存量人力） | 机务工程 55% · 人力资源 25% · 运营 20% |
+| 还本付息 | 财务 100% |
+| 保费 | 安全质量 100% |
+
+不把维护费塞进财务部、也不把利息摊给运营部 —— 那样部门账能对上总数，却答不出「该找谁降本」。
+
+### 24.3 改了什么
+
+| 文件 | 变更 |
+|---|---|
+| `Logic/TakeoverCostLedger.cs`（新） | 四段 → 8 部门的账本；`Build` / `DeptMonthlyWan` / `DeptShares` / `ToBudgetItems`；段内与部门分配都**末项取残差**，保证 Σ 恰好等于入参 |
+| `Data/AirlineProfile.cs` | 新增 `costLedger` 字段（预览档案带上账本） |
+| `Systems/TakeoverWorldBuilder.cs` | `BuildPreview` 用账本承载四段金额；四段求和顺序与数值不变 |
+| `Systems/TakeoverWorldBuilder.Apply.cs` | `Apply` 调 `SeedInheritedBudget`：按账本比例 × 董事会额度写入 `gs.budgetItems` |
+| `Systems/FinanceManager.cs` | `AccrueBudgetSpend` 在有 `budgetItems` 时按**部门额度占比**分摊季度实际支出（此前按全行业固定份额） |
+| `Editor/TakeoverCostLedgerRegression.cs`（新） | 8/6/4/3 跑道、104 家账本一致性、`Apply` 预算分配、季度分摊比例对称四条断言 |
+| `Assets/Tests/EditMode/TakeoverCostLedgerEditModeTests.cs`（新） | 把上面四条接进 NUnit 套件 |
+| `Editor/LogicSelfTests.cs` | 挂 K17 行；同时修 R26（问句契约）、R28（fixture 缺槽/过站口径）、GDB29（「通讯员」错字）三项历史红项 |
+| `tools/balance/AirlineCEO.Balance.csproj` | 链入 `TakeoverCostLedger.cs`（离线工具与游戏同源） |
+| `tools/balance/RouteInventoryReport.cs` | 新增「账本与四段式逐家同账」「部门占比归一且预算总额等于董事会规则」两条断言 |
+
+### 24.4 实测（2026-10-23，离线 + 引擎内自测）
+
+| 命令 / 入口 | 结果 |
+|---|---|
+| `--presets` | 跑道 **8.00 / 6.01 / 4.00 / 3.00**（目标 8/6/4/3，偏差 +0.0% / +0.2% / −0.1% / +0.1%）→ **K10 断言零漂移** |
+| `--routeinventory` | 104 家 / 823 条 / 94 目的地；新增两条账本断言 `[ OK ]`（缺账本 0 家、金额漂移 0 家、占比异常 0 家、预算漂移 0 家） |
+| `--baseline-compare` | exit 0；源指纹 `0bb4975f34a9`（86 文件）→ **`bb18c1b9eabd`（87 文件）**，按新指纹重录后 86 字段最大偏差 **0.000%**，`closing 1707.90 / net 1232.90 / runway 99.00` 逐位不变 → **K17 对年跑基线零影响** |
+| `--oneoffcheck` | 6/6 PASS，四预设净美元头寸 −1169 / −4424 / −8633 / −13089 万不变 |
+| `LogicSelfTests`（隔离批处理，日志 `SelfTests_K17_R4.log`） | `R26` / `R28` / `GDB29` / `K17` 全部 `全部符合期望`；全文无 `★有不符合期望`、无 `用例异常`；12 条结论行逐条核对 |
+| Unity EditMode（`stage-close` 预检，隔离快照） | `UNITY_EXIT=0`、`NUNIT result=Passed passed=32 failed=0 skipped=0`（含 K17 新 fixture `TakeoverCostLedgerEditModeTests`）；快照 `copiedFileCount=1263`、`unlistedAtCreation=0`、profile `unity-editmode` |
+
+### 24.5 未覆盖
+
+1. **界面未手测**：财务页 8 个部门的额度应改为「继承来的比例」，季度超支提示的分母同步；这一页本轮未改版，未取样截图。→ **仍待补**，手测步骤见 §25.4。
+2. **`LogicSelfTests` 只在隔离批处理里跑过**（`SelfTests_K17_R4.log`），未在用户正在使用的编辑器里跑菜单入口。→ **2026-10-23 口径收敛**：菜单入口与批处理调的是同一个 `LogicSelfTests.Run()`，差异只在「谁点按钮」；同一函数的覆盖已由 `TakeoverCostLedgerEditModeTests` 进预检。详见 §25.3。
+3. **`TakeoverSolvencyTests`（PlayMode）未重跑**：K17 不改四段之和，理论上零影响，但本轮未再执行 6/6。→ **2026-10-23 已跑**：整套 PlayMode **105/105 通过**，`TakeoverSolvencyTests` **6/6**。详见 §25.2。
+4. **季度超支分摊的边界**：`budgetItems` 为空（旧存档 / 非接管局）时仍走原固定份额路径，未新增存档迁移。→ **2026-10-23 已补**：新增 `FinanceManager.MigrateLegacyBudget`，读档时只迁「旧默认指纹」，手改额度 / 有执行数 / 非接管局一律不动；回归 5/5。详见 §25.5。
+
+> 交付：`stage-close --task S08-ShortHaul` → **`DEL-20261023032726-42cba0`**（16 改动文件、快照 1263 文件、
+> `unlistedAtCreation=0`），隔离快照预检 **32/32 Passed**（failed=0 / skipped=0），交接单
+> `out/collab/handoff/DEL-20261023032726-42cba0.md`。预检是开发自测，**不构成独立验收**。
+>
+> **2026-10-23 独立检测结论：`REV-20261023065836-eecd5f` passed（`independent=true`、`unity-editmode`
+> 32/32、AC1–AC3 全 passed、`issues=[]`、`workspaceMatchesDelivery=true`）→ K17 已于同日勾选。**
+> 上述 24.5 的四条缺口不因验收而消失：界面手测与 PlayMode 重跑仍是后续补测项，旧存档的
+> `budgetItems` 为空路径仍未加迁移。
+> → 其中 3 条已于 2026-10-23 晚收口，见 §25。
+
+---
+
+## 25. 残余缺口收口（2026-10-23 晚，开发自测）
+
+**动因**：`REV-20261023065836-eecd5f` 之后 §3 主清单已无未勾项，但 §14 / §23.4 / §24.5 还挂着「未覆盖」。
+这一轮**不加新功能**，只把能自动验的缺口补上，把只能人眼验的界面写成可执行手测脚本。
+
+### 25.1 K11 逐季读数（§14 未覆盖 → 已收口）
+
+`RunwayDebtRegression` 新增第 ⑧ 项：`monthsRemaining` 12 → 9 → 6 → 3 → 0，现金固定 3000 万，
+逐季打印月数 / 烧钱 / 跑道。
+
+```text
+逐季推进：月数[12,9,6,3,0] 烧钱[600.5,600.5,600.5,600.5,500.5]
+          跑道[5.00,5.00,5.00,5.00,5.99] 递减=True 未清期烧钱恒定=True 跑道不倒退=True
+          清偿季降一个月供=True 尾季摊薄=True ✓
+```
+
+- 未还清期间月供恒定 → 烧钱逐季**平**（600.5），不是「逐季变小」。贷款是等额月供，只有还清那一季才断；
+  这条写进断言，避免后人把「月数减少」误读成「烧钱按月递减」。
+- 清偿季（第 5 格）烧钱恰好降 **100**（= 月供本身），不是「看起来降了」。
+- 尾季只剩 2 期、月供 100 → 本季月均 **66.67**，烧钱只降 66.67（`LoanEconomics` 的摊薄口径）。
+- 此前 `RunwayDebtRegression` 只被 `LogicSelfTests` 菜单调用，而菜单不在 `unity-editmode` profile 里
+  —— 写了断言但预检永远跑不到。现补 `RunwayDebtEditModeTests` 进预检（`Run()` 改为返回 `bool`）。
+
+### 25.2 PlayMode 整套（§24.5-3 → 已收口，并查出两条既有红项）
+
+隔离快照 `out/b17-residual`（`companyName=AirlineCEORegression`）跑**整套** PlayMode，不是只跑 6 条：
+
+| 项 | 结果 |
+|---|---|
+| 交付前基线（`DEL-20261023032726-42cba0` 快照） | **103/105**，2 项失败 |
+| 本轮（含下述修复） | **105/105**，failed=0/skipped=0，`UNITY_EXIT=0` |
+| 其中 `TakeoverSolvencyTests` | **6/6**（两轮均通过） |
+
+两条既有红项的根因（**不是 K16/K17 引入**；控制实验：同一套用例在交付快照上逐字复现）：
+
+1. `DevelopmentSlotWorkflowTests.RejectDirective_…` NRE —— 用例按「指令敲完立刻能在 `inbox` 找到呈报」写，
+   而 2026-10-19 起呈报改为**按游戏时钟延后投递**（先进 `pendingInbox`）。用例传 `delayHours: 0`
+   （该参数注释本就写着「回归用例用」），并补 `Assert.IsNotNull`：下次再坏会是明确断言，而不是 NRE。
+2. `FleetNetPlayModeTests.FleetEconomics_Formulas` 期望维护 8.0、实得 7.5 —— 断言写死 6%/年，
+   而 `EconomyBalanceParams.MaintAgeUpliftPerYear` 的定案值是 **5%**（以账本为准，常量注释写了理由）。
+   断言改为按常量表达，并顺带修掉 `FleetEconomics` 两处仍写「6%/年」的过期注释
+   （不复用过期注释，否则下一个人会照它再写错一次）。
+
+### 25.3 `LogicSelfTests` 菜单入口（§23.4-1 / §24.5-2 → 口径收敛，不再算缺口）
+
+菜单入口与隔离批处理调的是**同一个** `LogicSelfTests.Run()`，差异只在「谁点按钮」。
+本轮把其中的 K11 与 K17 回归都接进 `unity-editmode` 预检（`RunwayDebtEditModeTests` /
+`TakeoverCostLedgerEditModeTests`），因此「菜单没点过」不再等于「没验过」。
+若仍要求「编辑器里亲手点一次」作为留痕，并入 §25.4 的 H0，与界面手测一起做。
+
+### 25.4 界面手测脚本（K16 / K17 / K19 H3b，**2026-10-24 全部执行完毕**）
+
+三项都是**只能在屏幕上验**的（下拉过滤、8 行额度、风险行渲染）。脚本另存为
+`docs/handoff/manual/K16_K17_K19_H3b_20261023.md`，逐条给「入口 / 操作 / 期望原文 / 记录方式」。
+执行完把截图与结论回填该文件，再由 Codex 复核；**未执行前不得写成界面通过**。
+
+> **结论：7 条全部通过（其中 A3 缺截图）**。这一行是「开发自测 + 用户实机执行」的结论。
+> 该结论已于 2026-10-24 10:17 由 Codex 独立检测（`REV-20261024021702-057abf`）覆盖，
+> 详见 §25.9；界面侧的证据缺口（A3）见 §25.10。
+
+> **A3 的证据等级偏低要如实记**：A3 只有口头确认、没有 `H-A3.png`。
+> 它本身不构成风险（`PVG→CAN` 1203 km 距 250 km 阈值 4.8 倍，两个“太短”分支都够不着），
+> 但复核时若要求截图齐全，A3 是唯一需要补拍的一条。
+
+**执行进度（2026-10-23 20:38 起）**
+
+| 条目 | 结论 | 依据 |
+|---|---|---|
+| A1 境内超短被拒（PVG → WUX） | **通过** | 红字命中 K16 分支原文；`航线 8 条 / 机队 12 架` 未变；无新卡片、收件箱未增；重复提交幂等 |
+| A1 口径裁定 | **保持现状** | CEO 裁定拦截点留在提交（见 §23.4-2），不改 `AirportField.RebuildList` |
+| A2 跨境短程（CAN → HKG 136 km） | **通过** | 未出高铁文案，进到「已提交运营部研究 / 就开通 CAN → HKG 进行会商」，航线仍 8 条 |
+| A3 境内正常线（PVG → CAN 1203 km） | **通过**（口头，缺截图） | 进到会商，无过短类文案；证据等级低于 A1/A2 |
+| B1 ★3 PEK 8 行 | **通过** | 283/500/22/227/22/171/290/34，合计 1549 = 现金 3097×50%，5/7 票；机务 32.3% / 市场 1.4% |
+| B2 ★5 PVG 换一家比例随之变 | **通过** | 498/1123/20/511/20/346/388/30，合计 2935 = 5870×50%，5/7 票；机务 32.3%→**38.3%**、财务 18.7%→**13.2%**；比值 机务/人力 2.198、市场=战略、董事会/市场 1.5 均守恒 |
+| C1 ★5 风险行 | **通过** | 现金行 `5870 万 / 净烧 1955 万/月 / 剩 5270 万 ≈ 2.7 个月`；风险行 `交割后跑道 2.7 个月，已跌破 3 个月危机线`；两行月份同源 ✓ |
+| C2 ★3 无风险行 | **通过** | 仅现金行 `3097 万 / 净烧 516 万/月 / 剩 2497 万 ≈ 4.8 个月`，**无**风险行；反算 4.839 ≥ 3 |
+| **A1–C2 全部 7 条** | **通过 7 / 缺截图 1 / 无效 0** | A1 A2 B1 B2 C1 C2 有截图；**A3 仅口头，缺 `H-A3.png`** |
+| EditMode 预检（交付快照内） | **33/33 通过** | `DEL-20261024020739-7b9e30` · failed=0 / skipped=0 · 11 个 fixture 全绿 |
+| **Codex 独立检测** | **通过** | `REV-20261024021702-057abf` · `independent=true` · AC1–AC3 全 machine-mapped（详见 §25.9） |
+
+> A1 的判定不依赖 OCR 猜字：`MinPassengerKm = 100`，故 136 km 不可能落到「过短」分支；
+> 而「250 公里以内的城市之间」这一段**只出现在** `IsChinaDomesticTooShort` 的返回文案里，
+> 红字里认得这几个字即可锁死分支。像素级读数 136 与坐标实算 `PVG(121.8052,31.1434)` /
+> `WUX(120.4294,31.4944)` 的大圆距离 136.4 km 一致。
+
+### 25.5 旧存档部门预算迁移（§24.5-4 → 已收口）
+
+`FinanceManager.MigrateLegacyBudget(gs)`，在读档恢复完 `takeoverMode` 之后调用。只迁「看得出是旧默认值」的档：
+
+| 存档形态 | 行为 |
+|---|---|
+| `budgetItems` 为空（从未打开财务页） | **迁**：按该航司账本重摊 |
+| 8 部门齐全且每项 = 总额 × 全行业固定份额（旧默认指纹） | **迁** |
+| 任一部门 `spentWan > 0`（已跑过季结） | **不迁**（换摊分键会把历史记到错的部门） |
+| 额度被玩家改过 / 部门数不是 8 / 未知部门 id | **不迁**（原样保留） |
+| 非接管局（`takeoverMode=false`） | **不迁** |
+
+迁移只换**摊分键**：总额仍是「现金 × 50%」，`budgetSubmitted` / `budgetApproved` / `budgetFiscalYear`
+一律保留（董事会投票按总额分档，总额不变故结论不变）。回归 5/5：
+`空档迁 / 旧指纹迁 / 手改不迁 / 有执行数不迁 / 非接管不迁`。
+
+### 25.6 读数与基线（本轮全部实测）
+
+| 项 | 结果 |
+|---|---|
+| Unity EditMode（隔离快照） | `UNITY_EXIT=0`、`Passed 33/33`、failed=0/skipped=0（32 + 新增 `RunwayDebtEditModeTests`） |
+| Unity PlayMode（同一快照） | `UNITY_EXIT=0`、`Passed 105/105`、failed=0/skipped=0 |
+| `--presets` | 8.00 / 6.01 / 4.00 / 3.00（±3% 内，D2 后未漂移） |
+| `--routeinventory` | 104 家 / 823 条 / 94 目的地；账本与短航段断言全 `[ OK ]` |
+| `--oneoffcheck` | 6/6 PASS；四预设敞口 −1169 / −4424 / −8633 / −13089 万不变 |
+| `cmdcheck` | `ALL PASS` |
+| `--baseline-compare` | 源指纹 `bb18c1b9eabd`（87 文件）→ **`d97477691576`（87 文件）**，重录后 **86 字段最大偏差 0.000%**，`closing 1707.90 / net 1232.90 / runway 99.00` **逐位不变** |
+| 重录原因 | `FleetEconomics.cs` 只改了注释（6%→5%），文件内容变 → 哈希变；数值逐位不变正是「零影响」的证据 |
+
+### 25.7 本轮仍未覆盖（不做，或做不了）
+
+1. **界面三条（K16 下拉 / K17 财务页 / K19 H3b）**：脚本已给，等用户执行并回传截图。这是**唯一**还挂着的验收型缺口。
+2. **§19 四类排除项**（教程文案 / 命令台历史回执收藏 / 四类写指令 / 发布商店云存档 Mod）：本轮明确不做，仍是下一轮候选。
+3. **协作工具 9 个 open ISSUE**（SA01–SA05、C09/C10/C12、XML 闸门、S03 验收条件）：属 `C-COLLAB-FINAL` 线，
+   不在本轮，且 verified/closed 只能由 Codex 收。
+
+### 25.8 界面手测暴露的两个真缺陷（B1 首轮 → 已修）
+
+首轮 B1 跑在**旧档**（公司名 `北星快线`、机队 12 架、现金 0）上，8 行预算全是 `0 万`、
+底行 `合计 0 万 · 建议 0~0 万 · 预估 0/7 票`。定位过程中发现两处**代码缺陷**（不是手测环境问题）：
+
+| # | 缺陷 | 触发条件 | 后果 |
+|---|---|---|---|
+| D1 | `EnsureDefaultBudget` 用 `budgetItems.Count > 0` 判「已有预算」 | 现金 ≤ 0 时 `RecommendedBudget(0)=0`，摊出 8 个 0 | 退化台账被当成真实台账**永久钉死**：现金恢复也不重建，`EstimateBoardVotes` 按 `total/cash` 给 0 票，预算永远提交不了 |
+| D2 | `MigrateLegacyBudget` 用「当前现金 × 50%」重算总额 | 旧档额度是当年按当时现金生成的，之后现金跌到 0 | 违反「只换摊分键、总额不变」的承诺，把玩家本来看得见的 250 万台账**抹成 0** |
+
+**D1 修法**：新增 `IsDegenerateBudget`（无条目，或 8 项额度全 ≤0.01 且无执行数）。退化台账视同空台账；
+但 `RecommendedBudget(cash) ≤ 0` 时**直接返回、不写 8 个 0**（否则又会造出一份退化台账）。
+
+**D2 修法**：迁移的总额改为**沿用存档既有总额**（`BudgetTotal(gs)`），只有当连台账都没有时才退回
+`RecommendedBudget(cash)`；两者都 ≤ 0 时**什么都不写**并返回 `false`。
+
+回归（`TakeoverCostLedgerRegression` ⑦）由 5 例扩到 **7 组**，新增：
+`零现金保总额`（250 万台账 + 现金 0 → 仍 250 万、比例换成账本口径）、`空账不写0`、
+`退化可重建`、`有执行数不被覆盖`、`真预算不被覆盖`。
+
+> **一个刻意接受的取舍**：`IsDegenerateBudget` 只看数据、分不出「现金 0 摊出来的 8 个 0」与
+> 「玩家手动把 8 项都改成 0」。后者会被下一次打开财务页复位成建议预算。选这个方向是因为
+> 前者**不可恢复**（永久 0 票、预算永远提交不了），后者只是把派生值重算一次，玩家可再改。
+> 若将来要同时保住两者，需要在 `GameState` 上加一个「台账来源」标记，属新范围。
+
+> 编译：`node tools/semcheck/run.js` → `errors=0 / tests-asm errors=0`。
+> EditMode 未在本轮重跑（用户 Unity 占用 3 个进程，按协议不杀）；下次 `stage-close` 预检会自动跑全套。
+
+**B1 首轮样本无效**（不计通过也不计失败），二代样本已通过：首轮那档是 `从零创建` 的普通局
+（`companyNameZh` 北星快线、机队 12 架、现金 0），K17 的继承预算只在**接管落地**时写入
+（`TakeoverWorldBuilder.Apply → SeedInheritedBudget`），普通局走 `EnsureDefaultBudget` 的固定份额，
+两套口径不能混判。2026-10-24 新开接管局重测：8 行 `283/500/22/227/22/171/290/34`，合计 **1549**
+（= 现金 3097 × 50%），底行 `建议 1239～1858 万 · 预估 5/7 票`；机务 32.3% / 财务 18.7% / 市场 1.4%，
+与账本四段归属逐段反解吻合（详见手测脚本 §B1 算术核验）。**B1 通过**。
+`北星快线`，而接管 ★3 的预设名是 `北辰快线`；机队 12 架 ≠ 预设 10 架），且现金已为 0。
+K17 的继承预算只在**接管落地**时写入（`TakeoverWorldBuilder.Apply → SeedInheritedBudget`），
+普通局走的是 `EnsureDefaultBudget` 的固定份额——两者本就是两套口径，不能混判。
+B1/B2 必须**新开一局选司接管**后重测。
+
+**存档侧留痕（2026-10-23 23:18，只读查询 `HKCU\Software\Unity\UnityEditor\DefaultCompany\Unity Project`）**：
+
+| 键 | 值 | 说明 |
+|---|---|---|
+| `ACEO_Cash` | `00`（1 字节，int 0） | 现金确实是 0，不是渲染问题 |
+| `ACEO_CompanyNameZh` | 北星快线 | 非 ★3 预设名 |
+| `ACEO_Budget` | 8 项 `50/45/40/30/25/20/15/25`，合计 **250 万**，`spentWan` 全 0 | 正是**旧固定份额指纹**（20/18/16/12/10/8/6/10 × 250） |
+
+这一条把 D2 从「推断」变成了「实测」：**盘上有 250 万台账，读档后界面上却是 8 个 0**。
+按旧代码 `MigrateLegacyBudget` 以 `RecommendedBudget(cash=0)=0` 重算，`ToBudgetItems(0)` 必然全 0 ——
+盘上 250 万被抹平，正是它干的。同表也顺带证实该档的预算从未按账本摊过（指纹是固定份额），
+故「非接管局」的判定成立。
+
+### 25.9 独立检测结论（2026-10-24 10:17，Codex）
+
+| 项 | 状态 |
+|---|---|
+| `DEL-20261024020739-7b9e30` | **独立检测通过** · `REV-20261024021702-057abf` · `reviewKind=independent` |
+| `unity-editmode` | **33 通过 / 0 失败 / 0 跳过** · runToken `b729066dd0ad362a` |
+| AC1 / AC2 / AC3 | 全部 `passed`，均为 **machine-mapped**（非人工 attest） |
+| S09-Residual | `ready_for_review` / `passed` / `freshness=current` · open ISSUE **0** |
+
+> 这是本轮唯一一次**独立**验收。此前 §25.4 的界面 7 条、§25.11 的预检 33/33 都属开发自测，
+> 不能自称通过；现在由 Codex 的独立 review 承接，结论才成立。
+
+### 25.10 交付后仍留的两个缺口（审计口径）
+
+| 缺口 | 影响 | 状态 / 处置 |
+|---|---|---|
+| A3 缺 `H-A3.png`（仅口头确认） | 证据等级低于 A1/A2/B/C | **仍未补**。不构成风险：`PVG→CAN` 1203 km 是 250 km 阈值的 4.8 倍，两个「太短」分支都够不着；是否补拍待裁 |
+| PlayMode 全套 | 本单决定项是 `unity-editmode`，PlayMode 属另一 profile；此前该快照无 PlayMode 回归 | **已补跑：105/105 通过**（2026-10-24 10:24，在 `DEL-20261024020739-7b9e30` 快照内执行 `RunUnityTests.ps1 -Platform PlayMode`，`failed=0 / skipped=0`，18 个 fixture）。与 Codex 验过的代码逐字节同源，但未经 `stage` 机制，故属**开发自测**，未绑定独立 review |
+
+> **PlayMode 105/105 的性质要说清**：它在**已交付并通过检测的同一份快照**里执行，
+> 用的是 `config.json` 里 `unity-playmode` profile 指定的同一个 `RunUnityTests.ps1`，
+> 所以「跑了什么代码」没有争议 —— 这套用例确实全绿。争议只在「谁背书」：
+> 它与 `REV-20261024021702-057abf` 的独立结论无关，不得合并表述为「独立验收覆盖了 PlayMode」。
+> 要把 PlayMode 正式入账，用 `stage-close --profile unity-playmode` 另生成一份验证型 DEL 交 Codex；
+> 那会把 S09 从 `passed` 拉回 `queued`（新 DEL 取代旧 DEL 成为 latest），**代价大于收益，故未自动执行**。
+
+> A3 与 PlayMode 都已写进交接单「已知缺口」，Codex 的 `passed` 是在**知晓**这两条的前提下给的，
+> 不是漏检。区别在于：A3 至今只有口头证据；PlayMode 现已有一条可复现的全绿实跑记录。
+
+
+### 25.11 E1：预检第一次跑出来的真缺陷（回归自己写错）
+
+
+`stage-close` 首次预检 32/33，唯一失败是 `TakeoverCostLedgerEditModeTests`：
+
+```
+System.NullReferenceException at TakeoverCostLedgerRegression.Run() line 254
+  FinanceManager.Instance.EnsureDefaultBudget(gs);
+```
+
+不是产品代码的错，是**回归写法在 EditMode 下不成立**：`AddComponent<FinanceManager>()` 在
+EditMode 里不跑 `Awake`，`Instance` 恒为 `null`。生产侧一律走
+`FinanceManager.Instance?.EnsureDefaultBudget(gs)`（`FinancePanelUI` / `FinanceSubpagePanel` / `InboxManager`），
+有实例才调用，所以生产不受影响。
+
+修法：回归里保留组件引用 `var finance = go.AddComponent<FinanceManager>()`，直接
+`finance.EnsureDefaultBudget(gs)` —— **同一方法体、同一条代码路径**，只是不经 `Instance` 取。
+三处（reseed / spentKept / realKept）一起改。
+
+> 这条的价值在于：**它证明「没跑过」和「跑过」是两回事**。此前 §25.8 的两个修复只有 `semcheck`
+> 编译零错误与人工界面读数，靠的是「代码看起来对」。预检一跑，立刻暴露出 g) 组从未真正执行过 ——
+> 若交付出去，Codex 的第一条缺陷就会是这个。
+
+---
+
+## 26. 残余七项（2026-10-24，开发侧记录）
+
+**动因**：`docs/handoff/残余七项审计_2026-10-24.md` 把 T03.8 / T04.3 / T04.8 / T05.2 / T05.5 / T05.6 / T05.7
+七项逐条审过，结论是「1 项几乎齐、4 项半做、2 项不可自动完成」。本节只记**这一轮做了什么**，
+不勾选框、不写「已通过」。
+
+### 26.1 已落地的五件（代码 + 离线可复核）
+
+| 项 | 落点 | 离线证据 |
+|---|---|---|
+| T05.6 备选时刻的办理时点 | `Logic/SlotCandidateLogic.cs` 增 `EtaText` / `NextQuarterLabel` / `ThisQuarterLabel`；正文每条备选多一行「办理时点」，「下季交割」→「第X年 QY」 | `node tools/slotcheck` → **OK**，R38 新增两条断言 |
+| T05.5 取消确认无副作用 | `Logic/DeptReportLogic.CloseCancelNotice` 常量（`CommandBarView` 改引用）；`CeoCommandRegression` 新增 ⑧b2 六项快照 + 重新下令同卡 | `semcheck` 0 error |
+| T04.3 退租 + 定检现金对账 | 新增 `Editor/AccountingScenarioRegression.cs` + `Tests/EditMode/AccountingScenarioTests.cs`；`MaintenanceManager.ScheduleCheck(GameState,…)` 重载 | `semcheck` 0 error |
+| T05.2 状态提示 | `InboxManager.StatusLabel(gs,m)` / `StatusLine(gs,m)` / `InflightLine(gs)`；`InboxPanelUI` 列表头挂「在途」、详情标签与底注改走统一状态行 | 新增 `InboxStatusRegression` + `InboxStatusTests`，`semcheck` 0 error |
+| T03.8 地图线宽 | `UI/MapWidget.RouteThickness(route)`：≤7 班 2.0px / 8–20 班 2.4px / >20 班 3.0px | 仅代码；**视觉未验** |
+
+T04.8 的裁定表另见 `docs/handoff/T04_8_告急组合裁定_2026-10-24.md`（9 行设计意图 / 5 行需复核系数 / 1 行需再调）。
+
+### 26.2 仍未闭合（不得视为完成）
+
+- ~~**T04.3 的 S1 / S2 / S3 / S6 / S8**：全是 PlayMode 实时窗口，需独占 Unity；
+  S8 还先要把「部门预算按季末费率 ×3」写成**已知偏差**再谈对账。~~
+  → **2026-10-25 已补**（§28）：新增 `DevelopmentAccountingScenarioTests` 5 例，隔离快照全量 PlayMode **135/135**、EditMode **36/36**。
+  S8 的「部门预算按季末费率 ×3」按**已知偏差**登记，用例只对账现金与季度桶。**独立检测未出，T04.3 仍不勾。**
+- **T03.8 的四口径数字交叉**（列表 / 详情 / 地图 / 邮件）：纯人工逐屏读数。
+- **T05.7 的 1× 实时手测**：1× 是 1 游戏分 : 1 现实分，按字面要真坐数小时。
+- **T05.2 的视觉效果**（在途提示是否够显眼、是否遮挡）：需截图。
+- **T04.8 的两条设计裁决**（滞胀硬度 A/B、难度是否应改损益）：需 CEO 一句话。
+
+### 26.3 本轮踩到的坑（写下来省下一个人两小时）
+
+`tools/slotcheck` 用 `SlotCandidateLogic.FormatBody(null, …)` 校验正文（它不构造 `GameState`）。
+T05.6 第一版直接在 `ThisQuarterLabel(gs)` 里读 `gs.year`，离线工具立刻
+`NullReferenceException at SlotCandidateLogic.ThisQuarterLabel`。**给信件正文加字段前，
+先确认离线工具会不会传 `null`** —— 否则会出现「Unity 里全绿、工具里崩」的来回拉锯。
+这一条已写进 `SlotCandidateLogic.EtaText` 的注释与审计文档 §10.3。
+
+---
+
+## 27. 外部来文的发件人：新闻官（2026-10-24 晚，开发侧记录）
+
+**动因**（用户报障 + 截图）：收件箱列表里外部来文的发件人直接是**发布单位**（「中央气象台」），
+读起来像公司给每家机关各开了一个邮箱。分析见
+`docs/handoff/外部消息发件人_新闻官与顾问分析_2026-10-24.md`。
+
+### 27.1 裁决（用户）
+
+| 问题 | 结论 |
+|---|---|
+| 新闻官 vs 复用顾问 | **新闻官**。顾问回答「我建议你怎么做」，新闻官只回答「外面递了这个进来」；两者混用会把「谁的判断」搞糊 |
+| 转呈边界 | **B3**：`sender = 新闻官姓名`，`role = "新闻官 · {原文种}"` |
+| 姓名 | **按存档派生**：同一存档恒定、不同开局不同名；不进人事名单 |
+
+### 27.2 落点
+
+| 文件 | 改动 |
+|---|---|
+| `Logic/PressDesk.cs`（新） | `Name(gs)`（身份字段 → FNV-1a → `PersonnelGenerator.SingleName`）、`NameOf(key, nation)` 纯函数、`IsPressOfficer`、`RoleLine`、`ForwardHead`；常量 `新闻官` / 头像字 `闻` |
+| `Logic/PersonnelGenerator.cs` | 新增 `SingleName(nation, seed)`：只取名、不做人事去重（新闻官不在 `staffPool` 里） |
+| `Systems/ExternalEventManager.cs` | `PushReceiveMail` / `PushTriggerMail`：`sender` = 新闻官、`glyph` = 闻、正文前置「以下为{机关}来文原文，由新闻官{姓名}整理转呈。」；**体例判定与 `kind` 仍按 `ev.source`**，四种公文体例一个不塌 |
+| `Logic/InboxLetter.cs` | `Identify` 增新闻官分支（`dept=新闻官` / `post=""`）；`Sign` 支持无职务层级 |
+| `UI/Shell/InboxPanelUI.cs` | 列表发件人列显示「新闻官 卢曦」（只写姓名认不出是谁）；详情仍是姓名 + 角色行 |
+| `Editor/PressDeskRegression.cs` + `Tests/EditMode/PressDeskTests.cs`（新） | 同存档恒定 / 跨年不改名 / 换存档换人 / 不拼双重职务 / 真邮件五项 |
+| `Editor/LogicSelfTests.cs` | 外事两行期望值改为「新闻官 · 预警通报」「新闻官 · 施行通报」，并增「含转呈抬头 / 原文落款未丢 / 发件人是新闻官」 |
+| `tools/cmdcheck` | 新增 ⑧ 新闻官纯函数探针 |
+
+### 27.3 证据
+
+- `semcheck` + `semcheck_tests`：**0 error**
+- `dotnet run --project tools/cmdcheck`：**ALL PASS**
+- Unity EditMode `-testFilter PressDeskTests`：**Passed**（`out/press_editmode.xml`）
+  ```
+  新闻官 具名=True（卢曦）　同存档恒定=True　跨年不改名=True　换存档换人=True　识别=True　落款=「新闻官 卢曦」
+  外源投递 发件人=True 角色=True（新闻官 · 预警通报） 头像=True 原文保留=True 不再露出发布单位作发件人=True
+  ```
+
+### 27.4 两条口径（下一个人要记住）
+
+1. **存档标识只能取开局写入、之后不变的身份字段**（公司名 / 二字码 / 基地 / CEO 姓名 / 国籍 / 出生年）。
+   一旦掺进 `year / quarter / simDay`，新闻官就会按季换人 —— 回归里有一条专门钉「跨年不改名」。
+2. **`string.GetHashCode` 不能用**（.NET 逐进程随机化，读档即换人）；用自己写的 FNV-1a。
+
+### 27.5 未闭合
+
+- ~~**EditMode 全套（36 例）未跑**：只跑了新闻官一例；第二次批量运行未产出结果即中断，**不得**据此宣称全绿。~~
+  → **2026-10-24 晚已补跑**：工程内 `36/36 Passed`（`out/editmode_run3.xml`）、隔离基线 `out/b17-accept-1024` 二次复核 `36/36`、
+  交付快照预检 `36/36`；Codex `REV-20261024132317-f6bf86` passed。
+- **界面未目视**：列表「新闻官 卢曦」会不会截断、详情角色行是否过长 → 已并入 `docs/handoff/低优先级待查_2026-10-25.md` 的 P3-2。
+- 旧存档里已投递的外部信仍是原机关署名（历史不改写），只有新到件走新闻官。
+
+---
+
+## 28. T04.3 五个实时窗口 + 三项 P3 挂账（2026-10-25 开发侧记录）
+
+**动因**：`docs/handoff/残余七项审计_2026-10-24.md` §10.2 里，代码侧还剩两行没闭合 ——
+T04.3 的 S1/S2 与 S3/S6/S8 全是 PlayMode 实时窗口，此前只有应计层或零断言。
+另有三项目视项经用户裁定「不重要、先挂账」。
+
+### 28.1 新增窗口用例（5 例）
+
+`Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs`：
+
+| 用例 | 窗口 | 断言要点 |
+| --- | --- | --- |
+| S1 停飞 | 3 日 | 收入恒 0；支出 = 3 × `DailyFixedCostWan`；损益同额；现金只减日固定；`monthlyRevenue` 归零 |
+| S2 无机 | 2 + 2 日 | 「不在册」与「已退役」两段均零收入；退役前后日固定**不变**（不得继续计月租/维护） |
+| S3 缺员 | 2 日 × 双窗口 | 68/80 vs 80/80，只差 `CrewQualityMultiplier`；两窗口成本桶逐位相同；现金差全来自收入差 |
+| S6 过渡 | 签约 + 2 + 3 日 | 定金进桶；逐日租金进桶且日固定照扣；通知期满扣剩余租金 30% 并**进损益** |
+| S8 中途变更 | 45 + 44 日 | 第 46 天加机加线，只按 44 天入账，不追溯；变更后按新日固定（含新增机月维护）扣 |
+
+每例结尾跑「Δ现金 == Σ应计桶增量」，即矩阵 §4 的恒等式本身。
+
+### 28.2 口径决定与踩坑
+
+1. **S6 违约金不进过渡桶**（矩阵 §6.2 未裁）：用例只断进损益与现金扣款，对桶只断「通知期租金照常增加」。
+2. **S8 的部门预算偏差**（矩阵 §6.4）写成**已知偏差**，只对账现金与季度桶，不对账 `deptQuarterExpense`。
+3. **`LiveClockSimulator.Advance` 有追赶上限**（`MaxCatchUpMinutes = 1440`，即 1 天）：一次传多日会被悄悄截成 1 天。
+   第一版 `Advance(gs, 3)` 期望 3 日成本、实测 1 日，看起来像账错，实际是窗口被截。**新增多日窗口用例必须逐日推进。**
+
+### 28.3 证据（2026-10-25）
+
+| 闸门 | 结果 |
+| --- | --- |
+| `node tools/semcheck/run.js` | `errors=0 (raw=0)`；`tests-asm: errors=0`；`enc: errors=0` |
+| `dotnet run --project tools/slotcheck` | `SLOTCHECK OK` |
+| `dotnet run --project tools/cmdcheck` | `ALL PASS` |
+| `tools/balance/compare_baseline.ps1` | `[PASS]`，87 文件 / hash `1b6f5c1b210d` / 最大偏差 **0.000%** |
+| PlayMode 全套（新导出快照 `out/b17-acct-1025d`） | **135/135 passed**，failed=0 skipped=0，`UNITY_EXIT=0` |
+| EditMode 全套（同一快照） | **36/36 passed**，failed=0 skipped=0 |
+| `stage-close` 预检（交付快照内 `unity-playmode`） | **通过**：`UNITY_EXIT=0` · `passed=135 failed=0 skipped=0` |
+
+交付：**`DEL-20261025094638-6f76b0`**（任务 `S11-T043Windows`，profile `unity-playmode`，66 个改动文件）。
+**独立检测：`REV-20261025103525-a76682` → passed**（actor=codex，`independent: true`，`issues: []`；
+runToken `729cba6e600afb7a`，`total=135 / passed=135 / failed=0 / skipped=0`，AC1–AC3 全 machine-mapped passed；
+`cleanGitCheckoutVerified: false`，检的是本地快照而非 git 干净检出）。
+**T04.3 总项勾选归 Codex/user**，本节不代勾。
+
+### 28.4 同轮修掉的两处工具缺陷（都会让「没跑过」冒充「跑过」）
+
+1. **`tools/semcheck/gen.js`**：原先硬编码「测试程序集一律剔除 `Unity.TextMeshPro`」，导致新增 UI 验收用例
+   在 `semcheck_tests.csproj` 里 `CS0246` 假红。改为**按 `.asmdef` 的 references 动态决定**剔除项。
+2. **`tools/balance/compare_baseline.ps1` 在 PowerShell 5.1 下整篇解析失败**：
+   文件是 UTF-8 **无 BOM** + 中文注释，5.1 按 ANSI(GBK) 解码后偶数字节吞掉了 `}`，
+   报「Try 语句缺少 Catch 或 Finally」。补 UTF-8 BOM 后 `parse-errors: 0`，`compare_baseline` 恢复 `[PASS]`。
+   —— 这个脚本不在基线指纹里（`BaselineProvenance.SourceFiles` 只哈希 `.cs` 与 csproj），所以补 BOM 不影响读数。
+3. **`tools/regression/export-baseline.js`**：Windows 上写 `docs/handoff/Baseline_*.json` 偶发 `ERROR_USER_MAPPED_FILE`，
+   加写重试。
+
+### 28.5 三项 P3 目视项（用户裁定挂账）
+
+见 `docs/handoff/低优先级待查_2026-10-25.md`：地图线宽观感（P3-1）、新闻官签名排版（P3-2）、
+在途提示是否够显眼（P3-3）。三项**不阻塞代码收口**，也不改变本次独立检测的结论。
+
+### 28.6 仍未闭合
+
+- **T04.3 总项未勾**：`REV-20261025103525-a76682` 已 passed（`unity-playmode` 135/135、`independent: true`、`issues: []`），
+  但总项回填归 Codex/user；本节只记检测事实，不代勾。
+- **S4 / S5 / S7** 仍只有 EditMode／离线断言（`AccountingScenarioRegression`），未补实时窗口。
+- **部门预算执行口径**（矩阵 §6.4）：未裁，只登记偏差。
+- **`cleanGitCheckoutVerified: false`**：检的是本地快照而非 git 干净检出，全项目 gate 仍卡这一条（需提交后才能跑）。
+- 三项 P3 目视项 + T03.8 四口径数字交叉 + T05.7 1× 长时间体验：人工。
+
+
+

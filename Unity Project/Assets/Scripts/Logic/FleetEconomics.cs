@@ -75,7 +75,7 @@ namespace AirlineCEO.Logic
             return purchasePrice * pct;
         }
 
-        /// <summary>单机月维护（万美元）：基础 + 机龄 6%/年；&gt;20 年翻倍（对齐 FleetManager）。</summary>
+        /// <summary>单机月维护（万美元）：基础 + 机龄 5%/年；&gt;20 年翻倍（对齐账本口径）。</summary>
         public static float MonthlyMaintenance(int age)
         {
             float cost = EconomyBalanceParams.FleetMonthlyMaintWan
@@ -86,8 +86,9 @@ namespace AirlineCEO.Logic
 
         /// <summary>
         /// 单机月维护（含来源差异）= 账本唯一口径。旧版 FleetManager.MonthlyMaintOf 自己写了一套
-        /// 「机龄 5%/年 + 二手 1.35」的公式，而 UI 的 FleetSubpagePanel / 运力测算走的是本类 6%/年，
+        /// 「机龄 5%/年 + 二手 1.35」的公式，而 UI 的 FleetSubpagePanel / 运力测算当时写死 6%/年，
         /// 同一架飞机在两个面板上印出两个数、账本按第三个数扣钱。此处收拢为一处，双方都调这里。
+        /// 定案取 **5%**（= 账本历史口径，见 <c>EconomyBalanceParams.MaintAgeUpliftPerYear</c>）。
         /// </summary>
         public static float MonthlyMaintenance(AirlineCEO.Data.Aircraft a)
         {

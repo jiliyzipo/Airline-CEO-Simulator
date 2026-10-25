@@ -11,6 +11,25 @@ namespace AirlineCEO.Logic
         public const float MinPassengerKm = 100f;
 
         /// <summary>
+        /// 中国境内两端的定期客运最短航距（K16 裁定，2026-10-23）。
+        ///
+        /// 为什么单列一条而不是把 <see cref="MinPassengerKm"/> 抬到 250：那个常量是**全球**口径，
+        /// 真实现实里 176 km 的 LAX–SAN、205 km 的 YVR–SEA 都有密集定期航班；按 250 一刀切会把
+        /// 它们一起删掉。中国境内的 100–250 km 则完全被高铁覆盖 —— 实测 823 条接管航线里有 11 条
+        /// 落在这个带内（TSN–PEK 125 / WUX–PVG 136 / SHA–HGH 138 / PVG–NGB 150 / ZUH–CAN 154 /
+        /// PVG–HGH 166 / TFU–CKG 222 / NKG–SHA 242），现实中都没有定期客运。
+        ///
+        /// 不拦的代价不只是「多几条假线」：接管局的种子日利润与航距无关（`TakeoverWorldBuilder`
+        /// 里是 `0.6 + (i%5)×0.15` 万/日），一条 136 km 的线在账上按 11 班/周能赚 18~36 万/月；
+        /// 而玩家新开同一条线走 RPM 口径是**单班 −0.43 万**（136 km，实测）。同一条航线
+        /// 「既有赚钱、新开亏钱」符号相反 —— 这才是 K16 真正要修的失真。
+        ///
+        /// 港澳台不在本判据内（`AirportRegions.IsChina` 只含内地）：内地—港澳属跨境，
+        /// 由 <see cref="IsCrossBorder"/> + 门户门槛管，是否另立规则留给后续裁定。
+        /// </summary>
+        public const float MinChinaDomesticKm = 250f;
+
+        /// <summary>
         /// 跨境航线的**门户门槛**：两端都必须是「本国口岸机场」。
         ///
         /// 为什么要这一条：目的地池对整个 <see cref="CityEconomyCatalog"/> 一视同仁，
@@ -96,6 +115,16 @@ namespace AirlineCEO.Logic
             return n;
         }
 
+        /// <summary>
+        /// 中国境内（两端同属内地）且航距短于 <see cref="MinChinaDomesticKm"/> 的航段：
+        /// 高铁覆盖，现实中没有定期客运。`km &lt; 0.5` 视为坐标缺失，不做判定。
+        /// </summary>
+        public static bool IsChinaDomesticTooShort(string origin, string dest, float km)
+        {
+            if (km < 0.5f || km >= MinChinaDomesticKm) return false;
+            return AirportRegions.IsChina(origin) && AirportRegions.IsChina(dest);
+        }
+
         /// <param name="km">大圆航距；未知坐标时调用方常传入约 2200，不得当真实短航。</param>
         public static bool IsPlausiblePassengerOd(string origin, string dest, float km)
         {
@@ -103,6 +132,8 @@ namespace AirlineCEO.Logic
             if (string.Equals(origin, dest, StringComparison.OrdinalIgnoreCase)) return false;
             if (SameMetro(origin, dest)) return false;
             if (km >= 0.5f && km < MinPassengerKm && km < 1500f) return false;
+            // 中国境内 250 km 以内：高铁覆盖，现实无定期客运（K16）。
+            if (IsChinaDomesticTooShort(origin, dest, km)) return false;
             // 跨境航线两端都得是门户机场：支线机场的国际线不是「不好」，是现实里没有。
             if (IsCrossBorder(origin, dest) && !(IsGateway(origin) && IsGateway(dest))) return false;
             return true;
@@ -116,6 +147,9 @@ namespace AirlineCEO.Logic
                 return "同城机场之间没有定期客运航线（例如北京大兴与北京首都）。";
             if (km >= 0.5f && km < MinPassengerKm && km < 1500f)
                 return $"航距仅 {km:F0} 公里，过短，不符合现实客运航线。";
+            if (IsChinaDomesticTooShort(origin, dest, km))
+                return $"航距仅 {km:F0} 公里：中国境内 {MinChinaDomesticKm:F0} 公里以内的城市之间，"
+                       + "现实中没有定期客运（高铁直达覆盖），请改用其他目的地。";
             if (IsCrossBorder(origin, dest) && !(IsGateway(origin) && IsGateway(dest)))
             {
                 string weak = !IsGateway(origin) ? origin : dest;

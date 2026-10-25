@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 345,
-  "updatedAt": "2026-10-23T01:57:41.635Z",
+  "revision": 389,
+  "updatedAt": "2026-10-25T10:42:52.683Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -126,12 +126,48 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-22T13:18:57.941Z"
+    },
+    "S08-ShortHaul": {
+      "title": "阶段 S08-ShortHaul：Balance/Editor/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-23T02:46:43.657Z"
+    },
+    "S09-Residual": {
+      "title": "阶段 S09-Residual：Editor/Assets-Tests/Balance",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-23T07:58:05.076Z"
+    },
+    "S10-PressDesk": {
+      "title": "阶段 S10-PressDesk：Editor/Assets-Tests/Logic",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-24T12:45:41.908Z"
+    },
+    "S11-T043Windows": {
+      "title": "阶段 S11-T043Windows：T04.3 五个 PlayMode 实时窗口 + 工具修复与文档收口",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-25T09:46:31.963Z"
     }
   },
-  "lastDeliveryId": "DEL-20261023012853-918599",
+  "lastDeliveryId": "DEL-20261025094638-6f76b0",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

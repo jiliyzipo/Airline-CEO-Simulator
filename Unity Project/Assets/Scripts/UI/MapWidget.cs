@@ -23,7 +23,24 @@ namespace AirlineCEO.UI
 
         // ── 调色 ──
         static readonly Color RouteLineCol = new Color(0.38f, 0.10f, 0.52f, 1f);     // 深紫色细航线
-        const float RouteScreenThickness = 2.4f;                                      // 屏幕像素，不随缩放变粗
+        /// <summary>屏幕像素，不随缩放变粗（基准线宽，密集航线在此基础上加粗）。</summary>
+        const float RouteScreenThickness = 2.4f;
+        /// <summary>
+        /// ★T03.8：线宽随班次密度变化。
+        ///
+        /// 旧版所有航线一律 2.4 px，于是「天天飞的干线」和「一周两班的支线」在地图上长得一模一样，
+        /// 地图看不出运力分布 —— 而地图本来就是主视觉。这里按**周离港班次**分三档：
+        /// ≤7 班细（2.0）、8–20 班基准（2.4）、>20 班粗（3.0）。档位少、边界取整数，
+        /// 避免连续函数在缩放时抖动。
+        /// </summary>
+        public static float RouteThickness(RouteData r)
+        {
+            if (r == null) return RouteScreenThickness;
+            int w = Mathf.Max(0, r.WeeklyFlightsDeparture());
+            if (w <= 7) return 2.0f;
+            if (w <= 20) return RouteScreenThickness;
+            return 3.0f;
+        }
         static readonly Color HubCoreCol = new Color(0.10f, 0.42f, 1f, 1f);          // 主基地
         static readonly Color PlaneCol = new Color(1f, 1f, 1f, 0.98f);
 
@@ -405,10 +422,12 @@ namespace AirlineCEO.UI
 
                 var arc = GreatCirclePoints(r.origin, r.destination, 40);
                 if (arc == null || arc.Count < 2) continue;
+                // ★T03.8：线宽随班次密度（周离港班次）分档，干线更粗、支线更细
+                float thickness = RouteThickness(r);
                 for (int s = 0; s < arc.Count - 1; s++)
                 {
-                    var line = DrawLine(map, "Route_" + i + "_" + s, arc[s], arc[s + 1], RouteLineCol, RouteScreenThickness);
-                    if (line != null) zoom.RegisterLine(line, RouteScreenThickness);
+                    var line = DrawLine(map, "Route_" + i + "_" + s, arc[s], arc[s + 1], RouteLineCol, thickness);
+                    if (line != null) zoom.RegisterLine(line, thickness);
                 }
             }
 

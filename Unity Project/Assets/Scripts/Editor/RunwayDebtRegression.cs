@@ -36,7 +36,7 @@ namespace AirlineCEO.EditorTools
             ("preset_distressed", "★5 困境 PVG", 3f),
         };
 
-        public static void Run()
+        public static bool Run()
         {
             var go = new GameObject("__runway_debt_gs__");
             try
@@ -91,6 +91,49 @@ namespace AirlineCEO.EditorTools
                 bool burnIgnoresEquity = Mathf.Abs(gs.EffectiveMonthlyBurn - baseBurn) < 0.01f;
                 gs.activeLoans = new List<Loan>();
 
+                // ⑧ 逐季推进（§14 未覆盖项）：monthsRemaining 递减时的读数必须逐季留痕。
+                //    钉两件事：① 未还清期间月供恒定 → 烧钱不变、跑道不倒退；
+                //              ② 还清的那一季，烧钱恰好下降「一个月供」——差值等于月供本身，
+                //                 而不是「看起来降了」。
+                gs.monthlyBurnRate = 500f;
+                const float probeCash = 3000f;   // 现金固定：只让「月供变化」进跑道，避免混入现金差
+                var quarterLoan = new Loan { type = "bank", monthsRemaining = 12, monthlyPayment = 100f };
+                gs.activeLoans = new List<Loan> { quarterLoan };
+                var monthsSeq = new int[5];
+                var burnSeq = new float[5];
+                var runwaySeq = new float[5];
+                for (int q = 0; q <= 4; q++)
+                {
+                    monthsSeq[q] = quarterLoan.monthsRemaining;
+                    burnSeq[q] = gs.EffectiveMonthlyBurn;
+                    runwaySeq[q] = CashRunnelCalculator.GetRunwayMonths(probeCash, burnSeq[q]);
+                    if (q < 4) quarterLoan.monthsRemaining -= Mathf.Min(3, quarterLoan.monthsRemaining);
+                }
+                bool monthsDescend = true, burnFlatWhileOpen = true, runwayNoRetreat = true;
+                for (int q = 1; q <= 4; q++)
+                {
+                    if (monthsSeq[q] >= monthsSeq[q - 1]) monthsDescend = false;
+                    if (runwaySeq[q] < runwaySeq[q - 1] - 0.001f) runwayNoRetreat = false;
+                    if (q < 4 && Mathf.Abs(burnSeq[q] - burnSeq[0]) > 0.01f) burnFlatWhileOpen = false;
+                }
+                bool payoffDrop = Mathf.Abs((burnSeq[3] - burnSeq[4]) - 100f) <= 0.5f;
+
+                // 尾季按剩余月份摊：剩 2 期、月供 100 → 本季月均 66.67，烧钱只降 66.67
+                gs.activeLoans = new List<Loan>
+                {
+                    new Loan { type = "bank", monthsRemaining = 2, monthlyPayment = 100f }
+                };
+                float tailBurn = gs.EffectiveMonthlyBurn;
+                bool tailBurnProrated = Mathf.Abs((tailBurn - burnSeq[4]) - 100f * 2f / 3f) <= 0.5f;
+                gs.activeLoans = new List<Loan>();
+
+                var seqText = new StringBuilder();
+                seqText.Append($"\n　逐季推进：月数[{monthsSeq[0]},{monthsSeq[1]},{monthsSeq[2]},{monthsSeq[3]},{monthsSeq[4]}]");
+                seqText.Append($" 烧钱[{burnSeq[0]:F1},{burnSeq[1]:F1},{burnSeq[2]:F1},{burnSeq[3]:F1},{burnSeq[4]:F1}]");
+                seqText.Append($" 跑道[{runwaySeq[0]:F2},{runwaySeq[1]:F2},{runwaySeq[2]:F2},{runwaySeq[3]:F2},{runwaySeq[4]:F2}]");
+                seqText.Append($" 递减={monthsDescend} 未清期烧钱恒定={burnFlatWhileOpen}"
+                               + $" 跑道不倒退={runwayNoRetreat} 清偿季降一个月供={payoffDrop} 尾季摊薄={tailBurnProrated}");
+
                 // ⑦ 预览与局内共用实现 + 跑道仍落在设计目标
                 var sb = new StringBuilder();
                 sb.Append("跑道/月供口径 → 权益排除=").Append(equityIgnored)
@@ -124,9 +167,12 @@ namespace AirlineCEO.EditorTools
                 }
 
                 bool all = equityIgnored && repaidIgnored && tailAmortized && mixedOk
-                           && burnIncludesDebt && burnIgnoresEquity && presetsOk;
+                           && burnIncludesDebt && burnIgnoresEquity && presetsOk
+                           && monthsDescend && burnFlatWhileOpen && runwayNoRetreat
+                           && payoffDrop && tailBurnProrated;
 
-                Debug.Log(sb.Append($"　{(all ? "✓" : "✗")}").ToString());
+                Debug.Log(sb.Append(seqText).Append($"　{(all ? "✓" : "✗")}").ToString());
+                return all;
             }
             finally
             {
