@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028134725-93e0be",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 699,
+  "at": "2026-10-28T13:47:25.271Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ISSUE-20261028125310-c6b502: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261028125310-c6b502",
+    "from": "verified",
+    "to": "closed",
+    "note": "已由Codex独立复验并以revision698置verified，现关闭。2877d10隔离完整套件187/187及原AUDIT-R05转绿；撤回/取代显式入口拒绝已有证据。原缺陷/历史failed/撤回ledger均保留，未检测真实误归属DEL。见docs/handoff/ISSUE-c6b502_独立复验关闭_2026-10-28.md。"
+  }
+}

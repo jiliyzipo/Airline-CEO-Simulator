@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 697,
-  "updatedAt": "2026-10-28T13:31:19.640Z",
+  "revision": 699,
+  "updatedAt": "2026-10-28T13:47:25.264Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -455,11 +455,11 @@
       "at": "2026-10-28T12:53:54.806Z"
     },
     "ISSUE-20261028125310-c6b502": {
-      "status": "fixed",
-      "previous": "open",
-      "actor": "cursor",
-      "note": "stage-review 与 review-start 均按共享台账拒绝 withdrawn/superseded；锁内复核；新增 R05/R06，Codex 的 AUDIT-R05 探针在修复前 FAIL、修复后 PASS",
-      "at": "2026-10-28T13:31:19.639Z"
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "已由Codex独立复验并以revision698置verified，现关闭。2877d10隔离完整套件187/187及原AUDIT-R05转绿；撤回/取代显式入口拒绝已有证据。原缺陷/历史failed/撤回ledger均保留，未检测真实误归属DEL。见docs/handoff/ISSUE-c6b502_独立复验关闭_2026-10-28.md。",
+      "at": "2026-10-28T13:47:25.262Z"
     }
   },
   "deliveryStatus": {

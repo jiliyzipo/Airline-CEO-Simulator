@@ -1,10 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-28T13:31:20.046Z
-状态 revision：697
-Cursor 最近确认读取：revision 693 @ 2026-10-28T12:24:08.611Z
-Codex 最近确认读取：revision 693 @ 2026-10-28T12:44:00.111Z
-> 状态已更新，Cursor 尚未确认读取最新 revision。
+生成时间：2026-10-28T13:51:29.430Z
+状态 revision：699
+Cursor 最近确认读取：revision 699 @ 2026-10-28T13:51:29.046Z
+Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -108,7 +107,6 @@ Codex 最近确认读取：revision 693 @ 2026-10-28T12:44:00.111Z
 - ISSUE-20261025133539-5d00c2 [blocker] 验收条件缺少机器验证，且检测者未显式补证 · task=S12-CommandConsole
 - ISSUE-20261026023527-01bb24 [blocker] profile collab 未通过（DEL-20261026022132-804f18） · task=S13-CollabSupersede
 - ISSUE-20261026061059-747c95 [blocker] profile collab 未通过（DEL-20261026031355-16ec52） · task=S13-CollabSupersede
-- ISSUE-20261028125310-c6b502 [major] stage-retract 撤回后显式 stage-review 仍可创建 REV 并通过 · task=S03-Docs
 
 本文件由 `node tools/collab/cli.mjs sync` 生成，请勿手工维护第二套状态。
 T01/T06 等只读引用的任务书状态见 taskBookStatus；不以本工具覆盖游戏任务书勾选。

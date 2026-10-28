@@ -32,4 +32,3 @@
 - 缺陷 ISSUE-20261025133539-5d00c2 [fixed/blocker] 归属建议=codex · task=S12-CommandConsole
 - 缺陷 ISSUE-20261026023527-01bb24 [fixed/blocker] 归属建议=cursor · task=S13-CollabSupersede
 - 缺陷 ISSUE-20261026061059-747c95 [fixed/blocker] 归属建议=cursor · task=S13-CollabSupersede
-- 缺陷 ISSUE-20261028125310-c6b502 [fixed/major] 归属建议=cursor · task=S03-Docs

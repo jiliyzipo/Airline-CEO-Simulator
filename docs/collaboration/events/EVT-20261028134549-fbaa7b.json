@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028134549-fbaa7b",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 698,
+  "at": "2026-10-28T13:45:49.416Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ISSUE-20261028125310-c6b502: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261028125310-c6b502",
+    "from": "fixed",
+    "to": "verified",
+    "note": "独立复验修复提交2877d1099f0f2721c2a5425c418552b0c0e378ca：隔离导出完整collab187/187、0失败0跳过（stage34/34含R05/R06）；原AUDIT-R05未修改，修复前FAIL、对隔离修复源码PASS。真实误归属DEL未运行检测。证据与范围见docs/handoff/ISSUE-c6b502_独立复验关闭_2026-10-28.md。"
+  }
+}
