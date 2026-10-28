@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028105344-8f56bd",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 684,
+  "at": "2026-10-28T10:53:44.105Z",
+  "actor": "cursor",
+  "action": "stage-refresh-ac",
+  "taskId": "S03-Docs",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "acceptance criteria re-derived: smoke -> unity-editmode",
+  "data": {
+    "from": "smoke",
+    "to": "unity-editmode",
+    "previous": [
+      {
+        "id": "AC1",
+        "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S03-Docs）"
+      },
+      {
+        "id": "AC2",
+        "text": "冒烟 profile 输出可解析的机器结果 JSON 且断言计数合法（S03-Docs）"
+      },
+      {
+        "id": "AC3",
+        "text": "文档与索引引用在本快照内可解析（无断链路径）（S03-Docs）"
+      }
+    ]
+  }
+}

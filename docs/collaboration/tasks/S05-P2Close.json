@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Logic、UI、Editor、Systems、Data、Balance",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T01:03:04.056Z",
-  "updatedAt": "2026-10-28T02:36:46.128Z",
+  "updatedAt": "2026-10-28T08:14:25.398Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 42 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261022092843-6e9303, DEL-20261028002145-55518e 等 5 个.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 38 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+  "staleForReviewId": "REV-20261022011140-9e5b0b",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:23.749Z",
@@ -95,8 +95,13 @@
   "scopeDrift": {
     "basis": 105,
     "intact": 63,
-    "covered": 42,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 38,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+    ],
+    "uncoveredCount": 4
   }
 }

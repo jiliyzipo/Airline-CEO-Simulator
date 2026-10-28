@@ -12,12 +12,15 @@
  * `out/ai-trigger/`, the bridge runs the named suite on the main thread, and the result
  * comes back as `out/ai-result/<id>.json`.
  *
- * Stale-assembly guard: Unity compiles scripts only when the editor regains focus, even
- * with Asset Pipeline → Auto Refresh **enabled**. Before requesting anything we compare the
- * newest `.cs` mtime against the compiled assemblies; if the source is newer we first send
- * the bridge's `__refresh` pseudo-suite (one `AssetDatabase.Refresh()`), wait for the
- * assemblies to be rewritten, and only then run the suite. Without this a run silently
- * describes the previous build and still reports `passed`.
+ * Stale-assembly guard: Unity compiles scripts only when its window regains focus — even
+ * with Asset Pipeline → Auto Refresh **enabled**, and even in the background where
+ * `Refresh` / `RequestScriptCompilation` / `ForceSynchronousImport` are silently dropped
+ * (all three were tried on 2026-10-28 with no effect). Before requesting anything we compare
+ * the newest `.cs` mtime against the compiled assemblies; if the source is newer we ask the
+ * bridge for `__refresh`, give compilation a bounded chance, and then **refuse to run**
+ * rather than report a pass that describes the previous build. In practice a script change
+ * still needs one focus on the Unity window; the guard is what makes that a loud stop
+ * instead of a silent false green.
  *
  * Exit codes: 0 passed · 1 failed/error · 2 no answer (bridge not installed, editor busy
  * in Play mode, OFF file present, or assembly could not be refreshed) · 3 usage.
@@ -40,7 +43,6 @@ const PROJECT_ASSEMBLIES = [
   'AirlineCEO.EditModeTests.dll',
 ];
 
-/** 伪 suite：让编辑器做一次 AssetDatabase.Refresh()，替代"手动点一下 Unity 窗口"。 */
 const REFRESH_SUITE = '__refresh';
 
 function arg(name, fallback = null) {
@@ -219,7 +221,7 @@ async function main() {
       `stale assembly: ${stale.file} (${iso(stale.sourceMs)}) is newer than the compiled ` +
         `assemblies (${iso(stale.asmMs)}).`,
     );
-    console.log('asking the editor to refresh and recompile first (previously this needed a manual click on Unity)...');
+    console.log('asking the editor to refresh and recompile first...');
 
     const refreshed = await sendRequest(REFRESH_SUITE, 120, { quietStatus: true });
     if (refreshed.status !== 'refreshed') {
@@ -233,7 +235,11 @@ async function main() {
     if (!(await waitForFreshAssembly(stale.sourceMs, refreshTimeoutSec))) {
       console.error(
         `assemblies were still older than ${iso(stale.sourceMs)} after ${refreshTimeoutSec}s.\n` +
-          `Unity may be showing a compile error (check its Console) or sitting in Play mode.\n` +
+          `This is expected: Unity defers script compilation entirely while its window is not\n` +
+          `focused, and no API bypasses it (Refresh / RequestScriptCompilation /\n` +
+          `ForceSynchronousImport were all tried on 2026-10-28 with no effect).\n` +
+          `Action: switch to the Unity window once, wait for the spinner, then rerun.\n` +
+          `If focusing does not help, check the Unity Console for compile errors.\n` +
           `Refusing to run: a pass now would describe the previous build, not your edit.`,
       );
       return 2;

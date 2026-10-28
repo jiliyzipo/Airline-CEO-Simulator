@@ -58,6 +58,9 @@ Stage automation (one command per side):
                                                       index into the shared delivery ledger
   stage-supersede --delivery <old> --by <new> [--actor cursor|codex|user] [--note <text>]
                                                       record after the fact that <old> was replaced by <new>
+  stage-retract --delivery <del> --reason <text> [--actor cursor|user]
+                                                      withdraw a delivery filed under the wrong task; keeps the
+                                                      record, drops it from the pending list, blocks review
 
 Exit codes: 0 ok | 2 usage | 3 conflict/CAS | 4 locked | 5 check failed | 6 evidence | 7 forbidden
 `.trim();
@@ -127,6 +130,7 @@ function main() {
     'stage-report': () => stage.cmdStageReport(cfg, args),
     'stage-reconcile': () => stage.cmdStageReconcile(cfg, args),
     'stage-supersede': () => stage.cmdStageSupersede(cfg, args),
+    'stage-retract': () => stage.cmdStageRetract(cfg, args),
   };
 
   if (!map[command]) {

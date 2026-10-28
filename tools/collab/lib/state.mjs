@@ -210,6 +210,66 @@ export function supersededDeliveryIds(state) {
 }
 
 /**
+ * Deliveries that the ledger says must not be taken as this task's work —
+ * replaced by a newer one, or withdrawn by whoever filed them.
+ *
+ * Callers that ask "what is this task's latest real delivery" want this union,
+ * not the two sets separately: a withdrawn delivery describes the tree exactly
+ * as badly as a superseded one. Board rows and the pending list both use it.
+ */
+export function retiredDeliveryIds(state) {
+  const map = state?.deliveryStatus || {};
+  const ids = new Set();
+  for (const [deliveryId, entry] of Object.entries(map)) {
+    if (entry && (entry.status === 'superseded' || entry.status === 'withdrawn')) ids.add(deliveryId);
+  }
+  return ids;
+}
+
+/**
+ * Record that a delivery is withdrawn: it was filed in error and no review may
+ * ever be run against it.
+ *
+ * This is deliberately **not** `superseded`. Supersede answers "what replaced
+ * it", which needs a successor created *after* it; the successor rule exists so
+ * a later delivery cannot be claims-replaced by an earlier one. Withdrawal says
+ * something different and needs no successor at all: "this filing was a mistake
+ * — the changed set it claims never belonged to this task."
+ *
+ * The delivery record itself is never touched. Withdrawing removes a claim from
+ * the ledger, never deletes evidence: `deliveries/<DEL>.json`, its snapshot and
+ * any handoff stay on disk exactly as filed.
+ */
+export function withdrawDelivery(cfg, { deliveryId, taskId, actor, reason }) {
+  if (!deliveryId) return { changed: false, entry: null, revision: loadState(cfg).revision };
+  return withStateLock(cfg, `delivery-withdraw:${deliveryId}`, () => {
+    const state = loadState(cfg);
+    const map = { ...(state.deliveryStatus || {}) };
+    const prev = map[deliveryId];
+    if (prev?.status === 'withdrawn' && (prev.note || '') === (reason || '')) {
+      return { changed: false, entry: prev, revision: state.revision };
+    }
+    const entry = {
+      status: 'withdrawn',
+      supersededBy: null,
+      taskId: taskId || prev?.taskId || null,
+      actor,
+      note: reason || '',
+      at: nowIso(),
+    };
+    map[deliveryId] = entry;
+    const next = saveState(cfg, { ...state, deliveryStatus: map }, { expectedRevision: state.revision });
+    recordEvent(cfg, {
+      actor,
+      action: 'delivery-withdrawn',
+      summary: `withdrawn: ${deliveryId}`,
+      data: { deliveryId, taskId: entry.taskId, reason: entry.note },
+    });
+    return { changed: true, entry, revision: next.revision };
+  });
+}
+
+/**
  * Record that `entries` (`{ deliveryId, supersededBy, taskId }`) were replaced.
  *
  * Idempotent: an entry already marked superseded by the same successor is left

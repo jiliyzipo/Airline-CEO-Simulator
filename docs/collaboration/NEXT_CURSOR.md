@@ -1,14 +1,26 @@
 # NEXT_CURSOR
 
-- C-COLLAB-FINAL: 2 个本任务改动过的文件已被后续改动但无人复验（AGENTS.md, docs/collaboration/README.md），需按当前代码复验；不要自行勾选独立验收通过。
+- C-COLLAB-FINAL: 5 个本任务改动过的文件已被后续改动但无人复验（AGENTS.md, docs/collaboration/README.md, tools/collab/cli.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - C-DEMO: 按缺陷修复后重新 deliver。
 - C-ENG-COMPILE: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - C-ENG-SLOT: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - C-ENG-UNITY: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - C-ENG: 按缺陷修复后重新 deliver。
+- D2-TierLadder: 4 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S01-COLLAB: 5 个本任务改动过的文件已被后续改动但无人复验（tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S02-Collab: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
-- S03-Docs: 按缺陷修复后重新 deliver。
+- S03-Docs: 已交付，等待 Codex；不要自行勾选独立验收通过。
+- S04-UI: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S05-P2Close: 4 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S06-BatchB: 4 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S10-PressDesk: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S11-T043Windows: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S12-CommandConsole: 3 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S16-CollabFidelity: 5 个本任务改动过的文件已被后续改动但无人复验（tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S17-ScopeBaseline: 5 个本任务改动过的文件已被后续改动但无人复验（tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S18-ScopeVerdictFix: 5 个本任务改动过的文件已被后续改动但无人复验（tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S19-ScenarioFixture: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
+- S20-SnapshotHygiene: 5 个本任务改动过的文件已被后续改动但无人复验（tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S21-FreshnessVerdict: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S22-BalanceBridge: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S23-RouteAblation: 历史检测已通过，但工作区已变（freshness=unknown），需按当前代码复验；不要自行勾选独立验收通过。
@@ -17,3 +29,5 @@
 - S27-MapBandLegibility: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S28-PressDeskSign: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S29-CollabPendingFilter: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
+- S30-InboxRowLayout: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
+- S31-RouteConsoleMerge: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 679,
-  "updatedAt": "2026-10-28T02:37:05.483Z",
+  "revision": 693,
+  "updatedAt": "2026-10-28T12:12:23.657Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -63,7 +63,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:22.510Z"
     },
@@ -78,19 +78,19 @@
     },
     "S03-Docs": {
       "title": "阶段 S03-Docs：Docs",
-      "devStatus": "rework",
-      "reviewStatus": "failed",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
       "holder": null,
       "freshness": "stale",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-18T13:23:57.199Z"
+      "updatedAt": "2026-10-28T10:53:44.112Z"
     },
     "S04-UI": {
       "title": "阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:23.236Z"
     },
@@ -99,7 +99,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:23.750Z"
     },
@@ -108,7 +108,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:24.252Z"
     },
@@ -117,7 +117,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:22.062Z"
     },
@@ -153,7 +153,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:26.160Z"
     },
@@ -162,7 +162,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:26.644Z"
     },
@@ -171,7 +171,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:27.131Z"
     },
@@ -207,7 +207,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:47:56.268Z"
     },
@@ -216,7 +216,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T04:08:54.448Z"
     },
@@ -225,7 +225,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T04:09:05.266Z"
     },
@@ -243,7 +243,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T04:18:06.350Z"
     },
@@ -333,12 +333,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-28T02:11:15.020Z"
+    },
+    "S31-RouteConsoleMerge": {
+      "title": "阶段 S31-RouteConsoleMerge：Editor/Logic/UI",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-28T08:56:42.660Z"
     }
   },
-  "lastDeliveryId": "DEL-20261028021245-f4c95c",
+  "lastDeliveryId": "DEL-20261028105347-defc40",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -567,6 +576,14 @@
       "actor": "system",
       "note": "superseded by DEL-20261028010243-671d55",
       "at": "2026-10-28T01:04:25.081Z"
+    },
+    "DEL-20261028105347-defc40": {
+      "status": "withdrawn",
+      "supersededBy": null,
+      "taskId": "S03-Docs",
+      "actor": "cursor",
+      "note": "归属错误（Cursor 操作失误）：stage-close --refresh-ac 只重建验收条件、未收窄改动范围，对比基准仍停在 2026-10-19，于是把基准之后 8 天里其他阶段的累计改动（104 文件，跨 balance/collab/UI/systems）打包成本阶段交付；S03-Docs 自己的 5 个文件一个都不在其中，且对 HEAD 的 git status 为空。该交付同时含 S31 全部工作，而 S31 已由 DEL-20261028092502-0f6037 独立检测通过（REV-20261028110915-15a8d5）。无更晚的继任交付可取代它，故按撤回处理并保留全部历史。",
+      "at": "2026-10-28T12:11:45.647Z"
     }
   }
 }

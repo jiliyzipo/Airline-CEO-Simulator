@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using AirlineCEO.AI;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
@@ -16,43 +14,27 @@ namespace AirlineCEO.UI
 {
     /// <summary>
     /// n41 单航线（L2）：从航线网络点入。运行时构建（无 Prefab），导航栈驱动。
-    /// CEO 在此查看运力体检，并在底部「运力调整指令」对话框里用一句话下达调令；
-    /// 编班、航班环与联动部门由运营部等自动完成，结果以收件箱呈报待批复。
+    /// CEO 在此查看运力体检与班次周排班。
+    ///
+    /// ★2026-10-28 用户裁定：**删掉本页底部的运力指令框**。它和底部 CEO 命令台是两条
+    /// 入口做同一件事（同一条 <c>CapacityDirectiveLogic</c> 管线），而命令台是全局的。
+    /// 句子照旧在那条命令条上说，本页只负责「看」。
+    /// 直接后果是正文可以往下铺满原来被指令框占掉的 26% 高度 —— 班次列表与周排班都变长。
     /// </summary>
     public class RouteDetailPanel : BasePanel
     {
         // ———————————————————————— 版面分段 ————————————————————————
-        // 内容区（Card/Content）按纵向切成互不重叠的三段：
-        //   [ BodyBottom .. 1.00 ]  正文（标题 / 摘要 / 班次列表 或 班次周排班）
-        //   [ DirTop    .. BodyBound ] 间隙
-        //   [ 0         .. DirTop ] 运力调整指令框
-        // 每一段内的文字再各自占用独立区间，并限制换行/行数，避免挤压重叠。
-        /// <summary>底部运力指令框的顶部边界（占内容区高度比例）。</summary>
-        const float DirTop = 0.26f;
-        /// <summary>正文可用区下边界（与指令框之间留出空隙）。</summary>
-        const float BodyBottom = 0.29f;
+        // 内容区（Card/Content）纵向只有一段：正文铺满 [BodyBottom .. 1.00]。
+        // 原先底部 26% 归「运力调整指令」框，框拆掉后这段高度还给正文。
+        // 每一段内的文字仍各自占用独立区间，并限制换行/行数，避免挤压重叠。
+        /// <summary>正文可用区下边界（留一点边距，不贴内容框底）。</summary>
+        const float BodyBottom = 0.02f;
 
         /// <summary>班次列表单行最小节距（低于此值就减少显示行数，不硬挤）。</summary>
         const float ListMinRowPitch = 0.065f;
 
         Transform _content;
         TextMeshProUGUI _toast;
-
-        // —— 运力调整指令对话框（不随 RefreshBody 重建，避免输入丢失）——
-        Transform _dirBox;
-        TMP_InputField _dirInput;
-        TextMeshProUGUI _dirStatus;
-        bool _dirBusy;
-
-        /// <summary>
-        /// 已解析、等待 CEO 确认的指令。非空时再按一次 Enter 才真正执行。
-        /// 把它缓存下来（而不是重新解析）有两个原因：① 解析链路含一次最长 5 秒的分析服务请求，
-        /// 确认时不该再等一遍；② 重解析可能得到不同结果，那「预览」就失去了意义。
-        /// </summary>
-        CapacityDirectiveLogic.Directive _pendingDirective;
-        RouteData _pendingRoute;
-        /// <summary>待确认指令的解析通道（记忆/分析服务/关键词），确认执行时沿用，不重算。</summary>
-        bool _pendingFromAi;
 
         /// <summary>当前查看的班次下标；-1 表示航线总览（班次列表）。</summary>
         int _selFlight = -1;
@@ -95,7 +77,6 @@ namespace AirlineCEO.UI
             panel._toast = toast;
             panel.AssignRefs(root.GetComponent<RectTransform>(), titleLabel, close, cg);
             panel.BindPage("n41_单航线", title);
-            panel.EnsureDirectiveBox();
             panel.RefreshBody();
             return panel;
         }
@@ -118,8 +99,6 @@ namespace AirlineCEO.UI
         {
             ResolveRefs();
             WireBackButton();
-            _dirBusy = false;
-            EnsureDirectiveBox();
             RefreshBody();
         }
 
@@ -127,7 +106,6 @@ namespace AirlineCEO.UI
         {
             base.Show();
             ResolveRefs();
-            EnsureDirectiveBox();
             RefreshBody();
         }
 
@@ -142,11 +120,6 @@ namespace AirlineCEO.UI
             {
                 var t = transform.Find("Card/Toast");
                 if (t != null) _toast = t.GetComponent<TextMeshProUGUI>();
-            }
-            if (_dirBox == null && _content != null)
-            {
-                var d = _content.Find("DirBox");
-                if (d != null) _dirBox = d;
             }
         }
 
@@ -219,7 +192,6 @@ namespace AirlineCEO.UI
                          + "如需重新开通，请在命令台下达「分析开通…的可行性」，"
                          + "或到「航线 → 开通航线」重新申请（航权记录仍在，但时刻槽需重新绑定）。",
                         0.0f, 0.74f, 1.0f, 0.86f, 14, UITheme.TextPrimary);
-                    SetDirEnabled(false, "航线已停飞，无法下达运力指令。");
                     return;
                 }
 
@@ -238,13 +210,11 @@ namespace AirlineCEO.UI
                         L("E", "提案航线，尚未开通。请返回收件箱批准；下季度投入运营后可在此查看班期与收益。",
                             0.0f, 0.72f, 1.0f, 0.86f, 14, UITheme.Warning);
                     }
-                    SetDirEnabled(false, "航线尚未开通，开通后再下达运力指令。");
                     return;
                 }
 
                 L("H", "单航线", 0.0f, 0.90f, 1.0f, 0.97f, 16, UITheme.TextMuted, true);
                 L("E", "未选择航线。请从航线网络点击航线进入。", 0.0f, 0.78f, 1.0f, 0.86f, 14, UITheme.Warning);
-                SetDirEnabled(false, "未选择航线，无法下达运力指令。");
                 return;
             }
 
@@ -259,18 +229,12 @@ namespace AirlineCEO.UI
             {
                 _lastRouteId = r.routeId;
                 _selFlight = -1;
-                // 待确认的方案是绑在**某条航线**上的，换线后确认没有任何意义（可能把 A 线的班次改到 B 线上）。
-                _pendingDirective = null;
-                _pendingRoute = null;
             }
 
             if (_selFlight >= 0)
                 RenderFlightDetail(r, gs);
             else
                 RenderOverview(r, gs, m);
-
-            EnsureDirectiveBox();
-            UpdateDirIdleStatus(r);
         }
 
         // ———————————————————————— 班次列表 → 班次周排班 ————————————————————————
@@ -316,7 +280,8 @@ namespace AirlineCEO.UI
             int n = r.flights != null ? r.flights.Count : 0;
             if (n == 0)
             {
-                L2("NoF", "该航线暂无班次。请在下方对话框下达运力指令，运营部将自动编班并构建航班环。",
+                L2("NoF", "该航线暂无班次。请在底部 CEO 命令台说一句运力指令（例：这条线加密到每天 3 班），"
+                          + "运营部将自动编班并构建航班环。",
                     0f, top - 0.06f, 1f, top, 12, UITheme.Warning);
                 return;
             }
@@ -410,8 +375,10 @@ namespace AirlineCEO.UI
                 UITheme.PanelDeep, CloseFlight, 13);
 
             // —— AS 式周视图：左时间轴 × 上星期 × 往返块（去程段 / 橙条过站 / 回程段）——
+            // 指令框拆掉后底部空出 26%，整段还给周视图（0.355 → 0.085）。
+            // 这张图是 CEO 判断「这班到底排得开不开」的唯一凭据，行高比留白值钱。
             var card = UIFactory.Panel(_content, "SchedCard",
-                new UIFactory.Anchor(new Vector2(0f, 0.355f), new Vector2(1f, 0.808f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0f, 0.085f), new Vector2(1f, 0.808f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep);
             UIFactory.AddBorder(card, UITheme.Border, new Vector2(1f, -1f));
 
@@ -458,7 +425,7 @@ namespace AirlineCEO.UI
                 $"执飞　{TermNavMap.AircraftLink(reg)}　{r.aircraftType}　｜　" +
                 (string.IsNullOrEmpty(ring) ? "未串环（本线往返）" : "航班环 " + ring) +
                 $"　｜　单班日利 {r.FlightNetDailyProfit:F2} 万 · 往返 {FlightScheduleFormat.Duration(trip.cycleMinutes)}（含过站 {trip.turnMinutes} 分）· {TotalSeats(r, reg)} 座",
-                0.0f, BodyBottom, 1.0f, 0.348f, 12, f.dailyProfit >= 0 ? UITheme.Success : UITheme.Danger));
+                0.0f, 0.005f, 1.0f, 0.075f, 12, f.dailyProfit >= 0 ? UITheme.Success : UITheme.Danger));
         }
 
         void OpenFlight(int index)
@@ -506,297 +473,6 @@ namespace AirlineCEO.UI
             var fm = FleetManager.Instance;
             var ac = fm != null ? fm.GetAircraftByRegistration(reg) : null;
             return ac != null ? ac.TotalSeats : 0;
-        }
-
-        // ———————————————————————— 运力调整指令对话框 ————————————————————————
-
-        /// <summary>底部指令对话框：输入一句话 → Enter 下达 → 运营部与联动部门自动执行。</summary>
-        void EnsureDirectiveBox()
-        {
-            if (_content == null) return;
-            if (_dirBox == null)
-            {
-                var box = UIFactory.Panel(_content, "DirBox",
-                    new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(1f, DirTop), Vector2.zero, Vector2.zero),
-                    UITheme.PanelDeep);
-                UIFactory.AddBorder(box, UITheme.Accent, new Vector2(1f, -1f));
-                _dirBox = box.transform;
-
-                // 标题：单行省略，不占用输入框与状态行的空间
-                var dirTitle = UIFactory.Label(_dirBox, "DirTitle",
-                    "运力调整指令　·　输入后按 Enter 下达　·　运营部自动编班并构建航班环，市场/机务/财务/地勤联动，随后邮件呈报待批复",
-                    11, TextAlignmentOptions.MidlineLeft,
-                    new UIFactory.Anchor(new Vector2(0.015f, 0.845f), new Vector2(0.985f, 0.995f), Vector2.zero, Vector2.zero),
-                    UITheme.Accent);
-                ClampLines(dirTitle, 1, 0f);
-
-                _dirInput = UIFactory.Input(_dirBox, "DirInput",
-                    "例如：这条线运力偏紧，加密到每天 3 班，早班到红眼都排上，并保证同机连班…\n"
-                    + "减班就说：削减到每天 1 班。说清「增/减 + 几班」直接执行；说不清会先给方案请您确认。",
-                    new UIFactory.Anchor(new Vector2(0.015f, 0.44f), new Vector2(0.985f, 0.82f), Vector2.zero, Vector2.zero));
-                _dirInput.lineType = TMP_InputField.LineType.MultiLineSubmit;
-                if (_dirInput.textComponent != null)
-                {
-                    _dirInput.textComponent.textWrappingMode = TextWrappingModes.Normal;
-                    _dirInput.textComponent.verticalAlignment = VerticalAlignmentOptions.Top;
-                    _dirInput.textComponent.fontSize = 14f;
-                    _dirInput.textComponent.lineSpacing = 0f;
-                    _dirInput.textComponent.overflowMode = TextOverflowModes.Truncate;
-                }
-                if (_dirInput.placeholder is TMP_Text ph) ph.fontSize = 12f;
-                _dirInput.onSubmit.AddListener(_ => SubmitDirective());
-
-                // 状态行：最多 4 行，超出截断（原先是溢出，会压到输入框上）
-                _dirStatus = UIFactory.Label(_dirBox, "DirStatus", "", 11, TextAlignmentOptions.TopLeft,
-                    new UIFactory.Anchor(new Vector2(0.015f, 0.02f), new Vector2(0.985f, 0.42f), Vector2.zero, Vector2.zero),
-                    UITheme.TextMuted);
-                ClampLines(_dirStatus, 4, 1f);
-            }
-            _dirBox.SetAsLastSibling();
-        }
-
-        void SetDirEnabled(bool on, string status)
-        {
-            if (_dirInput != null)
-            {
-                _dirInput.interactable = on;
-                if (!on) _dirInput.text = "";
-            }
-            if (!on)
-            {
-                _pendingDirective = null;
-                _pendingRoute = null;
-                SetDirStatus(status);
-            }
-        }
-
-        void UpdateDirIdleStatus(RouteData r)
-        {
-            if (_dirBusy || _dirStatus == null || r == null) return;
-            if (_pendingDirective != null) { SetDirStatus(PendingPrompt()); return; }
-            r.EnsureFlights();
-            SetDirStatus(
-                $"当前　{r.origin}⇄{r.destination}　{r.DualWeeklyLine()} · {CapacityDirectiveLogic.RegsOf(r)} · 日利 {r.dailyProfit:F1} 万\n" +
-                FirstLine(CapacityDirectiveLogic.Precheck(GameState.Instance, r)) + "\n" +
-                "输入一句话调令后按 Enter 下达；结果以邮件呈报，您只需在收件箱批复。\n" +
-                CapacityDirectiveLogic.KeywordHint());
-        }
-
-        /// <summary>取首行：预检文案可能带换行，整段塞进 4 行状态区会把规范词那一行挤掉。</summary>
-        static string FirstLine(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return "";
-            int at = s.IndexOf('\n');
-            return at < 0 ? s : s.Substring(0, at);
-        }
-
-        /// <summary>待确认态的提示（重新选择航线/被刷新时也要能把这句话还原出来）。</summary>
-        string PendingPrompt()
-            => _pendingDirective == null
-                ? ""
-                : CapacityDirectiveLogic.ConfirmPrompt(_pendingRoute, _pendingDirective,
-                    _pendingDirective.fromAi);
-
-        void SubmitDirective()
-        {
-            if (_dirBusy) return;
-            var r = CurrentRoute();
-            if (r == null)
-            {
-                SetDirStatus("未选择航线，无法下达运力指令。");
-                return;
-            }
-            string text = _dirInput != null ? (_dirInput.text ?? "").Trim() : "";
-            if (text.Length == 0)
-            {
-                // 空输入 + 有待确认指令 = 玩家按第二次 Enter，视为对方案的确认。
-                if (_pendingDirective != null)
-                {
-                    // 但**方向没读懂时不给这一下**：此时拟定的是系统按默认增班填的，
-                    // Enter 一遍就等于 CEO 替系统认了这个猜（旧版正是这么办的，见 ConfirmPrompt 注释）。
-                    if (!CapacityDirectiveLogic.CanConfirmOnEnter(_pendingDirective))
-                    {
-                        SetDirStatus(PendingPrompt());
-                        if (_dirInput != null) _dirInput.ActivateInputField();
-                        return;
-                    }
-                    var d = _pendingDirective;
-                    bool fromAi = _pendingFromAi;
-                    _pendingDirective = null;
-                    StartCoroutine(ExecuteDirective(_pendingRoute != null ? _pendingRoute : r, d, fromAi));
-                    return;
-                }
-                SetDirStatus("请输入指令，例如：这条线运力偏紧，加密到每天 3 班。\n"
-                    + CapacityDirectiveLogic.KeywordHint());
-                if (_dirInput != null) _dirInput.ActivateInputField();
-                return;
-            }
-            _pendingDirective = null;   // 重新输入即作废旧方案，避免「确认了上一版」这种错办
-            StartCoroutine(RunDirective(r, text));
-        }
-
-        /// <summary>解析指令 → 运营部自动执行 → 呈报收件箱。</summary>
-        IEnumerator RunDirective(RouteData route, string text)
-        {
-            _dirBusy = true;
-            if (_dirInput != null) _dirInput.interactable = false;
-            SetDirStatus("系统正在分析指令…");
-
-            DirectiveLexicon.Init();          // 确保「记忆」已挂上（幂等；不依赖启动流程）
-
-            // —— 先分清「问」还是「令」（2026-10-13 CEO 报障）——
-            // 「为何 FR106/107 周三、周五、周日不安排执飞？」旧版被读成**改派飞机**的命令
-            // （句里有「安排」，又有与机型代号同形的航班号 FR106），运营部真的去提名机号了。
-            // 问句一律**不解析、不执行、不猜**，直接转运营部答复（答复件进收件箱），
-            // 并且刻意排在分析服务之前 —— 模型无权替 CEO 把一句「为什么」变成一条调令。
-            if (CapacityDirectiveLogic.LooksLikeQuestion(text))
-            {
-                _pendingDirective = null;
-                bool queued = InboxManager.QueueOpsQueryAnswer(GameState.Instance, route, text, out string qmsg);
-                if (_dirInput != null)
-                {
-                    _dirInput.text = "";
-                    _dirInput.interactable = true;
-                    _dirInput.ActivateInputField();
-                }
-                RefreshBody();                 // _dirBusy 仍为 true：刷新不会把状态行重置回「现状」
-                _dirBusy = false;
-                SetDirStatus(
-                    (queued ? "ℹ 这是询问，已转运营部答复：\n" : "⚠ 未能发出答复：\n")
-                    + qmsg
-                    + "\n答复见收件箱（本线班次与机号未作任何改动）。要办事请写「加密到每天 N 班」这类调令。");
-                yield break;
-            }
-
-            var d = CapacityDirectiveLogic.Parse(text);
-            string aiJson = null;
-            bool done = false;
-            var ai = AIChatManager.Instance;
-            if (ai != null)
-            {
-                string sys = CapacityDirectiveLogic.BuildParseSystemPrompt();
-                string user = CapacityDirectiveLogic.BuildParseUserPrompt(GameState.Instance, route, text);
-                ai.AskRawJson(sys, user, j => { aiJson = j; done = true; });
-                float t = 0f;
-                while (!done && t < 5f)
-                {
-                    t += Time.unscaledDeltaTime;
-                    yield return null;
-                }
-            }
-            bool fromAi = !string.IsNullOrWhiteSpace(aiJson);
-            CapacityDirectiveLogic.MergeAiJson(d, aiJson);
-            // 只说目标、不说增减的调令（「把FR106/FR107调整为每日一段往返」）：方向由现状与目标比出来。
-            CapacityDirectiveLogic.ResolveStatedTarget(route, d);
-
-            // 系统要猜（意图没读懂 / 没给班次）时**不执行**，先回显方案请 CEO 核对。
-            // 这一道拦截的存在意义：解析默认偏「增班」，猜错的典型方向恰好是
-            // 「CEO 想砍班、运营部给加密」，而且执行后班次真的变了、邮件也真的发了，当时看不出错。
-            if (CapacityDirectiveLogic.NeedsConfirm(d))
-            {
-                _pendingDirective = d;
-                _pendingRoute = route;
-                _pendingFromAi = fromAi;
-                if (_dirInput != null)
-                {
-                    _dirInput.text = "";
-                    _dirInput.interactable = true;
-                    _dirInput.ActivateInputField();
-                }
-                _dirBusy = false;
-                SetDirStatus(CapacityDirectiveLogic.ConfirmPrompt(route, d, fromAi));
-                yield break;
-            }
-
-            _pendingDirective = null;
-            yield return ExecuteDirective(route, d, fromAi);
-        }
-
-        /// <summary>执行已确认的指令 → 呈报收件箱。与 <see cref="RunDirective"/> 拆开，好让确认路径复用同一段代码。</summary>
-        IEnumerator ExecuteDirective(RouteData route, CapacityDirectiveLogic.Directive d, bool fromAi)
-        {
-            _dirBusy = true;
-            if (_dirInput != null) _dirInput.interactable = false;
-            SetDirStatus($"已解析指令：{Shorten(d.analysis, 48)}\n运营部正在编班、构建航班环，联动部门同步执行…");
-            yield return null;
-
-            var rep = CapacityDirectiveLogic.Execute(GameState.Instance, route, d);
-            if (!rep.ok)
-            {
-                if (_dirInput != null) _dirInput.interactable = true;
-                RefreshBody();                      // _dirBusy 仍为 true：刷新不会重置状态行
-                _dirBusy = false;
-                // 页面提示承诺的是「结果以邮件呈报」：办不成也必须回一封（汇报件），
-                // 否则 CEO 走一趟收件箱什么都找不到 —— 2026-10-13 报障原话。
-                SetDirStatus("未能执行：" + Shorten(rep.note, 72)
-                             + (rep.failureQueued
-                                ? "\n已发复核报告（收件箱·汇报件，无需批复），写明未执行的原因与本线可选处置。本线维持现状。"
-                                : "\n复核报告未能投递，请检查收件箱状态。"));
-                yield break;
-            }
-
-            // 指派/改派执飞飞机：Execute 已把提名件直接投递（走的不是运力呈报那条邮件），
-            // 这里不再 QueueCapacityReport，否则同一件事会冒出两封待批邮件。
-            bool queued;
-            string chan;
-            if (rep.assignment)
-            {
-                queued = true;
-                chan = d.fromLearned ? "记忆" : (fromAi ? "分析服务" : "关键词兜底");
-                if (_dirInput != null)
-                {
-                    _dirInput.text = "";
-                    _dirInput.interactable = true;
-                }
-                SetDirStatus(
-                    $"已下达〔{chan}〕　{Shorten(d.analysis, 44)}\n" +
-                    Shorten(rep.note, 72) + "\n" +
-                    "请在收件箱选定一架；退回则不指派，本线维持现状。");
-                RefreshBody();
-                _dirBusy = false;
-                yield break;
-            }
-
-            queued = InboxManager.QueueCapacityReport(GameState.Instance, route, rep);
-            // 挂起「原话 → 分析服务的读法」这条候选：等 CEO 在收件箱**批准**了才真正变成记忆。
-            // 只挂分析服务读出来的（关键词读出来的本来就在词表里，学了不会让认知变宽）。
-            DirectiveLexicon.Stage(d.raw, d, fromAi);
-            if (_dirInput != null)
-            {
-                _dirInput.text = "";
-                _dirInput.interactable = true;
-            }
-            string ring = string.IsNullOrEmpty(rep.ringIdsCsv) ? "未编环（按本线往返执行）" : "航班环 " + rep.ringIdsCsv;
-            // 标出本次是哪条通道办成的：玩家要能分辨「这句是我教过它的」还是「它自己猜的」。
-            chan = d.fromLearned ? "记忆" : (fromAi ? "分析服务" : "关键词兜底");
-            string status =
-                $"已下达〔{chan}〕　{Shorten(d.analysis, 44)}\n" +
-                $"结果　{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}\n" +
-                (queued ? $"运营部已受理，约 {InboxCadence.ReportHours} 小时后呈报至收件箱。" : "呈报邮件未能投递，请检查收件箱状态。");
-            if (rep.shortages != null && rep.shortages.Count > 0)
-            {
-                var slots = new List<string>();
-                for (int i = 0; i < rep.shortages.Count; i++)
-                {
-                    var s = rep.shortages[i];
-                    if (s != null) slots.Add($"{s.slotLabel} {s.dep}");
-                }
-                status = $"已下达〔{chan}〕　{Shorten(d.analysis, 36)}\n" +
-                         $"结果　{route.DualWeeklyLine()} · {ring}　" +
-                         (queued ? $"已受理，约 {InboxCadence.ReportHours} 小时后呈报。" : "呈报邮件未能投递。") + "\n" +
-                         $"运力缺口　{string.Join("、", slots.ToArray())} 时段排不出班\n" +
-                         (rep.shortages[0] != null ? "原因　" + Shorten(rep.shortages[0].reason, 60) : "");
-            }
-            RefreshBody();                          // 刷新航线数据后回写结果（避免被状态行重置覆盖）
-            _dirBusy = false;
-            SetDirStatus(status);
-        }
-
-        void SetDirStatus(string text)
-        {
-            if (_dirStatus == null) return;
-            _dirStatus.text = TermNavMap.Decorate(text ?? "");
-            WireKeywordNav(_dirStatus);
         }
 
         // ———————————————————————— 关键词跳转 ————————————————————————
@@ -913,13 +589,13 @@ namespace AirlineCEO.UI
         // ———————————————————————— 工具 ————————————————————————
 
         /// <summary>清空内容层：保留运力指令对话框，避免正在输入的指令被刷新打断。</summary>
+        /// <summary>清空内容层后重建（原先要留住运力指令框，框拆掉后整层都是可重建的正文）。</summary>
         void Clear(Transform host)
         {
             for (int i = host.childCount - 1; i >= 0; i--)
             {
                 var child = host.GetChild(i);
                 if (child == null) continue;
-                if (child == _dirBox || child.name == "DirBox") continue;
                 Destroy(child.gameObject);
             }
         }
@@ -960,13 +636,6 @@ namespace AirlineCEO.UI
             t.maxVisibleLines = Mathf.Max(1, maxLines);
             t.lineSpacing = lineSpacing;
         }
-
-        /// <summary>截短长文本，避免撑破状态行。</summary>
-        static string Shorten(string s, int max)
-        {
-            if (string.IsNullOrEmpty(s)) return "";
-            s = s.Replace('\n', ' ').Replace('\r', ' ').Trim();
-            return s.Length <= max ? s : s.Substring(0, max) + "…";
-        }
     }
 }
+

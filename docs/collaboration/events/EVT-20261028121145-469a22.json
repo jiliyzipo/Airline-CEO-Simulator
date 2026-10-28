@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028121145-469a22",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 692,
+  "at": "2026-10-28T12:11:45.679Z",
+  "actor": "cursor",
+  "action": "stage-retract",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "withdrawn DEL-20261028105347-defc40: 归属错误（Cursor 操作失误）：stage-close --refresh-ac 只重建验收条件、未收窄改动范围，对比基准仍停在 2026-10-19，于是把基准之后 8 天里其他阶段的累计改动（104 文件，跨 balance/collab/UI/systems）打包成本阶段交付；S03-Docs 自己的 5 个文件一个都不在其中，且对 HEAD 的 git status 为空。该交付同时含 S31 全部工作，而 S31 已由 DEL-20261028092502-0f6037 独立检测通过（REV-20261028110915-15a8d5）。无更晚的继任交付可取代它，故按撤回处理并保留全部历史。",
+  "data": {
+    "reason": "归属错误（Cursor 操作失误）：stage-close --refresh-ac 只重建验收条件、未收窄改动范围，对比基准仍停在 2026-10-19，于是把基准之后 8 天里其他阶段的累计改动（104 文件，跨 balance/collab/UI/systems）打包成本阶段交付；S03-Docs 自己的 5 个文件一个都不在其中，且对 HEAD 的 git status 为空。该交付同时含 S31 全部工作，而 S31 已由 DEL-20261028092502-0f6037 独立检测通过（REV-20261028110915-15a8d5）。无更晚的继任交付可取代它，故按撤回处理并保留全部历史。",
+    "sweptHandoffs": [
+      "DEL-20261028105347-defc40"
+    ]
+  }
+}

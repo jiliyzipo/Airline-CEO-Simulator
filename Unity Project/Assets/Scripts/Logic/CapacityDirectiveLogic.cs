@@ -8,9 +8,13 @@ using AirlineCEO.Systems;
 namespace AirlineCEO.Logic
 {
     /// <summary>
-    /// 运力调整指令（CEO 在单航线页用对话框下达，非按钮）：
+    /// 运力调整指令（CEO 在底部命令台说一句话下达，非按钮）：
     /// 系统解析指令 → 运营部自动编班 + 构建航班环 → 市场/机务/财务/地勤联动 → 呈报邮件待批复。
     /// CEO 不做排班操作；本类负责把一句话指令变成可执行的排班与航班环。
+    ///
+    /// ★2026-10-28：单航线页原先自带一个指令输入框，与命令台是两条入口做同一件事，已删除。
+    /// 现在唯一的入口是 <c>CeoCommandRouter</c> → <c>DeptReportLogic.RunCapacityDirective</c>；
+    /// 单航线页上的句子靠页面上下文（`contextRouteKey`）落到 CEO 正看着的那条线。
     /// </summary>
     public static class CapacityDirectiveLogic
     {

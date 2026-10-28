@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Editor、Assets-Tests、Logic、Systems、Balance、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-24T12:45:41.908Z",
-  "updatedAt": "2026-10-28T02:36:46.576Z",
+  "updatedAt": "2026-10-28T08:14:25.858Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 21 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261025094638-6f76b0, DEL-20261028021245-f4c95c.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 19 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
+  "staleForReviewId": "REV-20261024132317-f6bf86",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:26.159Z",
@@ -73,8 +73,11 @@
   "scopeDrift": {
     "basis": 56,
     "intact": 35,
-    "covered": 21,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 19,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+    ],
+    "uncoveredCount": 2
   }
 }

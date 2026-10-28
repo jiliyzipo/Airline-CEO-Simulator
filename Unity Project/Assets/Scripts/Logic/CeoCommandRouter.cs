@@ -57,6 +57,14 @@ namespace AirlineCEO.Logic
             /// 路由层不假装自己认识机队。
             /// </summary>
             public string flightNumber;
+            /// <summary>
+            /// 页面上下文里**已经选中**的航线（routeId）。只在单航线页出现，且只在句子
+            /// 有调令信号、又没说城对/班号时使用 —— 见 <see cref="Route(string,string,PieceResolver,string)"/>。
+            ///
+            /// 它补的是被删掉的那个页面内指令框的位置：那个框靠上下文认线，命令台原来不认。
+            /// 空串 = 没有上下文可用，一切照旧（要求城对或班号）。
+            /// </summary>
+            public string contextRouteKey;
             public string note;        // 未派件时的原因与引导
 
             // ——— 写指令的参数（全部来自原话，**解析不出就退回引导，不猜**) ———
@@ -282,6 +290,16 @@ namespace AirlineCEO.Logic
         /// 至少能让「取消我那条珠海金湾的线」对上确实在营的航线，而不是一律说解析失败。
         /// </summary>
         public static CeoAsk Route(string pageId, string raw, PieceResolver extra)
+            => Route(pageId, raw, extra, null);
+
+        /// <summary>
+        /// 再补一层**页面上下文**：单航线页已经选好了某条线，命令台就应该能接手原来那个
+        /// 页面内的指令框（2026-10-28 用户裁定删除该框）。
+        ///
+        /// 只影响一种句子：**有调令信号、没说城对也没点班号**（「加密到每天 3 班」）。
+        /// 显式说了城对/班号的永远优先 —— 上下文是兜底，不是覆盖。
+        /// </summary>
+        public static CeoAsk Route(string pageId, string raw, PieceResolver extra, string contextRouteKey)
         {
             string text = (raw ?? "").Trim().TrimEnd('。', '！', '!', '？', '?');
             var ask = new CeoAsk { deptCode = PageDept(pageId), kind = CeoAskKind.Ask, topic = "" };
@@ -329,10 +347,10 @@ namespace AirlineCEO.Logic
             //    切不出城对时**不返回**，让句子按部门词表照常走（「机队现在几架」不能被当成调令）。
             //    点名航班号（「把 NV1002 加密到每天 2 班」）也算数：同城对标了班号才认得出是哪一条。
             string capFlight = TryReadFlightNumber(text, out string cf) ? cf : null;
-            if ((CapacityDirectiveLogic.HasDirectiveSignal(text) || HasAny(text, ScheduleVerbs))
-                && !CapacityDirectiveLogic.LooksLikeQuestion(text)
-                && (SplitPair(text, extra, out string mo, out string md, out string mot, out string mdt)
-                    || capFlight != null))
+            bool capSignal = CapacityDirectiveLogic.HasDirectiveSignal(text) || HasAny(text, ScheduleVerbs);
+            bool capIsQuestion = CapacityDirectiveLogic.LooksLikeQuestion(text);
+            bool capPair = SplitPair(text, extra, out string mo, out string md, out string mot, out string mdt);
+            if (capSignal && !capIsQuestion && (capPair || capFlight != null))
             {
                 ask.deptCode = "OPS";
                 ask.kind = CeoAskKind.Act;
@@ -343,6 +361,27 @@ namespace AirlineCEO.Logic
                 ask.originText = mot;
                 ask.destText = mdt;
                 ask.flightNumber = capFlight;
+                return ask;
+            }
+
+            // ①b′ 页面上下文兜底：单航线页上「加密到每天 3 班」这种**不带城对**的调令。
+            //
+            //    ★2026-10-28：用户裁定删掉单航线页底部那个指令框，改由命令台统一入口。
+            //      但那个框本来就是靠「CEO 正看着哪条线」来认线的，命令台原先只认城对/班号 ——
+            //      框一删，同一句话在同一个页面上就会从「照办」变成「没听懂」。
+            //      入口可以合并，能力不能丢，所以这里把上下文接上。
+            //
+            //    仍然是**兜底**：显式点了城对或班号的句子在上面就返回了，走不到这里。
+            //    也必须真有调令信号（加密/削减/改班期/派机），否则「这条线整体怎么样」
+            //    会被当成调令 —— 那是问句，`capIsQuestion` 也挡了一道。
+            if (capSignal && !capIsQuestion && capFlight == null && !capPair
+                && !string.IsNullOrEmpty(contextRouteKey))
+            {
+                ask.deptCode = "OPS";
+                ask.kind = CeoAskKind.Act;
+                ask.topic = TopicCapacity;
+                ask.ok = true;
+                ask.contextRouteKey = contextRouteKey;
                 return ask;
             }
 

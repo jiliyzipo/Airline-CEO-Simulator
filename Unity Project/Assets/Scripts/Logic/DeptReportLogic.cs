@@ -875,8 +875,11 @@ namespace AirlineCEO.Logic
                 return Fail(DescribeMissingRoute(gs, ask, asking: false));
 
             // 一个机场对可以开多班：不猜。猜错的代价是改错另一条线的班次。
-            int samePair = CountRoutePair(gs, route.origin, route.destination);
-            if (samePair > 1 && string.IsNullOrEmpty(ask.flightNumber))
+            // 由**页面上下文**定位的那条线例外：CEO 就站在它的详情页上，屏幕已经替他指明了是哪一条。
+            int samePair = string.IsNullOrEmpty(ask.contextRouteKey) && ask.flightNumber == null
+                ? CountRoutePair(gs, route.origin, route.destination)
+                : 1;
+            if (samePair > 1)
             {
                 string eg = FirstFlightNumberOf(gs, route.origin, route.destination);
                 return Fail($"{route.origin}—{route.destination} 有 {samePair} 条在营航线"
@@ -1091,6 +1094,10 @@ namespace AirlineCEO.Logic
             if (!string.IsNullOrEmpty(ask.origin) && !string.IsNullOrEmpty(ask.dest))
                 route = FindRoute(gs, ask.origin, ask.dest);
             if (route == null) route = FindRouteByName(gs, ask.originText, ask.destText);
+            // 页面上下文：单航线页上不带城对的调令（「加密到每天 3 班」）落到 CEO 正看着的那条线。
+            // 排在显式城对/班号之后 —— 上下文只兜底，绝不覆盖 CEO 亲口点明的对象。
+            if (route == null && !string.IsNullOrEmpty(ask.contextRouteKey))
+                route = RouteCloseLogic.FindByRouteId(gs, ask.contextRouteKey);
             // 原话里带班号但路由没截出来（例如「NV1001 周三不排班」的写法）：再用原话扫一遍
             if (route == null && !string.IsNullOrEmpty(raw))
             {

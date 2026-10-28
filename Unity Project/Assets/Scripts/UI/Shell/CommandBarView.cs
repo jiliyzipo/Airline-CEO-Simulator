@@ -341,6 +341,24 @@ namespace AirlineCEO.UI.Shell
             if (_placeholder != null) _placeholder.text = CeoCommandRouter.PageHint(pageId);
         }
 
+        /// <summary>
+        /// 本页**已经选中**的航线（只认单航线页 n41）。命令台用它接手被删掉的那个页面内指令框。
+        ///
+        /// 为什么必须有：那个框靠「CEO 正看着哪条线」认线，「加密到每天 3 班」不带城对也能办。
+        /// 框删掉后同一句话交给命令台，若拿不到上下文就只能回「没听懂」—— 入口合并不该等于能力缩水。
+        ///
+        /// 为什么只认 n41：其他页面也可能残留上一次的 SelectedRouteId（从航线页点走再点回来），
+        /// 拿它兜底就等于替 CEO 挑了一条线 —— 改错班次事后看不出来。
+        /// </summary>
+        static string ContextRouteKey(string pageId)
+        {
+            if (string.IsNullOrEmpty(pageId)) return null;
+            if (!pageId.Contains("单航线") && !pageId.StartsWith("n41", StringComparison.Ordinal)) return null;
+            string key = FleetNetContext.SelectedRouteId;
+            if (string.IsNullOrEmpty(key)) key = OpsSubpageContext.SelectedRouteId;
+            return key;
+        }
+
         void Submit(string text)
         {
             // Enter 会**两次**打到 onSubmit：一次来自 TMP_InputField 自己在 KeyPressed 里
@@ -367,7 +385,8 @@ namespace AirlineCEO.UI.Shell
             var router = NavigationRouter.Instance;
             if (router != null && !string.IsNullOrEmpty(router.CurrentPageId)) pageId = router.CurrentPageId;
 
-            var ask = CeoCommandRouter.Route(pageId, raw, DeptReportLogic.RouteNameResolver(gs));
+            var ask = CeoCommandRouter.Route(pageId, raw, DeptReportLogic.RouteNameResolver(gs),
+                ContextRouteKey(pageId));
             var ans = DeptReportLogic.Build(gs, ask, raw);
 
             if (!ans.ok)

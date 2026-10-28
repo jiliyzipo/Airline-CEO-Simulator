@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "tools/collab/lib/basis.mjs",
@@ -57,12 +57,12 @@
   "blockers": [],
   "sourceTaskBook": null,
   "createdAt": "2026-10-27T01:42:09.191Z",
-  "updatedAt": "2026-10-28T01:10:19.918Z",
+  "updatedAt": "2026-10-28T12:11:59.366Z",
   "snapshotRoots": [
     "tools/collab"
   ],
-  "freshnessNote": "Historic verdict REV-20261027014550-30756c covered 17 changed files; 9 were edited later and are now owned by passed deliveries DEL-20261028010243-671d55.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261027014550-30756c covered 17 changed files; 4 taken over by later passed deliveries, 5 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+  "staleForReviewId": "REV-20261027014550-30756c",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T04:08:54.447Z",
@@ -89,8 +89,14 @@
   "scopeDrift": {
     "basis": 17,
     "intact": 8,
-    "covered": 9,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 4,
+    "uncovered": [
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs"
+    ],
+    "uncoveredCount": 5
   }
 }

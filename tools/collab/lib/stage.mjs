@@ -58,8 +58,11 @@ import {
   loadTask,
   markDeliveriesSuperseded,
   recordEvent,
+  retiredDeliveryIds,
   saveState,
-  saveTask,  supersededDeliveryIds,
+  saveTask,
+  supersededDeliveryIds,
+  withdrawDelivery,
   withStateLock,
 } from './state.mjs';
 import { acceptanceCriteriaFor, clauseDriftWarning } from './clauses.mjs';
@@ -697,6 +700,7 @@ const HANDOFF_LABEL = {
   accepted: '检测通过',
   rejected: '检测未通过（见缺陷）',
   superseded: '已被新交付取代',
+  withdrawn: '已撤回（归属错误，不要检测）',
 };
 
 function updateHandoffOutcome(cfg, deliveryId, { reviewId, status, issues }) {
@@ -726,6 +730,19 @@ function renderHandoff(entry) {
   if (entry.review) {
     lines.push(`- 检测记录：${entry.review.reviewId} → ${entry.review.status}（${entry.review.at}）`);
     if (entry.review.issues?.length) lines.push(`- 缺陷：${entry.review.issues.join('、')}`);
+  }
+  if (entry.status === 'withdrawn') {
+    // A withdrawn delivery must not look runnable. The command block below is
+    // what a reviewer actually copies, so it has to disappear here rather than
+    // be contradicted by a warning underneath it.
+    lines.push(
+      '',
+      '> ⛔ 本交付已撤回，**不要检测**。',
+      `> 撤回时间：${entry.withdrawnAt || '—'} · 操作人：${entry.withdrawnBy || '—'}`,
+      `> 原因：${entry.withdrawnReason || '（未记录）'}`,
+      '> 交付记录、快照与指纹保留在原处作为历史证据，只是不再属于任何待检测清单。',
+      '',
+    );
   }
   lines.push(
     '',
@@ -759,6 +776,7 @@ function renderHandoff(entry) {
   if (!entry.preflight?.ok) {
     lines.push('## 预检失败详情', '', '```', String(entry.preflight?.reason || '').slice(0, 2000), '```', '');
   }
+  if (entry.status === 'withdrawn') return lines.join('\n');
   lines.push(
     '## 检测命令（Codex 一条命令）',
     '',
@@ -790,12 +808,14 @@ function boardRows(cfg) {
   const reviews = listReviews(cfg);
   const issues = listIssues(cfg);
   // Same rule freshness uses: a retired delivery is not this task's latest work.
-  const superseded = supersededDeliveryIds(loadState(cfg));
+  // "Retired" covers both replaced and withdrawn — either way it no longer
+  // describes what this task should be judged on.
+  const retired = retiredDeliveryIds(loadState(cfg));
   return tasks
     .filter((t) => !t.readOnlyReference)
     .map((t) => {
       const d =
-        deliveries.filter((x) => x.taskId === t.taskId && !superseded.has(x.deliveryId)).at(-1) || null;
+        deliveries.filter((x) => x.taskId === t.taskId && !retired.has(x.deliveryId)).at(-1) || null;
       const r = d ? reviews.filter((x) => x.deliveryId === d.deliveryId).at(-1) || null : null;
       const open = issues.filter((i) => i.taskId === t.taskId && ['open', 'fixing', 'fixed'].includes(i.status));
       return {
@@ -830,7 +850,7 @@ export function cmdStageBoard(cfg) {
  *
  * 一个交付要出现在清单上，必须三条同时成立：
  *  ① handoff 索引里还是 `ready`（没人检测过、也没被新交付顶掉）；
- *  ② 共享台账 `state.deliveryStatus` 里没被登记为 `superseded`；
+ *  ② 共享台账 `state.deliveryStatus` 里没被登记为 `superseded` / `withdrawn`；
  *  ③ 它所属的任务没被别的任务取代（跨任务取代时，旧任务整个退场）。
  *
  * 为什么不能只信 ①：handoff 索引在 `out/` 下（gitignored），而 `stage-supersede`
@@ -838,21 +858,29 @@ export function cmdStageBoard(cfg) {
  * 催人去给旧代码补跑一次检测 —— S26 / `DEL-20261027115400-6ee0b2` 就是这么挂了两天的：
  * 台账与任务文件都写着 superseded，只有本地索引还写着 ready。
  *
+ * 撤回同理，且更危险：一份归属错误的交付在清单上多挂一天，就可能有人照着它
+ * 跑完检测并签出一份覆盖别人代码的通过记录（DEL-20261028105347-defc40）。
+ *
  * 代价只是几次内存查表；换来的是「清单上出现的，都是真的还要测的」。
  */
 function pendingHandoffs(cfg, board = null) {
   const state = loadState(cfg);
-  const supersededIds = supersededDeliveryIds(state);
+  const retiredIds = retiredDeliveryIds(state);
   const rows = board?.tasks || boardRows(cfg);
   const supersededTasks = new Set(rows.filter((t) => t.supersededBy).map((t) => t.taskId));
 
   const kept = [];
   const dropped = [];
   for (const e of readHandoffIndex(cfg).entries) {
+    if (e.status === 'withdrawn') continue;
     if (e.status !== 'ready') continue;
     let why = null;
-    if (supersededIds.has(e.deliveryId)) {
-      why = `台账已登记被 ${state.deliveryStatus?.[e.deliveryId]?.supersededBy || '后续交付'} 取代`;
+    const ledger = state.deliveryStatus?.[e.deliveryId];
+    if (retiredIds.has(e.deliveryId)) {
+      why =
+        ledger?.status === 'withdrawn'
+          ? `已撤回：${ledger.note || '（未记录原因）'}`
+          : `台账已登记被 ${ledger?.supersededBy || '后续交付'} 取代`;
     } else if (supersededTasks.has(e.taskId)) {
       why = `任务 ${e.taskId} 已被 ${rows.find((t) => t.taskId === e.taskId)?.supersededBy?.taskId || '后续任务'} 取代`;
     }
@@ -2088,6 +2116,147 @@ export function cmdStageSupersede(cfg, args = {}) {
     ]
       .filter(Boolean)
       .join('\n'),
+    exitCode: EXIT.OK,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* stage-retract                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Withdraw a delivery that was filed under the wrong task.
+ *
+ * Why this is not `stage-supersede`: supersede records *what replaced it* and
+ * therefore requires a successor created later. The delivery this exists for
+ * (`DEL-20261028105347-defc40`) has no such successor — it belongs to no task at
+ * all. Its 104 changed files were the accumulated work of a dozen other stages;
+ * the stage it was filed under had no changes of its own left to deliver.
+ *
+ * Rules, all of them fail-closed:
+ *  · a delivery that was ever reviewed cannot be withdrawn — a verdict is
+ *    history, and withdrawing it would erase the evidence of what was judged;
+ *  · a superseded delivery cannot be withdrawn — "replaced" is already a
+ *    stronger, recorded fact;
+ *  · a reason is mandatory, because the whole point is to say on the record
+ *    why this filing was wrong;
+ *  · the reviewer is not an allowed actor. Codex may find that a delivery
+ *    should be withdrawn, but erasing the subject of a review is the filing
+ *    side's (or the user's) act, never the reviewer's.
+ *
+ * Nothing is deleted: the delivery record, its snapshot and its handoff file
+ * all stay. The ledger gains `withdrawn`, the handoff loses its review command,
+ * and the pending list stops naming it.
+ */
+export function cmdStageRetract(cfg, args = {}) {
+  const actor = args.actor || 'cursor';
+  if (!['cursor', 'user'].includes(actor)) {
+    fail(EXIT.FORBIDDEN, `stage-retract may not be run as ${actor}`, {
+      allowed: ['cursor', 'user'],
+      why: '检测方不能撤回被检测对象；请由提交方或用户执行',
+    });
+  }
+  const deliveryId = args.delivery;
+  if (!deliveryId) fail(EXIT.USAGE, 'stage-retract requires --delivery <DEL>');
+  const reason = String(args.reason || '').trim();
+  if (!reason) {
+    fail(EXIT.USAGE, 'stage-retract requires --reason <text>: a withdrawal without a stated reason is unreadable history', {
+      hint: '写明这份交付为什么不该存在（归属错误 / 范围错误 / 误打包他人改动）',
+    });
+  }
+
+  const delivery = requireDelivery(cfg, deliveryId);
+  const state = loadState(cfg);
+  const ledger = state.deliveryStatus?.[deliveryId];
+
+  if (ledger?.status === 'superseded') {
+    fail(EXIT.CONFLICT, `${deliveryId} is already superseded by ${ledger.supersededBy}; nothing to withdraw`, {
+      deliveryId,
+      supersededBy: ledger.supersededBy || null,
+    });
+  }
+
+  const reviews = listReviews(cfg).filter((r) => r.deliveryId === deliveryId);
+  const terminal = reviews.filter((r) => ['passed', 'failed'].includes(r.status));
+  if (terminal.length) {
+    fail(
+      EXIT.CONFLICT,
+      `${deliveryId} already has a recorded verdict (${terminal.map((r) => r.reviewId).join(', ')}); a reviewed delivery cannot be withdrawn`,
+      { deliveryId, reviews: terminal.map((r) => ({ reviewId: r.reviewId, status: r.status })) },
+    );
+  }
+  const inFlight = reviews.filter((r) => !['passed', 'failed', 'cancelled'].includes(r.status));
+  if (inFlight.length) {
+    fail(EXIT.CONFLICT, `${deliveryId} has a review in progress (${inFlight.map((r) => r.reviewId).join(', ')}); cancel it first`, {
+      deliveryId,
+      reviews: inFlight.map((r) => ({ reviewId: r.reviewId, status: r.status })),
+    });
+  }
+
+  const withdraw = withdrawDelivery(cfg, {
+    deliveryId,
+    taskId: delivery.taskId,
+    actor,
+    reason,
+  });
+
+  // Same two-store problem as supersede: the ledger is shared state, the handoff
+  // index lives under `out/`. Leave them split and the board keeps asking someone
+  // to review a delivery that must never be reviewed.
+  const swept = withHandoffLock(cfg, () => {
+    const index = readHandoffIndex(cfg);
+    const entry = index.entries.find((e) => e.deliveryId === deliveryId);
+    // Only a handoff that nobody has judged may be re-labelled. `accepted` /
+    // `rejected` are conclusions; rewriting them would be tampering with history.
+    if (!entry || !['ready', 'preflight-failed'].includes(entry.status)) return [];
+    entry.status = 'withdrawn';
+    entry.withdrawnReason = reason;
+    entry.withdrawnAt = nowIso();
+    entry.withdrawnBy = actor;
+    writeJsonAtomic(handoffIndexPath(cfg), { ...index, updatedAt: nowIso() });
+    const file = path.join(handoffDir(cfg), `${deliveryId}.md`);
+    if (fs.existsSync(file)) fs.writeFileSync(file, renderHandoff(entry), 'utf8');
+    return [deliveryId];
+  });
+
+  if (!withdraw.changed && !swept.length) {
+    const sync = cmdSync(cfg, {});
+    return {
+      ok: true,
+      unchanged: true,
+      deliveryId,
+      taskId: delivery.taskId,
+      revision: sync.revision,
+      report: `已撤回：${deliveryId}（revision=${sync.revision}）；未做改动。`,
+      exitCode: EXIT.OK,
+    };
+  }
+
+  recordEvent(cfg, {
+    actor,
+    action: 'stage-retract',
+    taskId: delivery.taskId,
+    deliveryId,
+    summary: `withdrawn ${deliveryId}: ${reason}`,
+    data: { reason, sweptHandoffs: swept },
+  });
+  const sync = cmdSync(cfg, {});
+  return {
+    ok: true,
+    deliveryId,
+    taskId: delivery.taskId,
+    reason,
+    sweptHandoffs: swept,
+    revision: sync.revision,
+    report: [
+      `已撤回：${deliveryId}（${delivery.taskId}）`,
+      `原因：${reason}`,
+      swept.length
+        ? `已从待检测清单撤下 ${swept.join(', ')}；交接单改为「已撤回」并删除检测命令。`
+        : 'handoff 索引里没有可改的待检测条目（可能已被检测过或从未写出）。',
+      `原交付记录、快照与指纹保留不删；任务 ${delivery.taskId} 自身状态不变。`,
+      `revision=${sync.revision}`,
+    ].join('\n'),
     exitCode: EXIT.OK,
   };
 }

@@ -3,9 +3,9 @@
   "projectId": "Airline-CEO-Simulator",
   "taskId": "S03-Docs",
   "title": "阶段 S03-Docs：Docs",
-  "revision": 1,
-  "devStatus": "rework",
-  "reviewStatus": "failed",
+  "revision": 2,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "queued",
   "freshness": "stale",
   "holder": null,
   "scope": [
@@ -20,18 +20,18 @@
     },
     {
       "id": "AC2",
-      "text": "冒烟 profile 输出可解析的机器结果 JSON 且断言计数合法（S03-Docs）"
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S03-Docs）"
     },
     {
       "id": "AC3",
-      "text": "文档与索引引用在本快照内可解析（无断链路径）（S03-Docs）"
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S03-Docs）"
     }
   ],
   "dependencies": [],
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:23:57.199Z",
-  "updatedAt": "2026-10-19T13:26:02.954Z",
-  "freshnessNote": "Latest delivery DEL-20261019091504-e23a3e review REV-20261019092237-60f210 failed.",
-  "staleForReviewId": "REV-20261019092237-60f210"
+  "updatedAt": "2026-10-28T12:11:58.401Z",
+  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "staleForReviewId": null
 }

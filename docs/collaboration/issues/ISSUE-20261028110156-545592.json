@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261028110156-545592",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "title": "S03-Docs 的重交付归属错误：卷入 104 个属于其他任务的文件，且不含本阶段自己的任何改动",
+  "repro": "node tools/collab/cli.mjs stage-close --task S03-Docs --refresh-ac（对比基准仍停在 2026-10-19，--refresh-ac 只重建验收条件、不收窄改动范围）",
+  "expected": "阶段重交付只应包含该阶段自己的改动；若这些改动已被后续交付覆盖，则应判定该阶段无可交付内容并按退役流程处理，而不是把基准之后的全部变化打包成一份交付",
+  "actual": "DEL-20261028105347-defc40 列出 104 个改动文件，跨 tools/balance、tools/collab、UI、Systems 等，分别属于 S07/S22/S23/S24 及协作工具相关阶段；本阶段 2026-10-19 的原始改动（InboxCadence.cs、InboxManager.cs、TermNavMap.cs、LogicSelfTests.cs、CapacityReceiptRegression.cs）一个都不在其中，且这 5 个文件对当前 HEAD 的 git status 为空（已实测），即该阶段已无属于自己的未覆盖内容。该交付同时包含 S31-RouteConsoleMerge 的全部工作，而后者已有独立交付 DEL-20261028092502-0f6037。若对两份都执行 stage-review，同一份代码会被签通过两次。",
+  "evidence": "out/collab/handoff/DEL-20261028105347-defc40.md（末尾「Cursor 附注」）、docs/collaboration/deliveries/DEL-20261028105347-defc40.json",
+  "severity": "major",
+  "suggestedOwner": "codex",
+  "status": "open",
+  "createdAt": "2026-10-28T11:01:56.215Z"
+}

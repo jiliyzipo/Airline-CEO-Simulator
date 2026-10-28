@@ -24,8 +24,10 @@ namespace AirlineCEO.EditorTools
     /// <item>桥轮询到后执行白名单里的静态入口，把结果写成
     ///   <c>out/ai-result/&lt;id&gt;.json</c>（另有同名 <c>.log</c> 存本次 Console 输出）；</item>
     /// <item>触发文件被移到 <c>out/ai-trigger/done/</c>，不会被重复执行。</item>
-    /// <item>另有伪 suite <c>__refresh</c>：只让编辑器做一次 <c>AssetDatabase.Refresh()</c> 并立即回结果。
-    ///   Unity 仅在编辑器重获焦点时才自动编译，自动化改完 .cs 后靠它替代"手动点一下窗口"。</item>
+    /// <item>另有伪 suite <c>__refresh</c>：回一条 <c>refreshed</c> 并尝试触发刷新。
+    ///   **它并不能在后台强行编译**（实测三种 API 全部无效，见 <see cref="RecompileInBackground"/>）；
+    ///   脚本改动后仍需让 Unity 窗口获得一次焦点。它保留下来是为了让 ai-run 能区分
+    ///   「请求发不出去」与「编辑器不肯编译」这两种失败。</item>
     /// </list>
     ///
     /// 安全边界（这些是硬性的，不是建议）：
@@ -75,6 +77,7 @@ namespace AirlineCEO.EditorTools
                 { "command-log", CommandLogRegression.Run },
                 { "inbox-status", InboxStatusRegression.Run },
                 { "inbox-row-layout", InboxRowLayoutRegression.Run },
+                { "route-console-merge", RouteConsoleMergeRegression.Run },
                 { "network-pool", NetworkPoolVisibilityRegression.Run },
                 { "open-route-study", OpenRouteStudyRegression.Run },
                 { "overhaul-maintenance", OverhaulMaintenanceRegression.Run },
@@ -114,14 +117,42 @@ namespace AirlineCEO.EditorTools
             return failed.Count == 0;
         }
 
-        static double _nextPoll;
-        static bool _running;
+        static double _nextPoll;        static bool _running;
         static readonly List<string> Buffer = new List<string>();
 
         static RegressionTriggerBridge()
         {
             EditorApplication.update -= Tick;
             EditorApplication.update += Tick;
+        }
+
+        /// <summary>
+        /// 尝试让编辑器在后台把改动过的脚本编进去。**实测无效**，保留只为把结论写在代码里。
+        ///
+        /// 2026-10-28 连试三种，在 Unity 6000.3.21f1 / Windows 上全部失败：
+        /// · <c>AssetDatabase.Refresh()</c> —— 只重新导入资源，脚本编译推迟到重获焦点；
+        /// · <c>CompilationPipeline.RequestScriptCompilation()</c> —— 同样被那道门拦住；
+        /// · <c>AssetDatabase.ImportAsset(..., ForceSynchronousImport)</c>，逐文件点名 —— 也不行。
+        ///
+        /// 三种做法下 Unity 的 Editor.log 都**只留下本行日志**，没有任何 Import / Compile 痕迹，
+        /// 说明请求在进编译管线之前就被丢弃了。这是编辑器「窗口不在前台就没必要编译」的
+        /// 省电策略，不是可以靠写法绕过的 bug。
+        ///
+        /// 结论：**脚本改动后必须让 Unity 窗口获得一次焦点**。
+        /// 自动化的价值不在省这一步，而在 <c>ai-run.mjs</c> 的陈旧程序集守卫 ——
+        /// 它会拒跑并说出真实原因，而不是拿旧程序集给一份绿。
+        /// </summary>
+        static void RecompileInBackground()
+        {
+            try
+            {
+                AssetDatabase.Refresh();
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[AI 触发桥] 后台重编译请求失败：{e.Message}");
+            }
         }
 
         /* ---------------- 路径：从 Assets 反推仓库根，别硬编码盘符 ---------------- */
@@ -243,8 +274,8 @@ namespace AirlineCEO.EditorTools
                     Buffer.Clear();
                     WriteResult(request, "refreshed", true, null, 0);
                     Consume(triggerFile, "refreshed");
-                    Debug.Log("[AI 触发桥] 已请求 AssetDatabase.Refresh，等待重编译完成");
-                    EditorApplication.delayCall += AssetDatabase.Refresh;
+                    Debug.Log("[AI 触发桥] 已请求重编译，等待 Unity 完成");
+                    EditorApplication.delayCall += RecompileInBackground;
                     return;
                 }
             }

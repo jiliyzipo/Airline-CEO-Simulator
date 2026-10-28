@@ -793,5 +793,84 @@ await test('T10', '--refresh-ac re-derives the criteria so the same task can clo
   assert.match(events[0].data.previous[1].text, /协作工具回归套件/);
 });
 
+/* ------------------------------------------------------------------ *
+ * stage-retract: a delivery filed under the wrong task
+ * ------------------------------------------------------------------ */
+
+await test('R01', 'stage-retract withdraws a wrong-task delivery without deleting anything', () => {
+  const f = fixture();
+  const close = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  const handoff = path.join(f.dir, `out/collab/handoff/${close.deliveryId}.md`);
+  assert.match(fs.readFileSync(handoff, 'utf8'), /stage-review --delivery/, 'a ready handoff offers the command');
+
+  const out = stage.cmdStageRetract(f.cfg, {
+    delivery: close.deliveryId,
+    reason: '归属错误：卷入其他任务改动，本阶段无自有改动',
+  });
+  assert.equal(out.exitCode, 0);
+  assert.equal(out.ok, true);
+
+  // ① the ledger records it, and distinguishes it from supersede
+  const entry = state.loadState(f.cfg).deliveryStatus[close.deliveryId];
+  assert.equal(entry.status, 'withdrawn');
+  assert.equal(entry.supersededBy, null, 'withdrawal needs no successor');
+  assert.match(entry.note, /归属错误/);
+
+  // ② nothing is deleted: delivery, snapshot and handoff all survive
+  assert(fs.existsSync(path.join(f.dir, `docs/collaboration/deliveries/${close.deliveryId}.json`)));
+  assert(fs.existsSync(handoff));
+
+  // ③ the handoff stops offering a review command, and says why
+  const text = fs.readFileSync(handoff, 'utf8');
+  assert(!/stage-review --delivery/.test(text), 'a withdrawn handoff must not offer the command');
+  assert.match(text, /已撤回/);
+
+  // ④ the pending list stops naming it
+  const board = stage.cmdStageBoard(f.cfg);
+  assert(!board.report.includes(close.deliveryId), 'a withdrawn delivery must leave the pending list');
+  const index = io.readJson(path.join(f.dir, 'out/collab/handoff/index.json'));
+  assert.equal(index.entries.at(-1).status, 'withdrawn');
+});
+
+await test('R02', 'stage-retract refuses a reviewed delivery: a verdict is history', () => {
+  const f = fixture();
+  const close = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  stage.cmdStageReview(f.cfg, { actor: 'codex' });
+
+  throwsCode(() => stage.cmdStageRetract(f.cfg, { delivery: close.deliveryId, reason: '想把通过记录撤掉' }), 3);
+  // Refusal must not have written the ledger.
+  assert.equal((state.loadState(f.cfg).deliveryStatus || {})[close.deliveryId], undefined);
+  const index = io.readJson(path.join(f.dir, 'out/collab/handoff/index.json'));
+  assert.equal(index.entries.at(-1).status, 'accepted', 'a reviewed handoff keeps its verdict');
+});
+
+await test('R03', 'stage-retract refuses the reviewer, a missing reason, and a superseded delivery', () => {
+  const f = fixture();
+  const first = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  put(f.dir, 'tools/collab/stage-input.txt', `second ${serial}`);
+  const second = stage.cmdStageClose(f.cfg, { task: first.taskId, profile: 'smoke' });
+
+  // The reviewer may find a delivery should go, but must not erase what it reviews.
+  throwsCode(() => stage.cmdStageRetract(f.cfg, { delivery: second.deliveryId, reason: 'x', actor: 'codex' }), 7);
+  // A reason is the whole record; without one the withdrawal is unreadable.
+  throwsCode(() => stage.cmdStageRetract(f.cfg, { delivery: second.deliveryId }), 2);
+  throwsCode(() => stage.cmdStageRetract(f.cfg, { delivery: second.deliveryId, reason: '   ' }), 2);
+  // Superseded is already a recorded fact; withdrawing it would blur the two.
+  stage.cmdStageSupersede(f.cfg, { delivery: first.deliveryId, by: second.deliveryId, actor: 'cursor' });
+  throwsCode(() => stage.cmdStageRetract(f.cfg, { delivery: first.deliveryId, reason: '想改成撤回' }), 3);
+  assert.equal(state.loadState(f.cfg).deliveryStatus[first.deliveryId].status, 'superseded');
+});
+
+await test('R04', 'a withdrawn delivery is not this task\'s latest work in board or freshness', () => {
+  const f = fixture();
+  const first = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  stage.cmdStageRetract(f.cfg, { delivery: first.deliveryId, reason: '误打包他人改动' });
+
+  // The board must fall back to "no live delivery" rather than name the withdrawn one.
+  const board = stage.cmdStageBoard(f.cfg);
+  const row = board.tasks.find((t) => t.taskId === first.taskId);
+  assert.equal(row.latestDelivery, null, 'a withdrawn delivery is not the task latest work');
+});
+
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
 process.exitCode = failed ? 1 : 0;

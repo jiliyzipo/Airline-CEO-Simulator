@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：T03.8 六节 UI 可验证性走查（10 项通过）及走查中发现缺陷的修复",
@@ -35,9 +35,9 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-28T02:36:45.959Z",
-  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 7 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261028021245-f4c95c, DEL-20261022092843-6e9303.",
-  "staleForReviewId": null,
+  "updatedAt": "2026-10-28T08:14:25.275Z",
+  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).",
+  "staleForReviewId": "REV-20261019094559-31090f",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:23.235Z",
@@ -58,8 +58,10 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 2,
-    "covered": 7,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 6,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs"
+    ],
+    "uncoveredCount": 1
   }
 }

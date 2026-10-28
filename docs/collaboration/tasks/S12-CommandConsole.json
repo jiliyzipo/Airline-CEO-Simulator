@@ -6,7 +6,7 @@
   "revision": 2,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：命令台（底栏）的写指令、历史与回执回溯、教程与引导文案",
@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-10-28T02:36:46.689Z",
+  "updatedAt": "2026-10-28T08:14:25.968Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,8 +59,8 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261028021245-f4c95c.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 5 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
+  "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:27.130Z",
@@ -73,9 +73,13 @@
   },
   "scopeDrift": {
     "basis": 44,
-    "intact": 38,
-    "covered": 6,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "intact": 36,
+    "covered": 5,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+    ],
+    "uncoveredCount": 3
   }
 }

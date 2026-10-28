@@ -159,6 +159,7 @@ export const COMMAND_FLAGS = {
   'stage-report': [],
   'stage-reconcile': ['actor'],
   'stage-supersede': ['delivery', 'by', 'actor', 'note'],
+  'stage-retract': ['delivery', 'reason', 'actor'],
 };
 
 export function allowedFlags(command) {
