@@ -24,12 +24,15 @@ namespace AirlineCEO.EditorTools
     /// <item>桥轮询到后执行白名单里的静态入口，把结果写成
     ///   <c>out/ai-result/&lt;id&gt;.json</c>（另有同名 <c>.log</c> 存本次 Console 输出）；</item>
     /// <item>触发文件被移到 <c>out/ai-trigger/done/</c>，不会被重复执行。</item>
+    /// <item>另有伪 suite <c>__refresh</c>：只让编辑器做一次 <c>AssetDatabase.Refresh()</c> 并立即回结果。
+    ///   Unity 仅在编辑器重获焦点时才自动编译，自动化改完 .cs 后靠它替代"手动点一下窗口"。</item>
     /// </list>
     ///
     /// 安全边界（这些是硬性的，不是建议）：
     /// <list type="bullet">
     /// <item><b>只认白名单</b>。<see cref="Suites"/> 里没有名字一律拒绝——
-    ///   桥不能变成"编辑器里执行任意代码"的后门。</item>
+    ///   桥不能变成"编辑器里执行任意代码"的后门。唯一的额外入口是 <c>__refresh</c>，
+    ///   它只调 <c>AssetDatabase.Refresh()</c>，不执行任何被测代码。</item>
     /// <item><b>Play 模式下一律不跑</b>，只回一条 busy 结果。否则回归会在用户游玩途中
     ///   创建/销毁对象，把实时状态搅乱。</item>
     /// <item><b>编译/资源导入中不跑</b>，把触发文件留在原地下一轮再试，
@@ -49,6 +52,12 @@ namespace AirlineCEO.EditorTools
         const int MaxLoggedLines = 3000;
 
         /// <summary>
+        /// 伪 suite：只做一次 <c>AssetDatabase.Refresh()</c>，让编辑器把那批还没编译的 .cs 编译掉。
+        /// 不是回归入口，也不在 <see cref="Suites"/> 里 —— 它不执行任何被测代码。
+        /// </summary>
+        internal const string RefreshSuite = "__refresh";
+
+        /// <summary>
         /// 白名单：suite 名 → 静态入口。加一条就是加一行，别放飞。
         ///
         /// 这里的每一项都是 <c>LogicSelfTests</c> 与 EditMode 测试调用的同一个静态入口，
@@ -65,6 +74,7 @@ namespace AirlineCEO.EditorTools
                 { "airport-catalog", AirportCatalogRegression.Run },
                 { "command-log", CommandLogRegression.Run },
                 { "inbox-status", InboxStatusRegression.Run },
+                { "inbox-row-layout", InboxRowLayoutRegression.Run },
                 { "network-pool", NetworkPoolVisibilityRegression.Run },
                 { "open-route-study", OpenRouteStudyRegression.Run },
                 { "overhaul-maintenance", OverhaulMaintenanceRegression.Run },
@@ -82,8 +92,7 @@ namespace AirlineCEO.EditorTools
             };
 
         /// <summary>一次跑全部白名单项，逐条记 ✗，用于「改完 Unity 代码先自己过一遍」。</summary>
-        static bool RunAll(string[] order)
-        {
+        static bool RunAll(string[] order)        {
             int passed = 0;
             var failed = new List<string>();
             for (int i = 0; i < order.Length; i++)
@@ -215,6 +224,31 @@ namespace AirlineCEO.EditorTools
             string refused = null;
 
             const string All = "all";
+
+            // 刷新请求：不是回归，只是一个"请你现在编译一下"的信号。
+            // 为什么需要 —— Unity 只在编辑器重获焦点时才自动编译脚本（Auto Refresh 开着也一样）。
+            // 自动化改完 .cs 再立刻发请求，跑的其实是上一版程序集，结论看着是绿的却描述旧代码。
+            // 这里替用户做掉"点一下窗口"这件事：先落盘再刷新，因为 Refresh 会触发域重载，
+            // 之后的代码不保证还有机会执行。
+            if (string.Equals(request.suite, RefreshSuite, StringComparison.OrdinalIgnoreCase))
+            {
+                if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    refused = "编辑器处于 Play 模式，不在游玩途中重编译；退出 Play 后重试即可。";
+                }
+                else
+                {
+                    // 刷新分支不跑任何被测代码，日志必须是空的。Buffer 不清就会把上一轮的
+                    // Console 行写进这次结果，让人以为刷新请求本身失败了（2026-10-28 实测踩到）。
+                    Buffer.Clear();
+                    WriteResult(request, "refreshed", true, null, 0);
+                    Consume(triggerFile, "refreshed");
+                    Debug.Log("[AI 触发桥] 已请求 AssetDatabase.Refresh，等待重编译完成");
+                    EditorApplication.delayCall += AssetDatabase.Refresh;
+                    return;
+                }
+            }
+
             if (!Suites.ContainsKey(request.suite) && !string.Equals(request.suite, All, StringComparison.OrdinalIgnoreCase))
                 refused = $"suite 不在白名单：{request.suite}（可用：{string.Join(", ", Suites.Keys)}、{All}）";
             else if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
@@ -356,6 +390,7 @@ namespace AirlineCEO.EditorTools
             sb.Append("结果目录：").Append(ResultDir).Append('\n');
             sb.Append("白名单：").Append(string.Join(", ", Suites.Keys)).Append("、all").Append("\n\n");
             sb.Append("请求方式：node tools/regression/ai-run.mjs --suite <name|all>\n");
+            sb.Append("（程序集比源文件旧时，脚本会先自动发一次 __refresh 让编辑器重编译）\n");
             sb.Append("停用方式：在收件目录放一个名为 OFF 的空文件。");
             Debug.Log("[AI 触发桥]\n" + sb);
             EditorUtility.DisplayDialog("AI 触发桥", sb.ToString(), "确定");

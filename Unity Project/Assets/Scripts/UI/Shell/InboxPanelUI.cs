@@ -591,15 +591,16 @@ namespace AirlineCEO.UI.Shell
             var row = UIFactory.Panel(_listRoot, "Day_" + dayKey, UIFactory.Fill,
                 new Color(0.04f, 0.07f, 0.12f, 1f));
             var le = row.AddComponent<LayoutElement>();
-            le.minHeight = 24f;
-            le.preferredHeight = 24f;
+            float dayH = DayHeaderHeight();
+            le.minHeight = dayH;
+            le.preferredHeight = dayH;
             le.flexibleHeight = 0f;
-            UIFactory.Label(row.transform, "Day",
+            var dayLabel = UIFactory.Label(row.transform, "Day",
                 $"{(collapsed ? "▸" : "▾")}  {header}（{n}条）",
                 12, TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted, FontStyles.Bold);
-
+            UIFactory.ClampSingleLine(dayLabel);
             var btn = row.AddComponent<Button>();
             btn.targetGraphic = row.GetComponent<Image>();
             string key = dayKey;
@@ -615,6 +616,16 @@ namespace AirlineCEO.UI.Shell
             RebuildList();
         }
 
+        /// <summary>
+        /// 列表行高。基准 52，按无障碍字号倍率等比放大 ——
+        /// 行内两条文字带是用相对锚点切的，缩放时一起长；行高不跟着长，
+        /// 「特大」字号下就会重现「主题压住发件人」。
+        /// </summary>
+        public static float RowHeight() => Mathf.Ceil(52f * Accessibility.FontMultiplier());
+
+        /// <summary>日期分组表头行高（单行，随字号等比）。</summary>
+        public static float DayHeaderHeight() => Mathf.Ceil(24f * Accessibility.FontMultiplier());
+
         void CreateRow(InboxMail m)
         {
             bool sel = _selected == m;
@@ -626,8 +637,9 @@ namespace AirlineCEO.UI.Shell
                     : due ? new Color(0.38f, 0.14f, 0.14f, 0.9f)
                     : new Color(0.07f, 0.12f, 0.21f, 0.75f));
             var le = row.AddComponent<LayoutElement>();
-            le.minHeight = 52f;
-            le.preferredHeight = 52f;
+            float rowH = RowHeight();
+            le.minHeight = rowH;
+            le.preferredHeight = rowH;
             le.flexibleHeight = 0f;
             if (sel) UIFactory.AddBorder(row, UITheme.Warning, new Vector2(1.4f, -1.4f));
             else if (due) UIFactory.AddBorder(row, UITheme.Danger, new Vector2(1.4f, -1.4f));
@@ -650,21 +662,26 @@ namespace AirlineCEO.UI.Shell
                 TextAlignmentOptions.Center, UIFactory.Fill, titleCol, titleStyle);
 
             // 发件人（左上）+ 时间（右上）
-            UIFactory.Label(row.transform, "Sender", SenderText(m), 14,
+            // 单行 + 省略号：行高只有 52，发件人与主题各占一条窄带。TMP 默认 Wrap + Overflow，
+            // 主题一长就折成两行、从窄带里上下溢出去压住发件人（2026-10-28 报障：
+            // 「[来文] 2026年10月28日 · 台风…」把「新闻官 王志强」盖了一半）。
+            var senderLabel = UIFactory.Label(row.transform, "Sender", SenderText(m), 14,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.10f, 0.55f), new Vector2(0.68f, 0.95f), Vector2.zero, Vector2.zero),
                 titleCol, titleStyle);
+            UIFactory.ClampSingleLine(senderLabel);
             UIFactory.Label(row.transform, "Time", InboxTime.Clock(m), 12,
                 TextAlignmentOptions.MidlineRight,
                 new UIFactory.Anchor(new Vector2(0.68f, 0.52f), new Vector2(0.97f, 0.95f), Vector2.zero, Vector2.zero),
                 subCol);
 
             // 主题摘要（下）
-            UIFactory.Label(row.transform, "Subject",
-                $"[{InboxManager.KindLabel(m.kind)}] {m.subject}", 12,
+            var subjectLabel = UIFactory.Label(row.transform, "Subject",
+                InboxManager.RowSubject(m), 12,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.10f, 0.08f), new Vector2(0.97f, 0.55f), Vector2.zero, Vector2.zero),
                 subCol, unread ? FontStyles.Bold : FontStyles.Normal);
+            UIFactory.ClampSingleLine(subjectLabel);
 
             // 整行可点
             var btn = row.AddComponent<Button>();
@@ -681,6 +698,12 @@ namespace AirlineCEO.UI.Shell
 
             _rows.Add(row);
         }
+
+        /// <summary>
+        /// 收件箱列表的每一行只给固定高度，发件人与主题各是一条窄带。
+        /// TMP 默认 Wrap + Overflow：文本一长就换行并向外溢出，压到相邻那条带上去。
+        /// 统一收成「单行 + 省略号」（`UIFactory.ClampSingleLine`），完整内容在右侧详情页看。
+        /// </summary>
 
         /// <summary>
         /// 列表的发件人字样：外部来文统一写成「新闻官 沈其昌」。

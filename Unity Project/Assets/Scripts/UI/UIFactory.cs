@@ -187,6 +187,24 @@ namespace AirlineCEO.UI
             return text;
         }
 
+        /// <summary>
+        /// 把标签收成单行 + 省略号。
+        ///
+        /// 固定高度的行（收件箱列表、日期表头、状态栏）里，`Label` 默认的 Wrap + Overflow
+        /// 会让长文本折行并越过自己的矩形，压到相邻元素上 —— 2026-10-28 的报障就是这么来的：
+        /// 一封来文的主题折成两行，把「新闻官 王志强」盖掉一半。
+        ///
+        /// 单行元素一律调用它，不要靠「这段文字大概不会太长」。
+        /// </summary>
+        public static TextMeshProUGUI ClampSingleLine(TextMeshProUGUI text)
+        {
+            if (text == null) return null;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Ellipsis;
+            text.maxVisibleLines = 1;
+            return text;
+        }
+
         public static TMP_InputField Input(Transform parent, string name, string placeholder, Anchor a)
         {
             // 结构对齐 TMP 默认控件：Root → Text Area(viewport) → Text / Placeholder

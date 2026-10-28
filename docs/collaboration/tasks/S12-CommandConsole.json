@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-10-28T00:31:04.149Z",
+  "updatedAt": "2026-10-28T02:36:46.689Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e.",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261028021245-f4c95c.",
   "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,8 +73,8 @@
   },
   "scopeDrift": {
     "basis": 44,
-    "intact": 39,
-    "covered": 5,
+    "intact": 38,
+    "covered": 6,
     "uncovered": [],
     "uncoveredCount": 0
   }

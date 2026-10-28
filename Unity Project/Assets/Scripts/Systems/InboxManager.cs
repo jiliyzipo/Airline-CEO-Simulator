@@ -290,6 +290,38 @@ namespace AirlineCEO.Systems
             _ => "汇报"
         };
 
+        /// <summary>
+        /// 收件箱列表行的主题文本：`[来文] 台风"烟花"（超强台风）西移动…`。
+        ///
+        /// 外部来文的 `subject` 自带「2026年10月28日 · 」日期前缀（`subject = $"{date} · {title}"`）。
+        /// 列表里这个日期是纯重复：上方就是日期分组头，右侧就是具体时刻。留着它，
+        /// 一行宽度只够显示到「中心气压」，真正的信息（哪个台风、多强）反而被挤出屏幕
+        /// （2026-10-28 报障截图）。所以只在列表这条显示路径上去掉前缀；
+        /// 详情页标题与正文仍用原始 `subject`。
+        /// </summary>
+        public static string RowSubject(InboxMail mail)
+        {
+            if (mail == null) return "";
+            string subject = StripDatePrefix(mail.subject);
+            string kind = KindLabel(mail.kind);
+            return string.IsNullOrEmpty(kind) ? subject : $"[{kind}] {subject}";
+        }
+
+        /// <summary>去掉形如 `2026年10月28日 · ` 的前缀；不像日期的前缀一律原样保留。</summary>
+        public static string StripDatePrefix(string subject)
+        {
+            if (string.IsNullOrEmpty(subject)) return subject ?? "";
+            const string sep = " · ";
+            int at = subject.IndexOf(sep, System.StringComparison.Ordinal);
+            if (at <= 0) return subject;
+            string head = subject.Substring(0, at);
+            // 必须同时带「年」「月」并以「日」结尾，才认成日期标签：
+            // 否则「内部 · 说明」这类正常主题会被误砍。
+            if (!head.EndsWith("日", System.StringComparison.Ordinal)) return subject;
+            if (head.IndexOf('年') < 0 || head.IndexOf('月') < 0) return subject;
+            return subject.Substring(at + sep.Length);
+        }
+
         /// <summary>批准开航线：本季只落决策，下季度才真正开通（延迟后果）。</summary>
         public static bool Approve(GameState gs, InboxMail mail, out string message)
         {

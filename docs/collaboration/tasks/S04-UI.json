@@ -35,8 +35,8 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-28T00:31:03.649Z",
-  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 7 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261025094638-6f76b0, DEL-20261022092843-6e9303.",
+  "updatedAt": "2026-10-28T02:36:45.959Z",
+  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 7 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261028021245-f4c95c, DEL-20261022092843-6e9303.",
   "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
