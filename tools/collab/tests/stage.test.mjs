@@ -872,5 +872,38 @@ await test('R04', 'a withdrawn delivery is not this task\'s latest work in board
   assert.equal(row.latestDelivery, null, 'a withdrawn delivery is not the task latest work');
 });
 
+await test('R05', 'explicit stage-review on a withdrawn delivery is refused and creates no review', () => {
+  const f = fixture();
+  const close = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  stage.cmdStageRetract(f.cfg, { delivery: close.deliveryId, reason: '归属错误' });
+  const reviewsBefore = fs.readdirSync(path.join(f.dir, 'docs/collaboration/reviews')).length;
+
+  // AUDIT-R05: filtering the pending list is not access control — naming the
+  // withdrawn delivery explicitly used to create a REV and report passed.
+  throwsCode(() => stage.cmdStageReview(f.cfg, { delivery: close.deliveryId, actor: 'codex' }), 3);
+  // The lower-level entry point must refuse too, not just the sugar on top.
+  throwsCode(() => cmd.cmdReviewStart(f.cfg, { delivery: close.deliveryId, actor: 'codex' }), 3);
+
+  assert.equal(fs.readdirSync(path.join(f.dir, 'docs/collaboration/reviews')).length, reviewsBefore, 'no review may be created');
+  const issues = fs.readdirSync(path.join(f.dir, 'docs/collaboration/issues')).length;
+  assert.equal(issues, 0, 'a refusal must not manufacture a defect either');
+  assert.equal(state.loadState(f.cfg).deliveryStatus[close.deliveryId].status, 'withdrawn');
+});
+
+await test('R06', 'explicit stage-review on a superseded delivery is refused, and --dry-run does not plan it', () => {
+  const f = fixture();
+  const first = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  put(f.dir, 'tools/collab/stage-input.txt', `successor ${serial}`);
+  const second = stage.cmdStageClose(f.cfg, { task: first.taskId, profile: 'smoke' });
+  stage.cmdStageSupersede(f.cfg, { delivery: first.deliveryId, by: second.deliveryId, actor: 'cursor' });
+
+  throwsCode(() => stage.cmdStageReview(f.cfg, { delivery: first.deliveryId, actor: 'codex' }), 3);
+  // A preview must not describe a plan for something that may not run.
+  throwsCode(
+    () => stage.cmdStageReview(f.cfg, { delivery: first.deliveryId, actor: 'codex', 'dry-run': true }),
+    3,
+  );
+});
+
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
 process.exitCode = failed ? 1 : 0;

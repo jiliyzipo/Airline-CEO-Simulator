@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028133119-888d70",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 697,
+  "at": "2026-10-28T13:31:19.645Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ISSUE-20261028125310-c6b502: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261028125310-c6b502",
+    "from": "open",
+    "to": "fixed",
+    "note": "stage-review 与 review-start 均按共享台账拒绝 withdrawn/superseded；锁内复核；新增 R05/R06，Codex 的 AUDIT-R05 探针在修复前 FAIL、修复后 PASS"
+  }
+}

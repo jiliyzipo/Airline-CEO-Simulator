@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028125310-985ac2",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 693,
+  "at": "2026-10-28T12:53:10.897Z",
+  "actor": "codex",
+  "action": "independent-audit-finding",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ISSUE-20261028125310-c6b502: explicit review bypasses withdrawal",
+  "data": {
+    "issueId": "ISSUE-20261028125310-c6b502",
+    "commit": "20c94fd5e479956b237eeae245ec026abae297b0",
+    "realDeliveryReviewed": false
+  }
+}

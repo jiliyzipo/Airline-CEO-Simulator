@@ -210,6 +210,22 @@ export function supersededDeliveryIds(state) {
 }
 
 /**
+ * The ledger's retirement record for one delivery, or null if it is still live.
+ *
+ * Both callers that need this are guards on *entry points that create work*
+ * (`stage-review`, `review-start`). Keeping it a plain lookup rather than a
+ * `fail()` wrapper lets each entry point word its own refusal while both read
+ * the same ledger — a second copy of the "is it retired" rule is how the two
+ * sides drift apart.
+ */
+export function deliveryRetirement(state, deliveryId) {
+  const entry = state?.deliveryStatus?.[deliveryId];
+  if (!entry) return null;
+  if (entry.status === 'superseded' || entry.status === 'withdrawn') return entry;
+  return null;
+}
+
+/**
  * Deliveries that the ledger says must not be taken as this task's work —
  * replaced by a newer one, or withdrawn by whoever filed them.
  *

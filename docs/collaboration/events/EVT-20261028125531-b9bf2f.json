@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028125531-b9bf2f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 695,
+  "at": "2026-10-28T12:55:31.877Z",
+  "actor": "codex",
+  "action": "delivery-superseded",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "superseded: DEL-20261019091504-e23a3e",
+  "data": {
+    "marked": [
+      "DEL-20261019091504-e23a3e"
+    ],
+    "note": "最终退役裁定：追溯发现S04为S03合同/归属修正版，9个业务改动文件一致且REV-20261019094559-31090f独立通过。以此真实后继接替原S03交付并退役任务，保留failed历史。误打包DEL-20261028105347-defc40仍withdrawn，无supersededBy，不予检测。依据docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md；本事件取代先前无继任者的暂定裁定。"
+  }
+}

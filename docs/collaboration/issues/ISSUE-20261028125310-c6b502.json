@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261028125310-c6b502",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "title": "stage-retract 撤回后显式 stage-review 仍可创建 REV 并通过",
+  "repro": "独立导出提交 20c94fd；运行 .collab-local/audit-20c94fd-retract/source/tools/collab/tests/audit-retract.test.mjs。仅检测隔离夹具，真实关联 DEL 未运行 stage-review。",
+  "expected": "withdrawn 交付在显式检测入口被拒绝，不创建 review、不执行套件；锁内复核 ledger。",
+  "actual": "原 stage 套件 32/32（含 R01-R04）通过；补充 AUDIT-R05 失败：夹具交付撤回后显式 stage-review 返回 ok=true、status=passed，reviewCount 从 0 增为 1。关联 DEL 仅标识真实撤回事例，检测对象是提交 20c94fd 的工具实现。",
+  "evidence": "docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md; .collab-local/audit-20c94fd-retract/audit-probe.stdout.txt",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-28T12:53:10.888Z"
+}

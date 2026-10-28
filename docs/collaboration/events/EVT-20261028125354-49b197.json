@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028125354-49b197",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 694,
+  "at": "2026-10-28T12:53:54.814Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S03-Docs",
+  "deliveryId": "DEL-20261028105347-defc40",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ISSUE-20261028110156-545592: open -> closed",
+  "data": {
+    "issueId": "ISSUE-20261028110156-545592",
+    "from": "open",
+    "to": "closed",
+    "note": "独立核实：误归属 DEL-20261028105347-defc40 已由 Cursor 撤回，ledger=withdrawn、supersededBy=null，原交付/快照/指纹保留且handoff不再提供检测命令。归属错误行政结案；真实DEL未检测。stage-retract显式检测入口漏洞另见 ISSUE-20261028125310-c6b502，不由本结案掩盖。S03无继任者行政退役裁定已追加事件，任务状态待工具支持。见 docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md。"
+  }
+}

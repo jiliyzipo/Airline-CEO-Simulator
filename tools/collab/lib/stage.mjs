@@ -59,9 +59,9 @@ import {
   markDeliveriesSuperseded,
   recordEvent,
   retiredDeliveryIds,
+  deliveryRetirement,
   saveState,
   saveTask,
-  supersededDeliveryIds,
   withdrawDelivery,
   withStateLock,
 } from './state.mjs';
@@ -1455,9 +1455,50 @@ function latestPendingDelivery(cfg) {
   return null;
 }
 
+/**
+ * A retired delivery must never gain a new verdict.
+ *
+ * `pendingHandoffs` keeps retired deliveries out of the **automatic** pick, and
+ * that was all the first implementation of `stage-retract` did — treating a
+ * filtered list as if it were access control. Codex's AUDIT-R05 showed the gap:
+ * after withdrawing a fixture delivery, `stage-review --delivery <DEL>` still
+ * created a REV and reported `passed`. A list nobody reads is not a guard.
+ *
+ * Refusing here also protects the handoff index: `updateHandoffOutcome` writes
+ * `accepted`/`rejected` unconditionally, so a review of a retired delivery would
+ * quietly overwrite the `withdrawn` / `superseded` entry and put the delivery
+ * back in front of whoever reads the handoff next.
+ *
+ * Called twice by `cmdStageReview` — before the lease (nothing started, no suite
+ * run, no lock taken) and again under it, because a withdrawal can land while
+ * this process waits for the lock.
+ */
+function assertNotRetired(cfg, deliveryId) {
+  const entry = deliveryRetirement(loadState(cfg), deliveryId);
+  if (!entry) return;
+  const detail = {
+    deliveryId,
+    status: entry.status,
+    actor: entry.actor || null,
+    at: entry.at || null,
+  };
+  if (entry.status === 'withdrawn') {
+    fail(
+      EXIT.CONFLICT,
+      `${deliveryId} was withdrawn by ${entry.actor || 'unknown'} at ${entry.at || '?'}: ` +
+        `${entry.note || 'no reason recorded'} — a withdrawn delivery is never reviewed`,
+      detail,
+    );
+  }
+  fail(
+    EXIT.CONFLICT,
+    `${deliveryId} was superseded by ${entry.supersededBy || 'a later delivery'}; review the successor instead`,
+    detail,
+  );
+}
+
 /** The reviewer's concrete defect, written as a first-class ISSUE record. */
-function recordFailureIssue(cfg, { delivery, review, task, run, machine, runError, profile }) {
-  const issue = {
+function recordFailureIssue(cfg, { delivery, review, task, run, machine, runError, profile }) {  const issue = {
     schemaVersion: 1,
     issueId: newId('ISSUE'),
     taskId: delivery.taskId,
@@ -1656,6 +1697,12 @@ export function cmdStageReview(cfg, args = {}) {
 
   const profile = args.profile || target.recommendedProfiles?.[0] || 'smoke';
 
+  // Before anything else that could create work: a retired delivery is not a
+  // reviewable subject, whether it was named explicitly or picked automatically.
+  // Placed ahead of the dry-run return too — a preview that plans a withdrawn
+  // delivery would be advice to do something forbidden.
+  assertNotRetired(cfg, target.deliveryId);
+
   // Authorize before any convenience return so "already reviewed" can never be
   // used to bypass permission on the delivery (SA05).
   let authRecord = null;
@@ -1698,7 +1745,9 @@ export function cmdStageReview(cfg, args = {}) {
   }
 
   try {
-    // Re-check under the lease: the previous owner may have finished meanwhile.
+    // Re-check under the lease: the previous owner may have finished meanwhile,
+    // and a withdrawal may have landed while this process waited for the lock.
+    assertNotRetired(cfg, target.deliveryId);
     const settled = terminalReviewFor(cfg, target.deliveryId);
     if (settled && !force) return settledResult(cfg, target, settled);
     return executeStageReview(cfg, { actor, delivery: target, profile, args, authRecord });

@@ -65,6 +65,7 @@ import {
   saveTask,
   withReviewLock,
   withStateLock,
+  deliveryRetirement,
 } from './state.mjs';
 
 export function parseArgs(argv) {
@@ -1808,6 +1809,21 @@ export function cmdReviewStart(cfg, args) {
   if (!deliveryId) fail(EXIT.USAGE, 'review-start requires --delivery');
   const delivery = readJson(path.join(collabDirs(cfg).deliveries, `${deliveryId}.json`), null);
   if (!delivery) fail(EXIT.USAGE, `delivery not found: ${deliveryId}`);
+
+  // A retired delivery must not start a review. This is the lower-level entry
+  // point: `stage-review` guards itself, but `review-start` is callable on its
+  // own and was the other way in (ISSUE-20261028125310-c6b502, AUDIT-R05).
+  const retirement = deliveryRetirement(loadState(cfg), deliveryId);
+  if (retirement) {
+    fail(
+      EXIT.CONFLICT,
+      retirement.status === 'withdrawn'
+        ? `${deliveryId} was withdrawn by ${retirement.actor || 'unknown'} at ${retirement.at || '?'}: ` +
+            `${retirement.note || 'no reason recorded'} — a withdrawn delivery is never reviewed`
+        : `${deliveryId} was superseded by ${retirement.supersededBy || 'a later delivery'}; review the successor instead`,
+      { deliveryId, status: retirement.status, actor: retirement.actor || null, at: retirement.at || null },
+    );
+  }
 
   const profile = args.profile || delivery.recommendedProfiles?.[0] || 'smoke';
   const authorization = reviewerAuthorization(cfg, delivery, actor, 'review-start', args.authorization, profile);

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 693,
-  "updatedAt": "2026-10-28T12:12:23.657Z",
+  "revision": 697,
+  "updatedAt": "2026-10-28T13:31:19.640Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -83,7 +83,7 @@
       "holder": null,
       "freshness": "stale",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-28T10:53:44.112Z"
+      "updatedAt": "2026-10-28T12:55:31.906Z"
     },
     "S04-UI": {
       "title": "阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复",
@@ -446,6 +446,20 @@
       "actor": "codex",
       "note": "交付快照未变；失败原因是交接单给出的检测命令未携带 --coverage，而 AC2-AC6 为自定义条款。已用同 DEL 补证重检。",
       "at": "2026-10-27T00:48:27.575Z"
+    },
+    "ISSUE-20261028110156-545592": {
+      "status": "closed",
+      "previous": "open",
+      "actor": "codex",
+      "note": "独立核实：误归属 DEL-20261028105347-defc40 已由 Cursor 撤回，ledger=withdrawn、supersededBy=null，原交付/快照/指纹保留且handoff不再提供检测命令。归属错误行政结案；真实DEL未检测。stage-retract显式检测入口漏洞另见 ISSUE-20261028125310-c6b502，不由本结案掩盖。S03无继任者行政退役裁定已追加事件，任务状态待工具支持。见 docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md。",
+      "at": "2026-10-28T12:53:54.806Z"
+    },
+    "ISSUE-20261028125310-c6b502": {
+      "status": "fixed",
+      "previous": "open",
+      "actor": "cursor",
+      "note": "stage-review 与 review-start 均按共享台账拒绝 withdrawn/superseded；锁内复核；新增 R05/R06，Codex 的 AUDIT-R05 探针在修复前 FAIL、修复后 PASS",
+      "at": "2026-10-28T13:31:19.639Z"
     }
   },
   "deliveryStatus": {
@@ -584,6 +598,14 @@
       "actor": "cursor",
       "note": "归属错误（Cursor 操作失误）：stage-close --refresh-ac 只重建验收条件、未收窄改动范围，对比基准仍停在 2026-10-19，于是把基准之后 8 天里其他阶段的累计改动（104 文件，跨 balance/collab/UI/systems）打包成本阶段交付；S03-Docs 自己的 5 个文件一个都不在其中，且对 HEAD 的 git status 为空。该交付同时含 S31 全部工作，而 S31 已由 DEL-20261028092502-0f6037 独立检测通过（REV-20261028110915-15a8d5）。无更晚的继任交付可取代它，故按撤回处理并保留全部历史。",
       "at": "2026-10-28T12:11:45.647Z"
+    },
+    "DEL-20261019091504-e23a3e": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261019092547-d6429c",
+      "taskId": "S03-Docs",
+      "actor": "codex",
+      "note": "最终退役裁定：追溯发现S04为S03合同/归属修正版，9个业务改动文件一致且REV-20261019094559-31090f独立通过。以此真实后继接替原S03交付并退役任务，保留failed历史。误打包DEL-20261028105347-defc40仍withdrawn，无supersededBy，不予检测。依据docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md；本事件取代先前无继任者的暂定裁定。",
+      "at": "2026-10-28T12:55:31.869Z"
     }
   }
 }

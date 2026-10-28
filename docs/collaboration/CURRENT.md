@@ -1,9 +1,10 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-28T12:24:09.059Z
-状态 revision：693
+生成时间：2026-10-28T13:31:20.046Z
+状态 revision：697
 Cursor 最近确认读取：revision 693 @ 2026-10-28T12:24:08.611Z
-Codex 最近确认读取：revision 687 @ 2026-10-28T11:08:54.594Z
+Codex 最近确认读取：revision 693 @ 2026-10-28T12:44:00.111Z
+> 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -27,7 +28,7 @@ Codex 最近确认读取：revision 687 @ 2026-10-28T11:08:54.594Z
   - Historic verdict REV-20261018103950-3b9460 covered 33 changed files; 9 taken over by later passed deliveries, 5 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).
 - **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261018134910-387fd9 passed delivery DEL-20261018134113-f7d6ec; current workspace needs re-review.
-- **S03-Docs** 阶段 S03-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
+- **S03-Docs** 阶段 S03-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=stale · holder=- · 已被 DEL-20261019092547-d6429c（S04-UI）取代
   - Delivery snapshot differs from current workspace.
 - **S04-UI** 阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261019094559-31090f covered 9 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).
@@ -107,7 +108,7 @@ Codex 最近确认读取：revision 687 @ 2026-10-28T11:08:54.594Z
 - ISSUE-20261025133539-5d00c2 [blocker] 验收条件缺少机器验证，且检测者未显式补证 · task=S12-CommandConsole
 - ISSUE-20261026023527-01bb24 [blocker] profile collab 未通过（DEL-20261026022132-804f18） · task=S13-CollabSupersede
 - ISSUE-20261026061059-747c95 [blocker] profile collab 未通过（DEL-20261026031355-16ec52） · task=S13-CollabSupersede
-- ISSUE-20261028110156-545592 [major] S03-Docs 的重交付归属错误：卷入 104 个属于其他任务的文件，且不含本阶段自己的任何改动 · task=S03-Docs
+- ISSUE-20261028125310-c6b502 [major] stage-retract 撤回后显式 stage-review 仍可创建 REV 并通过 · task=S03-Docs
 
 本文件由 `node tools/collab/cli.mjs sync` 生成，请勿手工维护第二套状态。
 T01/T06 等只读引用的任务书状态见 taskBookStatus；不以本工具覆盖游戏任务书勾选。

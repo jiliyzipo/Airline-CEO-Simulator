@@ -31,7 +31,14 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:23:57.199Z",
-  "updatedAt": "2026-10-28T12:11:58.401Z",
+  "updatedAt": "2026-10-28T12:55:31.906Z",
   "freshnessNote": "Delivery snapshot differs from current workspace.",
-  "staleForReviewId": null
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261019092547-d6429c",
+    "taskId": "S04-UI",
+    "actor": "codex",
+    "note": "最终退役裁定：追溯发现S04为S03合同/归属修正版，9个业务改动文件一致且REV-20261019094559-31090f独立通过。以此真实后继接替原S03交付并退役任务，保留failed历史。误打包DEL-20261028105347-defc40仍withdrawn，无supersededBy，不予检测。依据docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md；本事件取代先前无继任者的暂定裁定。",
+    "at": "2026-10-28T12:55:31.906Z"
+  }
 }
