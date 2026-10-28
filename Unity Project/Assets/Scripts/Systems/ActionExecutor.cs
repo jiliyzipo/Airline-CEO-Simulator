@@ -131,7 +131,7 @@ namespace AirlineCEO.Systems
             {
                 return Fail(
                     "机队中无可用飞机，请先购买或维护。\n" +
-                    $"（适航 {FleetManager.Instance.CountAirworthy(gs)} 架，已开航线 {gs.activeRoutes.Count} 条）");
+                    $"（在役 {FleetManager.Instance.CountAirworthy(gs)} 架，已开航线 {gs.activeRoutes.Count} 条）");
             }
 
             // Phase 7：长航线先过航权审批；Phase 18：准入许可已发证时跳过（航权已在准入阶段核准）

@@ -1,0 +1,15 @@
+{
+  "id": "AI-20261027024343-021c99",
+  "suite": "all",
+  "status": "passed",
+  "ok": true,
+  "error": null,
+  "requestedAt": "2026-10-27T02:43:43.081Z",
+  "finishedAt": "2026-10-27T02:43:43.4766848Z",
+  "durationMs": 219,
+  "unityVersion": "6000.3.21f1",
+  "projectPath": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\Unity Project",
+  "scenePath": "",
+  "sceneDirty": false,
+  "logLines": 19
+}

@@ -80,7 +80,7 @@ namespace AirlineCEO.UI
             if (gs == null) return;
             var mnt = MaintenanceManager.EnsureState(gs);
             if (_kpiText != null)
-                _kpiText.text = $"机队可用率：{mnt.fleetAvailability:F1}%    维修差错率：{mnt.errorRate:F1}%\n停飞飞机：{mnt.groundedCount} 架    持证工程师：{mnt.engineerCount} 人    在培：{mnt.trainingCount} 人";
+                _kpiText.text = $"维修策略目标可用率：{mnt.fleetAvailability:F1}%    维修差错率：{mnt.errorRate:F1}%\n停飞飞机：{mnt.groundedCount} 架    持证工程师：{mnt.engineerCount} 人    在培：{mnt.trainingCount} 人";
             if (_strategyText != null)
             {
                 string s = MaintenanceManager.StrategyName(mnt.strategy);

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013325-eede18",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 512,
+  "at": "2026-10-27T01:33:25.685Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S09-Residual",
+  "deliveryId": "DEL-20261024020739-7b9e30",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=30 drifted=5",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Systems/FinanceManager.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "tools/balance/README.md",
+      "tools/balance/baseline/BASELINE_SOURCE.json"
+    ]
+  }
+}

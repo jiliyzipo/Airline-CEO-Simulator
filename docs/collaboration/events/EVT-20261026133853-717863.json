@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026133853-717863",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 472,
+  "at": "2026-10-26T13:38:53.260Z",
+  "actor": "cursor",
+  "action": "stage-supersede",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026092125-d3b2a1",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "DEL-20261026092125-d3b2a1 superseded by DEL-20261026120855-4108a5",
+  "data": {
+    "supersededBy": "DEL-20261026120855-4108a5",
+    "successorTaskId": "S14-CollabBinding",
+    "crossTask": true
+  }
+}

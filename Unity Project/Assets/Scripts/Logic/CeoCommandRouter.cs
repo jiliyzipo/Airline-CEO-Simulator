@@ -58,6 +58,25 @@ namespace AirlineCEO.Logic
             /// </summary>
             public string flightNumber;
             public string note;        // 未派件时的原因与引导
+
+            // ——— 写指令的参数（全部来自原话，**解析不出就退回引导，不猜**) ———
+
+            /// <summary>经停机场（开航）。暂不从句子里认，留 0 表示直飞。</summary>
+            public string via;
+            /// <summary>机型 typeId（购机），必须命中 <see cref="AircraftCatalog"/> 里的型号。</summary>
+            public string aircraftType;
+            /// <summary>采购方式（购机）：自有资金买断 / 融资租赁 / 经营租赁 / 二手引进。</summary>
+            public string source;
+            /// <summary>岗位（招聘）：飞行员 / 乘务员 / 机务工程师。</summary>
+            public string position;
+            /// <summary>数量：架数（购机）或人数（招聘）。</summary>
+            public int count;
+            /// <summary>融资种类：1 银行贷款 / 2 高息过桥 / 3 股东增资。</summary>
+            public int financeKind;
+            /// <summary>招聘渠道：0 校招 / 1 猎头 / 2 海外引进 / 3 内部转岗。</summary>
+            public int channel;
+            /// <summary>招聘紧迫度（1 常规 / 2 较急 / 3 紧急）。</summary>
+            public int urgency;
         }
 
         /// <summary>把一个名字片段解析成三字码；解不出返回 null。用于把「在营航线」也当词表。</summary>
@@ -65,6 +84,14 @@ namespace AirlineCEO.Logic
 
         public const string TopicFeasibility = "feasibility";
         public const string TopicCloseRoute = "close_route";
+        /// <summary>开航研究会：命令台说「开通北京—纽约」→ 与页面同一个入口，投递开航请示件。</summary>
+        public const string TopicOpenRoute = "open_route";
+        /// <summary>购机请示：说「买 2 架 A320neo」→ 机队发展部发购机请示件。</summary>
+        public const string TopicFleetBuy = "fleet_buy";
+        /// <summary>招聘请示：说「招聘 10 名飞行员」→ 人力资源部发招聘请示件。</summary>
+        public const string TopicHrRecruit = "hr_recruit";
+        /// <summary>融资请示：说「申请银行贷款」→ 财务部发融资请示件。</summary>
+        public const string TopicFinance = "finance_request";
         /// <summary>运力调令（加减班 / 改班期 / 换机号）：不自己改账，交给既有运力管线。</summary>
         public const string TopicCapacity = "capacity";
         /// <summary>问某一条**具体航线**的现状（班期/为什么没排/几班/谁飞）：交运营部按本线台账答复。</summary>
@@ -223,20 +250,26 @@ namespace AirlineCEO.Logic
             return "OPS";
         }
 
-        /// <summary>当前页的输入提示语。占位文字本身就是「这一页能问什么」的第一层说明。</summary>
+        /// <summary>
+        /// 当前页的输入提示语。占位文字本身就是「这一页能问什么」的第一层说明。
+        ///
+        /// 2026-10-25（P22）：命令台现在也有「写」了，所以每条提示都在问句后面补一个**能办的事**。
+        /// 只写问句会让玩家以为这条只能问 —— 而他要的东西（开线 / 买机 / 招人 / 找钱）
+        /// 恰恰都在写指令里，且都只到「发请示」这一步，批不批仍由他定。
+        /// </summary>
         public static string PageHint(string pageId)
         {
             // 「公司整体」与页面无关：任何页都能问，故在每一条提示里都留在同一位置，不随页变化。
             const string company = "；公司整体情况由顾问答（说「汇报公司整体情况」）";
             switch (PageDept(pageId))
             {
-                case "FIN": return "向财务部提问，回车下达…  例如：汇报目前的财务状况" + company;
-                case "HR": return "向人力资源部提问，回车下达…  例如：现在乘务员缺口多少" + company;
-                case DeptFleet: return "向机队发展部提问，回车下达…  例如：机队现在几架、几架适航" + company;
+                case "FIN": return "向财务部提问，回车下达…  例如：汇报目前的财务状况；要钱说「申请银行贷款」" + company;
+                case "HR": return "向人力资源部提问，回车下达…  例如：现在乘务员缺口多少；要人则说「招聘 10 名飞行员」" + company;
+                case DeptFleet: return "向机队发展部提问，回车下达…  例如：机队现在几架、几架适航；买机说「买 2 架 A320neo」" + company;
                 case "MNT": return "向机务工程部提问，回车下达…  例如：现在的机队可用率是多少" + company;
                 case "MKT": return "向市场销售部提问，回车下达…  例如：汇报客座率与票价水平" + company;
-                case "STG": return "向战略发展部提问，回车下达…  例如：分析开通北京—纽约航线的可行性" + company;
-                default: return "输入一句指令，回车下达…  例如：汇报本周运力与准点率" + company;
+                case "STG": return "向战略发展部提问，回车下达…  例如：分析开通北京—纽约航线的可行性；真要开就说「开通北京—纽约」" + company;
+                default: return "输入一句指令，回车下达…  例如：汇报本周运力与准点率；开线说「开通成都—上海」" + company;
             }
         }
 
@@ -359,6 +392,25 @@ namespace AirlineCEO.Logic
                 return ask;
             }
 
+            // ②c 四类写指令（开线 / 购机 / 招聘 / 融资）。
+            //
+            //    命令台既有「读」（汇报/分析）也有「写」。这四类**一律不自己改台账**：
+            //    它们只把请求交给既有的呈报管线（<c>InboxManager</c> 的四个 Offer/Queue 方法），
+            //    生成一封标准请示件，由 CEO 在收件箱批一次 —— 与页面按钮完全同一条路。
+            //    绝不另起第三套执行路径，否则同一件事会有两本账。
+            //
+            //    判据统一是「动词 + 具体实体 + 不是问句/不是汇报」：
+            //    · 「分析开通北京—纽约的可行性」在 ② 已返回 Analyze，不会变成开航令；
+            //    · 「汇报融资情况」「贷款还剩多少」「机队现在几架」都留在读类；
+            //    · 参数缺一个就**退回引导**（ok=false + note），绝不替 CEO 猜架数/人数。
+            if (LooksLikeRequest(text))
+            {
+                if (TryOpenRoute(text, extra, out var openAsk)) return openAsk;
+                if (TryFleetBuy(text, out var fleetAsk)) return fleetAsk;
+                if (TryHrRecruit(text, out var hrAsk)) return hrAsk;
+                if (TryFinanceRequest(text, out var finAsk)) return finAsk;
+            }
+
             // ②b 公司整体经营：问的不是某个部门，而是「这家公司现在怎么样」。
             //    必须排在部门词表**之前**：这类句子里常顺带提到现金、航线、机队，
             //    落到词表里就成了某一部门的账本 —— 而 CEO 要的是跨部门的判断（2026-10-21 实测原话）。
@@ -465,6 +517,293 @@ namespace AirlineCEO.Logic
                      + "也可在「航线」页打开单条航线直接提问。";
             return "没看懂这句话。可以问：财务状况 / 乘务员缺口 / 机队规模 / 公司整体情况；"
                  + "也可以说：分析开通北京—纽约航线的可行性、把北京—上海加密到每天 3 班。";
+        }
+
+        // ———— 四类写指令的词表与参数读取 ————
+
+        static readonly string[] OpenVerbs = { "开通", "开航", "新开", "开辟" };
+        static readonly string[] BuyVerbs = { "购买", "购置", "采购", "订购", "引进", "买" };
+        static readonly string[] RecruitVerbs = { "招聘", "招募", "招收", "招" };
+
+        /// <summary>
+        /// 「这句话是在**要东西**，不是在**问情况**」。四类写指令共用这一道闸。
+        ///
+        /// 少了它，「汇报融资情况」会因为句子里有「融资」而变成一封紧急融资请示，
+        /// 「招聘进度如何」会变成第二封招聘请示 —— 这类误判的代价是**收不回来的信**，
+        /// 比少认一句写指令严重得多，所以闸门宁可关得紧一点。
+        /// </summary>
+        static readonly string[] ReportOrQuestionWords =
+        {
+            "汇报", "报告", "简报", "情况", "进度", "现状", "多少", "多久", "怎么样", "如何",
+            "为什么", "为何", "吗", "呢", "是否", "能不能", "可不可以", "分析", "评估", "看看", "说说"
+        };
+
+        static bool LooksLikeRequest(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            return !HasAny(text, ReportOrQuestionWords);
+        }
+
+        /// <summary>
+        /// 「开通北京—纽约」→ 开航研究会请示。
+        ///
+        /// 与 ②「可行性」的分界只有一条：**有没有「分析/评估」**。有分析就是让战略部出一份可行性，
+        /// 没有就是要运营部按既有流程召集会商 —— 后者和页面里选完机场点「提交研究」是同一件事。
+        /// 切不出城对时不装作受理：返回一张 ok=false 的引导卡，命令条上直接说清缺什么。
+        /// </summary>
+        static bool TryOpenRoute(string text, PieceResolver extra, out CeoAsk ask)
+        {
+            ask = default;
+            if (!HasAny(text, OpenVerbs)) return false;
+
+            if (!TryResolvePair(text, extra, out string o, out string d, out string ot, out string dt))
+            {
+                ask = new CeoAsk
+                {
+                    deptCode = "OPS",
+                    kind = CeoAskKind.Act,
+                    topic = TopicOpenRoute,
+                    note = "开航要先知道出发地与目的地。例如：开通北京—纽约航线。"
+                         + "（只报一条航线就够，具体班次与机型由开航研究会评估。）"
+                };
+                return true;
+            }
+
+            ask = new CeoAsk
+            {
+                ok = true,
+                deptCode = "OPS",
+                kind = CeoAskKind.Act,
+                topic = TopicOpenRoute,
+                origin = o,
+                dest = d,
+                originText = ot,
+                destText = dt
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// 「买 2 架 A320neo」→ 机队发展部购机请示。
+        ///
+        /// 机型必须是 <see cref="AircraftCatalog"/> 里真实存在的型号（取**最长命中**：
+        /// 「A320neo」不会被记成「A320」，「B737-800」不会被记成「B737-8」）。
+        /// 架数读不到就退回引导 —— 1 架与 10 架是两笔完全不同的钱。
+        /// </summary>
+        static bool TryFleetBuy(string text, out CeoAsk ask)
+        {
+            ask = default;
+            if (!HasAny(text, BuyVerbs)) return false;
+
+            string typeId = MatchAircraftType(text);
+            if (string.IsNullOrEmpty(typeId)) return false;   // 没点机型：交给机队部按汇报答
+
+            if (!TryReadCount(text, out int count))
+            {
+                ask = new CeoAsk
+                {
+                    deptCode = DeptFleet,
+                    kind = CeoAskKind.Act,
+                    topic = TopicFleetBuy,
+                    aircraftType = typeId,
+                    note = $"要引进 {typeId} 几架？请写明架数，例如：买 2 架 {typeId}。"
+                         + "（数量不明时不下请示 —— 1 架和 10 架是两笔完全不同的钱。）"
+                };
+                return true;
+            }
+
+            ask = new CeoAsk
+            {
+                ok = true,
+                deptCode = DeptFleet,
+                kind = CeoAskKind.Act,
+                topic = TopicFleetBuy,
+                aircraftType = typeId,
+                count = count,
+                source = ReadBuySource(text)
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// 「招聘 10 名飞行员」→ 人力资源部招聘请示。
+        ///
+        /// 岗位只认编制表里的三个运行岗（飞行员 / 乘务员 / 机务工程师），别的一律不当招聘目标；
+        /// 渠道与紧迫度有默认值（校招 · 较急），句子里写了才改 —— 这两项**不改人数与成本口径**，
+        /// 且请示件里会原样写出来，CEO 批复前看得见。
+        /// </summary>
+        static bool TryHrRecruit(string text, out CeoAsk ask)
+        {
+            ask = default;
+            if (!HasAny(text, RecruitVerbs)) return false;
+
+            string position = ReadRecruitPosition(text);
+            if (string.IsNullOrEmpty(position)) return false;  // 没点岗位：交人力部按缺口答
+
+            if (!TryReadCount(text, out int count))
+            {
+                ask = new CeoAsk
+                {
+                    deptCode = "HR",
+                    kind = CeoAskKind.Act,
+                    topic = TopicHrRecruit,
+                    position = position,
+                    note = $"要招几名「{position}」？请写明人数，例如：招聘 10 名{position}。"
+                };
+                return true;
+            }
+
+            ask = new CeoAsk
+            {
+                ok = true,
+                deptCode = "HR",
+                kind = CeoAskKind.Act,
+                topic = TopicHrRecruit,
+                position = position,
+                count = count,
+                channel = ReadRecruitChannel(text),
+                urgency = ReadRecruitUrgency(text)
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// 「申请银行贷款 / 办理高息过桥 / 申请股东增资」→ 财务部融资请示。
+        ///
+        /// 必须带**申请/办理**这类动作词，裸的「融资」「贷款」不算：
+        /// 「汇报融资情况」里的「融资」是话题不是命令（见 <see cref="LooksLikeRequest"/> 那道闸）。
+        /// 种类只有三档，与 <c>InboxManager.OfferFinanceLoan</c> 的 kind 一一对应。
+        /// </summary>
+        static bool TryFinanceRequest(string text, out CeoAsk ask)
+        {
+            ask = default;
+            bool acts = (Has(text, "申请") || Has(text, "办理") || Has(text, "要") || Has(text, "需要一笔"))
+                        && (Has(text, "贷款") || Has(text, "融资") || Has(text, "过桥") || Has(text, "增资"));
+            if (!acts) return false;
+
+            int kind = (Has(text, "增资") || Has(text, "股东")) ? 3
+                     : (Has(text, "过桥") || Has(text, "高息")) ? 2
+                     : 1;
+            ask = new CeoAsk
+            {
+                ok = true,
+                deptCode = "FIN",
+                kind = CeoAskKind.Act,
+                topic = TopicFinance,
+                financeKind = kind
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// 机型最长命中。**必须取最长**：目录里「A320」是「A320neo」的前缀、
+        /// 「B737-8」是「B737-800」的前缀，取第一个命中会把订单记到错型号上。
+        /// </summary>
+        static string MatchAircraftType(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            string best = null;
+            var all = AircraftCatalog.All;
+            for (int i = 0; i < all.Length; i++)
+            {
+                string id = all[i].typeId;
+                if (string.IsNullOrEmpty(id)) continue;
+                if (text.IndexOf(id, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                if (best == null || id.Length > best.Length) best = id;
+            }
+            return best;
+        }
+
+        /// <summary>采购方式：与购机决策会四个按钮一字不差，否则批准后会落到别的付款口径上。</summary>
+        static string ReadBuySource(string text)
+        {
+            if (Has(text, "经营租赁")) return "经营租赁";
+            if (Has(text, "租赁") || Has(text, "融资租")) return "融资租赁";
+            if (Has(text, "二手")) return "二手引进";
+            return "自有资金买断";
+        }
+
+        static string ReadRecruitPosition(string text)
+        {
+            if (Has(text, "飞行") || Has(text, "机长") || Has(text, "副驾")) return "飞行员";
+            if (Has(text, "乘务") || Has(text, "空乘") || Has(text, "空姐")) return "乘务员";
+            if (Has(text, "机务") || Has(text, "维修工程师")) return "机务工程师";
+            return null;
+        }
+
+        static int ReadRecruitChannel(string text)
+        {
+            if (Has(text, "内部转岗")) return 3;
+            if (Has(text, "海外") || Has(text, "外籍")) return 2;
+            if (Has(text, "猎头") || Has(text, "挖角")) return 1;
+            return 0;   // 校园招聘：默认渠道里成本最低、周期最长，适合「不急但要多招」
+        }
+
+        static int ReadRecruitUrgency(string text)
+        {
+            if (Has(text, "紧急") || Has(text, "加急") || Has(text, "马上")) return 3;
+            if (Has(text, "不急") || Has(text, "常规") || Has(text, "慢慢")) return 1;
+            return 2;
+        }
+
+        static readonly char[] CountUnits = { '架', '名', '人', '位', '个' };
+
+        /// <summary>
+        /// 读「2 架 / 两架 / 10 名 / 五人」里的数量。读不到返回 false —— 调用方必须自己决定
+        /// 是退回引导还是用默认值，本函数不提供「猜一个」的选项。
+        /// </summary>
+        static bool TryReadCount(string text, out int count)
+        {
+            count = 0;
+            if (string.IsNullOrEmpty(text)) return false;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (!char.IsDigit(text[i])) continue;
+                int j = i;
+                while (j < text.Length && (char.IsDigit(text[j]) || text[j] == ' ')) j++;
+                if (j >= text.Length || Array.IndexOf(CountUnits, text[j]) < 0) continue;
+                if (int.TryParse(text.Substring(i, j - i).Trim(), out int n) && n > 0)
+                {
+                    count = n;
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                int v = CjkDigit(text[i]);
+                if (v <= 0) continue;
+                int j = i + 1;
+                if (j < text.Length && text[j] == '十')      // 十五 / 二十 / 二十五
+                {
+                    int tens = v * 10;
+                    j++;
+                    if (j < text.Length && CjkDigit(text[j]) > 0) tens += CjkDigit(text[j++]);
+                    if (j < text.Length && Array.IndexOf(CountUnits, text[j]) >= 0) { count = tens; return true; }
+                    continue;
+                }
+                if (j < text.Length && Array.IndexOf(CountUnits, text[j]) >= 0) { count = v; return true; }
+            }
+            return false;
+        }
+
+        /// <summary>「两」「俩」都按 2 读 —— CEO 不会写「二架」。</summary>
+        static int CjkDigit(char c)
+        {
+            switch (c)
+            {
+                case '一': return 1;
+                case '两': case '二': return 2;
+                case '三': return 3;
+                case '四': return 4;
+                case '五': return 5;
+                case '六': return 6;
+                case '七': return 7;
+                case '八': return 8;
+                case '九': return 9;
+                default: return 0;
+            }
         }
 
         // ———— 机场名解析 ————

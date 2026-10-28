@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261027011011-201cff",
+  "deliveryId": "DEL-20261027010737-388256",
+  "taskId": "S16-CollabFidelity",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "5acd6ad7ea36b689d0c7a13996ae9b07a9df5a2368e6c3730a192644190efa7e",
+    "verification": "f10622edc11fa0582978b8416c4bb004f1577651ca17aa116a394a55b936a372",
+    "contract": "98a6790199a70d82caa85b9508b72e81ef134ef256110b8f76a04b5d8a3f8ead"
+  },
+  "snapshotPath": "out/collab/DEL-20261027010737-388256",
+  "createdAt": "2026-10-27T01:10:11.986Z",
+  "updatedAt": "2026-10-27T01:11:17.317Z",
+  "runs": [
+    {
+      "at": "2026-10-27T01:10:12.219Z",
+      "finishedAt": "2026-10-27T01:11:16.813Z",
+      "runToken": "270b8d12df435920",
+      "profile": "collab",
+      "deliveryId": "DEL-20261027010737-388256",
+      "subjectImplementationFingerprint": "5acd6ad7ea36b689d0c7a13996ae9b07a9df5a2368e6c3730a192644190efa7e",
+      "subjectFingerprints": {
+        "implementation": "5acd6ad7ea36b689d0c7a13996ae9b07a9df5a2368e6c3730a192644190efa7e",
+        "verification": "f10622edc11fa0582978b8416c4bb004f1577651ca17aa116a394a55b936a372",
+        "contract": "98a6790199a70d82caa85b9508b72e81ef134ef256110b8f76a04b5d8a3f8ead"
+      },
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261027010737-388256",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261027011011-201cff/run-270b8d12df435920/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261027011011-201cff/run-270b8d12df435920/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261027011011-201cff/run-270b8d12df435920/stdout.txt",
+        "sha256": "d05f7672acd9ea012f3b2de83a6b68db8fcb595c6d991e4d356eacd24ab7e934",
+        "bytes": 3808,
+        "runToken": "270b8d12df435920"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261027011011-201cff/run-270b8d12df435920/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "270b8d12df435920"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC4",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC5",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC6",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC7",
+      "result": "passed",
+      "evidence": "profile=collab runToken=270b8d12df435920 counters={\"total\":167,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-27T01:10:12.207Z",
+  "assertions": {
+    "total": 167,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 167,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 167,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261027011011-201cff-1793063477066.json",
+  "finishedAt": "2026-10-27T01:11:17.317Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "270b8d12df435920",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261027010737-388256"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261026061059-747c95",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026031355-16ec52",
+  "reviewId": "REV-20261026060606-ce441e",
+  "title": "profile collab 未通过（DEL-20261026031355-16ec52）",
+  "repro": "在交付快照运行 profile collab，runToken=3fa599782a106f37",
+  "expected": "退出码 0，机器结果 total>0、failed=0，且断言计数与证据一致",
+  "actual": "exit=1；machine result reports 10 failed assertion(s)",
+  "evidence": ".collab-local/logs/REV-20261026060606-ce441e/run-3fa599782a106f37/stdout.txt",
+  "severity": "blocker",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-10-26T06:10:59.862Z"
+}

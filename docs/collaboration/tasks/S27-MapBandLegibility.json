@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S27-MapBandLegibility",
+  "title": "阶段 S27-MapBandLegibility：Editor/Collab/UI",
+  "revision": 2,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Editor、Collab、UI、Assets-Tests、Logic、Balance",
+    "改动文件数 110，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S27-MapBandLegibility）"
+    },
+    {
+      "id": "AC2",
+      "text": "冒烟 profile 输出可解析的机器结果 JSON 且断言计数合法（S27-MapBandLegibility）"
+    },
+    {
+      "id": "AC3",
+      "text": "文档与索引引用在本快照内可解析（无断链路径）（S27-MapBandLegibility）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-27T12:33:01.628Z",
+  "updatedAt": "2026-10-27T23:59:44.050Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historical review REV-20261027124433-1357a2 passed delivery DEL-20261027123307-f320b4; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261027124433-1357a2"
+}

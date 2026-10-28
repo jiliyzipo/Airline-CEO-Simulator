@@ -418,7 +418,9 @@ namespace AirlineCEO.UI
             // 周利与单班日利都用**净额**（航线日利 ÷ 班次），与周计划逐班行、n43 单班页同一口径。
             // 旧版直接用 f.dailyProfit（毛贡献份额，Σ 各班 = 毛贡献），比航线日利多出整笔周期固定成本，
             // 于是同一个 NS100 在单航线页与邮件/周计划里会印出两个不同的「日利」。
-            float weekProfit = r.FlightNetDailyProfit * Mathf.Max(1, FlightScheduleFormat.WeeklyOf(f));
+            // ★ 2026-10-27：周利改走 RouteData.WeeklyProfitOf —— 旧式「单班日利 × 本班周班次」
+            //   会把 dailyProfit 里已含的 weeklyFlights/7 再乘一遍（20 班/周的航线虚高 2.86 倍）。
+            float weekProfit = r.WeeklyProfitOf(f);
             ClampLines(UIFactory.Label(card.transform, "T",
                 (string.IsNullOrEmpty(f.registration) ? "Flight Schedule　班次周排班" : $"{f.registration} Flight Schedule")
                 + "　·　列 = 执飞日",

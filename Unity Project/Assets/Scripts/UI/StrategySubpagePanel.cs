@@ -193,10 +193,10 @@ namespace AirlineCEO.UI
             float ratio = CapacityPlanning.GapRatio(routes, airworthy);
             bool red = ratio > CapacityPlanning.WarnRatio;
             L("H", "机队与运力规划 · 飞机全生命周期管理", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
-            L("Kpi", $"机队 {fleet} 架 · 适航 {airworthy} · 航线 {routes} · 缺口 {gap} 架（{ratio * 100f:F0}%）{(red ? " · 红灯>20%" : "")}",
+            L("Kpi", $"机队 {fleet} 架 · 在役 {airworthy} · 航线 {routes} · 缺口 {gap} 架（{ratio * 100f:F0}%）{(red ? " · 红灯>20%" : "")}",
                 0.0f, 0.82f, 1.0f, 0.90f, 13, red ? UITheme.Danger : UITheme.Success, true);
 
-            L("S1", "五年机队规划：缺口由「在营航线 − 适航架数」计算。补强提案在收件箱批准后，到机队页开会引进。", 0.0f, 0.68f, 1.0f, 0.78f, 12, UITheme.TextMuted);
+            L("S1", "五年机队规划：缺口由「在营航线 − 在役架数」计算。在役 = 已分配航线的飞机；未分配的在册飞机不计入（即便机队页每行写着「适航」）。补强提案在收件箱批准后，到机队页开会引进。", 0.0f, 0.68f, 1.0f, 0.78f, 12, UITheme.TextMuted);
             L("S2", "实际买新机 / 二手 / 租赁在底栏「机队」完成。", 0.0f, 0.60f, 1.0f, 0.68f, 12, UITheme.TextMuted);
             L("S3", "OEM 供应商关系与退租检仍由机务页承接。", 0.0f, 0.52f, 1.0f, 0.60f, 12, UITheme.TextMuted);
             L("S4", gap > 0 ? $"当前建议引进 {gap} 架，否则客座与准点承压。" : "当前运力覆盖航网，备份运力请到机队引进。",

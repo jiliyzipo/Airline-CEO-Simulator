@@ -352,6 +352,14 @@ public sealed class AirlineYearSimulator
             CarbonCostWan = Round2(carbonTotal),
             LoanPrincipalWan = Round2(loanPrincipal),
             LoanInterestPaidWan = Round2(interestTotal),
+            LoanOutstandingWan = Round2(loanRemaining),
+            CashBridgeResidualWan = Round2(CashBridge.Residual(
+                openingCash: _openingCash,
+                closingCash: cash,
+                netProfit: totalProfit,
+                irropsCash: irropsCash,
+                interestPaid: interestTotal,
+                loanOutstanding: loanRemaining)),
 
             // FLEET/NET 年闭环
             FleetCount = fleetCount,

@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261027043857-e4c054",
+  "deliveryId": "DEL-20261027043524-cb5539",
+  "taskId": "S22-BalanceBridge",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "balance",
+  "profileDefinition": {
+    "kind": "dotnet",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/balance/AirlineCEO.Balance.csproj",
+      "-c",
+      "Release",
+      "--",
+      "--bridgecheck"
+    ],
+    "resultKind": "json",
+    "description": "T04.8 现金桥对账：跑 60 组合，校验「期末现金 = 期初 + 净利 + IRROPS − 利息 + 未偿本金」；只判对账，不判破产组合数量"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "bb3ce46c2654dc68c5bc140e9fe8c0ce6b6382e6f1e7b056b94d51db36d05e39",
+    "verification": "42ece93b9cdb468d34e31767d3b5983177ca178c06f66cb35a1434fcabb9d919",
+    "contract": "5e0674c2c100e5bf61a58f1d50fe000512a5d38e6f426767d18b65fbd03cad5d"
+  },
+  "snapshotPath": "out/collab/DEL-20261027043524-cb5539",
+  "createdAt": "2026-10-27T04:38:57.617Z",
+  "updatedAt": "2026-10-27T04:39:09.108Z",
+  "runs": [
+    {
+      "at": "2026-10-27T04:38:59.220Z",
+      "finishedAt": "2026-10-27T04:39:02.851Z",
+      "runToken": "2ebcc127cbcf5648",
+      "profile": "balance",
+      "deliveryId": "DEL-20261027043524-cb5539",
+      "subjectImplementationFingerprint": "bb3ce46c2654dc68c5bc140e9fe8c0ce6b6382e6f1e7b056b94d51db36d05e39",
+      "subjectFingerprints": {
+        "implementation": "bb3ce46c2654dc68c5bc140e9fe8c0ce6b6382e6f1e7b056b94d51db36d05e39",
+        "verification": "42ece93b9cdb468d34e31767d3b5983177ca178c06f66cb35a1434fcabb9d919",
+        "contract": "5e0674c2c100e5bf61a58f1d50fe000512a5d38e6f426767d18b65fbd03cad5d"
+      },
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tools/balance/AirlineCEO.Balance.csproj",
+        "-c",
+        "Release",
+        "--",
+        "--bridgecheck"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261027043524-cb5539",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261027043857-e4c054/run-2ebcc127cbcf5648/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261027043857-e4c054/run-2ebcc127cbcf5648/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261027043857-e4c054/run-2ebcc127cbcf5648/stdout.txt",
+        "sha256": "ef85a3fc85a5f0e3c172cfa8dba1b3552cd8b5809b23976ef37c3c6f098f4463",
+        "bytes": 34020,
+        "runToken": "2ebcc127cbcf5648"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261027043857-e4c054/run-2ebcc127cbcf5648/stderr.txt",
+        "sha256": "300b4b9eb011b27b0b0bfc2550f10c2b685d508615193cf4d1957c24dcb2952e",
+        "bytes": 82,
+        "runToken": "2ebcc127cbcf5648"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=balance runToken=2ebcc127cbcf5648 counters={\"total\":60,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=balance runToken=2ebcc127cbcf5648 counters={\"total\":60,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=balance runToken=2ebcc127cbcf5648 counters={\"total\":60,\"failed\":0,\"skipped\":0} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-27T04:38:59.194Z",
+  "assertions": {
+    "total": 60,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 60,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 60,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261027043857-e4c054-1793075944698.json",
+  "finishedAt": "2026-10-27T04:39:09.108Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "2ebcc127cbcf5648",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261027043524-cb5539"
+  }
+}

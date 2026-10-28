@@ -946,6 +946,10 @@ namespace AirlineCEO.Logic
                 {
                     gs.cash -= c.recallFeeWan;
                     gs.yearNetProfit -= c.recallFeeWan;
+                    // R-B / B2（2026-10-25 裁定）：违约金是支出，必须进季度支出桶。
+                    // 否则「Δ现金 == Σ应计桶」在召回当期不成立 —— 现金少了，却没有任何桶记这笔钱，
+                    // 跨季对账时它「凭空消失」。不进过渡收入桶：那是收入栏，塞负数语义是错的。
+                    gs.liveQuarterExpense += c.recallFeeWan;
                     gs.AddDecisionLog($"过渡业务：{c.aircraftReg} 提前召回，支付违约金 {c.recallFeeWan:F1} 万。");
                     sb.Append($"过渡业务：{c.aircraftReg} 提前召回，支付违约金 {c.recallFeeWan:F1} 万。\n");
                     ReportClosed(gs, c, voided: false, recalled: true);

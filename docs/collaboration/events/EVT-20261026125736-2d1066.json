@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026125736-2d1066",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 461,
+  "at": "2026-10-26T12:57:36.981Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S14-CollabBinding",
+  "deliveryId": "DEL-20261026120855-4108a5",
+  "reviewId": "REV-20261026121713-f02d73",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026121935-4e76e6: open -> wontfix",
+  "data": {
+    "issueId": "ISSUE-20261026121935-4e76e6",
+    "from": "open",
+    "to": "wontfix",
+    "note": "误触：Cursor 带 --dry-run 调用 stage-review，该命令不识别此参数而完整执行；机器结果 157/157、0 失败、0 跳过，失败仅因未补证 --coverage"
+  }
+}

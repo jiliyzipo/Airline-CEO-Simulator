@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026031623-976c08",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 424,
+  "at": "2026-10-26T03:16:23.556Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026022132-804f18",
+  "reviewId": "REV-20261026023352-31f65f",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026023527-01bb24: fixing -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261026023527-01bb24",
+    "from": "fixing",
+    "to": "fixed",
+    "note": "新交付 DEL-20261026031355-16ec52（预检 collab 通过）。修复内容：run-all 证据落 COLLAB_RUN_DIR、失败消息去重进 stderr、0 通过判 fixtureBroken、夹具探针（树复制+cmdInit）单列、临时目录不可写回退工作区；新增 lib/suite-report.mjs 与 3 条 reporting 回归用例。请复验时若仍失败，请提供本次运行 stderr（现已包含失败原因与夹具探针结论）。"
+  }
+}

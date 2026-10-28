@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028001021-281301",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 642,
+  "at": "2026-10-28T00:10:21.867Z",
+  "actor": "system",
+  "action": "sync",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "sync revision=642",
+  "data": {
+    "freshness": [
+      {
+        "taskId": "C-COLLAB-FINAL",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261018072743-74a233 covered 35 changed files; 2 taken over by later passed deliveries, 10 still uncovered (AGENTS.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261018071756-010504",
+        "pairedReviewId": "REV-20261018072743-74a233"
+      },
+      {
+        "taskId": "C-DEMO",
+        "freshness": "stale",
+        "note": "Latest delivery DEL-20261018035835-766dc7 review REV-20261018041820-9f4b26 failed.",
+        "implementationFingerprint": "19def8ccc0616b34ce3e2c2ba2d4ba752e634fbe078f6a2d31d22059803abb86",
+        "verificationFingerprint": "04b073bf4cfb5d6ff50e2b71a317d5e6ec7fea3e6f58267d4ff43bca317748cb",
+        "pairedDeliveryId": "DEL-20261018035835-766dc7",
+        "pairedReviewId": "REV-20261018041820-9f4b26"
+      },
+      {
+        "taskId": "C-ENG-COMPILE",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018033359-8f89f1 passed delivery DEL-20261018033139-af5cca; current workspace needs re-review.",
+        "implementationFingerprint": "a3cd6fa65d18f2abd88505071eb6e2610ef946f57a38d62936815586b55a1f80",
+        "verificationFingerprint": "2cde728df69a5b4a6fb4429c623289ecd0dd3ea2d73ea7daf200638c0548569b",
+        "pairedDeliveryId": "DEL-20261018033139-af5cca",
+        "pairedReviewId": "REV-20261018033359-8f89f1"
+      },
+      {
+        "taskId": "C-ENG-SLOT",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018033157-6550bc passed delivery DEL-20261018033145-e77a66; current workspace needs re-review.",
+        "implementationFingerprint": "b076bc332f01d16854ac813679081b5e99d8ec07659a699d4f6d2d4b5f5524ca",
+        "verificationFingerprint": "2c746e25503ddd5fbabffe57734a6bbea06207ef0fe89159a3e930edcb83b36a",
+        "pairedDeliveryId": "DEL-20261018033145-e77a66",
+        "pairedReviewId": "REV-20261018033157-6550bc"
+      },
+      {
+        "taskId": "C-ENG-UNITY",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018033542-0f4993 passed delivery DEL-20261018033132-39a1e3; current workspace needs re-review.",
+        "implementationFingerprint": "3c4fa968c58ee5258c65f786c2a63e6e8a183d9b9d63021bb7fe09c93a80f3a0",
+        "verificationFingerprint": "8dec77a3707821fd551c57974c535ce3afafe6f0d5dea4f78349e4988f29be56",
+        "pairedDeliveryId": "DEL-20261018033132-39a1e3",
+        "pairedReviewId": "REV-20261018033542-0f4993"
+      },
+      {
+        "taskId": "C-ENG",
+        "freshness": "stale",
+        "note": "Delivery snapshot differs from current workspace.",
+        "implementationFingerprint": "a4bd498ea8983d87b6d69d6a36f29dc52ae038e926e86bf6a408fdf82f06a70a",
+        "verificationFingerprint": "a9325f16c87bdc4e5ce4587d9d676f0b9d33c2a646aa154b1d2587f5f654d74c",
+        "pairedDeliveryId": "DEL-20261018032237-012f93",
+        "pairedReviewId": "REV-20261018032957-255eb1"
+      },
+      {
+        "taskId": "D2-TierLadder",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 13 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/RouteData.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/FleetEconomics.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261022092843-6e9303",
+        "pairedReviewId": "REV-20261022093922-eb9aad"
+      },
+      {
+        "taskId": "S01-COLLAB",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261018103950-3b9460 covered 33 changed files; 2 taken over by later passed deliveries, 10 still uncovered (tools/collab/cli.mjs, tools/collab/config.example.json, tools/collab/lib/commands.mjs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261018102500-1304ad",
+        "pairedReviewId": "REV-20261018103950-3b9460"
+      },
+      {
+        "taskId": "S02-Collab",
+        "freshness": "stale",
+        "note": "Historical review REV-20261018134910-387fd9 passed delivery DEL-20261018134113-f7d6ec; current workspace needs re-review.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "8d0ebd3dfe257e67ace5de168f15ddb16bdfce80cf586a3dcbb474643fd7ece1",
+        "pairedDeliveryId": "DEL-20261018134113-f7d6ec",
+        "pairedReviewId": "REV-20261018134910-387fd9"
+      },
+      {
+        "taskId": "S03-Docs",
+        "freshness": "stale",
+        "note": "Latest delivery DEL-20261019091504-e23a3e review REV-20261019092237-60f210 failed.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "8d0ebd3dfe257e67ace5de168f15ddb16bdfce80cf586a3dcbb474643fd7ece1",
+        "pairedDeliveryId": "DEL-20261019091504-e23a3e",
+        "pairedReviewId": "REV-20261019092237-60f210"
+      },
+      {
+        "taskId": "S04-UI",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 2 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/TermNavMap.cs, Unity Project/Assets/Scripts/UI/FleetSubpagePanel.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261019092547-d6429c",
+        "pairedReviewId": "REV-20261019094559-31090f"
+      },
+      {
+        "taskId": "S05-P2Close",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 17 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/RouteData.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/FleetEconomics.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261022010306-fcd5d6",
+        "pairedReviewId": "REV-20261022011140-9e5b0b"
+      },
+      {
+        "taskId": "S06-BatchB",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 16 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/RouteData.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/FleetEconomics.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261022023213-67df8c",
+        "pairedReviewId": "REV-20261022025040-a46f56"
+      },
+      {
+        "taskId": "S07-Balance",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 5 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Systems/GameState.cs, Unity Project/Assets/Scripts/Systems/SaveManager.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261023012853-918599",
+        "pairedReviewId": "REV-20261023015616-582178"
+      },
+      {
+        "taskId": "S08-ShortHaul",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261023065836-eecd5f covered 23 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs, tools/balance/README.md …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261023032726-42cba0",
+        "pairedReviewId": "REV-20261023065836-eecd5f"
+      },
+      {
+        "taskId": "S09-Residual",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261024021702-057abf covered 30 changed files; 1 taken over by later passed deliveries, 7 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs, Unity Project/Assets/Scripts/Logic/FleetEconomics.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261024020739-7b9e30",
+        "pairedReviewId": "REV-20261024021702-057abf"
+      },
+      {
+        "taskId": "S10-PressDesk",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 4 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261024124546-40a7ec",
+        "pairedReviewId": "REV-20261024132317-f6bf86"
+      },
+      {
+        "taskId": "S11-T043Windows",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 0 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261025094638-6f76b0",
+        "pairedReviewId": "REV-20261025103525-a76682"
+      },
+      {
+        "taskId": "S12-CommandConsole",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 0 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/GameState.cs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261025140410-e7b753",
+        "pairedReviewId": "REV-20261026015132-1bde4e"
+      },
+      {
+        "taskId": "S13-CollabSupersede",
+        "freshness": "stale",
+        "note": "Historical review REV-20261026064716-f5b286 passed delivery DEL-20261026063907-c4218e; current workspace needs re-review.",
+        "implementationFingerprint": "36ff88adfd1ea09d4674de0ca118b1c10cb376a08e514003698dc9210a2a7f90",
+        "verificationFingerprint": "0825e628e0134fd00fd39f9a7a4cbb032a18d5471852d20d0a426069ba5d9aa6",
+        "pairedDeliveryId": "DEL-20261026063907-c4218e",
+        "pairedReviewId": "REV-20261026064716-f5b286"
+      },
+      {
+        "taskId": "S14-CollabBinding",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "S15-CollabContract",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "S16-CollabFidelity",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261027011011-201cff covered 15 changed files; 0 taken over by later passed deliveries, 8 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261027010737-388256",
+        "pairedReviewId": "REV-20261027011011-201cff"
+      },
+      {
+        "taskId": "S17-ScopeBaseline",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261027014550-30756c covered 17 changed files; 0 taken over by later passed deliveries, 9 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261027014232-7be62b",
+        "pairedReviewId": "REV-20261027014550-30756c"
+      },
+      {
+        "taskId": "S18-ScopeVerdictFix",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261027033305-dbab6a covered 17 changed files; 0 taken over by later passed deliveries, 8 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261027015213-2f7a9f",
+        "pairedReviewId": "REV-20261027033305-dbab6a"
+      },
+      {
+        "taskId": "S19-ScenarioFixture",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027033436-155e44 passed delivery DEL-20261027024816-5a1cf9; current workspace needs re-review.",
+        "implementationFingerprint": "215dac1d3ec2a738cd59bfa67e4a7fed4c0ef72d27eda240d2336096be0710b8",
+        "verificationFingerprint": "d1580bc02a1a7adcb483a6d53e9e2536ad604911cab457235fd32e55bff6ed90",
+        "pairedDeliveryId": "DEL-20261027024816-5a1cf9",
+        "pairedReviewId": "REV-20261027033436-155e44"
+      },
+      {
+        "taskId": "S20-SnapshotHygiene",
+        "freshness": "stale",
+        "note": "Historic verdict REV-20261027035404-8c86c1 covered 40 changed files; 1 taken over by later passed deliveries, 5 still uncovered (tools/collab/lib/stage.mjs, tools/collab/lib/state.mjs, tools/collab/tests/stage.test.mjs …).",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": "DEL-20261027034213-898afe",
+        "pairedReviewId": "REV-20261027035404-8c86c1"
+      },
+      {
+        "taskId": "S21-FreshnessVerdict",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027041517-4580f4 passed delivery DEL-20261027041226-5c9d55; current workspace needs re-review.",
+        "implementationFingerprint": "89cc2270f87cc2f529082c2e498cc47b69d92e23649424745e4bd8de367e85dd",
+        "verificationFingerprint": "892a81b6fd25a8982868d21368ccbe136bf8de8b7fc6c9262966b6b4944d5609",
+        "pairedDeliveryId": "DEL-20261027041226-5c9d55",
+        "pairedReviewId": "REV-20261027041517-4580f4"
+      },
+      {
+        "taskId": "S22-BalanceBridge",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027043857-e4c054 passed delivery DEL-20261027043524-cb5539; verification baseline changed — re-review required.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "09b5abbd389d2ec1647e9dc411d9be49a2d0ff7f65ca609200ca5f8707d11b8e",
+        "pairedDeliveryId": "DEL-20261027043524-cb5539",
+        "pairedReviewId": "REV-20261027043857-e4c054"
+      },
+      {
+        "taskId": "S23-RouteAblation",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "S24-UtilizationAudit",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027071330-bfc0de passed delivery DEL-20261027065059-f2c0ac; current workspace needs re-review.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "09b5abbd389d2ec1647e9dc411d9be49a2d0ff7f65ca609200ca5f8707d11b8e",
+        "pairedDeliveryId": "DEL-20261027065059-f2c0ac",
+        "pairedReviewId": "REV-20261027071330-bfc0de"
+      },
+      {
+        "taskId": "S25-StatusPrompts",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027113125-429ba1 passed delivery DEL-20261027112157-ebff23; current workspace needs re-review.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "09b5abbd389d2ec1647e9dc411d9be49a2d0ff7f65ca609200ca5f8707d11b8e",
+        "pairedDeliveryId": "DEL-20261027112157-ebff23",
+        "pairedReviewId": "REV-20261027113125-429ba1"
+      },
+      {
+        "taskId": "S26-T038MapRender",
+        "freshness": "unknown",
+        "note": "",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "S27-MapBandLegibility",
+        "freshness": "stale",
+        "note": "Historical review REV-20261027124433-1357a2 passed delivery DEL-20261027123307-f320b4; current workspace needs re-review.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "09b5abbd389d2ec1647e9dc411d9be49a2d0ff7f65ca609200ca5f8707d11b8e",
+        "pairedDeliveryId": "DEL-20261027123307-f320b4",
+        "pairedReviewId": "REV-20261027124433-1357a2"
+      },
+      {
+        "taskId": "S28-PressDeskSign",
+        "freshness": "current",
+        "note": "Delivery matches current fingerprints; awaiting review.",
+        "implementationFingerprint": "53f3f45cdb537a3298cf29ee8c85eb1aae3f9f1605c517953d684d0bc8feb20e",
+        "verificationFingerprint": "09b5abbd389d2ec1647e9dc411d9be49a2d0ff7f65ca609200ca5f8707d11b8e",
+        "pairedDeliveryId": "DEL-20261028000358-732bdf",
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T01",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T02",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T03",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T04",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T05",
+        "freshness": "unknown",
+        "note": "taskBookStatus=partial_open",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      },
+      {
+        "taskId": "T06",
+        "freshness": "unknown",
+        "note": "taskBookStatus=accepted",
+        "implementationFingerprint": null,
+        "verificationFingerprint": null,
+        "pairedDeliveryId": null,
+        "pairedReviewId": null
+      }
+    ]
+  }
+}

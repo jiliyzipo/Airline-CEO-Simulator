@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S24-UtilizationAudit",
+  "title": "阶段 S24-UtilizationAudit：Collab/Editor/Assets-Tests",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab、Editor、Assets-Tests、Balance、Logic、UI",
+    "改动文件数 82，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S24-UtilizationAudit）"
+    },
+    {
+      "id": "AC2",
+      "text": "现金桥对账在 60 组合上全部通过（期末 = 期初 + 净利 + IRROPS − 利息 + 未偿本金，残差 ≤ 容差）（S24-UtilizationAudit）"
+    },
+    {
+      "id": "AC3",
+      "text": "对照实验不变量成立：各变体成本明细项之和等于合计，且纯减机变体的营收与基准逐位相同（S24-UtilizationAudit）"
+    },
+    {
+      "id": "AC4",
+      "text": "断言计数与机器结果一致：total>0、failed=0、skipped<total（S24-UtilizationAudit）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-27T06:50:55.635Z",
+  "updatedAt": "2026-10-27T07:42:20.700Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historical review REV-20261027071330-bfc0de passed delivery DEL-20261027065059-f2c0ac; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261027071330-bfc0de"
+}

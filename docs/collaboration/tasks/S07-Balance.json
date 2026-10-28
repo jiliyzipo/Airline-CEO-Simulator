@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Balance、Editor、Systems、Logic、Assets-Tests、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T13:18:57.941Z",
-  "updatedAt": "2026-10-23T02:41:51.000Z",
+  "updatedAt": "2026-10-28T00:31:03.960Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,41 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261023015616-582178 passed delivery DEL-20261023012853-918599; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261023015616-582178"
+  "freshnessNote": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 18 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261028002145-55518e.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:33:24.739Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261023012853-918599",
+    "basisCount": 33,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Data/AirlineProfile.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/Systems/TakeoverWorldBuilder.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "tools/balance/AirlineCEO.Balance.csproj",
+      "tools/balance/Program.cs",
+      "tools/balance/README.md",
+      "tools/balance/compare_baseline.ps1",
+      "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs.meta",
+      "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs",
+      "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs.meta",
+      "tools/balance/NETWORK_POOL_STRESS.md",
+      "tools/balance/Stress/NetworkPoolStressReport.cs",
+      "tools/balance/baseline/BASELINE_SOURCE.json"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 33,
+    "intact": 15,
+    "covered": 18,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
 }

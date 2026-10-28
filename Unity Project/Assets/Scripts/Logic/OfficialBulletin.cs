@@ -89,8 +89,13 @@ namespace AirlineCEO.Logic
             return string.IsNullOrEmpty(s) ? "发布之时" : s;
         }
 
-        /// <summary>组装来文正文（不含信笺称谓）。triggered=已到游戏生效时刻。</summary>
-        public static string Compose(ExternalEvent ev, string gameDate, bool triggered)
+        /// <summary>
+        /// 组装来文正文（不含信笺称谓）。triggered=已到游戏生效时刻。
+        /// <paramref name="signed"/>=false 时不写机关落款（机关名 + 日期）——
+        /// 转呈件由 <see cref="PressDesk.ForwardHead"/> 把机关与文日报在抬头，
+        /// 末尾只署新闻官，避免一封信两个落款。默认 true，供公文体例单测与离线预览直调。
+        /// </summary>
+        public static string Compose(ExternalEvent ev, string gameDate, bool triggered, bool signed = true)
         {
             if (ev == null) return "";
             var style = StyleOf(ev.source);
@@ -109,9 +114,12 @@ namespace AirlineCEO.Logic
                 else sb.Append($"{Indent}本{doc}自{when}起施行，届时将另行通报。\n");
                 sb.Append('\n');
                 sb.Append($"{Indent}特此{ClosingWord(doc)}。\n");
-                sb.Append('\n');
-                sb.Append(Right(ev.source)).Append('\n');
-                sb.Append(Right(gameDate));
+                if (signed)
+                {
+                    sb.Append('\n');
+                    sb.Append(Right(ev.source)).Append('\n');
+                    sb.Append(Right(gameDate));
+                }
                 return sb.ToString();
             }
 
@@ -133,9 +141,12 @@ namespace AirlineCEO.Logic
                 if (triggered) sb.Append($"{Indent}本公告自{gameDate}起生效。\n");
                 else if (now) sb.Append($"{Indent}本公告自发布之日起生效。\n");
                 else sb.Append($"{Indent}本公告自{when}起生效。\n");
-                sb.Append('\n');
-                sb.Append(Right(ev.source)).Append('\n');
-                sb.Append(Right(gameDate));
+                if (signed)
+                {
+                    sb.Append('\n');
+                    sb.Append(Right(ev.source)).Append('\n');
+                    sb.Append(Right(gameDate));
+                }
                 return sb.ToString();
             }
 
@@ -147,9 +158,12 @@ namespace AirlineCEO.Logic
             else sb.Append($"{Indent}上述情况预计于{when}显现。\n");
             sb.Append('\n');
             sb.Append($"{Indent}以上情况，请予关注。\n");
-            sb.Append('\n');
-            sb.Append(Right(ev.source)).Append('\n');
-            sb.Append(Right(gameDate));
+            if (signed)
+            {
+                sb.Append('\n');
+                sb.Append(Right(ev.source)).Append('\n');
+                sb.Append(Right(gameDate));
+            }
             return sb.ToString();
         }
 
@@ -214,6 +228,12 @@ namespace AirlineCEO.Logic
             }
             return sb.ToString().TrimEnd('\n');
         }
+
+        /// <summary>
+        /// 右对齐落款（对外）。转呈件的「新闻官」落款要和原文机关落款同一版心宽度，
+        /// 否则同一封信里两个落款会一左一右，看着像排版错位。
+        /// </summary>
+        public static string RightAligned(string text) => Right(text);
 
         /// <summary>右对齐落款（全角空格补齐，避免依赖富文本排版）。</summary>
         static string Right(string text)

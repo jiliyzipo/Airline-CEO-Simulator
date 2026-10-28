@@ -226,9 +226,17 @@ namespace AirlineCEO.UI
                 string tip = AdvisorTutorialScript.IsAwaitingFleet()
                     ? " ｜ 引导：请点击推荐飞机的「分配至深圳—北京」"
                     : "";
+                // 预警数放在最前：一排 12 架里只要 1 架有徽标也容易被漏看，
+                // 顶栏给出总数才能让玩家知道「要不要往下翻」。
+                int ageRisk = FleetManager.CountLifeExtensionRisk(gs);
+                string ageRiskPart = ageRisk > 0 ? $" ｜ ⚠ 延寿预警 {ageRisk} 架" : "";
+                // 「在役」而非「适航」：`CountAirworthy` 的口径是 isActive 且适航，
+                // 未分配航线的在册飞机不计入 —— 即便它们每行都写着「适航」。
+                // 写「适航」会出现「总数 12 ｜ 适航 0」与 12 行绿色「适航」同屏打脸的画面。
                 _summaryText.text =
-                    $"总数 {fm.CountTotal(gs)} ｜ 适航 {fm.CountAirworthy(gs)} ｜ 平均机龄 {fm.AverageAge(gs):F1} 年" +
-                    $" ｜ 月维护 {fm.CalcMonthlyMaintenance(gs):F1} 万 ｜ 月租金 {gs?.FleetMonthlyLease:F1} 万 ｜ 现金 {gs?.cash:F0} 万{tip}";
+                    $"总数 {fm.CountTotal(gs)} ｜ 在役 {fm.CountAirworthy(gs)} ｜ 平均机龄 {fm.AverageAge(gs):F1} 年" +
+                    $" ｜ 月维护 {fm.CalcMonthlyMaintenance(gs):F1} 万 ｜ 月租金 {gs?.FleetMonthlyLease:F1} 万 ｜ 现金 {gs?.cash:F0} 万{ageRiskPart}{tip}";
+                _summaryText.color = ageRisk > 0 ? UITheme.Warning : UITheme.TextMuted;
             }
 
             ClearRows();
@@ -550,9 +558,25 @@ namespace AirlineCEO.UI
                 : disposed ? "已" + ac.ExitLabel : (ac.status ?? "—");
             Color transitionColor = string.IsNullOrEmpty(transitionLabel) ? statusColor : UITheme.Warning;
 
+            // ★2026-10-27：机龄-机况预警徽标。
+            // 加它之前，`B-2005`（20 年）/`B-2006`（24 年）在列表里是清一色绿色的 `适航`，
+            // 延寿规则只在点开详情页时才露面 —— 玩家得一架架点过去才知道年结会停哪几架。
+            // 判据走 FleetManager.NeedsLifeExtensionWarning，与详情页同源，不在这里另写一套。
+            bool ageRisk = FleetManager.NeedsLifeExtensionWarning(ac);
+            bool statusStacked = ageRisk && string.IsNullOrEmpty(transitionLabel);
             UIFactory.Label(row.transform, "Status", statusText, 12, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(ColStatus0, 0.1f), new Vector2(ColStatus1 + 0.06f, 0.9f), Vector2.zero, Vector2.zero),
+                statusStacked
+                    // 双行：状态在上、徽标在下。纵向下沉到 0.45 是为了给徽标留出完整一行，
+                    // 单行时仍用满格高度，避免普通飞机看起来比预警飞机矮一截。
+                    ? new UIFactory.Anchor(new Vector2(ColStatus0, 0.46f), new Vector2(ColStatus1 + 0.06f, 0.94f), Vector2.zero, Vector2.zero)
+                    : new UIFactory.Anchor(new Vector2(ColStatus0, 0.1f), new Vector2(ColStatus1 + 0.06f, 0.9f), Vector2.zero, Vector2.zero),
                 transitionColor);
+            if (statusStacked)
+            {
+                UIFactory.Label(row.transform, "AgeRisk", "⚠ 年结停场", 11, TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(ColStatus0, 0.06f), new Vector2(ColStatus1 + 0.06f, 0.46f), Vector2.zero, Vector2.zero),
+                    UITheme.Warning);
+            }
 
             // 左半区整行点击 → 飞机详情 n10（覆盖在操作按钮之下，不抢 Assign/Retire）
             string detailReg = ac.registration;

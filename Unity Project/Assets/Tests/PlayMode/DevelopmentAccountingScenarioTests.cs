@@ -67,6 +67,10 @@ namespace AirlineCEO.Tests.PlayMode
             gs.CeoMonthlyPayWan, gs.financeCrisisBurnBonus,
             gs.OperationalPayrollMonthlyWan, gs.LaborCostMonthlyWan);
 
+        /// <summary>部门可管固定成本（问责口径）的唯一权威口，裁定 R-A / A2。</summary>
+        static float DeptDaily(GameState gs) => LiveClockLogic.DeptDailyFixedCostWan(
+            gs.monthlyBurnRate, gs.FleetMonthlyMaintenance, gs.FleetMonthlyLease, gs.CeoMonthlyPayWan);
+
         /// <summary>
         /// 推进 N 个游戏日：**逐日调用**，不得一次性跨多日。
         ///
@@ -320,11 +324,15 @@ namespace AirlineCEO.Tests.PlayMode
                             - noticeDays * daily - fee, gs.cash, Tol,
                 "通知期内租金照付，期满另扣违约金");
 
-            // 口径说明（不是断言）：违约金目前**不进** liveQuarterTransitionIncome，
-            // 矩阵 §6.2 已登记为待裁项。此处在两侧都不断言，避免把未裁口径固化成「正确」。
+            // R-B / B2（2026-10-25 裁定）：违约金记入 liveQuarterExpense（支出桶），
+            // 不进 liveQuarterTransitionIncome（那是收入栏，塞负数语义是错的）。
+            // 这样「Δ现金 == Σ应计桶」在召回当期也成立 —— 否则现金少了却没有任何桶记这笔钱，
+            // 跨季对账时它「凭空消失」。
             Assert.Greater(gs.liveQuarterTransitionIncome, transBeforeNotice, "通知期内租金照常进桶");
-            Assert.AreEqual(TransitionBusinessLogic.RecallNoticeDays * daily, gs.liveQuarterExpense - expBeforeNotice,
-                Tol, "通知期内日固定照扣");
+            Assert.AreEqual(TransitionBusinessLogic.RecallNoticeDays * daily + fee,
+                gs.liveQuarterExpense - expBeforeNotice,
+                Tol, "通知期支出 = 日固定 + 违约金（违约金必须进季度支出桶，否则恒等式留例外）");
+            AssertCashEqualsBuckets(gs, cash0, 0f, 0f, trans0, "S6 召回交机");
             yield return null;
         }
 
@@ -339,6 +347,7 @@ namespace AirlineCEO.Tests.PlayMode
 
             var gs = State("S8GS");
             float daily = DailyFixed(gs);
+            float deptBefore = DeptDaily(gs);     // 变更前费率（加机前必须取，加机后就变了）
             float cash0 = gs.cash;
 
             Advance(gs, preDays);
@@ -346,14 +355,26 @@ namespace AirlineCEO.Tests.PlayMode
             Assert.AreEqual(0f, gs.liveQuarterIncome, 1e-4f, "变更前没有可执飞航线，不应有任何收入");
             Assert.AreEqual(cash0 - preDays * daily, cashMid, Tol, "变更前只扣日固定");
 
+            // —— R-A / A2：部门预算问责的分母必须**逐日累计**，不是「季末费率 ×3」 ——
+            Assert.AreEqual(preDays * deptBefore, gs.liveQuarterDeptExpense, Tol,
+                "变更前 45 天的部门口径分母应按当日费率累计（旧实现只会取季末费率 ×3）");
+
             // —— 第 46 天中途加一机一线 ——
             gs.fleet.Add(MakeAircraft("B-MID"));
             gs.activeRoutes.Add(MakeRoute("S8-ROUTE", "B-MID"));
+            // R-A / A2 的前置：为了让「逐日累计 ≠ 季末费率 ×3」可被证伪，这里**主动**改一个部门口径项
+            // （烧钱率 +30 万/月）。只靠加机不够 —— 加机抬升机队维护的同时，烧钱率会按机队规模重算，
+            // 四项合计可能几乎不动（实测 +1 架只让部门口径动了 −0.0001 万/日），那样加权和退化成乘法，
+            // 断言就分辨不出新旧实现。
+            gs.monthlyBurnRate += 30f;
             // 加机后日固定**会变**：在役机要计月维护（本夹具里 1 架 A320neo 约 20 万/月）。
             // 所以变更后的成本必须按变更后费率现算，不能沿用变更前的 daily —— 这正是
             // 矩阵 §6.4「部门预算按季末费率 ×3 必然与实扣分叉」的同一个坑，只是这里我们自己不自欺。
             float dailyAfter = DailyFixed(gs);
             Assert.Greater(dailyAfter, daily + 1e-4f, "前置：新增在役机必须使日固定成本上移");
+            float deptAfter = DeptDaily(gs);
+            Assert.Greater(deptAfter, deptBefore + 0.9f,
+                "前置：烧钱率 +30 万/月 → 部门口径日成本至少上移约 1 万/日（否则加权和分辨不出新旧实现）");
 
             float incMid = gs.liveQuarterIncome;
             float expMid = gs.liveQuarterExpense;
@@ -367,6 +388,10 @@ namespace AirlineCEO.Tests.PlayMode
                 "只按变更后的实际天数入账，绝不追溯补记变更前的 45 天");
             Assert.AreEqual(postDays * dailyAfter, gs.liveQuarterExpense - expMid, Tol,
                 "变更后日固定按**变更后**费率照扣（含新增机的月维护）");
+
+            // —— R-A / A2：加机只影响之后的日数，前 45 天不得被按新费率重算 ——
+            Assert.AreEqual(preDays * deptBefore + postDays * deptAfter, gs.liveQuarterDeptExpense, Tol,
+                "部门口径分母 = 变更前日数 × 变更前费率 + 变更后日数 × 变更后费率（中途加机不追溯）");
             Assert.AreEqual(cashMid + expectedIncome - postDays * dailyAfter, gs.cash, Tol,
                 "现金 = 变更前余额 + 变更后应计");
             AssertCashEqualsBuckets(gs, cash0, 0f, 0f, 0f, "S8 中途变更");

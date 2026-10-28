@@ -11,7 +11,11 @@ const REVIEW_STATUS = new Set([
   'cancelled',
   'interrupted',
 ]);
-const FRESHNESS = new Set(['current', 'stale', 'unknown']);
+// S17: `archived` means the verdict is real but its comparison baseline was
+// deliberately narrowed (see scopePolicy) — the task stops asking for re-review
+// instead of pretending the current tree still matches a project-wide snapshot.
+const FRESHNESS = new Set(['current', 'stale', 'archived', 'unknown']);
+const SCOPE_POLICY = new Set(['changed-files']);
 const ACTORS = new Set(['cursor', 'codex', 'user', 'system']);
 const TASK_ID_RE = /^[A-Za-z][A-Za-z0-9._-]{0,63}$/;
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T/;
@@ -67,6 +71,7 @@ export function validateTask(task) {
   assertType(typeof task.createdAt === 'string' && ISO_RE.test(task.createdAt), 'task.createdAt must be ISO datetime');
   assertType(typeof task.updatedAt === 'string' && ISO_RE.test(task.updatedAt), 'task.updatedAt must be ISO datetime');
   if (task.freshness) assertType(FRESHNESS.has(task.freshness), `invalid freshness: ${task.freshness}`);
+  if (task.scopePolicy) assertType(SCOPE_POLICY.has(task.scopePolicy), `invalid scopePolicy: ${task.scopePolicy}`);
   return true;
 }
 
@@ -237,6 +242,7 @@ export function assertRoleAction(actor, action) {
       'init',
       'watch',
       'task-add',
+      'task-rescope',
       'tasks',
       'gate',
       'taskbook-baseline',
@@ -272,6 +278,7 @@ export function assertRoleAction(actor, action) {
       'review-cancel',
       'review-recover',
       'task-add',
+      'task-rescope',
       'tasks',
       'gate',
       'taskbook-baseline',

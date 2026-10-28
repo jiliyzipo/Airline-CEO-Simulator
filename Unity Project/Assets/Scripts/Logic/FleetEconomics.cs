@@ -115,6 +115,83 @@ namespace AirlineCEO.Logic
             }
         }
 
+        /// <summary>
+        /// 大修不可预见费比例（相对预估成本）。
+        ///
+        /// ★2026-10-27 修：n107 页面一直列着「不可预见费(+12%)」这一行，但
+        /// <c>FleetManager.ScheduleOverhaul</c> 只校验、只扣 `OverhaulCost`，
+        /// 这笔钱**从来没有被收过** —— 典型的「文案里有、账上没有」伪数字。
+        /// 现在比例收成常量，显示与扣费共用它，不许再各写一个 0.12f。
+        /// </summary>
+        public const float OverhaulContingencyRate = 0.12f;
+
+        /// <summary>大修实际扣款 = 预估成本 × (1 + 不可预见费)。显示与扣费必须都走这里。</summary>
+        public static float OverhaulCashCost(string overhaulType, bool widebody)
+            => OverhaulCost(overhaulType, widebody) * (1f + OverhaulContingencyRate);
+
+        /// <summary>大修不可预见费本身（万美元），仅用于预算页逐项展示。</summary>
+        public static float OverhaulContingency(string overhaulType, bool widebody)
+            => OverhaulCost(overhaulType, widebody) * OverhaulContingencyRate;
+
+        /// <summary>
+        /// 机龄超过此值必须靠大修延寿，否则财年末停场。
+        ///
+        /// ★2026-10-27 第二次修（用户裁定「让大修能延寿」）：原规则是
+        /// <c>age &gt; 15 → 永久维护中</c>，且**没有任何恢复路径** ——
+        /// `LiveClockSimulator` 只处理 `InFlight → 适航`，落地时飞机已不在飞，
+        /// 于是老飞机一旦被财年末那一刷判下来，就只能售卖/退租。
+        /// 这与「大修」的存在直接冲突：花 10 万做 A 检、甚至花 2000 万做 D 检，
+        /// 都救不回一架 16 年的飞机，而现实里重检正是延寿手段。
+        ///
+        /// 现改为：机龄超限时**看机况**放行。机况是飞行磨损（0.04/小时）与财年末（−2/年）
+        /// 持续消耗的资源，而大修是唯一的回补渠道（+25/次，且每次都要停场 N 天），
+        /// 于是「老飞机能不能继续飞」变成一道真实的成本题，而不是一道死刑判决。
+        /// </summary>
+        public const int LifeExtensionAgeLimit = 15;
+
+        /// <summary>
+        /// 每次大修抬升的机况点数。
+        /// ★2026-10-27 提到常量：此前 25 只写在 <c>FleetManager.ScheduleOverhaul</c> 里，
+        /// 而「大修预算确认」屏要预告「定检后机况 X% → Y%」—— 两处各写一个 25 就会重演
+        /// 不可预见费那次「屏幕数字 ≠ 账面数字」。故实扣与预告共用本常量。
+        /// </summary>
+        public const float OverhaulConditionGain = 25f;
+
+        /// <summary>
+        /// 延寿要求的最低机况。取 50 的依据：大修每次 +25，最差的 5% 机况要做两轮定检才够
+        /// （A 检 10 万 × 2 + 两次停场），而飞行磨损会持续吃掉它 —— 让延寿有代价、但不是不可及。
+        /// </summary>
+        public const float LifeExtensionMinCondition = 50f;
+
+        /// <summary>
+        /// 该机的机龄-机况是否允许继续适航：机龄未超限一律放行；超限则要求机况达标。
+        /// 财年末 <c>RefreshStatus</c> 与本规则的判定必须共用本函数，不许各写一份。
+        /// </summary>
+        public static bool CanExtendLife(int age, float condition)
+            => age <= LifeExtensionAgeLimit || condition >= LifeExtensionMinCondition;
+
+        /// <summary>是否「机龄已超限且机况不足以延寿」——即按规则该停场。</summary>
+        public static bool IsGroundedByAge(int age, float condition)
+            => !CanExtendLife(age, condition);
+
+        /// <summary>
+        /// 按「财年末」口径预判还算不算适航：机况先扣年度磨损再判。
+        /// UI 预告别直接用当前机况 —— 否则 50% 的飞机会被写成「达标」，年结当天却停场。
+        /// </summary>
+        public static bool WillStayAirworthyAtYearEnd(int age, float conditionNow)
+            => CanExtendLife(age, Math.Max(AnnualConditionFloor, conditionNow - AnnualConditionDecay));
+
+        /// <summary>
+        /// 财年末的机况自然磨损（点/年）。
+        /// ★2026-10-27 提到常量：UI 要预告「年结后还够不够延寿」，若 UI 用当前机况判、
+        /// 而 <c>OnYearEndAgeFleet</c> 先扣 2 点再判，那么卡在 50%~52% 的飞机会
+        /// 被屏幕上写成「达标」却在年结当天停场 —— 又是一次「界面说谎」。故两边共用一个数。
+        /// </summary>
+        public const float AnnualConditionDecay = 2f;
+
+        /// <summary>年结后机况的下限（与 <c>OnYearEndAgeFleet</c> 的 Clamp 一致）。</summary>
+        public const float AnnualConditionFloor = 20f;
+
         /// <summary>大修停场天数。</summary>
         public static int OverhaulDays(string overhaulType)
         {

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261025133539-45277c",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 399,
+  "at": "2026-10-25T13:35:39.342Z",
+  "actor": "codex",
+  "action": "review-finish",
+  "taskId": "S12-CommandConsole",
+  "deliveryId": "DEL-20261025130530-eb6e48",
+  "reviewId": "REV-20261025133501-b94646",
+  "parentEventId": null,
+  "summary": "review-finish failed",
+  "data": {
+    "status": "failed",
+    "issues": [
+      "ISSUE-20261025133539-5d00c2"
+    ]
+  }
+}

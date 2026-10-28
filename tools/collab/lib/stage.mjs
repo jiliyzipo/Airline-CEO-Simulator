@@ -51,13 +51,20 @@ const dedupePaths = dedupeRoots;
 import { resolveTaskRoots } from './roots.mjs';
 import {
   generateSummaries,
+  listDeliveries,
   listIssues,
   listReviews,
   loadState,
   loadTask,
+  markDeliveriesSuperseded,
   recordEvent,
+  saveState,
+  saveTask,  supersededDeliveryIds,
+  withStateLock,
 } from './state.mjs';
-import { assertRoleAction, validateIssue } from './schemas.mjs';
+import { acceptanceCriteriaFor, clauseDriftWarning } from './clauses.mjs';
+export { acceptanceCriteriaFor, clauseDrift, clauseDriftWarning } from './clauses.mjs';import { assertRoleAction, validateIssue } from './schemas.mjs';
+import { pruneSnapshotArtifacts } from './snapshot-hygiene.mjs';
 import {
   cmdAck,
   cmdDeliver,
@@ -72,6 +79,7 @@ import {
   verifySnapshotIntegrity,
 } from './commands.mjs';
 import { reviewerAuthorization } from './authorization.mjs';
+import { notifyHandoffReady } from './handoff-notify.mjs';
 
 const norm = (p) => String(p).replace(/\\/g, '/');
 const sha256Bytes = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
@@ -267,6 +275,9 @@ export function selectProfile(cfg, changed, options = {}) {
   if (has(/^tools\/collab\//) && available('collab')) {
     return { profile: 'collab', reason: 'collaboration tooling changed' };
   }
+  if (has(/^tools\/balance\//) && available('balance')) {
+    return { profile: 'balance', reason: 'balance/accounting simulator changed' };
+  }
   if ((has(/\.cs$/) || has(/^tools\/semcheck\//)) && available('compile')) {
     return { profile: 'compile', reason: 'C# sources changed' };
   }
@@ -275,39 +286,6 @@ export function selectProfile(cfg, changed, options = {}) {
   }
   if (available('smoke')) return { profile: 'smoke', reason: 'documentation-only change' };
   fail(EXIT.USAGE, 'no usable profile configured', { available: Object.keys(cfg.profiles || {}) });
-}
-
-const AC_TEMPLATES = {
-  'unity-editmode': [
-    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
-    'Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过',
-    '测试计数与机器结果一致：total>0、failed=0、skipped<total',
-  ],
-  compile: [
-    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
-    '语义编译检查通过：缺失类型/重复定义/编码门禁均为 0 失败',
-    '检查报告来自本次 run，且计数与退出码一致',
-  ],
-  slot: [
-    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
-    '槽位逻辑断言全部通过（[PASS] 与 SLOTCHECK 汇总一致）',
-    '断言计数与机器结果一致，无跳过掩盖失败',
-  ],
-  collab: [
-    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
-    '协作工具回归套件全部通过（隔离夹具，不启动 Unity）',
-    '各子套件退出码为 0 且断言计数与机器结果一致',
-  ],
-  smoke: [
-    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
-    '冒烟 profile 输出可解析的机器结果 JSON 且断言计数合法',
-    '文档与索引引用在本快照内可解析（无断链路径）',
-  ],
-};
-
-export function acceptanceCriteriaFor(profile, title) {
-  const texts = AC_TEMPLATES[profile] || AC_TEMPLATES.smoke;
-  return texts.map((text, i) => ({ id: `AC${i + 1}`, text: `${text}（${title}）` }));
 }
 
 /**
@@ -319,13 +297,28 @@ export function acceptanceCriteriaFor(profile, title) {
  * template generated for this exact task. Anything hand-written, edited, added
  * or reordered breaks the match and must be verified explicitly by a human
  * reviewer — the automation stays silent instead of inventing a pass.
+ *
+ * `counters` closes the same hole from the other side: a clause that promises
+ * "the suite passed" cannot be proved by a run in which some assertions were
+ * skipped because the environment could not execute them. Skipped > 0 therefore
+ * downgrades every machine-mapped clause to "needs the reviewer's own words".
  */
-export function machineCoverageFor(task, profile) {
+export function machineCoverageFor(task, profile, counters = null) {
+  const skipped = Number.isInteger(counters?.skipped) ? counters.skipped : 0;
   const expected = new Map(acceptanceCriteriaFor(profile, task.taskId).map((ac) => [ac.id, ac.text]));
   const rows = (task.acceptanceCriteria || []).map((ac) => {
     const id = String(ac.id);
     const want = expected.get(id);
-    if (want != null && want === String(ac.text)) return { id, machine: true, reason: null };
+    if (want != null && want === String(ac.text)) {
+      if (skipped > 0) {
+        return {
+          id,
+          machine: false,
+          reason: `本次运行有 ${skipped} 项断言因环境不可执行而跳过，机器计数不能证明 ${id}`,
+        };
+      }
+      return { id, machine: true, reason: null };
+    }
     return {
       id,
       machine: false,
@@ -359,6 +352,11 @@ function stageTasks(cfg) {
 }
 
 function isOpenEnoughToContinue(task) {
+  // 已被取代的任务不是「进行中」，是「已退场」。它剩下的交付本来就该由继任者覆盖，
+  // 续做它只会逼着人给一份死代码 --refresh-ac，然后把陈旧的验收条件重新签一遍。
+  // S26 → S27 的跨任务取代就踩过：`stage-close` 不带 --task 时把 S26 当成最新未完成任务，
+  // 于是拒绝在 unity-editmode 下开新阶段，只报「AC 是 smoke 生成的」。
+  if (task.supersededBy) return false;
   if (task.reviewStatus === 'passed') return false;
   return ['failed', 'queued', 'interrupted', 'blocked', 'running', 'not_run'].includes(task.reviewStatus) ||
     ['developing', 'rework', 'todo'].includes(task.devStatus);
@@ -496,7 +494,10 @@ export function runProfileInSnapshot(cfg, delivery, profileName, options = {}) {
     const logDir = path.join(localDirs(cfg).root, 'logs', `preflight-${delivery.deliveryId}`, `run-${runToken}`);
     ensureDir(logDir);
     const started = Date.now();
-    const limit = timeoutMs || (needsUnity ? 45 * 60 * 1000 : 10 * 60 * 1000);
+    // A Node-only profile is bounded by the per-suite limit in run-all.mjs (8 min);
+    // the outer bound must stay above the sum of all suites on a slow, sandboxed
+    // runner, or a wall clock becomes a verdict. Unity still gets a long lease.
+    const limit = timeoutMs || (needsUnity ? 45 * 60 * 1000 : 20 * 60 * 1000);
     const res = spawnSync(cmd[0], cmd.slice(1), {
       cwd: snapAbs,
       encoding: 'utf8',
@@ -550,9 +551,18 @@ export function runProfileInSnapshot(cfg, delivery, profileName, options = {}) {
       integrity = { ok: false, reason: e.message, code: e.exitCode ?? null };
     }
 
+    // A `unity-*` run leaves ~1.9 GB of `Library` behind, and nothing ever removed
+    // it: 23 historical snapshots had quietly reached 42 GB. It is regenerable debris
+    // (the manifest never lists it, and the integrity check above ignores it by
+    // design), so drop it as soon as the verdict is computed. Declared run outputs —
+    // including the NUnit XML that lives inside `Logs/` — are preserved.
+    const pruned = pruneSnapshotArtifacts(snapAbs, {
+      keep: (delivery.snapshotManifest?.entries || []).map((e) => e.path),
+      protect: [resultRel, ...runOutputRels, 'collab-snapshot-manifest.json'],
+    });
+
     const machine = parseRunResult(profile, run, cfg._repoRoot);
-    const ok = run.exitCode === 0 && machine.ok === true && !res.error && integrity.ok;
-    const reason = ok
+    const ok = run.exitCode === 0 && machine.ok === true && !res.error && integrity.ok;    const reason = ok
       ? 'developer preflight passed in the delivery snapshot (not independent acceptance)'
       : !integrity.ok
         ? `snapshot integrity: ${integrity.reason}`
@@ -572,6 +582,7 @@ export function runProfileInSnapshot(cfg, delivery, profileName, options = {}) {
       stderrTail: tail(stderr),
       runToken,
       machine,
+      artifacts: pruned,
     };
   } finally {
     if (lease) lease.release();
@@ -596,9 +607,12 @@ function readHandoffIndex(cfg) {
 }
 
 function writeHandoff(cfg, entry) {
-  return withHandoffLock(cfg, () => {
+  const { file, superseded } = withHandoffLock(cfg, () => {
     ensureDir(handoffDir(cfg));
     const index = readHandoffIndex(cfg);
+    const replaced = index.entries.filter(
+      (e) => e.deliveryId !== entry.deliveryId && e.taskId === entry.taskId && e.status === 'ready',
+    );
     const rest = index.entries
       .filter((e) => e.deliveryId !== entry.deliveryId)
       .map((e) =>
@@ -611,9 +625,45 @@ function writeHandoff(cfg, entry) {
       updatedAt: nowIso(),
       entries: [...rest, entry],
     });
-    const file = path.join(handoffDir(cfg), `${entry.deliveryId}.md`);
-    fs.writeFileSync(file, renderHandoff(entry), 'utf8');
-    return relPosix(cfg._repoRoot, file);
+    const target = path.join(handoffDir(cfg), `${entry.deliveryId}.md`);
+    fs.writeFileSync(target, renderHandoff(entry), 'utf8');
+    return {
+      file: relPosix(cfg._repoRoot, target),
+      superseded: replaced.map((e) => ({
+        deliveryId: e.deliveryId,
+        supersededBy: entry.deliveryId,
+        taskId: e.taskId,
+      })),
+    };
+  });
+  // The index above is a local cache (`out/` is ignored); the ledger that
+  // freshness reads lives in shared CAS state. Record outside the handoff lock:
+  // nesting handoff-lock → state-lock inside the closure would deadlock against
+  // any path that takes them in the other order.
+  if (superseded.length) {
+    markDeliveriesSuperseded(cfg, superseded, {
+      actor: entry.actor || 'system',
+      note: `superseded by ${entry.deliveryId}`,
+    });
+  }
+  return file;
+}
+
+/**
+ * Copy supersede facts from the local handoff index into the shared ledger.
+ *
+ * Needed because the index lives under `out/` (gitignored) while the ledger is
+ * committed: a fresh clone sees the ledger only. Idempotent, so it is safe to
+ * run on every stage close and on demand.
+ */
+export function reconcileSupersededLedger(cfg, { actor = 'system' } = {}) {
+  const index = readHandoffIndex(cfg);
+  const superseded = index.entries
+    .filter((e) => e.status === 'superseded' && e.supersededBy)
+    .map((e) => ({ deliveryId: e.deliveryId, supersededBy: e.supersededBy, taskId: e.taskId }));
+  return markDeliveriesSuperseded(cfg, superseded, {
+    actor,
+    note: 'reconciled from handoff index',
   });
 }
 
@@ -685,6 +735,12 @@ function renderHandoff(entry) {
     '',
   );
   const unmapped = (entry.machineCoverage?.rows || []).filter((r) => !r.machine);
+  // S16/AC4: the command below must be one the reviewer can actually run. When a
+  // clause cannot be machine-proved, the bare command is guaranteed to fail — so
+  // say so in the warning AND ship the exact command that succeeds.
+  const coverageArg = unmapped.length
+    ? ` --coverage "${unmapped.map((r) => `${r.id}=passed`).join(',')}"`
+    : '';
   if (unmapped.length) {
     lines.push(
       '> ⚠ 机器验证覆盖：以下条款不由 profile 自动判定，检测者必须显式补证（`--coverage AC1=passed,...`），',
@@ -707,12 +763,20 @@ function renderHandoff(entry) {
     '## 检测命令（Codex 一条命令）',
     '',
     '```powershell',
-    `node tools/collab/cli.mjs stage-review --delivery ${entry.deliveryId} --actor codex`,
+    `node tools/collab/cli.mjs stage-review --delivery ${entry.deliveryId} --actor codex${coverageArg}`,
     '```',
     '',
     '该命令会自动完成 review-start → review-run → 证据 → review-finish，',
     '失败时自动生成 ISSUE 文件，不需要手写证据 JSON。',
   );
+  if (unmapped.length) {
+    lines.push(
+      '',
+      `上面的 --coverage 已按顶部警告逐条列出 ${unmapped.length} 个需补证条款，与警告清单一致；`,
+      'PowerShell 下必须保留引号，否则逗号会把参数拆成多个 argv。',
+      '补证是检测者的签署声明：请先核对每条证据，再执行。',
+    );
+  }
   return lines.join('\n');
 }
 
@@ -722,13 +786,16 @@ function renderHandoff(entry) {
 
 function boardRows(cfg) {
   const tasks = listJsonRecords(collabDirs(cfg).tasks);
-  const deliveries = listJsonRecords(collabDirs(cfg).deliveries);
+  const deliveries = listDeliveries(cfg);
   const reviews = listReviews(cfg);
   const issues = listIssues(cfg);
+  // Same rule freshness uses: a retired delivery is not this task's latest work.
+  const superseded = supersededDeliveryIds(loadState(cfg));
   return tasks
     .filter((t) => !t.readOnlyReference)
     .map((t) => {
-      const d = deliveries.filter((x) => x.taskId === t.taskId).at(-1) || null;
+      const d =
+        deliveries.filter((x) => x.taskId === t.taskId && !superseded.has(x.deliveryId)).at(-1) || null;
       const r = d ? reviews.filter((x) => x.deliveryId === d.deliveryId).at(-1) || null : null;
       const open = issues.filter((i) => i.taskId === t.taskId && ['open', 'fixing', 'fixed'].includes(i.status));
       return {
@@ -740,6 +807,7 @@ function boardRows(cfg) {
         holder: t.holder || null,
         latestDelivery: d?.deliveryId || null,
         latestReview: r?.reviewId || null,
+        supersededBy: t.supersededBy || null,
         openIssues: open.length,
       };
     })
@@ -753,8 +821,134 @@ export function cmdStageBoard(cfg) {
     lastDeliveryId: state.lastDeliveryId || null,
     tasks: boardRows(cfg),
   };
-  const pending = readHandoffIndex(cfg).entries.filter((e) => e.status === 'ready');
+  const { kept: pending } = pendingHandoffs(cfg, board);
   return { ...board, report: renderBoard(board, pending) };
+}
+
+/**
+ * 「待 Codex 检测」清单的**唯一**取数口径。
+ *
+ * 一个交付要出现在清单上，必须三条同时成立：
+ *  ① handoff 索引里还是 `ready`（没人检测过、也没被新交付顶掉）；
+ *  ② 共享台账 `state.deliveryStatus` 里没被登记为 `superseded`；
+ *  ③ 它所属的任务没被别的任务取代（跨任务取代时，旧任务整个退场）。
+ *
+ * 为什么不能只信 ①：handoff 索引在 `out/` 下（gitignored），而 `stage-supersede`
+ * 改的是共享台账与任务文件。两边一旦不同步，已取代的交付就会一直挂在清单上，
+ * 催人去给旧代码补跑一次检测 —— S26 / `DEL-20261027115400-6ee0b2` 就是这么挂了两天的：
+ * 台账与任务文件都写着 superseded，只有本地索引还写着 ready。
+ *
+ * 代价只是几次内存查表；换来的是「清单上出现的，都是真的还要测的」。
+ */
+function pendingHandoffs(cfg, board = null) {
+  const state = loadState(cfg);
+  const supersededIds = supersededDeliveryIds(state);
+  const rows = board?.tasks || boardRows(cfg);
+  const supersededTasks = new Set(rows.filter((t) => t.supersededBy).map((t) => t.taskId));
+
+  const kept = [];
+  const dropped = [];
+  for (const e of readHandoffIndex(cfg).entries) {
+    if (e.status !== 'ready') continue;
+    let why = null;
+    if (supersededIds.has(e.deliveryId)) {
+      why = `台账已登记被 ${state.deliveryStatus?.[e.deliveryId]?.supersededBy || '后续交付'} 取代`;
+    } else if (supersededTasks.has(e.taskId)) {
+      why = `任务 ${e.taskId} 已被 ${rows.find((t) => t.taskId === e.taskId)?.supersededBy?.taskId || '后续任务'} 取代`;
+    }
+    if (why) dropped.push({ ...e, why });
+    else kept.push(e);
+  }
+  return { kept, dropped };
+}
+
+/**
+ * 把一个任务标成「已被别的任务取代」。
+ *
+ * 交付被取代 ≠ 任务退场：只有跨任务取代时，旧任务才真的没有活着的交付了。
+ * 不写这个标记，任务会永远停在 `queued`，被 `stage-close` 当成「进行中的阶段」
+ * 续做，逼人给一份死代码重新生成验收条件 —— S26 就这么被捡回来过。
+ *
+ * 幂等：同一个继任者重复登记不会改写已有的时间戳与说明。
+ */
+function retireTask(cfg, { taskId, successor, actor, note }) {
+  if (!taskId || taskId === successor.taskId) return { changed: false, supersededBy: null };
+  return withStateLock(cfg, `task-supersede:${taskId}`, () => {
+    const task = loadTask(cfg, taskId);
+    const already =
+      task.supersededBy &&
+      task.supersededBy.deliveryId === successor.deliveryId &&
+      task.supersededBy.taskId === successor.taskId;
+    if (already) return { changed: false, supersededBy: task.supersededBy };
+    task.supersededBy = {
+      deliveryId: successor.deliveryId,
+      taskId: successor.taskId,
+      actor,
+      note,
+      at: nowIso(),
+    };
+    task.updatedAt = nowIso();
+    writeJsonAtomic(path.join(collabDirs(cfg).tasks, `${taskId}.json`), task);
+    const state = loadState(cfg);
+    if (state.tasksIndex[taskId]) state.tasksIndex[taskId].updatedAt = task.updatedAt;
+    saveState(cfg, state, { expectedRevision: state.revision });
+    return { changed: true, supersededBy: task.supersededBy };
+  });
+}
+
+/**
+ * 把待检测 handoff 条目就地标成 `superseded`。
+ *
+ * 命中条件：交付本身被点名取代，或它所属的任务整个退场。
+ * 只动 `ready` 的条目 —— `accepted` / `rejected` 已经是历史结论，改了就是篡改记录。
+ * 返回被清掉的 deliveryId，供调用方在报告里点名。
+ */
+function sweepSupersededHandoffs(cfg, { deliveryIds = [], taskIds = [] }, supersededBy) {
+  const byId = new Set(deliveryIds);
+  const byTask = new Set(taskIds);
+  if (!byId.size && !byTask.size) return [];
+  return withHandoffLock(cfg, () => {
+    const index = readHandoffIndex(cfg);
+    const hit = index.entries.filter(
+      (e) => e.status === 'ready' && (byId.has(e.deliveryId) || byTask.has(e.taskId)),
+    );
+    if (!hit.length) return [];
+    const ids = new Set(hit.map((e) => e.deliveryId));
+    const entries = index.entries.map((e) =>
+      ids.has(e.deliveryId) ? { ...e, status: 'superseded', supersededBy } : e,
+    );
+    writeJsonAtomic(handoffIndexPath(cfg), { schemaVersion: 1, updatedAt: nowIso(), entries });
+    for (const e of entries) {
+      if (!ids.has(e.deliveryId)) continue;
+      const file = path.join(handoffDir(cfg), `${e.deliveryId}.md`);
+      if (fs.existsSync(file)) fs.writeFileSync(file, renderHandoff(e), 'utf8');
+    }
+    return [...ids];
+  });
+}
+
+/**
+ * Copy supersede facts from the local handoff index into the shared ledger.
+ *
+ * The index under `out/` is gitignored; the ledger in `state.json` is committed.
+ * Without this, a task whose newest delivery was replaced by one filed under a
+ * different task stays stale forever, because its own newest record can never
+ * match its tree (S03-Docs / DEL-20261025125421-e0fbe0).
+ */
+export function cmdStageReconcile(cfg, args = {}) {
+  const actor = args.actor || 'cursor';
+  assertRoleAction(actor, 'sync');
+  const result = reconcileSupersededLedger(cfg, { actor });
+  const sync = cmdSync(cfg, {});
+  return {
+    ok: true,
+    revision: sync.revision,
+    marked: result.marked,
+    report: result.marked.length
+      ? `已登记 ${result.marked.length} 条被取代的交付：${result.marked.join(', ')}\nrevision=${sync.revision}`
+      : `无需登记：交付台账已与 handoff 索引一致。\nrevision=${sync.revision}`,
+    exitCode: EXIT.OK,
+  };
 }
 
 export function cmdStageOpen(cfg, args = {}) {
@@ -770,7 +964,7 @@ export function cmdStageOpen(cfg, args = {}) {
     ack = cmdAck(cfg, { actor, revision: retry.revision });
   }
   const board = cmdStageBoard(cfg);
-  const pending = readHandoffIndex(cfg).entries.filter((e) => e.status === 'ready');
+  const { kept: pending } = pendingHandoffs(cfg, board);
   return {
     ...board,
     ack: { actor, revision: ack.revision },
@@ -784,7 +978,11 @@ function renderBoard(board, pending) {
   lines.push('| 任务 | 状态 | 复验 | 最新交付 | 未关缺陷 |');
   lines.push('| --- | --- | --- | --- | --- |');
   for (const t of board.tasks) {
-    lines.push(`| ${t.taskId} | ${t.devStatus}/${t.reviewStatus} | ${t.freshness} | ${t.latestDelivery || '-'} | ${t.openIssues} |`);
+    const status = t.supersededBy ? `superseded/${t.reviewStatus}` : `${t.devStatus}/${t.reviewStatus}`;
+    const delivery = t.supersededBy
+      ? `→ ${t.supersededBy.deliveryId}（${t.supersededBy.taskId}）`
+      : t.latestDelivery || '-';
+    lines.push(`| ${t.taskId} | ${status} | ${t.freshness} | ${delivery} | ${t.openIssues} |`);
   }
   if (pending.length) {
     lines.push('', '待 Codex 检测：');
@@ -796,6 +994,31 @@ function renderBoard(board, pending) {
 /* ------------------------------------------------------------------ */
 /* stage-close                                                         */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Which profile generated a task's acceptance criteria?
+ *
+ * A stage task created by `stage-close` carries an AC set derived from the
+ * profile that was picked *then*. Reusing that task under a different profile
+ * keeps the old contract, which can be unsatisfiable. S20 is the case in point:
+ * a `unity-editmode` run was blocked by an open editor and had already written
+ * the task; the retry ran `--profile collab` and delivered
+ * DEL-20261027031726-30842b, whose AC2 still demanded "EditMode really ran"
+ * for a snapshot that does not even contain the Unity project. Codex could not
+ * sign it — correctly.
+ *
+ * Identified by exact text match against each profile's template, so a
+ * hand-written AC set (which matches nothing) is never second-guessed.
+ */
+function criteriaProfile(cfg, acceptanceCriteria, taskId) {
+  const mine = (acceptanceCriteria || []).map((a) => String(a.text || '').trim());
+  if (mine.length === 0) return null;
+  for (const name of Object.keys(cfg.profiles || {})) {
+    const tpl = acceptanceCriteriaFor(name, taskId).map((a) => String(a.text || '').trim());
+    if (tpl.length === mine.length && tpl.every((t, i) => t === mine[i])) return name;
+  }
+  return null;
+}
 
 function buildSummary({ task, profile, diff, preflight, preflightPlanned, note, gaps }) {
   const areas = summaryByArea(diff.changed);
@@ -824,6 +1047,18 @@ function buildSummary({ task, profile, diff, preflight, preflightPlanned, note, 
 export function cmdStageClose(cfg, args = {}) {
   const actor = args.actor || 'cursor';
   assertRoleAction(actor, 'deliver');
+
+  // An explicit retirement of someone else's delivery. Needed because writeHandoff
+  // only supersedes handoffs filed under the *same* task: when a delivery was
+  // filed under the wrong task, its own task keeps treating it as the newest work
+  // and stays stale forever unless a human says "this one is dead" (S03-Docs /
+  // DEL-20261025125421-e0fbe0). Validated up front so a typo fails before a
+  // delivery is written.
+  const declared = String(args.supersedes || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  for (const id of declared) requireDelivery(cfg, id);
 
   const sync = cmdSync(cfg, {});
   try {
@@ -934,6 +1169,40 @@ export function cmdStageClose(cfg, args = {}) {
   const pick = selectProfile(cfg, diff.changed, { profile: args.profile, unity: args.unity });
   const profile = pick.profile;
 
+  // A reused task keeps the AC it was created with. If those were generated for a
+  // different profile, this close would produce a delivery that cannot honestly be
+  // reviewed (see `criteriaProfile`). Refuse to write it; `--refresh-ac` is the
+  // explicit way to say "same task, new contract".
+  const acProfile = criteriaProfile(cfg, task.acceptanceCriteria, task.taskId);
+  const refreshAc = args['refresh-ac'] === true || args['refresh-ac'] === 'true';
+  if (acProfile && acProfile !== profile && !refreshAc) {
+    fail(
+      EXIT.USAGE,
+      `task ${task.taskId} has acceptance criteria generated for profile ${acProfile}, ` +
+        `but this close runs ${profile}; the reviewer could not sign ${acProfile}'s clauses`,
+      {
+        taskId: task.taskId,
+        criteriaProfile: acProfile,
+        profile,
+        hint:
+          `pass --refresh-ac to regenerate the acceptance criteria for ${profile} ` +
+          `(records a new task revision), or re-run with --profile ${acProfile}`,
+      },
+    );
+  }
+  if (acProfile && acProfile !== profile && refreshAc) {
+    const refreshed = acceptanceCriteriaFor(profile, task.taskId);
+    recordEvent(cfg, {
+      actor,
+      action: 'stage-refresh-ac',
+      taskId: task.taskId,
+      summary: `acceptance criteria re-derived: ${acProfile} -> ${profile}`,
+      data: { from: acProfile, to: profile, previous: task.acceptanceCriteria },
+    });
+    task = { ...task, acceptanceCriteria: refreshed, revision: (task.revision || 1) + 1, updatedAt: nowIso() };
+    saveTask(cfg, task);
+  }
+
   // Unity refuses to run while the user's editor holds the project.
   if (String(profile).startsWith('unity') && args['dry-run'] !== true) {
     const u = unityRunning();
@@ -1007,14 +1276,46 @@ export function cmdStageClose(cfg, args = {}) {
     profile,
     status: !preflight || preflight.ok ? 'ready' : 'preflight-failed',
     acceptanceCriteria: task.acceptanceCriteria,
-    machineCoverage: machineCoverageFor(task, profile),
+    machineCoverage: machineCoverageFor(task, profile, preflight?.counters),
     summary: summaryText,
     preflight: preflight
       ? { ok: preflight.ok, exitCode: preflight.exitCode, reason: preflight.reason, counters: preflight.counters }
       : null,
+    supersedes: declared,
     createdAt: nowIso(),
   };
+  // Heal the local index → shared ledger gap before writing this entry, so a
+  // close on a machine whose `out/` was wiped still leaves the ledger correct.
+  reconcileSupersededLedger(cfg, { actor });
   const handoffFile = writeHandoff(cfg, entry);
+  let swept = [];
+  const retiredTasks = [];
+  if (declared.length) {
+    const declaredDeliveries = declared.map((id) => ({ id, taskId: requireDelivery(cfg, id).taskId }));
+    markDeliveriesSuperseded(
+      cfg,
+      declaredDeliveries.map((d) => ({
+        deliveryId: d.id,
+        supersededBy: delivered.deliveryId,
+        taskId: d.taskId,
+      })),
+      { actor, note: `declared superseded at ${delivered.deliveryId} close` },
+    );
+    // 新交付的 taskId 与旧交付不同时，writeHandoff 的同任务清扫扫不到它；
+    // 这里按 deliveryId 直接补扫，免得旧快照继续挂在待检清单上。
+    swept = sweepSupersededHandoffs(cfg, { deliveryIds: declared }, delivered.deliveryId);
+    // 跨任务取代时同时让旧任务退场：只清交付不动任务，旧任务会继续以「进行中」
+    // 的身份被下一次 stage-close 续做 —— 与 stage-supersede 必须同一个口径。
+    for (const d of declaredDeliveries) {
+      const retire = retireTask(cfg, {
+        taskId: d.taskId,
+        successor: { deliveryId: delivered.deliveryId, taskId: task.taskId },
+        actor,
+        note: `declared superseded at ${delivered.deliveryId} close`,
+      });
+      if (retire.changed) retiredTasks.push(d.taskId);
+    }
+  }
 
   recordEvent(cfg, {
     actor,
@@ -1036,17 +1337,47 @@ export function cmdStageClose(cfg, args = {}) {
   if (preflight && !preflight.ok) {
     reportLines.push('', `原因：${preflight.reason}`, '', '输出尾部：', '```', tail(preflight.stdoutTail, 1500), '```');
   }
+  // S16/AC7: rewriting a template clause silently demotes it from machine-proved
+  // to reviewer-attested. Say so now, while it is still cheap to fix.
+  const driftWarning = clauseDriftWarning(cfg, task, profile);
+  if (driftWarning) reportLines.push('', driftWarning);
+  // S16/AC4: the single command handed to Codex must be the one that succeeds.
+  const unmapped = (entry.machineCoverage?.rows || []).filter((r) => !r.machine).map((r) => r.id);
+  const coverageArg = unmapped.length ? ` --coverage "${unmapped.map((id) => `${id}=passed`).join(',')}"` : '';
+  const nextCommand = `node tools/collab/cli.mjs stage-review --delivery ${delivered.deliveryId} --actor codex${coverageArg}`;
+  const ready = !!(preflight && preflight.ok);
+  // Local convenience only: clipboard + chime. Never forges Codex; never blocks
+  // the delivery. Tests set COLLAB_HANDOFF_NOTIFY=0.
+  const notify = ready
+    ? notifyHandoffReady({ nextCommand, handoffFile, deliveryId: delivered.deliveryId })
+    : { enabled: false, clipboard: false, chime: false, nextCommand: null };
+
   reportLines.push(
     '',
     preflight && !preflight.ok
       ? '请先修复预检失败项，再重跑 stage-close 生成新的 DEL；本次 DEL 不要交给 Codex。'
-      : `交给 Codex 一条命令：node tools/collab/cli.mjs stage-review --delivery ${delivered.deliveryId} --actor codex`,
+      : `交给 Codex 一条命令：${nextCommand}`,
     '',
     `交接说明：${handoffFile}`,
   );
+  if (swept.length) {
+    reportLines.push('', `已从待检测清单撤下 ${swept.join(', ')}（被本次交付取代）。`);
+  }
+  if (retiredTasks.length) {
+    reportLines.push(`任务 ${retiredTasks.join(', ')} 标记为已被取代，不会再被后续 stage-close 续做。`);
+  }
+  if (ready && notify.enabled) {
+    reportLines.push(
+      notify.clipboard
+        ? '本机：检测命令已写入剪贴板（到 Codex 会话直接粘贴即可）。'
+        : '本机：未能写入剪贴板，请手工复制上面的检测命令。',
+      notify.chime ? '本机：已播放交接提示音。' : '本机：提示音未启动（可忽略）。',
+      '关闭提示：环境变量 COLLAB_HANDOFF_NOTIFY=0',
+    );
+  }
 
   return {
-    ok: !!(preflight && preflight.ok),
+    ok: ready,
     taskId: task.taskId,
     deliveryId: delivered.deliveryId,
     profile,
@@ -1057,7 +1388,10 @@ export function cmdStageClose(cfg, args = {}) {
       ? { ok: preflight.ok, exitCode: preflight.exitCode, reason: preflight.reason, counters: preflight.counters }
       : null,
     handoffFile,
-    nextCommand: `node tools/collab/cli.mjs stage-review --delivery ${delivered.deliveryId} --actor codex`,
+    nextCommand,
+    sweptHandoffs: swept,
+    retiredTasks,
+    notify,
     report: reportLines.join('\n'),
     exitCode: preflight && !preflight.ok ? EXIT.CHECK_FAILED : EXIT.OK,
   };
@@ -1077,8 +1411,9 @@ function latestPendingDelivery(cfg) {
   // Only deliveries that stage-close explicitly handed off are eligible.
   // Scanning all historical DELs would resurrect legacy snapshots from earlier
   // tool versions and review something the developer never submitted.
-  const entries = readHandoffIndex(cfg).entries
-    .filter((e) => e.status === 'ready')
+  // 走 pendingHandoffs 而非直接读索引：被取代的交付不能再被自动挑中，
+  // 否则 Codex 不带 --delivery 跑 stage-review 时会去测一份已经作废的快照。
+  const entries = pendingHandoffs(cfg).kept
     .sort((a, b) => (Date.parse(a.createdAt) || 0) - (Date.parse(b.createdAt) || 0));
   for (let i = entries.length - 1; i >= 0; i -= 1) {
     const e = entries[i];
@@ -1172,6 +1507,13 @@ function buildEvidence(cfg, {
   return {
     conclusion: wantsPass ? 'passed' : 'failed',
     subjectImplementationFingerprint: delivery.fingerprints.implementation.fingerprint,
+    // S14/D1: review-finish enforces the full triplet; a test-only supersede keeps
+    // the same implementation hash, so it must still bind verification+contract.
+    subjectFingerprints: {
+      implementation: delivery.fingerprints.implementation.fingerprint,
+      verification: delivery.fingerprints.verification.fingerprint,
+      contract: delivery.fingerprints.contract.fingerprint,
+    },
     assertionsTotal: machine.counters?.total ?? 0,
     assertionsFailed: machine.counters?.failed ?? 0,
     assertionsSkipped: machine.counters?.skipped ?? 0,
@@ -1294,7 +1636,19 @@ export function cmdStageReview(cfg, args = {}) {
   }
 
   const existing = terminalReviewFor(cfg, target.deliveryId);
+  const dryRun = args['dry-run'] === true || args['dry-run'] === 'true';
+  if (dryRun) {
+    // S15/AC4: a preview must not touch anything. It runs after authorization
+    // (so it cannot be used to probe a delivery you may not review), and returns
+    // before the lease, review-start, run, issue or ledger write.
+    return planStageReview(cfg, { actor, target, profile, existing, args });
+  }
   if (existing && !force) return settledResult(cfg, target, existing);
+
+  // S16/AC5: refuse a review that cannot possibly pass, before spending a full
+  // suite run and writing a misleading blocker. The clause set is known up front;
+  // only the attestation is missing.
+  assertReviewable(cfg, { target, profile, args });
 
   const leasePath = path.join(localDirs(cfg).locks, `stage-review-${target.deliveryId}.lock`);
   const lease = new FileLock(leasePath, `${actor}@${os.hostname()}`, {
@@ -1325,8 +1679,85 @@ export function cmdStageReview(cfg, args = {}) {
   }
 }
 
-function executeStageReview(cfg, { actor, delivery, profile, args, authRecord = null }) {
-  const started = cmdReviewStart(cfg, {
+/**
+ * S16/AC5: fail fast on a review that the clause contract already rules out.
+ *
+ * A delivery whose criteria were hand-written cannot be proved by a machine count,
+ * and no amount of running the suite changes that. Running anyway costs minutes,
+ * then writes a blocker that says what the caller could have been told immediately.
+ * Refusing up front keeps the ledger honest: a review only exists for attempts that
+ * could actually conclude.
+ */
+function assertReviewable(cfg, { target, profile, args }) {
+  const task = loadTask(cfg, target.taskId);
+  const coverage = machineCoverageFor(task, profile, null);
+  const attestedIds = new Set(parseAttestation(args.coverage, task.acceptanceCriteria || []).map((a) => a.id));
+  const missing = coverage.rows.filter((r) => !r.machine && !attestedIds.has(r.id)).map((r) => r.id);
+  if (!missing.length) return;
+  const suggestion = `--coverage "${coverage.rows.map((r) => `${r.id}=passed`).join(',')}"`;
+  fail(
+    EXIT.USAGE,
+    `stage-review would fail by construction: ${missing.join(', ')} cannot be machine-proved for profile ${profile} and no --coverage attestation was given. ` +
+      `Nothing was run. Attest after checking the evidence: ${suggestion}`,
+    { deliveryId: target.deliveryId, profile, needsAttestation: missing, suggestedCoverage: suggestion },
+  );
+}
+
+/**
+ * S15/AC4: read-only preview of what `stage-review` would do.
+ *
+ * Reads the delivery, task, profile and snapshot; reports the machine-mapped
+ * clauses, the clauses only a reviewer may attest, and whether a verdict already
+ * exists. Writes nothing at all — no review, no issue, no revision, no lock.
+ */
+function planStageReview(cfg, { actor, target, profile, existing, args }) {
+  const task = loadTask(cfg, target.taskId);
+  const coverage = machineCoverageFor(task, profile, null);
+  const attestation = parseAttestation(args.coverage, task.acceptanceCriteria || []);
+  const attestedIds = new Set(attestation.map((a) => a.id));
+  const rows = coverage.rows.map((row) => ({ ...row, attested: !row.machine && attestedIds.has(row.id) }));
+  const missing = rows.filter((r) => !r.machine && !r.attested).map((r) => r.id);
+
+  let snapshot = { ok: true, reason: null };
+  try {
+    verifySnapshotIntegrity(cfg._repoRoot, target.snapshotPath, target, {});
+  } catch (e) {
+    snapshot = { ok: false, reason: String(e.message || e) };
+  }
+
+  const lines = [
+    `[dry-run] 交付 ${target.deliveryId}（任务 ${target.taskId}）`,
+    `[dry-run] profile：${profile}`,
+    `[dry-run] 快照完整性：${snapshot.ok ? '通过' : `失败：${snapshot.reason}`}`,
+    existing
+      ? `[dry-run] 已有终态检测 ${existing.reviewId} → ${existing.status}；真实执行会直接返回该结论（除非 --force）`
+      : '[dry-run] 尚无终态检测记录',
+    `[dry-run] 机器可判定条款：${rows.filter((r) => r.machine).map((r) => r.id).join(', ') || '（无）'}`,
+    `[dry-run] 需检测者补证：${rows.filter((r) => !r.machine).map((r) => r.id).join(', ') || '（无）'}`,
+    missing.length
+      ? `[dry-run] 尚未补证（真实执行会被判 not_run 并因此不通过）：${missing.join(', ')}`
+      : '[dry-run] 补证已覆盖全部非机器条款',
+    '[dry-run] 本次未写入任何记录。',
+  ];
+
+  return {
+    ok: true,
+    dryRun: true,
+    actor,
+    deliveryId: target.deliveryId,
+    taskId: target.taskId,
+    profile,
+    snapshot,
+    existingReview: existing ? { reviewId: existing.reviewId, status: existing.status } : null,
+    machineMapped: rows.filter((r) => r.machine).map((r) => r.id),
+    attested: rows.filter((r) => !r.machine && r.attested).map((r) => r.id),
+    needsAttestation: missing,
+    report: lines.join('\n'),
+    exitCode: EXIT.OK,
+  };
+}
+
+function executeStageReview(cfg, { actor, delivery, profile, args, authRecord = null }) {  const started = cmdReviewStart(cfg, {
     delivery: delivery.deliveryId,
     actor,
     profile,
@@ -1351,9 +1782,10 @@ function executeStageReview(cfg, { actor, delivery, profile, args, authRecord = 
     ? parseRunResult(review.profileDefinition || cfg.profiles[profile], run, cfg._repoRoot)
     : { ok: false, reason: runError?.message || 'run did not execute' };
   const machineOk = !!machine.ok && run?.exitCode === 0 && !runError;
-  // SA03: the machine result only vouches for clauses this profile generated.
+  // SA03: the machine result only vouches for clauses this profile generated,
+  // and only when the run actually executed every assertion it counted.
   const coverage = review
-    ? machineCoverageFor(task, review.profile || profile)
+    ? machineCoverageFor(task, review.profile || profile, machine.counters)
     : { ok: false, rows: [], reason: 'review record unavailable' };
   // SA03: an unmapped clause may reach passed only through an explicit,
   // attributable reviewer attestation (`--coverage AC1=passed`).
@@ -1547,13 +1979,127 @@ export function cmdStageFix(cfg, args = {}) {
 }
 
 /* ------------------------------------------------------------------ */
+/* stage-supersede (record a replacement after the fact)               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * S15/AC6: `stage-close --supersedes` can only declare a replacement while the
+ * successor is being written. When a later stage keeps working on the same roots,
+ * the earlier delivery is replaced in substance but no command can say so, so its
+ * task sits at `passed/stale` and keeps asking for a re-review that would just
+ * re-prove the old code.
+ *
+ * This records the fact after the fact. It never rewrites the old review (the
+ * verdict really was passed for that snapshot) and it is idempotent.
+ */
+export function cmdStageSupersede(cfg, args = {}) {
+  const actor = args.actor || 'cursor';
+  if (!['cursor', 'codex', 'user'].includes(actor)) {
+    fail(EXIT.FORBIDDEN, `unknown actor: ${actor}`, { allowed: ['cursor', 'codex', 'user'] });
+  }
+  const supersededId = args.delivery;
+  const successorId = args.by;
+  if (!supersededId) fail(EXIT.USAGE, 'stage-supersede requires --delivery <superseded DEL>');
+  if (!successorId) fail(EXIT.USAGE, 'stage-supersede requires --by <successor DEL>');
+  if (supersededId === successorId) fail(EXIT.USAGE, 'a delivery cannot supersede itself');
+  const superseded = requireDelivery(cfg, supersededId);
+  const successor = requireDelivery(cfg, successorId);
+  if ((Date.parse(superseded.createdAt) || 0) > (Date.parse(successor.createdAt) || 0)) {
+    fail(
+      EXIT.CONFLICT,
+      `successor ${successorId} was delivered before ${supersededId}; a later delivery cannot be replaced by an earlier one`,
+      { superseded: { id: supersededId, at: superseded.createdAt }, successor: { id: successorId, at: successor.createdAt } },
+    );
+  }
+
+  const note = args.note ? String(args.note) : `declared superseded by ${successorId}`;
+  const marked = markDeliveriesSuperseded(
+    cfg,
+    [{ deliveryId: supersededId, supersededBy: successorId, taskId: superseded.taskId }],
+    { actor, note },
+  );
+
+  // 同步清理本地 handoff 索引：被取代的交付如果还留在 `ready`，
+  // `out/collab/handoff/<DEL>.md` 会继续写着「可检测」，board 也会继续点名要人测。
+  // 台账（state.json）与索引（out/）是两处存储，只有在一处写入时顺手扫另一处，
+  // 才不会出现「台账说已取代、索引说待检测」的分裂 —— S26 就是这样挂住的。
+  let swept = [];
+  if (superseded.taskId !== successor.taskId) {
+    swept = sweepSupersededHandoffs(cfg, { taskIds: [superseded.taskId] }, successorId);
+  }
+
+  // Cross-task: the old task has no live delivery left, so record what replaced it
+  // instead of leaving it to look permanently stale.
+  const retire =
+    superseded.taskId === successor.taskId
+      ? { changed: false, supersededBy: null }
+      : retireTask(cfg, {
+          taskId: superseded.taskId,
+          successor: { deliveryId: successorId, taskId: successor.taskId },
+          actor,
+          note,
+        });
+  const taskSuperseded = retire.supersededBy;
+  const taskChanged = retire.changed;
+
+  if (!marked.marked.length && !taskChanged && !swept.length) {
+    const sync = cmdSync(cfg, {});
+    return {
+      ok: true,
+      unchanged: true,
+      deliveryId: supersededId,
+      supersededBy: successorId,
+      taskId: superseded.taskId,
+      taskSuperseded,
+      sweptHandoffs: [],
+      revision: sync.revision,
+      report: `已登记过：${supersededId} 已被 ${successorId} 取代；未做改动（revision=${sync.revision}）。`,
+      exitCode: EXIT.OK,
+    };
+  }
+
+  recordEvent(cfg, {
+    actor,
+    action: 'stage-supersede',
+    taskId: superseded.taskId,
+    deliveryId: supersededId,
+    summary: `${supersededId} superseded by ${successorId}`,
+    data: { supersededBy: successorId, successorTaskId: successor.taskId, crossTask: superseded.taskId !== successor.taskId },
+  });
+  const sync = cmdSync(cfg, {});
+  const crossTask = superseded.taskId !== successor.taskId;
+  return {
+    ok: true,
+    deliveryId: supersededId,
+    supersededBy: successorId,
+    taskId: superseded.taskId,
+    taskSuperseded,
+    sweptHandoffs: swept,
+    revision: sync.revision,
+    report: [
+      `已登记：${supersededId}（${superseded.taskId}）被 ${successorId}（${successor.taskId}）取代`,
+      crossTask
+        ? `任务 ${superseded.taskId} 标记为已被取代，不再出现在待办清单里；旧检测记录保持原样。`
+        : '同一任务内的取代；任务状态不变，旧检测记录保持原样。',
+      swept.length
+        ? `已从待检测清单撤下 ${swept.join(', ')}（handoff 索引同步改为 superseded）。`
+        : null,
+      `revision=${sync.revision}`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    exitCode: EXIT.OK,
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* stage-loop: one entry point that does not need either side awake    */
 /* ------------------------------------------------------------------ */
 
 export function cmdStageReport(cfg) {
   const board = cmdStageBoard(cfg);
   const index = readHandoffIndex(cfg);
-  const pending = index.entries.filter((e) => e.status === 'ready');
+  const { kept: pending } = pendingHandoffs(cfg, board);
   return {
     ...board,
     handoffs: index.entries.slice(-10),

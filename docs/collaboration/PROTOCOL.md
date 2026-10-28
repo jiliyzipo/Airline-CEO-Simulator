@@ -101,3 +101,36 @@ C-DEMO 演示任务使用收窄的 `demoSnapshotRoots`，避免为工具演练�
   两者都不得写成“已验收”；也确实都不产生可检测的 DEL。
 - 历史交付的复现口径：旧 DEL 的快照是**当时**的工程状态，用它跑平衡/回归工具可以对照“这条规则改了之后到底变了什么”，
   但不能把旧快照的结果当当前验收结论。
+
+## 1.5 交付台账与「被取代」（2026-10-26）
+
+- freshness 只问一件事：**该任务最新的、未被取代的交付**是否仍描述当前工作区。
+- 被取代的事实记在共享 CAS 状态 `state.json` 的 `deliveryStatus[<DEL>] = { status: 'superseded', supersededBy }`，
+  **不写回交付记录本身**：DEL 是不可改写的历史，只能追加这条台账。
+- 为什么需要它：若一条交付被错挂在别的任务名下，它对该任务永远是“最新工作”，而它的指纹永远不可能与
+  该任务的工作区匹配 → 该任务被永久拖成 `stale`，每次 `sync` 都重写它的 `freshnessNote`/`staleForReviewId`，
+  看起来像任务变了，其实什么都没变（S03-Docs / `DEL-20261025125421-e0fbe0`）。
+- 写入路径：
+  - `stage-close` 写交接单时，同任务的旧 ready 交付自动登记为被取代；
+  - `stage-close --supersedes <DEL,...>` 用于显式注销**挂在别的任务下**的交付（错挂只能由人点名，工具不猜）；
+  - `stage-reconcile` 把本地 `out/collab/handoff/index.json`（被 gitignore）里的取代事实补进台账，幂等。
+- 台账与看板同源：`stage-board` 报的「最新交付」与 freshness 用的是同一条规则，不会再出现“看板指着一条已退休的交付”。
+
+## 1.6 环境能力缺口 ≠ 业务回归（2026-10-26）
+
+独立检测常在受限令牌（AppContainer/CI）里执行，那里有些检查**根本无法执行**，而不是执行后不通过：
+
+- 系统临时目录只允许写入、不允许 `rename` → 原子写 `EPERM`（实测：`...\sandbox.{...}\AC\Temp`）；
+- `git clone` 需要 fork `upload-pack` 子进程，受限令牌下 `NtCreateDirectoryObject(\BaseNamedObjects\msys-...) 0xC0000022`；
+- `Get-CimInstance` 被拒 → 无法枚举 Unity 进程。
+
+处理原则（已落地在 `collab` profile 与 `doctor`）：
+
+1. **能执行的失败仍是失败**：探针证明环境可用之后，真实失败一律 `FAIL`。
+2. **不能执行的检查报为 skip 并写明原因**，计入 `assertionsSkipped`，绝不折成通过：
+   `run-all` 把子套件的 `SKIP` 行抽出（去重后写 stderr），结果 JSON 同时给出 `assertionsSkipped` 与 `skipReasons`。
+3. **skip > 0 时机器条款不再自动成立**：`machineCoverageFor` 会把这些条款降级为“检测者必须显式补证”
+   （`--coverage AC1=passed`）。有跳过就有人签字，签的是人的判断，不是工具替人担保。
+4. **`doctor` 只由“执行了但不通过”的检查判负**：`unavailable` 的检查记为警告；
+   安全相关的兜底不变——Unity 预检在无法确认占用时仍然拒绝启动。
+5. **墙钟不是结论**：单子套件超时 8 分钟、Node profile 预检 20 分钟；超时才报超时。

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028001934-6218bb",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 645,
+  "at": "2026-10-28T00:19:34.896Z",
+  "actor": "system",
+  "action": "delivery-superseded",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "superseded: DEL-20261028000358-732bdf",
+  "data": {
+    "marked": [
+      "DEL-20261028000358-732bdf"
+    ],
+    "note": "superseded by DEL-20261028001602-440143"
+  }
+}

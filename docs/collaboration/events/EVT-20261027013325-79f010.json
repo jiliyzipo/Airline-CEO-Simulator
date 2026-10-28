@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013325-79f010",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 511,
+  "at": "2026-10-27T01:33:25.226Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S08-ShortHaul",
+  "deliveryId": "DEL-20261023032726-42cba0",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=23 drifted=5",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Systems/FinanceManager.cs",
+      "tools/balance/README.md",
+      "tools/balance/baseline/BASELINE_SOURCE.json",
+      "Unity Project/Assets/Scripts/Editor/TakeoverCostLedgerRegression.cs"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026023527-59f577",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 419,
+  "at": "2026-10-26T02:35:27.389Z",
+  "actor": "codex",
+  "action": "review-finish",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026022132-804f18",
+  "reviewId": "REV-20261026023352-31f65f",
+  "parentEventId": null,
+  "summary": "stage-review failed; issue ISSUE-20261026023527-01bb24",
+  "data": {
+    "status": "failed",
+    "issues": [
+      "ISSUE-20261026023527-01bb24"
+    ]
+  }
+}

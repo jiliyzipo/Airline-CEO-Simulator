@@ -656,10 +656,10 @@ namespace AirlineCEO.UI.Shell
             _body.text = AdvisorTutorialScript.Fmt(
                 "航空顾问：\n\n" +
                 "“[玩家姓名]，您好。我是您的航空顾问，负责在您运营过程中提供信息分析和决策建议。”\n\n" +
-                "“刚才市场部送来一份紧急情报——深圳至北京航线近期需求激增，日均 O&D 客流超过 2.5 万人次" +
-                "（O&D 就是‘起点—终点’直飞客流，指每天从深圳出发、直达北京的旅客数量）。" +
-                "这条线是目前国内最赚钱的商务干线之一，竞对客座率已达到 89%。”\n\n" +
-                "“我初步测算了一下，如果我们现在切入，预估日利润在 15～18 万元之间，投资回收期约 8～10 个月。”\n\n" +
+                "“刚才市场部送来一份情报——深圳到北京这条干线上，需求正在往上走，" +
+                "而先入场的几家已经把好时段占住了，留给我们的窗口不多。”\n\n" +
+                "“这条线按每日一班算，日利润是十几万的量级。具体是多少，要看 RPM 评估，" +
+                "我不口头报价——数字算错一个数量级，比不给数字更害人。”\n\n" +
                 "“您要看一下详细评估吗？”");
             _extra.text = "情报来源：市场部 · 航线：深圳 → 北京";
             ConfigureButtons(
@@ -673,18 +673,17 @@ namespace AirlineCEO.UI.Shell
             _title.text = AdvisorTutorialScript.AdvisorTitle + " · RPM 评估";
             _body.text = AdvisorTutorialScript.Fmt(
                 "航空顾问：\n\n" +
-                "“这是 RPM 系统给出的综合评估。——RPM 的全称是『航线盈利预测模型』，简单说，就是系统综合了客流、成本、竞争等因素后，" +
-                "自动算出一条航线值不值得开的评分，您把它理解成『开线推荐指数』就行。”\n\n" +
+                "“这是 RPM 评估。——RPM 是『航线盈利预测模型』，说白了就是把客流、成本、竞争放进一个模型，" +
+                "给这条线打一个分，您把它当成『开线推荐指数』看就行。”\n\n" +
                 $"“{AdvisorTutorialScript.RouteLabel}”\n\n" +
-                "“需求热度：高（日均客流 2.5 万，旺季系数 1.3）\n" +
-                "成本压力：中等（航程 2.5 小时，燃油成本可控）\n" +
-                "准入壁垒：中等（国航、南航已运营，但仍有时刻窗口）”\n\n" +
-                "“财务部、运营部、市场部已经初步交换过意见。要不要召集一个简短的决策会议，听听各部门的具体看法？”");
+                "“需求：这是商务干线，周一早班与周五晚班最紧，其余时段靠价格拉动。\n" +
+                "成本：2.5 小时航程，窄体机即可，燃油占比可控。\n" +
+                "准入：既有航司已占住主要时刻，我们先拿边角时段，先证后槽。”\n\n" +
+                "“财务部、运营部、市场部已经交换过初步意见。要不要召集一个简短的决策会议，听听各部门的具体看法？”");
             _extra.text =
                 "【RPM 评估卡】\n" +
-                "综合评分　86 分（绿色，强烈推荐）\n" +
-                "预估日利润　16.2 万元\n" +
-                "预估首年客座率　81%\n\n" +
+                $"每日一班基准日利润　{AdvisorTutorialScript.RouteDailyBaseline:F1} 万美元\n" +
+                "说明：分值与时段结论以「战略 → 新航线 RPM 评估台」的当场测算为准\n\n" +
                 "下一步：召开决策会议，汇总各部门意见。";
             ConfigureButtons(
                 "发起决策会议", () =>
@@ -703,16 +702,19 @@ namespace AirlineCEO.UI.Shell
                 "发件人：战略发展部\n主题：【紧急提案】关于开通深圳—北京首都航线的建议\n\n" +
                 "航空顾问：\n“[玩家姓名]，各部门已经提交了意见。财务部、运营部、市场部都来了，我给您快速过一遍——”");
             var cash = GameState.Instance != null ? GameState.Instance.cash : 500f;
+            float cost = ActionExecutor.OpenRouteStartupCost;
+            string share = cash > 0f ? $"{(cost / cash) * 100f:F0}%" : "全部";
             _extra.text =
                 "财务部 · 审慎\n" +
-                $"“当前现金储备 {cash:F0} 万，开航需 300 万启动资金。占比较高，建议审慎评估回本周期。”\n" +
-                "启动资金 300 万 / 回本周期约 8 个月\n\n" +
+                $"“当前现金储备 {cash:F0} 万美元，开航需 {AdvisorTutorialScript.StartupCostText}启动资金，占 {share}。" +
+                "占比较高，建议先看回本周期再定。”\n" +
+                $"启动资金 {AdvisorTutorialScript.StartupCostText} / 占当前现金 {share}\n\n" +
                 "运营部 · 支持\n" +
                 "“现有机队有闲置窗口，可覆盖该航线时刻，无需新增运力。”\n\n" +
                 "市场部 · 强烈支持\n" +
-                "“预估首年客座率 81%，日利润 16.2 万，建议立即切入。”\n\n" +
+                "“该线是商务干线，先占时段比先赚钱重要，建议立即切入。”\n\n" +
                 AdvisorTutorialScript.Fmt(
-                    "航空顾问总结：运营和市场强烈支持，财务建议审慎。最终决定权在您手上，[玩家姓名]。");
+                    "航空顾问总结：运营和市场支持，财务建议审慎。最终决定权在您手上，[玩家姓名]。");
 
             bool canApprove = GameState.Instance == null || GameState.Instance.cash >= ActionExecutor.OpenRouteStartupCost;
             ConfigureButtons(
@@ -859,13 +861,16 @@ namespace AirlineCEO.UI.Shell
             _body.text = AdvisorTutorialScript.Fmt(
                 "航空顾问：\n\n" +
                 "“首航成功，[玩家姓名]！航班已安全降落在北京首都国际机场。”\n\n" +
-                "“首航表现超出预期！客座率 89%，净利润 6.2 万元，董事会满意度上升 5 点。”\n\n" +
-                "“您已经成功完成了第一条航线的全流程——从发现机会到决策、执行、收获成果。”\n\n" +
-                "“感觉如何？要不要趁热打铁，再开一条线？”");
+                $"“结算已入账：净利润 {AdvisorTutorialScript.FirstFlightNetProfit:F1} 万美元，" +
+                $"董事会满意度 +{AdvisorTutorialScript.FirstFlightBoardGain:F0} 点。”\n\n" +
+                "“从发现机会到决策、执行、收获，第一条航线的全流程您已经走完了。”\n\n" +
+                "“感觉如何？要不要看看接下来该把精力放在哪儿？”");
             _extra.text =
-                "航线收入　18.4 万\n航线成本　12.2 万\n净利润　6.2 万\n客座率　89%\n董事会满意度　+5\n现金跑道　+0.3 月";
+                $"净利润　+{AdvisorTutorialScript.FirstFlightNetProfit:F1} 万美元\n" +
+                $"董事会满意度　+{AdvisorTutorialScript.FirstFlightBoardGain:F0}\n" +
+                "（以上为引导演示结算，按真实入账口径记入现金与满意度）";
             ConfigureButtons(
-                "再开一条线！", () => GoToStep(AdvisorTutorialStep.S6_NextHook),
+                "下一步", () => GoToStep(AdvisorTutorialStep.S6_NextHook),
                 "先看看其他系统", () => { SetStep(AdvisorTutorialStep.Done); Hide(); },
                 null, null);
         }
@@ -1064,22 +1069,24 @@ namespace AirlineCEO.UI.Shell
         void ShowS6()
         {
             _title.text = AdvisorTutorialScript.AdvisorTitle + " · 下一程";
-            _body.text = AdvisorTutorialScript.Fmt(
-                "航空顾问：\n\n" +
-                "“太好了，[玩家姓名]！我刚扫描了一下市场，发现成都至上海航线也有不错的机会。”\n\n" +
-                "“预估日利润：12.8 万元\n综合评分：79 分（绿色，推荐）\n竞对情况：目前只有 2 家航司运营，时刻窗口充足。”\n\n" +
-                "“这一次，您可以独立完成全部决策流程——我会在顶栏随时待命，但不会主动弹出建议了。”\n\n" +
-                "“需要我先打开市场评估页面吗？”");
-            _extra.text = "引导即将结束 · 顾问进入待命";
+            _body.text = AdvisorTutorialScript.Fmt(AdvisorTutorialScript.NextHookBody);
+            _extra.text = AdvisorTutorialScript.NextHookExtra;
             ConfigureButtons(
-                "打开 RPM 评估", () =>
+                "试试命令台", () =>
+                {
+                    SetStep(AdvisorTutorialStep.Done);
+                    Hide();
+                    // 把光标放回底栏：教完就让人真的能用上，而不是再点开一个面板。
+                    var bar = Object.FindFirstObjectByType<CommandBarView>(FindObjectsInactive.Include);
+                    bar?.FocusInput();
+                },
+                "打开 RPM 评估台", () =>
                 {
                     SetStep(AdvisorTutorialStep.Done);
                     Hide();
                     // n14 的「RPM 评估」页签已移除（与 n35 重复），统一打开 n35 评估台。
                     StrategyPanelUI.OpenStrategyPage("n35_新航线_RPM_评估台");
                 },
-                "先熟悉一下界面", () => { SetStep(AdvisorTutorialStep.Done); Hide(); },
                 null, null);
         }
 
@@ -1190,11 +1197,15 @@ namespace AirlineCEO.UI.Shell
         {
             var gs = GameState.Instance;
             if (gs == null) return;
-            // 文档结算：净利润示意 +6.2、满意度 +5（开航已扣 300，此处补演示收益）
-            gs.cash += 6.2f;
-            gs.boardSatisfaction = Mathf.Clamp(gs.boardSatisfaction + 5f, 0f, 100f);
+            // 首航结算：数额与文案**同源**（AdvisorTutorialScript 的两个常量）。
+            // 以前这里写字面量、信里另写一遍，改一处就会漂成「信里说 6.2、账上入 5」。
+            gs.cash += AdvisorTutorialScript.FirstFlightNetProfit;
+            gs.boardSatisfaction = Mathf.Clamp(
+                gs.boardSatisfaction + AdvisorTutorialScript.FirstFlightBoardGain, 0f, 100f);
             gs.firstFlightCompleted = true;
-            gs.AddDecisionLog("开局引导：深圳—北京首航结算，净利润 +6.2，满意度 +5。");
+            gs.AddDecisionLog("开局引导：深圳—北京首航结算，净利润 +"
+                + $"{AdvisorTutorialScript.FirstFlightNetProfit:F1}，满意度 +"
+                + $"{AdvisorTutorialScript.FirstFlightBoardGain:F0}。");
             gs.NotifyChanged();
             SaveManager.Instance?.Save();
         }

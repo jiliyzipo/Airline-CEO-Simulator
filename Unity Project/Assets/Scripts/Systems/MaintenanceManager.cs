@@ -43,7 +43,46 @@ namespace AirlineCEO.Systems
                 gs.mnt.oems.Add(new OemRelation { oem = "空客", stars = 2, discountRate = 0.04f, deliveryPriority = 1 });
                 gs.mnt.oems.Add(new OemRelation { oem = "巴航", stars = 1, discountRate = 0.02f, deliveryPriority = 0 });
             }
+            // 停飞架数是**派生量**，不是独立事实：每次取状态时按机队真实情况重算。
+            SyncGroundedCount(gs);
             return gs.mnt;
+        }
+
+        /// <summary>
+        /// 机队真实停飞架数：在册飞机中「停场维修」或「已置为不可用」的架数。
+        ///
+        /// 已退役 / 已退租的**不算停飞** —— 它们退出机队了，不是趴在地上等修。
+        /// 「不可用」这一支是给场景夹具与退租语义留的：<c>isActive=false</c> 而
+        /// <c>status</c> 仍是适航的飞机，同样不能飞（<c>FlightGroundLogic</c> 判 Retired）。
+        /// </summary>
+        public static int GroundedCount(GameState gs)
+        {
+            if (gs?.fleet == null) return 0;
+            int n = 0;
+            for (int i = 0; i < gs.fleet.Count; i++)
+            {
+                var a = gs.fleet[i];
+                if (a == null) continue;
+                if (a.status == AircraftStatuses.Retired) continue;
+                if (!a.isActive || a.status == AircraftStatuses.Maintenance) n++;
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// 把 <see cref="MaintenanceState.groundedCount"/> 刷成真实值并返回。
+        ///
+        /// ★2026-10-27 修：这个字段在所有存档里都恒为默认值 0 —— 全仓搜不到任何一处赋值，
+        /// 而维护页 KPI（`停飞飞机：{mnt.groundedCount} 架`）、机务汇报邮件、培训页副标题
+        /// 三处都在读它。于是无论停了几架，屏幕上永远是「停飞飞机：0 架」，
+        /// 与同一屏「机队可用率」互相矛盾，也与机队页的 `维护中` 标签对不上。
+        /// 保留字段本身（存档兼容、旧 UI 不用改），只把写入点收到这里。
+        /// </summary>
+        public static int SyncGroundedCount(GameState gs)
+        {
+            if (gs?.mnt == null) return 0;
+            gs.mnt.groundedCount = GroundedCount(gs);
+            return gs.mnt.groundedCount;
         }
 
         #region 维修策略

@@ -317,3 +317,61 @@ export function currentCheckoutStatus(cfg) {
 export function cmdCleanCheckoutVerify(cfg, args = {}) {
   return verifyCleanCheckout(cfg, args);
 }
+
+/**
+ * Can this machine clone at all? Cheap, disposable, and deliberately the *same*
+ * operation the verification depends on.
+ *
+ * Why this exists: on 2026-10-26 an independent review ran the collaboration
+ * suite inside an AppContainer sandbox where `git clone` cannot start its
+ * upload-pack child (`NtCreateDirectoryObject(\BaseNamedObjects\msys-...):
+ * 0xC0000022`). Eight assertions failed, and a reader could not tell an
+ * environment ceiling from a byte-reproduction regression — the two look
+ * identical from inside a test. Rather than guess, the suite asks this probe
+ * first and reports "not executable here" as a skip with a reason.
+ *
+ * The probe proves only that clone works for a trivial fixture. A real clone
+ * that fails afterwards is still a genuine failure, never a skip.
+ */
+export function cloneCapability(tmpBase = os.tmpdir()) {
+  const started = Date.now();
+  let dir = null;
+  const result = { ok: false, reason: null, ms: 0, tmpBase };
+  try {
+    fs.mkdirSync(tmpBase, { recursive: true });
+    dir = fs.mkdtempSync(path.join(tmpBase, 'collab-clone-probe-'));
+    const src = path.join(dir, 'src');
+    ensureDir(src);
+    fs.writeFileSync(path.join(src, 'probe.txt'), 'probe\n');
+    const init = git(src, ['init', '-q', '-b', 'main']);
+    if (init.error || init.status !== 0) {
+      result.reason = `git init failed: ${(init.stderr || init.error?.message || '').trim().slice(0, 200)}`;
+      return result;
+    }
+    git(src, ['config', 'user.name', 'probe']);
+    git(src, ['config', 'user.email', 'probe@example.invalid']);
+    git(src, ['add', '-A']);
+    const commit = git(src, ['commit', '-q', '-m', 'probe']);
+    if (commit.error || commit.status !== 0) {
+      result.reason = `git commit failed: ${(commit.stderr || commit.error?.message || '').trim().slice(0, 200)}`;
+      return result;
+    }
+    const clone = git(src, ['clone', '--no-hardlinks', '--quiet', src, path.join(dir, 'dst')]);
+    if (clone.error || clone.status !== 0) {
+      result.reason = `git clone failed: ${(clone.stderr || clone.error?.message || '').trim().slice(0, 300)}`;
+      return result;
+    }
+    result.ok = true;
+    return result;
+  } catch (e) {
+    result.reason = `${e.code || ''} ${e.message}`.trim().slice(0, 300);
+    return result;
+  } finally {
+    result.ms = Date.now() - started;
+    try {
+      if (dir) fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      /* a leftover probe directory must never change the verdict */
+    }
+  }
+}

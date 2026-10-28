@@ -37,6 +37,7 @@ namespace AirlineCEO.Systems
         private const string KeyYearNet = "ACEO_YearNet";
         private const string KeyLiveQIncome = "ACEO_LiveQIncome";
         private const string KeyLiveQExpense = "ACEO_LiveQExpense";
+        private const string KeyLiveQDeptExpense = "ACEO_LiveQDeptExpense";
         private const string KeyProbationUsed = "ACEO_ProbationUsed";
         private const string KeyFailVotes = "ACEO_FailVotes";
         private const string KeySafetyRating = "ACEO_SafetyRating";
@@ -83,6 +84,7 @@ namespace AirlineCEO.Systems
         private const string KeyTransition = "ACEO_TransitionBusiness";
         private const string KeyTransitionIntro = "ACEO_TransitionIntroSent";
         private const string KeyTransitionQIncome = "ACEO_TransitionQIncome";
+        private const string KeyCommandLog = "ACEO_CommandLog";
         private const string KeyAircraftOrders = "ACEO_AircraftOrders";
         private const string KeyInsurance = "ACEO_Insurance";
         private const string KeyFuelProc = "ACEO_FuelProc";
@@ -155,7 +157,7 @@ namespace AirlineCEO.Systems
             KeyBoardMemberIds, KeyInbox, KeyPendingInbox,
             KeyDynamicFeed, KeyFeedMeta, KeyExternalEvents,
             KeySafetyDQuarters, KeyMajorCrash, KeyLastDefeatKind, KeyTargetsYear, KeyAnnualGoalsConfirmedYear, KeyYearNet,
-            KeyLiveQIncome, KeyLiveQExpense,
+            KeyLiveQIncome, KeyLiveQExpense, KeyLiveQDeptExpense,
             KeyProbationUsed, KeyFailVotes, KeySafetyRating, KeyHasAOGTriggered, KeyAOGChoice,
             KeyAOGAdvisor, KeyOnTime, KeyHasExpansion, KeyExpansionDelay, KeyExpansionAccepted,
             KeyExpansionRejected, KeyGreatRoute, KeyLastExpansionYear, KeyTargets, KeySafetyLog,
@@ -166,7 +168,7 @@ namespace AirlineCEO.Systems
             KeyMkt, KeyCargo, KeyCommerce, KeySubsidies, KeyTransition, KeyAircraftOrders, KeyInsurance,
             KeyFuelProc, KeyCarbonComp, KeyCumTaxPaid, KeyYearTaxPaid, KeyDecision, KeyFleet,
             KeyActiveRoutes, KeyFlightRings, KeyTakeover, KeyLegacyIssues,
-            KeyTransitionIntro, KeyTransitionQIncome,
+            KeyTransitionIntro, KeyTransitionQIncome, KeyCommandLog,
             KeyAiAirlines, KeyRandomEvents,
             KeyMacroEconomy + "_GDP", KeyMacroEconomy + "_Phase", KeyMacroEconomy + "_Duration"
         };
@@ -445,6 +447,7 @@ namespace AirlineCEO.Systems
             SetF(KeyYearNet, gs.yearNetProfit);
             SetF(KeyLiveQIncome, gs.liveQuarterIncome);
             SetF(KeyLiveQExpense, gs.liveQuarterExpense);
+            SetF(KeyLiveQDeptExpense, gs.liveQuarterDeptExpense);
             SetI(KeyProbationUsed, gs.probationProtectionsUsed);
             SetI(KeyFailVotes, gs.consecutiveFailedVotes);
             SetI(KeySafetyRating, (int)gs.safetyRating);
@@ -585,6 +588,13 @@ namespace AirlineCEO.Systems
             }));
             SetI(KeyTransitionIntro, gs.transitionIntroSent ? 1 : 0);
             SetF(KeyTransitionQIncome, gs.liveQuarterTransitionIncome);
+            // 命令台历史与收藏：纯体验数据，读档失败时退化为空（不影响账务与路由）
+            CommandLog.Ensure(gs);
+            SetS(KeyCommandLog, JsonUtility.ToJson(new CommandLogSave
+            {
+                entries = gs.commandLog.ToArray(),
+                favorites = gs.commandFavorites.ToArray()
+            }));
             SetS(KeyInsurance, JsonUtility.ToJson(new InsuranceSave
             {
                 coverage = (int)gs.insuranceCoverage,
@@ -894,6 +904,8 @@ namespace AirlineCEO.Systems
             gs.yearNetProfit = GetF(KeyYearNet, 0f);
             gs.liveQuarterIncome = GetF(KeyLiveQIncome, 0f);
             gs.liveQuarterExpense = GetF(KeyLiveQExpense, 0f);
+            // 老存档没有这个键 → 0 → 首季不分摊部门预算（不记错，只是少一次问责），见裁定 R-A / A2
+            gs.liveQuarterDeptExpense = GetF(KeyLiveQDeptExpense, 0f);
             gs.probationProtectionsUsed = GetI(KeyProbationUsed, 0);
             gs.consecutiveFailedVotes = GetI(KeyFailVotes, 0);
             gs.safetyRating = (SafetyRating)GetI(KeySafetyRating, (int)SafetyRating.B);
@@ -1165,6 +1177,21 @@ namespace AirlineCEO.Systems
             }
             gs.transitionIntroSent = GetI(KeyTransitionIntro, 0) == 1;
             gs.liveQuarterTransitionIncome = GetF(KeyTransitionQIncome, 0f);
+            // 命令台历史与收藏：任何解析异常都退化为空表，不能让一段体验数据挡住读档
+            try
+            {
+                var cmdBlob = JsonUtility.FromJson<CommandLogSave>(GetS(KeyCommandLog, ""));
+                gs.commandLog = cmdBlob?.entries != null
+                    ? new List<CommandLogEntry>(cmdBlob.entries) : new List<CommandLogEntry>();
+                gs.commandFavorites = cmdBlob?.favorites != null
+                    ? new List<string>(cmdBlob.favorites) : new List<string>();
+            }
+            catch
+            {
+                gs.commandLog = new List<CommandLogEntry>();
+                gs.commandFavorites = new List<string>();
+            }
+            CommandLog.Ensure(gs);
             try
             {
                 var insBlob = JsonUtility.FromJson<InsuranceSave>(GetS(KeyInsurance, ""));

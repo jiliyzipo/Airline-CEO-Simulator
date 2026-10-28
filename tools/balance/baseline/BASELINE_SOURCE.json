@@ -1,14 +1,14 @@
 {
   "Seed": 42,
   "Year": 1,
-  "GeneratedAt": "2026-10-24T13:42:03.782Z",
-  "Commit": "bb8db09f11b2eb207b6d265d40b98ff4f8d860ab",
+  "GeneratedAt": "2026-10-27T10:22:38.492Z",
+  "Commit": "77ad67bdd4f56a103f08df5f532b4da99928743c",
   "Branch": "cursor/phase10-fleet-management",
   "Dirty": true,
   "Delivery": "",
-  "SourceHash": "1b6f5c1b210d0e01248ce25d94522107225575672dd70b260cdb5687d2e1acd3",
-  "SourceFileCount": 87,
+  "SourceHash": "5760a74c23b2df52887f311fb680910d6a18bff3d1270c3082302156ee46b06a",
+  "SourceFileCount": 90,
   "SummarySha256": "21feea44704a4c0d0f0f213c72fff4e8153ef7ad4ecf1b86cc350e31072f7fa8",
   "Command": "dotnet run -- --seed 42 --year 1 --out out",
-  "Note": "T04.8 ruling A: report wording only; annual numbers byte-identical"
+  "Note": "2026-10-27 (d): overhaul life extension - FleetEconomics LifeExtensionAgeLimit/50/MinCondition/CanExtendLife/IsGroundedByAge/WillStayAirworthyAtYearEnd + OverhaulConditionGain + AnnualConditionDecay/Floor; FleetManager.RefreshStatus keeps age>15 aircraft airworthy when condition meets threshold. Runtime state-machine path only, not used by the annual balance model. CSV SHA256 identical to previous baseline (7395F7CD)."
 }

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027004827-e7c243",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 481,
+  "at": "2026-10-27T00:48:27.580Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S15-CollabContract",
+  "deliveryId": "DEL-20261026134228-f7662c",
+  "reviewId": "REV-20261026134946-742612",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026135154-c11728: open -> wontfix",
+  "data": {
+    "issueId": "ISSUE-20261026135154-c11728",
+    "from": "open",
+    "to": "wontfix",
+    "note": "交付快照未变；失败原因是交接单给出的检测命令未携带 --coverage，而 AC2-AC6 为自定义条款。已用同 DEL 补证重检。"
+  }
+}

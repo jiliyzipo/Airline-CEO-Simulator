@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026031124-26809a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 421,
+  "at": "2026-10-26T03:11:24.956Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026022132-804f18",
+  "reviewId": "REV-20261026023352-31f65f",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026023527-01bb24: open -> fixing",
+  "data": {
+    "issueId": "ISSUE-20261026023527-01bb24",
+    "from": "open",
+    "to": "fixing",
+    "note": "复现结论：同一快照、同一 cwd、同一 COLLAB_* 环境变量在本机跑出 150/150 通过，因此失败只出现在检测进程的沙箱上下文；本机无法复现该上下文。已把 profile 改成失败必留原因：子套件日志落 COLLAB_RUN_DIR、失败消息去重进 stderr、0 通过判 fixtureBroken、夹具探针（树复制+cmdInit）单列，并在系统临时目录不可写时回退到工作区临时目录。"
+  }
+}

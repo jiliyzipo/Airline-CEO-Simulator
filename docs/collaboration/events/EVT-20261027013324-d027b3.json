@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013324-d027b3",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 510,
+  "at": "2026-10-27T01:33:24.757Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S07-Balance",
+  "deliveryId": "DEL-20261023012853-918599",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=33 drifted=17",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Data/AirlineProfile.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/Systems/TakeoverWorldBuilder.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "tools/balance/AirlineCEO.Balance.csproj",
+      "tools/balance/Program.cs",
+      "tools/balance/README.md",
+      "tools/balance/compare_baseline.ps1",
+      "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs.meta",
+      "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs",
+      "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs.meta",
+      "tools/balance/NETWORK_POOL_STRESS.md",
+      "tools/balance/Stress/NetworkPoolStressReport.cs",
+      "tools/balance/baseline/BASELINE_SOURCE.json"
+    ]
+  }
+}

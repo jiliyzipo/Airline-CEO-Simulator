@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S29-CollabPendingFilter",
+  "title": "阶段 S29-CollabPendingFilter：Collab/Docs",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Docs、Collab",
+    "改动文件数 501，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S29-CollabPendingFilter）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S29-CollabPendingFilter）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S29-CollabPendingFilter）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-28T00:55:46.890Z",
+  "updatedAt": "2026-10-28T01:11:22.880Z",
+  "snapshotRoots": [
+    "tools/collab",
+    "docs"
+  ],
+  "freshnessNote": "Historical review REV-20261028010721-cc34b5 passed delivery DEL-20261028010243-671d55; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261028010721-cc34b5"
+}

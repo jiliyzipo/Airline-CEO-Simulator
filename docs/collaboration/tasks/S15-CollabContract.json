@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S15-CollabContract",
+  "title": "阶段 S15-CollabContract：命令行契约与取代登记",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "unknown",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab（tools/collab）",
+    "承接 S14 收口后暴露的四项工具缺陷：未知参数被静默忽略、stage-review 的 --dry-run 无只读语义、passed 后 devStatus 不复位、事后无法登记取代关系",
+    "不含业务代码（Unity Project/Assets）改动，不含本阶段未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S15-CollabContract）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity），各子套件退出码为 0 且断言计数与机器结果一致（S15-CollabContract）"
+    },
+    {
+      "id": "AC3",
+      "text": "命令行参数必须显式声明：每个命令带参数白名单，出现未声明参数（含拼写错误，如 --coverge）时以 EXIT.USAGE(2) 拒绝，并在错误里同时列出未知参数名与该命令的可用参数；已声明的合法调用不受影响。证据：collab 子套件中“未知参数被拒（附未知名与可用名）”与“合法参数仍正常执行”两条用例（S15-CollabContract）"
+    },
+    {
+      "id": "AC4",
+      "text": "stage-review 的 --dry-run 必须是真正的只读预演：解析目标交付、profile、机器覆盖与待补证条款并打印计划，但不创建 review、不登记 issue、不改变 state.revision、不残留锁；不带 --dry-run 时的真实执行路径行为不变。证据：collab 子套件中 dry-run 用例断言 reviews/ 与 issues/ 文件数与 state.revision 前后一致，且随后真实 stage-review 仍能产出终态记录（S15-CollabContract）"
+    },
+    {
+      "id": "AC5",
+      "text": "检测通过后开发状态必须复位：conclusion=passed 时 review-finish 与之后的 refreshFreshness 都必须把 devStatus 置回 ready_for_review，看板与 CURRENT.md 不再出现 rework/passed 组合；工作区变动只体现为 freshness=stale 并在待办中注明需按当前代码复验；只有 failed/blocked 才回到 rework。证据：collab 子套件中“通过后 devStatus 复位”与“通过后 stale 不复辟 rework、失败才回 rework”两条用例（S15-CollabContract）"
+    },
+    {
+      "id": "AC6",
+      "text": "取代关系可在事后登记：新增命令把旧交付标记为被新交付取代（写入共享 ledger 与任务级 supersededBy），旧 review 记录不被改写；同一对交付重复登记为幂等（不改结论、不增 revision）；拒绝自我取代、交付不存在、后继早于前驱；被取代任务不再出现在 NEXT_CURSOR / NEXT_CODEX 待办中，并在 CURRENT.md 注明取代者。证据：collab 子套件中 supersede 用例（登记后 ledger 与任务字段、旧 review 字节不变、重复调用 revision 不变、三种非法输入分别被拒、待办清单不再含该任务）（S15-CollabContract）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-26T13:20:44.043Z",
+  "updatedAt": "2026-10-27T01:19:23.973Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261027010737-388256",
+    "taskId": "S16-CollabFidelity",
+    "actor": "cursor",
+    "note": "S15 的 tools/collab 改动已被 S16 同根继续并独立通过（REV-20261027011011-201cff，167/0/0，AC4-AC7 补证），不再单独复验",
+    "at": "2026-10-27T01:19:14.266Z"
+  }
+}

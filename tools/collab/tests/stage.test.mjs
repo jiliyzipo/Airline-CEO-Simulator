@@ -6,6 +6,9 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+// Never ring the local handoff chime while exercising stage-close in fixtures.
+process.env.COLLAB_HANDOFF_NOTIFY = '0';
+
 const source = path.resolve(
   process.env.COLLAB_AUDIT_TOOL_SOURCE || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'),
 );
@@ -184,13 +187,17 @@ await test('T10', 'after a pass, new changes get a fresh stage task instead of r
 
 await test('T11', 'profile selection follows the changed paths', () => {
   const cfg = {
-    profiles: { 'unity-editmode': {}, compile: {}, collab: {}, slot: {}, smoke: {} },
+    profiles: { 'unity-editmode': {}, compile: {}, collab: {}, slot: {}, smoke: {}, balance: {} },
   };
   assert.equal(stage.selectProfile(cfg, [{ path: 'Unity Project/Assets/Scripts/Logic/A.cs' }]).profile, 'unity-editmode');
   assert.equal(stage.selectProfile(cfg, [{ path: 'tools/collab/lib/io.mjs' }]).profile, 'collab');
   assert.equal(stage.selectProfile(cfg, [{ path: 'Unity Project/Assets/Tests/EditMode/X.cs' }]).profile, 'unity-editmode');
   assert.equal(stage.selectProfile(cfg, [{ path: 'docs/readme.md' }]).profile, 'smoke');
   assert.equal(stage.selectProfile(cfg, [{ path: 'a.cs' }], { profile: 'slot' }).profile, 'slot');
+  // tools/balance 的 C# 改动必须走现金桥闸门，而不是退化成只编译 Unity Assets 的 compile：
+  // 后者根本不编译 tools/balance，等于「闸门没碰到被改的代码」。
+  assert.equal(stage.selectProfile(cfg, [{ path: 'tools/balance/Sim/CashBridge.cs' }]).profile, 'balance');
+  assert.equal(stage.selectProfile(cfg, [{ path: 'tools/balance/README.md' }]).profile, 'balance');
 });
 
 await test('T12', 'dry-run inspects without writing any collaborative record', () => {
@@ -297,24 +304,21 @@ await test('SA03', 'an acceptance criterion without a machine mapping is never w
   state.saveTask(f.cfg, task);
 
   const close = stage.cmdStageClose(f.cfg, { task: 'C-DEMO', profile: 'smoke' });
-  const review = stage.cmdStageReview(f.cfg, { actor: 'codex', delivery: close.deliveryId });
-  assert.notEqual(review.status, 'passed');
-  assert.equal(review.exitCode, 5);
-
-  const record = io.readJson(path.join(f.dir, `docs/collaboration/reviews/${review.reviewId}.json`));
-  assert.equal(record.coverage.length, 1);
-  assert.notEqual(record.coverage[0].result, 'passed');
+  // S16/AC5: the clause cannot be proved by any run, so the review is refused
+  // before it starts instead of producing a failure that teaches nothing.
+  throwsCode(() => stage.cmdStageReview(f.cfg, { actor: 'codex', delivery: close.deliveryId }), 2);
+  assert.equal(
+    fs.readdirSync(path.join(f.dir, 'docs/collaboration/reviews')).filter((x) => x.endsWith('.json')).length,
+    0,
+    'no review record may exist for an attempt that provably cannot conclude',
+  );
   assert.equal(fs.existsSync(path.join(f.dir, 'required-proof.txt')), false);
-
-  const issues = review.issues.map((id) => io.readJson(path.join(f.dir, `docs/collaboration/issues/${id}.json`)));
-  assert(issues.some((i) => /机器验证/.test(i.title)));
 
   // The same delivery can still be closed only by an explicit, attributable
   // reviewer attestation for the unmapped clause.
   const attested = stage.cmdStageReview(f.cfg, {
     actor: 'codex',
     delivery: close.deliveryId,
-    force: true,
     coverage: 'AC1=passed',
   });
   assert.equal(attested.status, 'passed');
@@ -541,6 +545,252 @@ await test('SA06', 'the normal machine-only happy path still passes end to end',
   const review = stage.cmdStageReview(f.cfg, { actor: 'codex', delivery: close.deliveryId });
   assert.equal(review.status, 'passed');
   assert.equal(review.counters.total, 2);
+});
+
+await test('SUP01', 'a retired delivery stops pinning its task to stale', () => {
+  const f = fixture();
+  const first = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+  const taskId = first.taskId;
+  assert.equal(state.loadTask(f.cfg, taskId).freshness, 'current');
+
+  // A newer record for the same task whose snapshot no longer describes this tree
+  // — exactly what a mislabeled close looks like from the task's point of view.
+  const src = JSON.parse(
+    fs.readFileSync(path.join(f.dir, 'docs/collaboration/deliveries', `${first.deliveryId}.json`), 'utf8'),
+  );
+  const ghostId = 'DEL-29990101000000-ghost1';
+  put(f.dir, `docs/collaboration/deliveries/${ghostId}.json`, {
+    ...src,
+    deliveryId: ghostId,
+    createdAt: new Date(Date.parse(src.createdAt) + 60_000).toISOString(),
+    fingerprints: {
+      ...src.fingerprints,
+      implementation: { ...src.fingerprints.implementation, fingerprint: 'deadbeef'.repeat(8) },
+    },
+  });
+
+  cmd.cmdSync(f.cfg, {});
+  const lied = state.loadTask(f.cfg, taskId);
+  assert.equal(lied.freshness, 'stale');
+  assert.equal(lied.freshnessNote, 'Delivery snapshot differs from current workspace.');
+
+  // Retiring the liar must fall back to the delivery that still matches the tree.
+  const marked = state.markDeliveriesSuperseded(
+    f.cfg,
+    [{ deliveryId: ghostId, supersededBy: first.deliveryId, taskId }],
+    { actor: 'cursor', note: 'test' },
+  );
+  assert.deepEqual(marked.marked, [ghostId]);
+  cmd.cmdSync(f.cfg, {});
+  const task = state.loadTask(f.cfg, taskId);
+  assert.equal(task.freshness, 'current');
+  assert.equal(task.freshnessNote, 'Delivery matches current fingerprints; awaiting review.');
+});
+
+await test('SUP02', 'reconciling the handoff index into the ledger is idempotent', () => {
+  const f = fixture();
+  const close = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+  // Second close for the same task supersedes the first in the handoff index.
+  put(f.dir, 'tools/collab/stage-input.txt', 'second input');
+  const second = stage.cmdStageClose(f.cfg, { task: close.taskId, roots: 'tools/collab', profile: 'smoke' });
+
+  const ledger = state.loadState(f.cfg).deliveryStatus || {};
+  assert.equal(ledger[close.deliveryId]?.status, 'superseded');
+  assert.equal(ledger[close.deliveryId]?.supersededBy, second.deliveryId);
+
+  const again = stage.reconcileSupersededLedger(f.cfg, { actor: 'cursor' });
+  assert.deepEqual(again.marked, [], 'an already-recorded supersede must not be rewritten');
+});
+
+await test('SUP03', 'stage-close can retire a delivery filed under another task', () => {
+  const f = fixture();
+  const mislabeled = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+
+  // A second, unrelated task delivers the same work; it declares the old one dead.
+  const def = {
+    taskId: 'X-Retire',
+    title: 'fixture task that retires a mislabeled delivery',
+    scope: ['fixture'],
+    acceptanceCriteria: [{ id: 'AC1', text: 'fixture' }],
+    snapshotRoots: ['tools/collab'],
+  };
+  const defPath = put(f.dir, 'tools/collab/retire-def.json', def);
+  cmd.cmdTaskAdd(f.cfg, { definition: defPath, actor: 'cursor' });
+  put(f.dir, 'tools/collab/stage-input.txt', 'retire input');
+  const retiring = stage.cmdStageClose(f.cfg, {
+    task: 'X-Retire',
+    roots: 'tools/collab',
+    profile: 'smoke',
+    supersedes: mislabeled.deliveryId,
+  });
+
+  const ledger = state.loadState(f.cfg).deliveryStatus[mislabeled.deliveryId];
+  assert.equal(ledger.status, 'superseded');
+  assert.equal(ledger.supersededBy, retiring.deliveryId);
+  assert.deepEqual(
+    retiring.sweptHandoffs,
+    [mislabeled.deliveryId],
+    'a delivery retired across tasks must leave the pending-review list',
+  );
+  assert.deepEqual(
+    stage.cmdStageBoard(f.cfg).tasks.find((t) => t.taskId === mislabeled.taskId).latestDelivery,
+    null,
+    'a retired delivery must not be reported as the task\'s latest work',
+  );
+  // Naming a delivery that does not exist is a typo, and a typo must not silently
+  // retire nothing.
+  assert.throws(
+    () =>
+      stage.cmdStageClose(f.cfg, {
+        task: 'X-Retire',
+        roots: 'tools/collab',
+        profile: 'smoke',
+        supersedes: 'DEL-19700101000000-000000',
+      }),
+    (e) => e.exitCode === 2,
+  );
+});
+
+/* ------------------------------------------------------------------ *
+ * SUP04: 已取代的交付不能继续挂在「待 Codex 检测」上
+ * ------------------------------------------------------------------ */
+
+await test('SUP04', 'a superseded delivery is never listed as pending review', () => {
+  const f = fixture();
+  const stale = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+
+  // The S26 → S27 shape: a second task carries the same work forward, and the
+  // older delivery is retired afterwards. Nothing about the old snapshot is wrong;
+  // it is simply no longer what anyone should measure.
+  const def = {
+    taskId: 'X-Replacement',
+    title: 'fixture task that carries work forward',
+    scope: ['fixture'],
+    acceptanceCriteria: [{ id: 'AC1', text: 'fixture' }],
+    snapshotRoots: ['tools/collab'],
+  };
+  cmd.cmdTaskAdd(f.cfg, { definition: put(f.dir, 'tools/collab/replacement-def.json', def), actor: 'cursor' });
+  put(f.dir, 'tools/collab/stage-input.txt', 'replacement input');
+  const successor = stage.cmdStageClose(f.cfg, { task: 'X-Replacement', roots: 'tools/collab', profile: 'smoke' });
+
+  const boardBefore = stage.cmdStageBoard(f.cfg);
+  assert.ok(boardBefore.report.includes(stale.deliveryId), 'both deliveries start out pending');
+
+  const superseded = stage.cmdStageSupersede(f.cfg, {
+    delivery: stale.deliveryId,
+    by: successor.deliveryId,
+    actor: 'cursor',
+  });
+  assert.deepEqual(superseded.sweptHandoffs, [stale.deliveryId], 'the local index is swept on supersede');
+
+  const board = stage.cmdStageBoard(f.cfg);
+  assert.ok(!board.report.includes(stale.deliveryId), 'a retired delivery must not be named as pending');
+  assert.ok(board.report.includes(successor.deliveryId), 'the live delivery is still pending');
+
+  // The write-time sweep is a cache repair, not the guarantee: a fresh clone has
+  // no `out/` at all, and any stale copy of the index would otherwise resurrect
+  // the retired delivery. Rebuild the lying index deliberately.
+  const indexPath = path.join(f.dir, 'out/collab/handoff/index.json');
+  const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+  put(f.dir, 'out/collab/handoff/index.json', {
+    ...index,
+    entries: index.entries.map((e) =>
+      e.deliveryId === stale.deliveryId ? { ...e, status: 'ready', supersededBy: undefined } : e,
+    ),
+  });
+  const reopened = stage.cmdStageBoard(f.cfg);
+  assert.ok(
+    !reopened.report.includes(stale.deliveryId),
+    'the ledger, not the local index, decides what is still pending',
+  );
+});
+
+/* ------------------------------------------------------------------ *
+ * SUP05: 已退场的任务不能被当成「进行中」续做
+ * ------------------------------------------------------------------ */
+
+await test('SUP05', 'stage-close does not resume a task that was superseded', () => {
+  const f = fixture();
+  const retired = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+
+  const def = {
+    taskId: 'X-Successor',
+    title: 'fixture task that takes over',
+    scope: ['fixture'],
+    acceptanceCriteria: [{ id: 'AC1', text: 'fixture' }],
+    snapshotRoots: ['tools/collab'],
+  };
+  cmd.cmdTaskAdd(f.cfg, { definition: put(f.dir, 'tools/collab/successor-def.json', def), actor: 'cursor' });
+  put(f.dir, 'tools/collab/stage-input.txt', 'successor input');
+  stage.cmdStageClose(f.cfg, {
+    task: 'X-Successor',
+    roots: 'tools/collab',
+    profile: 'smoke',
+    supersedes: retired.deliveryId,
+  });
+  assert.ok(state.loadTask(f.cfg, retired.taskId).supersededBy, 'the old task is retired');
+
+  // The next close names no task. An open-but-retired task would be picked up as
+  // "the stage in progress" and force --refresh-ac on work nobody will ever ship.
+  put(f.dir, 'tools/collab/stage-input.txt', 'third input');
+  const next = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+  assert.notEqual(next.taskId, retired.taskId, 'a retired task must not be silently resumed');
+  assert.notEqual(next.taskId, 'X-Successor', 'a passed task must not be resumed either');
+});
+
+/* ------------------------------------------------------------------ *
+ * S21: a reused stage task must not keep another profile's contract
+ * ------------------------------------------------------------------ */
+
+await test('T09', 'stage-close refuses a task whose AC were generated for a different profile', () => {
+  const f = fixture();
+  // The fixture ships one profile; add a second one whose AC template differs.
+  f.cfg.profiles.collab = { kind: 'node', command: f.cfg.profiles.smoke.command, resultKind: 'json' };
+  io.writeJsonAtomic(path.join(f.dir, 'tools/collab/config.json'), f.cfg);
+
+  const first = stage.cmdStageClose(f.cfg, { profile: 'collab', 'no-preflight': true });
+  assert.equal(first.exitCode, 0);
+  const task = state.loadTask(f.cfg, first.taskId);
+  assert.match(task.acceptanceCriteria[1].text, /协作工具回归套件/);
+
+  // Same task, a profile that proves something else entirely (this is the S20
+  // shape: a blocked unity-editmode run created the task, the retry ran collab).
+  put(f.dir, 'tools/collab/stage-input.txt', `stage input again ${serial}`);
+  throwsCode(() => stage.cmdStageClose(f.cfg, { task: first.taskId, profile: 'smoke', 'no-preflight': true }), 2);
+
+  // Nothing may have been written by the refused close.
+  const deliveries = fs.readdirSync(path.join(f.dir, 'docs/collaboration/deliveries'));
+  assert.equal(deliveries.length, 1, 'a refused close must not file a delivery');
+  assert.match(state.loadTask(f.cfg, first.taskId).acceptanceCriteria[1].text, /协作工具回归套件/);
+});
+
+await test('T10', '--refresh-ac re-derives the criteria so the same task can close under a new profile', () => {
+  const f = fixture();
+  f.cfg.profiles.collab = { kind: 'node', command: f.cfg.profiles.smoke.command, resultKind: 'json' };
+  io.writeJsonAtomic(path.join(f.dir, 'tools/collab/config.json'), f.cfg);
+
+  const first = stage.cmdStageClose(f.cfg, { profile: 'collab', 'no-preflight': true });
+  const before = state.loadTask(f.cfg, first.taskId);
+  put(f.dir, 'tools/collab/stage-input.txt', `stage input once more ${serial}`);
+
+  const second = stage.cmdStageClose(f.cfg, {
+    task: first.taskId,
+    profile: 'smoke',
+    'no-preflight': true,
+    'refresh-ac': true,
+  });
+  assert.equal(second.exitCode, 0);
+  const after = state.loadTask(f.cfg, first.taskId);
+  assert.match(after.acceptanceCriteria[1].text, /冒烟 profile/);
+  assert.equal(after.revision, before.revision + 1, 're-deriving criteria is a task revision');
+  // The old contract is preserved in the event log, not silently replaced.
+  const events = fs.readdirSync(path.join(f.dir, 'docs/collaboration/events'))
+    .map((n) => io.readJson(path.join(f.dir, 'docs/collaboration/events', n)))
+    .filter((e) => e.action === 'stage-refresh-ac');
+  assert.equal(events.length, 1);
+  assert.equal(events[0].data.from, 'collab');
+  assert.equal(events[0].data.to, 'smoke');
+  assert.match(events[0].data.previous[1].text, /协作工具回归套件/);
 });
 
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));

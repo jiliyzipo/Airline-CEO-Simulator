@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S12-CommandConsole",
+  "title": "阶段 S12-CommandConsole：命令台历史 / 四类写指令 / 教程文案",
+  "revision": 2,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "archived",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：命令台（底栏）的写指令、历史与回执回溯、教程与引导文案",
+    "对应交付：P21 命令台历史·回执回溯·收藏；P22 四类写指令（开线/购机/招聘/融资）；P23 教程与引导文案重写",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S12-CommandConsole）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S12-CommandConsole）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S12-CommandConsole）"
+    },
+    {
+      "id": "AC4",
+      "text": "四类写指令（开线/购机/招聘/融资）只经既有呈报管线投递：收件箱信件的 action 与参数（机型/架数/采购方式/岗位/人数/融资种类）与原话一致；读类句子（「汇报融资情况」「招聘进度如何」「贷款还剩多少」「机队现在几架」）不被判成写指令。证据：EditMode WriteCommandTests.WriteCommands_RouteToExistingProposalPipelines（S12-CommandConsole）"
+    },
+    {
+      "id": "AC5",
+      "text": "开航研究会纪要只有一个作者（OpenRouteStudyLogic）：页面「提交研究」与命令台「开通…」调同一函数，同一输入产出逐字节相同的纪要；不成立的机场对在算日利之前被否决且不投递；流程类上不再有第二个正文组装函数。证据：EditMode OpenRouteStudyTests.OpenRouteMemo_HasSingleSourceAndRejectsBeforeProfit（S12-CommandConsole）"
+    },
+    {
+      "id": "AC6",
+      "text": "命令台历史可回溯：↑/↓ 还原草稿、点历史只填字并显示当时回执而不重放指令、确认/取消改写原条目而非追加、收藏与历史上限各自生效。证据：EditMode CommandLogTests（Record / Recall / Amend / Favorites / Ensure 五组用例）（S12-CommandConsole）"
+    },
+    {
+      "id": "AC7",
+      "text": "教程与引导文案点名的句子命令台均可路由，且启动资金与首航结算取自既有常量（StartupCostText / FirstFlightNetProfit / FirstFlightBoardGain），不另写字面量。证据：EditMode TutorialCopyTests.TutorialCopy_MatchesRoutingAndConstants（S12-CommandConsole）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
+  "createdAt": "2026-10-25T13:03:15.876Z",
+  "updatedAt": "2026-10-28T00:31:04.149Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "docs/handoff"
+  ],
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:33:27.130Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261025140410-e7b753",
+    "basisCount": 44,
+    "drifted": [],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 44,
+    "intact": 39,
+    "covered": 5,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
+}

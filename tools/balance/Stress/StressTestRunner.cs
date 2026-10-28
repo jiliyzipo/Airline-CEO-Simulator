@@ -49,6 +49,15 @@ public sealed class StressTestRunner
         public float Cost { get; init; }
         public float Wacc { get; init; }
         public string Flag { get; init; } = "GREEN";
+
+        // —— 现金桥（T04.8 结构性缺陷 ②）——
+        // 净利只累加月度损益；IRROPS 冲击、银行放款、还本付息直接改现金。
+        // 这四项摊开之后，「期末 − 期初」必须能被逐项解释，残差为 0。
+        public float IrropsCash { get; init; }
+        public float LoanPrincipal { get; init; }
+        public float LoanInterest { get; init; }
+        public float LoanOutstanding { get; init; }
+        public float CashBridgeResidual { get; init; }
     }
 
     private const float BaseCashWan = 500f;
@@ -165,7 +174,7 @@ public sealed class StressTestRunner
             : EconomyBalanceParams.RecommendedGroundStaffNarrow
     };
 
-    public static IReadOnlyList<Result> Run()
+    public static IReadOnlyList<Result> Run(bool verbose = true)
     {
         var results = new List<Result>();
         foreach (var diff in Difficulties)
@@ -185,7 +194,8 @@ public sealed class StressTestRunner
                 routes: airline.Routes,
                 openingCash: openingCash,
                 brandEquity: airline.BrandEquity,
-                irropsSeverity: diff.EventSev);
+                irropsSeverity: diff.EventSev,
+                verbose: verbose);
 
             var s = sim.RunFiscalYear(1);
             results.Add(new Result
@@ -203,6 +213,11 @@ public sealed class StressTestRunner
                 Revenue = s.TotalRevenue,
                 Cost = s.TotalCost,
                 Wacc = s.WaccPercent,
+                IrropsCash = s.IrropsCashDeltaWan,
+                LoanPrincipal = s.LoanPrincipalWan,
+                LoanInterest = s.LoanInterestPaidWan,
+                LoanOutstanding = s.LoanOutstandingWan,
+                CashBridgeResidual = s.CashBridgeResidualWan,
                 Flag = Classify(s)
             });
         }

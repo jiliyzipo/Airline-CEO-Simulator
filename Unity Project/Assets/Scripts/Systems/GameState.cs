@@ -32,6 +32,16 @@ namespace AirlineCEO.Systems
         public float liveQuarterIncome;
         /// <summary>本季已按日计提的固定成本（万美元）。</summary>
         public float liveQuarterExpense;
+        /// <summary>
+        /// 本季已按日累计的**部门可管**固定成本（万美元）：烧钱率 + 机队维护 + 租赁 + CEO 薪酬。
+        ///
+        /// 与 <see cref="liveQuarterExpense"/> 的区别：后者是**现金口径**（含运行人员薪资与存量人力成本，
+        /// 以及过渡业务、违约金等一次性项），本字段是**问责口径** —— 只算各部门额度能决定的那四项，
+        /// 季末按额度占比摊到 8 个预算项（见 <c>FinanceManager.AccrueBudgetSpend</c>）。
+        /// 两者刻意不相等：工资由编制与人头决定，过渡业务是市场行为，都不该摊进部门预算。
+        /// 季末清零。老存档没有这个字段 → 首季为 0 → 该季不分摊（不记错，只是少一次问责）。
+        /// </summary>
+        public float liveQuarterDeptExpense;
         /// <summary>游戏公历（UTC 日期，与 simHour/simMinute 组成同一瞬间）。</summary>
         public int wallYear;
         public int wallMonth;
@@ -99,6 +109,13 @@ namespace AirlineCEO.Systems
         public int usedMarketQuarter;
         public List<CityEconomyDelta> cityEconomyDeltas = new List<CityEconomyDelta>();
         public int cityEconomyRevision;
+
+        [Header("CEO 命令台（历史 / 回执回溯 / 收藏）")]
+        /// <summary>已下达过的指令，最新在最前。只用于回溯与召回，不参与任何判定。</summary>
+        public List<CommandLogEntry> commandLog = new List<CommandLogEntry>();
+        /// <summary>收藏的指令原话，最新在最前。与历史分开存，清历史不连坐。</summary>
+        public List<string> commandFavorites = new List<string>();
+
         public float yearNetProfit;          // 本财年累计净利润（万美元）
         public float yearStartCash;
         public float loadFactorPercent = 55f;
@@ -529,8 +546,12 @@ namespace AirlineCEO.Systems
         ///
         /// ★2026-10-14 第十三次问询：此前全公司**没有一处**读「在岗乘务员多少人」——
         /// 乘务只有编制公式、招聘渠道、稀缺度与证照，没有任何出口可供排班闸门消费。
+        ///
+        /// 公开给 Editor 场景夹具（<c>ScenarioFixture</c>）复用：夹具要「把乘务转到市场」
+        /// 就必须先认出谁是乘务。若夹具自己再写一份判据，两处迟早分叉，
+        /// 手测时看到的缺员就会与游戏内判定不一致。
         /// </summary>
-        static bool IsCabinCrew(PersonnelData p) =>
+        public static bool IsCabinCrew(PersonnelData p) =>
             p.isOperational
             && AirlineCEO.Logic.HrEconomics.OperationalCategory(p.jobTitle)
                 == AirlineCEO.Logic.HrEconomics.OpsCategory.CabinCrew
@@ -730,28 +751,60 @@ namespace AirlineCEO.Systems
             AirlineCEO.Logic.TransitionBusinessLogic.ContractCount(this);
 
         /// <summary>
-        /// 净月烧钱（开销 + 机队维护 + 租赁 + CEO + 运行岗薪酬 + 存量人力 + 月均保费 + 月均还本付息
-        /// − 航线月收入 − 过渡业务月收入，下限 0 便于跑道计算）。
+        /// 月度运营总成本（万美元/月）：固定开销 + 机队维护 + 租赁 + CEO + 运行岗薪酬 + 存量人力
+        /// + 月均保费 + 月均还本付息 + 危机加成。**不扣收入、不做下限**。
+        ///
+        /// 为什么单独抽出来（2026-10-27，T03.8 逐屏：
+        /// 底栏 `StatusBarView` 的「支出」原先只算「固定开销 + 机队维护」两项，与跑道口径不是同一把尺子 ——
+        /// 同一屏上的「盈利」与「跑道」会推出两条不同的烧钱速度：按底栏算 −107.6 万/月，
+        /// 按跑道至少再减租赁/CEO/运行岗/人力/保费/本息六项。
+        /// 现在底栏与跑道共用本属性，改一处两边同时变，不再有第三个口径。
+        /// </summary>
+        public float MonthlyOperatingCostWan
+        {
+            get
+            {
+                float ceoMonth = CeoMonthlyPayWan;
+                return monthlyBurnRate + FleetMonthlyMaintenance + FleetMonthlyLease + ceoMonth
+                    + OperationalPayrollMonthlyWan
+                    + LaborCostMonthlyWan
+                    + FleetMonthlyInsurance
+                    + LoanManager.MonthlyDebtService(this)
+                    + Mathf.Max(0f, financeCrisisBurnBonus);
+            }
+        }
+
+        /// <summary>
+        /// 月度经营性收入（万美元/月）= 航线净贡献 + 过渡业务收入。
+        ///
+        /// ⚠️ <b>这不是毛营收</b>：<see cref="monthlyRevenue"/> 累计的是各航线 <c>dailyProfit</c>
+        /// （已扣完航线变动成本与周期固定成本）乘经营天数，过渡业务同理为在租合同的净收入。
+        /// 底栏旧标签写「收入」，玩家会读成「收入 245 万 / 支出 568 万 = 毛利 −131%」，
+        /// 而真实故事是「航线每月净赚 82 万、固定开销 190 万压着」—— 完全不同的经营判断。
+        /// 故标签用「净贡献」。毛营收字段当前不存在（<c>RouteData</c> 只存 <c>dailyProfit</c>），
+        /// 要在底栏显示真营收必须先补字段，那是独立改动。
+        /// </summary>
+        public float MonthlyOperatingIncomeWan => monthlyRevenue + FleetMonthlyTransitionIncome;
+
+        /// <summary>
+        /// 净月烧钱（月度运营总成本 − 月度经营性收入，下限 0 便于跑道计算）。
         ///
         /// 含还本付息是**唯一正确**的口径：贷款虽在季末一次扣，但它是合同强制的现金流出，
         /// 跑道衡量的就是「现金还能撑多久」。漏掉它会让局内读数比选司预览长 20~32%
         /// （★2 9.7 vs 8.0 / ★5 3.6 vs 3.0，2026-10-21 K11 修复）。
-        /// 口径与选司预览的 <c>AirlineProfile.monthlyNetBurn</c> 逐项对齐，改一处必须同时改另一处。
+        /// 口径与选司预览的 <c>AirlineProfile.monthlyNetBurn</c> 逐项对齐，改一处必须同时改另一处；
+        /// 底栏 <c>StatusBarView</c> 也从 <see cref="MonthlyOperatingCostWan"/> /
+        /// <see cref="MonthlyOperatingIncomeWan"/> 取数，**不再自己拼成本项**。
         /// </summary>
         public float EffectiveMonthlyBurn
         {
             get
             {
-                float ceoMonth = CeoMonthlyPayWan;
-                float net = monthlyBurnRate + FleetMonthlyMaintenance + FleetMonthlyLease + ceoMonth
-                    + OperationalPayrollMonthlyWan
-                    + LaborCostMonthlyWan
-                    + FleetMonthlyInsurance
-                    + LoanManager.MonthlyDebtService(this)
-                    + Mathf.Max(0f, financeCrisisBurnBonus) - monthlyRevenue - FleetMonthlyTransitionIncome;
+                float net = MonthlyOperatingCostWan - monthlyRevenue - FleetMonthlyTransitionIncome;
                 return net > 0f ? net : 0f;
             }
         }
+
 
         public readonly List<string> decisionLog = new List<string>();
 

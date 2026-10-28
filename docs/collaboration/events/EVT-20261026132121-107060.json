@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026132121-107060",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 468,
+  "at": "2026-10-26T13:21:21.256Z",
+  "actor": "cursor",
+  "action": "release",
+  "taskId": "S14-CollabBinding",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "released S14-CollabBinding",
+  "data": {}
+}

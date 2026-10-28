@@ -13,8 +13,15 @@ const source = path.resolve(
 const ccv = await import(pathToFileURL(path.join(source, 'lib/cleancheckout.mjs')));
 const book = await import(pathToFileURL(path.join(source, 'lib/taskbook.mjs')));
 
+// Asked once, before any test runs, using the same operation the verification
+// depends on. `clone.ok === false` means "this sandbox cannot clone", which is a
+// capability ceiling, not a byte-reproduction verdict.
+const clone = ccv.cloneCapability(os.tmpdir());
+if (!clone.ok) console.log(`NOTE git clone probe failed (${clone.ms}ms): ${clone.reason}`);
+
 let failed = 0;
 const results = [];
+let skipped = 0;
 
 async function test(id, name, fn) {
   try {
@@ -26,6 +33,27 @@ async function test(id, name, fn) {
     results.push({ id, name, passed: false, error: e.stack });
     console.log(`FAIL ${id} ${name}: ${e.message}`);
   }
+}
+
+// Some assertions here cannot execute at all in a restricted sandbox: cloning
+// needs git to start an upload-pack child, which AppContainer tokens deny
+// (NtCreateDirectoryObject 0xC0000022). Skipping must be explicit and attributed
+// — never a silent pass, and never a "failed" that nobody can act on.
+function skip(id, name, reason) {
+  skipped += 1;
+  results.push({ id, name, skipped: true, reason });
+  console.log(`SKIP ${id} ${name}: ${reason}`);
+}
+
+/** Clone-dependent check: skipped only when the probe proves clone is unusable. */
+function cloneTest(id, name, fn) {
+  // Decide *before* running: a skip must never be followed by a PASS line, which
+  // would both miscount and imply the check executed.
+  if (!clone.ok) {
+    skip(id, name, `git clone unusable here: ${clone.reason}`);
+    return undefined;
+  }
+  return test(id, name, fn);
 }
 
 const EXIT = { CONFLICT: 3, CHECK_FAILED: 5, USAGE: 2 };
@@ -67,7 +95,7 @@ function repoFixture(extra = {}) {
   return { root, cfg };
 }
 
-await test('CCV01', 'clone reproduces every tracked file byte-for-byte and records it', () => {
+await cloneTest('CCV01', 'clone reproduces every tracked file byte-for-byte and records it', () => {
   const { cfg } = repoFixture();
   const result = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
   assert.equal(result.ok, true, JSON.stringify(result));
@@ -88,7 +116,7 @@ await test('CCV01', 'clone reproduces every tracked file byte-for-byte and recor
   assert.equal(status.record.ccvId, result.ccvId);
 });
 
-await test('CCV02', 'a second run appends instead of overwriting the first record', () => {
+await cloneTest('CCV02', 'a second run appends instead of overwriting the first record', () => {
   const { cfg } = repoFixture();
   const first = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
   const second = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
@@ -115,7 +143,7 @@ await test('CCV04', 'untracked source is refused too: a clone cannot contain it'
   );
 });
 
-await test('CCV05', 'collaboration output written by the tool does not block the check', () => {
+await cloneTest('CCV05', 'collaboration output written by the tool does not block the check', () => {
   const { root, cfg } = repoFixture();
   fs.writeFileSync(path.join(root, 'docs/collaboration/deliveries.json'), '{}\n');
   fs.mkdirSync(path.join(root, 'out/collab'), { recursive: true });
@@ -126,7 +154,7 @@ await test('CCV05', 'collaboration output written by the tool does not block the
   assert.equal(result.ok, true);
 });
 
-await test('CCV05B', 'a tracked record rewritten by the tool is counted, not judged', () => {
+await cloneTest('CCV05B', 'a tracked record rewritten by the tool is counted, not judged', () => {
   const { root, cfg } = repoFixture();
   const recordPath = path.join(root, 'docs/collaboration/PROTOCOL.md');
   fs.writeFileSync(recordPath, '# protocol v1\n');
@@ -152,13 +180,24 @@ await test('CCV06', 'a directory that is not a git repository fails closed', () 
     localRoot: '.collab-local',
     snapshotRoot: 'out/collab',
   };
-  assert.throws(
-    () => ccv.verifyCleanCheckout(cfg, { actor: 'cursor' }),
-    (e) => e.exitCode === EXIT.CHECK_FAILED && /not a git repository/.test(e.message),
-  );
+  // The premise is "no repository here", but when TEMP is redirected inside the
+  // workspace (the sandbox fallback in run-all.mjs) a temp dir inherits the
+  // parent work tree and the premise silently stops holding. A bogus GIT_DIR
+  // forces git to answer "not a git repository" wherever the fixture lives.
+  const savedGitDir = process.env.GIT_DIR;
+  process.env.GIT_DIR = path.join(root, '.git');
+  try {
+    assert.throws(
+      () => ccv.verifyCleanCheckout(cfg, { actor: 'cursor' }),
+      (e) => e.exitCode === EXIT.CHECK_FAILED && /not a git repository/.test(e.message),
+    );
+  } finally {
+    if (savedGitDir === undefined) delete process.env.GIT_DIR;
+    else process.env.GIT_DIR = savedGitDir;
+  }
 });
 
-await test('CCV07', 'a later commit invalidates the record instead of vouching for new content', () => {
+await cloneTest('CCV07', 'a later commit invalidates the record instead of vouching for new content', () => {
   const { root, cfg } = repoFixture();
   const result = ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
   assert.equal(ccv.currentCheckoutStatus(cfg).verified, true);
@@ -172,7 +211,7 @@ await test('CCV07', 'a later commit invalidates the record instead of vouching f
   assert.equal(ccv.listCleanCheckouts(cfg).filter((r) => r.ccvId === result.ccvId).length, 1);
 });
 
-await test('CCV07B', 'a commit that only appends collaboration records keeps the record valid', () => {
+await cloneTest('CCV07B', 'a commit that only appends collaboration records keeps the record valid', () => {
   const { root, cfg } = repoFixture();
   ccv.verifyCleanCheckout(cfg, { actor: 'cursor' });
   const before = ccv.currentCheckoutStatus(cfg).verified;
@@ -194,7 +233,7 @@ await test('CCV07B', 'a commit that only appends collaboration records keeps the
   assert.equal(ccv.currentCheckoutStatus(cfg).verified, false);
 });
 
-await test('CCV08', 'evidence files are bound by hash and require a statement', () => {
+await cloneTest('CCV08', 'evidence files are bound by hash and require a statement', () => {
   const { root, cfg } = repoFixture();
   // Evidence stays under the collaboration output root: it must not itself make
   // the baseline look dirty, but it still has to exist and be hashed.
@@ -223,7 +262,7 @@ await test('CCV08', 'evidence files are bound by hash and require a statement', 
   assert.equal(record.statement, 'Unity imported the clone and entered play mode');
 });
 
-await test('CCV09', 'the gate accepts a matching record for a task that cannot be delivered', () => {
+await cloneTest('CCV09', 'the gate accepts a matching record for a task that cannot be delivered', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-ccv-gate-'));
   fs.mkdirSync(path.join(root, 'docs/collaboration/tasks'), { recursive: true });
   fs.writeFileSync(path.join(root, '.gitattributes'), '* -text\n');
@@ -296,5 +335,5 @@ await test('CCV09', 'the gate accepts a matching record for a task that cannot b
   assert.equal(after.ok, true, JSON.stringify(after.blockers));
 });
 
-console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
+console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: skipped }));
 process.exitCode = failed > 0 ? 1 : 0;

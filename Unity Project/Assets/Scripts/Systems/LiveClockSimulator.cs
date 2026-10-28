@@ -291,6 +291,14 @@ namespace AirlineCEO.Systems
             gs.cash -= day;
             gs.yearNetProfit -= day;
             gs.liveQuarterExpense += day;
+            // R-A / A2（2026-10-25 裁定）：部门预算问责的分母按**当日**费率逐日累计，
+            // 而不是季末拿当时的费率 ×3 反推整季 —— 中途加机／退租／改烧钱率的人，
+            // 前 45 天不该被按新费率重算。只累计四项（不含工资与危机加成），见 DeptDailyFixedCostWan。
+            gs.liveQuarterDeptExpense += LiveClockLogic.DeptDailyFixedCostWan(
+                gs.monthlyBurnRate,
+                gs.FleetMonthlyMaintenance,
+                gs.FleetMonthlyLease,
+                gs.CeoMonthlyPayWan);
         }
     }
 }

@@ -24,22 +24,30 @@ namespace AirlineCEO.UI
         // ── 调色 ──
         static readonly Color RouteLineCol = new Color(0.38f, 0.10f, 0.52f, 1f);     // 深紫色细航线
         /// <summary>屏幕像素，不随缩放变粗（基准线宽，密集航线在此基础上加粗）。</summary>
-        const float RouteScreenThickness = 2.4f;
+        const float RouteScreenThickness = 2.8f;
         /// <summary>
         /// ★T03.8：线宽随班次密度变化。
         ///
         /// 旧版所有航线一律 2.4 px，于是「天天飞的干线」和「一周两班的支线」在地图上长得一模一样，
         /// 地图看不出运力分布 —— 而地图本来就是主视觉。这里按**周离港班次**分三档：
-        /// ≤7 班细（2.0）、8–20 班基准（2.4）、>20 班粗（3.0）。档位少、边界取整数，
-        /// 避免连续函数在缩放时抖动。
+        /// ≤7 班细（1.8）、8–20 班基准（2.8）、>20 班粗（4.0）。
+        ///
+        /// **三档必须拉开到 ≥1 px**，这是 2026-10-27 上机实测后的修正：
+        /// 首版是 2.0 / 2.4 / 3.0，相邻只差 0.4 / 0.6 px —— 比一个像素还小，
+        /// 玩家在 1920 屏上完全看不出差别（用户原话「线条粗细一样」），功能等于没做。
+        /// 缩放到最大也救不了：<see cref="MapTrackZoom"/> 除以视口缩放，
+        /// 屏幕厚度恒等于这里的返回值，放大只会让线整体变清楚、不会放大档位差。
+        ///
+        /// 档位边界（7 / 20）按运力分布定，不要为了「更平滑」改成连续函数 ——
+        /// 连续映射在缩放时抖动，而这里的取值是屏幕像素常量。
         /// </summary>
         public static float RouteThickness(RouteData r)
         {
             if (r == null) return RouteScreenThickness;
             int w = Mathf.Max(0, r.WeeklyFlightsDeparture());
-            if (w <= 7) return 2.0f;
+            if (w <= 7) return 1.8f;
             if (w <= 20) return RouteScreenThickness;
-            return 3.0f;
+            return 4.0f;
         }
         static readonly Color HubCoreCol = new Color(0.10f, 0.42f, 1f, 1f);          // 主基地
         static readonly Color PlaneCol = new Color(1f, 1f, 1f, 0.98f);
@@ -404,11 +412,22 @@ namespace AirlineCEO.UI
         }
 
         // ── 航线：深紫色细线，线宽按屏幕像素补偿（放大缩小不改变粗细），无光晕 ──
-        static void DrawRoutes(Transform map)
+        /// <summary>
+        /// 把 `GameState.activeRoutes` 画成大圆弧线挂到 `map` 下，返回实际绘制的**线段数**。
+        ///
+        /// 返回值的用途只有一个：T03.8 的渲染链路回归。
+        /// 「档位函数算对了」和「画出来的确实是那个宽度」是两件事 ——
+        /// 前者一条 `RouteThickness` 单元断言就够，后者必须看真实创建的 RectTransform
+        /// 与 `MapTrackZoom` 注册表。旧版只有前者，于是「函数对、渲染漏传」这类缺陷查不出来。
+        /// 0 表示没有可画的航线（无 gs / 无航线 / 坐标缺失全被跳过）。
+        /// </summary>
+        public static int DrawRoutes(Transform map)
         {
             var gs = GameState.Instance;
-            if (gs == null || gs.activeRoutes == null) return;
+            if (gs == null || gs.activeRoutes == null) return 0;
+            if (map == null) return 0;
 
+            int drawn = 0;
             var zoom = map.GetComponent<MapTrackZoom>();
             if (zoom == null) zoom = map.gameObject.AddComponent<MapTrackZoom>();
             zoom.Clear();
@@ -427,11 +446,12 @@ namespace AirlineCEO.UI
                 for (int s = 0; s < arc.Count - 1; s++)
                 {
                     var line = DrawLine(map, "Route_" + i + "_" + s, arc[s], arc[s + 1], RouteLineCol, thickness);
-                    if (line != null) zoom.RegisterLine(line, thickness);
+                    if (line != null) { zoom.RegisterLine(line, thickness); drawn++; }
                 }
             }
 
             zoom.Reapply();
+            return drawn;
         }
 
         public static Material GlowMat()
@@ -1080,6 +1100,20 @@ namespace AirlineCEO.UI
             _lines.Add(rt);
             _lineW.Add(screenThickness);
         }
+
+        /// <summary>已注册线段数（T03.8 渲染链路回归：确认 `DrawRoutes` 真的把线挂上来了）。</summary>
+        public int LineCount => _lines.Count;
+
+        /// <summary>每条已注册线段登记的屏幕厚度，顺序与绘制顺序一致。</summary>
+        public IReadOnlyList<float> LineThicknesses => _lineW;
+
+        /// <summary>
+        /// 第 `index` 条已注册线段的 RectTransform。
+        /// 用于验证「登记的厚度」与「实际写进 `sizeDelta.y` 的厚度」是同一个值 ——
+        /// 只查注册表的话，绘制函数把厚度丢了也照样能过。
+        /// </summary>
+        public RectTransform LineAt(int index)
+            => index >= 0 && index < _lines.Count ? _lines[index] : null;
 
         public void RegisterDot(RectTransform rt, float screenDiameter)
         {

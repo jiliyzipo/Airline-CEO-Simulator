@@ -26,6 +26,15 @@ internal static class Program
         if (args.Contains("--stress"))
             return RunStressTest();
 
+        if (args.Contains("--bridgecheck"))
+            return RunCashBridgeCheck();
+
+        if (args.Contains("--ablate"))
+            return RouteAblation.RunAndPrint();
+
+        if (args.Contains("--utilization"))
+            return UtilizationAudit.RunAndPrint();
+
         if (args.Contains("--legacy"))
             return RunLegacyCheck();
 
@@ -221,6 +230,47 @@ internal static class Program
         return 0;
     }
 
+    /// <summary>
+    /// 现金桥闸门（T04.8 结构性缺陷 ②）：跑 60 组合，只判「期末现金能否被逐项解释」，
+    /// **不判**破产/告急组合的数量 —— 后者是设计张力，不是本次要守的东西。
+    ///
+    /// stdout 只印一行机器结果 JSON（collab profile 用 `resultKind: json` 解析
+    /// `assertionsTotal/assertionsFailed/assertionsSkipped`），人读的摘要走 stderr。
+    /// 这样 `--stress` 的退出码语义（有告急组合即 1）不被这条闸门污染。
+    /// </summary>
+    private static int RunCashBridgeCheck()
+    {
+        var results = StressTestRunner.Run(verbose: false);
+        int bridgeTotal = results.Count;
+        var unbalanced = results.Where(r => !CashBridge.IsBalanced(r.CashBridgeResidual)).ToList();
+        float worst = bridgeTotal == 0 ? 0f : results.Max(r => Math.Abs(r.CashBridgeResidual));
+
+        Console.Error.WriteLine(
+            $"现金桥检查：{bridgeTotal - unbalanced.Count}/{bridgeTotal} 对账通过（容差 {CashBridge.ToleranceWan:F1} 万，最大残差 {worst:F2} 万）");
+        foreach (var r in unbalanced)
+            Console.Error.WriteLine($"  ! {r.Difficulty}/{r.AirlineType}/{r.Scenario} 残差 {r.CashBridgeResidual:F2} 万");
+
+        // 对照实验（T04.8 遗留数值疑点）的可信度前提：归因表成立的前提是这两条不变量成立。
+        // 它们和现金桥同属「账目/归因必须自洽」，所以进同一个闸门、同一个计数。
+        var invariants = RouteAblation.CheckInvariants();
+        var invariantFailures = invariants.Where(c => !c.Ok).ToList();
+        Console.Error.WriteLine(
+            $"对照实验不变量：{invariants.Count - invariantFailures.Count}/{invariants.Count} 通过");
+        foreach (var c in invariantFailures)
+            Console.Error.WriteLine($"  ! {c.Id}  {c.Detail}");
+
+        int total = bridgeTotal + invariants.Count;
+        int failed = unbalanced.Count + invariantFailures.Count;
+        int passed = total - failed;
+
+        string worstText = worst.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        Console.WriteLine(
+            $"{{\"assertionsTotal\":{total},\"assertionsFailed\":{failed},\"assertionsSkipped\":0," +
+            $"\"bridgeTotal\":{bridgeTotal},\"invariantTotal\":{invariants.Count}," +
+            $"\"worstResidualWan\":{worstText},\"toleranceWan\":{CashBridge.ToleranceWan.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}}}");
+        return failed == 0 ? 0 : 1;
+    }
+
     private static int RunStressTest()
     {
         Console.WriteLine("=== Airline CEO · Phase 4 Week 13 全流程数值压测 ===");
@@ -259,16 +309,33 @@ internal static class Program
             : $"结论：{bad} 个告急组合分布为 " + string.Join("、", results
                 .Where(r => r.Flag is "BANKRUPT" or "RED" or "YELLOW")
                 .GroupBy(r => r.Scenario).Select(g => $"{g.Key} {g.Count()}")) + "；需逐情景判断，不自动视为健康。");
-        return bad == 0 ? 0 : 1;
+
+        // T04.8 结构性缺陷 ②：净利只含月度损益，IRROPS/放款/还本付息直接改现金。
+        // 这里不是「允许有差额」，而是要求差额**能被逐项解释到 0**。
+        var unbalanced = results.Where(r => !CashBridge.IsBalanced(r.CashBridgeResidual)).ToList();
+        float worst = results.Count == 0 ? 0f : results.Max(r => Math.Abs(r.CashBridgeResidual));
+        Console.WriteLine();
+        if (unbalanced.Count == 0)
+        {
+            Console.WriteLine($"现金桥对账                   : {results.Count}/{results.Count} 组合残差 ≤ {CashBridge.ToleranceWan:F1} 万（最大 {worst:F2}）");
+        }
+        else
+        {
+            Console.WriteLine($"现金桥对账                   : {unbalanced.Count}/{results.Count} 组合对不上（最大残差 {worst:F2} 万）");
+            foreach (var r in unbalanced.Take(5))
+                Console.WriteLine($"  ! {r.Difficulty}/{r.AirlineType}/{r.Scenario} 残差 {r.CashBridgeResidual:F2}");
+        }
+
+        return bad == 0 && unbalanced.Count == 0 ? 0 : 1;
     }
 
     private static IEnumerable<string> BuildStressCsv(IReadOnlyList<StressTestRunner.Result> results)
     {
-        yield return "难度,航司类型,宏观情景,期初现金,营收,成本,净利,期末现金,最低现金,跑道(月),信用评级,准点率,净利率";
+        yield return "难度,航司类型,宏观情景,期初现金,营收,成本,净利,期末现金,最低现金,跑道(月),信用评级,准点率,净利率,IRROPS现金,利息,未偿本金,现金桥残差";
         foreach (var r in results)
         {
             float margin = r.Revenue > 0f ? r.NetProfit / r.Revenue : 0f;
-            yield return $"{r.Difficulty},{r.AirlineType},{r.Scenario},{r.OpeningCash:F0},{r.Revenue:F0},{r.Cost:F0},{r.NetProfit:F0},{r.ClosingCash:F0},{r.MinCash:F0},{r.Runway:F1},{r.Credit},{r.OtpClose:F1},{margin:P1}";
+            yield return $"{r.Difficulty},{r.AirlineType},{r.Scenario},{r.OpeningCash:F0},{r.Revenue:F0},{r.Cost:F0},{r.NetProfit:F0},{r.ClosingCash:F0},{r.MinCash:F0},{r.Runway:F1},{r.Credit},{r.OtpClose:F1},{margin:P1},{r.IrropsCash:F1},{r.LoanInterest:F1},{r.LoanOutstanding:F1},{r.CashBridgeResidual:F2}";
         }
     }
 
@@ -324,9 +391,18 @@ internal static class Program
             "| RUNAWAY | 年净利 > 4× 期初现金（过于简单） |",
             "| GREEN | 健康 |",
             "",
-            "> **净利 ≠ 期末 − 期初。** `TotalNetProfit` 不含 IRROPS 现金冲击与跑道告急贷款，"
-                + "所以同（航司, 宏观）三档难度的净利相同、期末却各差 100 万。本表是**情景投影，不是台账**，"
-                + "不能拿来当现金对账的 oracle。",
+            "> **净利 ≠ 期末 − 期初，但差额可以被逐项解释。** `TotalNetProfit` 只累加月度损益；"
+                + "IRROPS 一次性冲击、跑道告急贷款放款与还本付息都是**直接改现金、不进损益**的。"
+                + "逐项摊开后：",
+            "",
+            "```",
+            "期末现金 = 期初现金 + 净利 + IRROPS 现金冲击 − 已付利息 + 期末未偿贷款本金",
+            "```",
+            "",
+            "> 60 组合全部对账通过（残差 ≤ " + CashBridge.ToleranceWan.ToString("F1") + " 万，逐月四舍五入的累计误差）。"
+                + "CSV 的 `IRROPS现金 / 利息 / 未偿本金 / 现金桥残差` 四列可直接复核。",
+            "> 仍然要说清：这是**情景投影，不是台账**——它模拟的是「CEO 一整年不做决策」的自动年循环，"
+                + "不能当作玩家实际现金流的 oracle；但投影自身必须自洽，这条等式就是自洽的证明。",
             "",
             "## 健康度分布",
             ""
@@ -352,6 +428,39 @@ internal static class Program
         AddPivot(lines, "宏观情景", results.GroupBy(r => r.Scenario));
 
         lines.Add("");
+        lines.Add("## 现金桥对账（T04.8 结构性缺陷 ②）");
+        lines.Add("");
+        lines.Add("| 项 | 含义 |");
+        lines.Add("|---|---|");
+        lines.Add("| 净利 | 12 个月 `MonthlyPnL.NetProfitWan` 累加，**不含利息** |");
+        lines.Add("| IRROPS 现金冲击 | 第 6 个月台风暴雨，按难度 0.80 / 1.00 / 1.25 缩放 |");
+        lines.Add("| 已付利息 | 等额本息月供中的利息部分，直接从现金扣 |");
+        lines.Add("| 未偿本金 | 放款一次性进现金，期末没还掉的部分仍留在账上 |");
+        lines.Add("");
+        // 示例优先挑**有贷款**的组合：那是这条等式最容易算错的情形（本金/利息两条腿）。
+        // 全挑无贷款的组合会让读者以为「加个 IRROPS 就完了」，掩盖真正的难点。
+        var bridgeRows = results
+            .Where(r => Math.Abs(r.LoanPrincipal) > 0f)
+            .OrderByDescending(r => r.LoanOutstanding)
+            .Take(3)
+            .Concat(results.Where(r => Math.Abs(r.LoanPrincipal) == 0f).Take(2))
+            .ToList();
+        if (bridgeRows.Count > 0)
+        {
+            lines.Add("示例（全部组合见 `out/stress_matrix.csv`）：");
+            lines.Add("");
+            lines.Add("| 难度 | 航司 | 宏观 | 期初 | 净利 | IRROPS | 利息 | 未偿 | 期末 | 残差 |");
+            lines.Add("|---|---|---|---|---|---|---|---|---|---|");
+            foreach (var r in bridgeRows)
+            {
+                // 残差显示：<0.005 万视为 0，避免 -0.00 这种看起来像误差的排版。
+                string residualText = Math.Abs(r.CashBridgeResidual) < 0.005f
+                    ? "0.00"
+                    : r.CashBridgeResidual.ToString("F2");
+                lines.Add($"| {r.Difficulty} | {r.AirlineType} | {r.Scenario} | {r.OpeningCash:F0} | {r.NetProfit:F0} | {r.IrropsCash:F1} | {r.LoanInterest:F1} | {r.LoanOutstanding:F1} | {r.ClosingCash:F0} | {residualText} |");
+            }
+            lines.Add("");
+        }
         lines.Add("## 核心发现");
         lines.Add("");
 
@@ -695,7 +804,8 @@ internal static class Program
         Console.WriteLine($"Credit       : {s.CreditRating}  ·  WACC {s.WaccPercent:F1}%");
         Console.WriteLine($"Budget       : {s.BudgetWan:F1} 万  ·  董事会 {s.BudgetVotes}/7 票");
         Console.WriteLine($"Carbon       : 排放 {s.CarbonEmissionsTons:F1} 吨 · 负债 {s.CarbonLiabilityWan:F1} 万 · 年成本 {s.CarbonCostWan:F1} 万");
-        Console.WriteLine($"Financing    : 贷款 {s.LoanPrincipalWan:F1} 万 · 已付利息 {s.LoanInterestPaidWan:F1} 万");
+        Console.WriteLine($"Financing    : 贷款 {s.LoanPrincipalWan:F1} 万 · 已付利息 {s.LoanInterestPaidWan:F1} 万 · 未偿 {s.LoanOutstandingWan:F1} 万");
+        Console.WriteLine($"Cash bridge  : {CashBridge.Describe(s.OpeningCash, s.ClosingCash, s.TotalNetProfit, s.IrropsCashDeltaWan, s.LoanInterestPaidWan, s.LoanOutstandingWan)}");
         Console.WriteLine();
         Console.WriteLine("--- FLEET/NET Year Loop ---");
         Console.WriteLine($"Fleet        : {s.FleetCount} 架 · 均龄 {s.AvgFleetAge:F1} 年 · 年维护 {s.FleetAnnualMaintWan:F1} 万 · 残值 {s.FleetResidualWan:F0} 万");

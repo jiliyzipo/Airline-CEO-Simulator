@@ -172,11 +172,13 @@ const timeAdverbial = d => {  let s = (d || '').trim();
 // 正文段落后留一空行；无正文（订阅源常只给标题）则不留空行
 const body = c => (c ? paragraphs(c) + '\n' : '');
 
-function compose(ev, gameDate, triggered) {
+function compose(ev, gameDate, triggered, signed = true) {
   const style = styleOf(ev.source);
   const topic = topicOf(ev.source, ev.title);
   const when = timeAdverbial(ev.desc);
   const now = when === '即刻';
+  // 转呈件（signed=false）不写机关落款块：机关名与文日在转呈抬头里点明一次，末尾只署新闻官
+  const agencySign = signed ? [right(ev.source), right(gameDate)] : [];
   if (style === 'gov') {
     const doc = docType(ev.source);
     const closing = doc === '通知' ? '通知' : doc === '公告' ? '公告' : '通报';
@@ -187,7 +189,7 @@ function compose(ev, gameDate, triggered) {
         : now ? `${IND}本${doc}自发布之时起施行。`
           : `${IND}本${doc}自${when}起施行，届时将另行通报。`,
       '', `${IND}特此${closing}。`, '',
-      right(ev.source), right(gameDate),
+      ...agencySign,
     ].join('\n');
   }
   if (style === 'news') {
@@ -206,7 +208,7 @@ function compose(ev, gameDate, triggered) {
       triggered ? `${IND}本公告自${gameDate}起生效。`
         : now ? `${IND}本公告自发布之日起生效。`
           : `${IND}本公告自${when}起生效。`,
-      '', right(ev.source), right(gameDate),
+      '', ...agencySign,
     ].join('\n');
   }
   return [
@@ -216,7 +218,7 @@ function compose(ev, gameDate, triggered) {
       : now ? `${IND}上述情况即时显现。`
         : `${IND}上述情况预计于${when}显现。`,
     '', `${IND}以上情况，请予关注。`, '',
-    right(ev.source), right(gameDate),
+    ...agencySign,
   ].join('\n');
 }
 
@@ -273,6 +275,26 @@ const demos = [
   },
 ];
 
+// —— 转呈件外壳（C# PressDesk.ForwardHead / ForwardSign 的镜像）——
+// 外部来文一律由新闻官转呈：抬头交代整理人，原文照登（原机关落款仍在原文里），末尾另署转呈人落款。
+// 新闻官姓名按存档派生（C# PressDesk.Name），本预览只核对措辞，故用固定示例名。
+const RIGHT_COLUMNS = 30;
+const dispWidth = s => [...s].reduce((w, ch) => w + (ch.codePointAt(0) < 0x2E80 ? 1 : 2), 0);
+const rightAligned = text => {
+  const t = (text || '').trim();
+  const pad = Math.max(0, RIGHT_COLUMNS - dispWidth(t));
+  return '\u3000'.repeat(Math.floor(pad / 2)) + (pad % 2 ? ' ' : '') + t;
+};
+const OFFICER = '沈其昌';
+const forward = (ev, label, triggered = false) => [
+  `以下为${ev.source}来文原文（${label}），由新闻官${OFFICER}整理转呈。`,
+  '',
+  compose(ev, label, triggered, false).replace(/\s+$/, ''),
+  '',
+  rightAligned('新闻官 ' + OFFICER),
+  rightAligned(label),
+].join('\n');
+
 let fail = 0;
 const check = (name, ok, extra = '') => { if (!ok) fail++; console.log(`  ${ok ? '✓' : '✗'} ${name}${extra ? ' ' + extra : ''}`); };
 
@@ -290,9 +312,9 @@ for (const p of demos) {
   };
   const recvLabel = dayLabel(recv);
   console.log(`\n================ 【预告】${recvLabel} · ${ev.title}（${ev.source} / ${desc} / ${dateTimeLabel(eff)}） ================`);
-  console.log(compose(ev, recvLabel, false));
+  console.log(forward(ev, recvLabel));
   console.log(`\n---------------- 施行通报（生效时再发一封） ----------------`);
-  console.log(compose(ev, dayLabel(eff), true));
+  console.log(forward(ev, dayLabel(eff), true));
   check('无公司信笺称谓', ev.content.indexOf('尊敬的') < 0);
   check('正文无现实日期', !/20\d{2}年/.test(ev.content + ev.title) && !/\d{1,2}月\d{1,2}日/.test(ev.content + ev.title), ev.title);
   check('无叠字', !ev.content.includes('零时零时'));

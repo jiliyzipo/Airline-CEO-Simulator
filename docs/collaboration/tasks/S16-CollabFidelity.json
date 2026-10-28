@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S16-CollabFidelity",
+  "title": "阶段 S16-CollabFidelity：交接单与检测命令一致性",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "archived",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab（tools/collab）",
+    "修的是工具自己产出的文本与实际该做的动作不一致：交接单给出的检测命令在被判定必然失败时仍被推荐、stage-review 明知不可通过仍跑满套件并登记缺陷、待办与 CURRENT 仍列出终态缺陷、改写模板条款被静默降级为人工补证",
+    "不含业务代码（Unity Project/Assets）改动"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC4",
+      "text": "交接单给出的检测命令必须可直接执行成功：当存在无法机器判定的条款时，命令自动携带 --coverage 全部条款，且与交接单顶部警告列出的条款集合完全一致；没有未映射条款时命令不带 --coverage。证据：collab 子套件中断言交接单里出现的 stage-review 命令与 machineCoverage 未映射集合一致，且把该命令原样拆成 argv 后能走到 review-start（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC5",
+      "text": "必然失败的检测必须在开跑前拒绝：当交付没有任何条款可被机器判定且未提供 --coverage 时，stage-review 以 EXIT.USAGE(2) 退出，不启动套件、不创建 review、不登记 issue、不改变 revision，并在错误里给出建议的 --coverage 串；只缺部分条款时同样拒绝。证据：collab 子套件中断言前后 reviews/issues 计数与 revision 不变、无 runToken 产生，真实补证后同一 DEL 仍可正常出终态（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC6",
+      "text": "终态缺陷不再出现在待办里：NEXT_CURSOR / NEXT_CODEX 与 CURRENT.md 的缺陷小节只列 open/fixing/fixed，wontfix/verified/closed 一律不列，但缺陷文件本身保留。证据：collab 子套件中构造 wontfix 缺陷后三处文本均不含该 id，而文件仍存在（S16-CollabFidelity）"
+    },
+    {
+      "id": "AC7",
+      "text": "改写模板条款必须提示后果：阶段任务的验收条件与 profile 模板在同一 AC 编号上文本不一致时，task-add 与 stage-close 给出告警，明确指出该条款已从机器可判定降级为需人工补证，并列出受影响编号；逐字照抄的条款不告警。证据：collab 子套件中改写 AC2 文本时告警含 AC2 与降级字样，照抄时不告警（S16-CollabFidelity）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-27T00:59:57.724Z",
+  "updatedAt": "2026-10-28T01:10:19.891Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "Historic verdict REV-20261027011011-201cff covered 15 changed files; 8 were edited later and are now owned by passed deliveries DEL-20261028010243-671d55.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:47:56.266Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261027010737-388256",
+    "basisCount": 15,
+    "drifted": [
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/daily.test.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 15,
+    "intact": 7,
+    "covered": 8,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 389,
-  "updatedAt": "2026-10-25T10:42:52.683Z",
+  "revision": 669,
+  "updatedAt": "2026-10-28T01:11:22.926Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -56,16 +56,16 @@
       "holder": null,
       "freshness": "stale",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-18T05:02:40.016Z"
+      "updatedAt": "2026-10-27T01:33:20.836Z"
     },
     "S01-COLLAB": {
       "title": "阶段 S01-COLLAB：Collab",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-18T09:31:41.179Z"
+      "updatedAt": "2026-10-27T01:33:22.510Z"
     },
     "S02-Collab": {
       "title": "阶段 S02-Collab：Collab",
@@ -90,84 +90,246 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-19T09:24:45.912Z"
+      "updatedAt": "2026-10-27T01:33:23.236Z"
     },
     "S05-P2Close": {
       "title": "阶段 S05-P2Close：Logic/UI/Editor",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-22T01:03:04.056Z"
+      "updatedAt": "2026-10-27T01:33:23.750Z"
     },
     "S06-BatchB": {
       "title": "阶段 S06-BatchB：Logic/UI/Editor",
-      "devStatus": "rework",
+      "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-22T01:30:02.214Z"
+      "updatedAt": "2026-10-27T01:33:24.252Z"
     },
     "D2-TierLadder": {
       "title": "阶段 D2-TierLadder：Logic/UI/Editor",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-22T09:28:39.536Z"
+      "updatedAt": "2026-10-27T01:33:22.062Z"
     },
     "S07-Balance": {
       "title": "阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-22T13:18:57.941Z"
+      "updatedAt": "2026-10-27T01:33:24.740Z"
     },
     "S08-ShortHaul": {
       "title": "阶段 S08-ShortHaul：Balance/Editor/Assets-Tests",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-23T02:46:43.657Z"
+      "updatedAt": "2026-10-27T01:33:25.212Z"
     },
     "S09-Residual": {
       "title": "阶段 S09-Residual：Editor/Assets-Tests/Balance",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-23T07:58:05.076Z"
+      "updatedAt": "2026-10-27T01:33:25.671Z"
     },
     "S10-PressDesk": {
       "title": "阶段 S10-PressDesk：Editor/Assets-Tests/Logic",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-24T12:45:41.908Z"
+      "updatedAt": "2026-10-27T01:33:26.160Z"
     },
     "S11-T043Windows": {
       "title": "阶段 S11-T043Windows：T04.3 五个 PlayMode 实时窗口 + 工具修复与文档收口",
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "archived",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-25T09:46:31.963Z"
+      "updatedAt": "2026-10-27T01:33:26.644Z"
+    },
+    "S12-CommandConsole": {
+      "title": "阶段 S12-CommandConsole：命令台历史 / 四类写指令 / 教程文案",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "archived",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T01:33:27.131Z"
+    },
+    "S13-CollabSupersede": {
+      "title": "阶段 S13-CollabSupersede：Collab",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-26T13:38:53.241Z"
+    },
+    "S14-CollabBinding": {
+      "title": "阶段 S14-CollabBinding：检测证据绑定与待办收敛",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T00:59:15.600Z"
+    },
+    "S15-CollabContract": {
+      "title": "阶段 S15-CollabContract：命令行契约与取代登记",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T01:19:14.266Z"
+    },
+    "S16-CollabFidelity": {
+      "title": "阶段 S16-CollabFidelity：交接单与检测命令一致性",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "archived",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T01:47:56.268Z"
+    },
+    "S17-ScopeBaseline": {
+      "title": "阶段 S17：快照基线按改动文件收敛（陈旧阶段不再永久待办）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "archived",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:08:54.448Z"
+    },
+    "S18-ScopeVerdictFix": {
+      "title": "阶段 S18：收敛判定单一口径（预览与落盘不得互相矛盾）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "archived",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:09:05.266Z"
+    },
+    "S19-ScenarioFixture": {
+      "title": "阶段 S19：任务书手测场景夹具（缺员/停飞/维护/缺槽一键构造）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T02:21:14.387Z"
+    },
+    "S20-SnapshotHygiene": {
+      "title": "阶段 S20-SnapshotHygiene：Collab/Editor/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "archived",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:18:06.350Z"
+    },
+    "S21-FreshnessVerdict": {
+      "title": "阶段 S21-FreshnessVerdict：Docs/Collab",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:12:24.365Z"
+    },
+    "S22-BalanceBridge": {
+      "title": "阶段 S22-BalanceBridge：Collab/Editor/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:34:40.494Z"
+    },
+    "S23-RouteAblation": {
+      "title": "阶段 S23-RouteAblation：Collab/Editor/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T04:48:50.234Z"
+    },
+    "S24-UtilizationAudit": {
+      "title": "阶段 S24-UtilizationAudit：Collab/Editor/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T06:50:55.635Z"
+    },
+    "S25-StatusPrompts": {
+      "title": "阶段 S25-StatusPrompts：Editor/Collab/UI",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T11:19:23.780Z"
+    },
+    "S26-T038MapRender": {
+      "title": "阶段 S26-T038MapRender：Editor/Collab/UI",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T12:49:47.943Z"
+    },
+    "S27-MapBandLegibility": {
+      "title": "阶段 S27-MapBandLegibility：Editor/Collab/UI",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-27T12:33:03.581Z"
+    },
+    "S28-PressDeskSign": {
+      "title": "阶段 S28-PressDeskSign：Editor/Collab/Assets-Tests",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-28T00:02:21.815Z"
+    },
+    "S29-CollabPendingFilter": {
+      "title": "阶段 S29-CollabPendingFilter：Collab/Docs",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-28T00:55:46.890Z"
     }
   },
-  "lastDeliveryId": "DEL-20261025094638-6f76b0",
+  "lastDeliveryId": "DEL-20261028010243-671d55",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -231,6 +393,171 @@
       "actor": "codex",
       "note": "Closed AC/profile mismatch after independent REV-20261019094559-31090f for replacement DEL-20261019092547-d6429c. Original failed DEL/REV retained; no acceptance claim for untested UI interactions or T02 clean checkout.",
       "at": "2026-10-19T09:47:56.929Z"
+    },
+    "ISSUE-20261025133539-5d00c2": {
+      "status": "fixed",
+      "previous": "open",
+      "actor": "cursor",
+      "note": "按条款分层修复：AC1-AC3 恢复 unity-editmode 机器条款原文，AC4-AC7 改为带证据用例名的业务条款；新增 OpenRouteStudyRegression/OpenRouteStudyTests 补 AC5 断言。新交付 DEL-20261025140410-e7b753 独立检测 REV-20261026015132-1bde4e 已通过（48/48），AC4-AC7 由检测者显式补证。verified/closed 待 Codex 判定。",
+      "at": "2026-10-26T01:53:27.072Z"
+    },
+    "ISSUE-20261026023527-01bb24": {
+      "status": "fixed",
+      "previous": "fixing",
+      "actor": "cursor",
+      "note": "新交付 DEL-20261026031355-16ec52（预检 collab 通过）。修复内容：run-all 证据落 COLLAB_RUN_DIR、失败消息去重进 stderr、0 通过判 fixtureBroken、夹具探针（树复制+cmdInit）单列、临时目录不可写回退工作区；新增 lib/suite-report.mjs 与 3 条 reporting 回归用例。请复验时若仍失败，请提供本次运行 stderr（现已包含失败原因与夹具探针结论）。",
+      "at": "2026-10-26T03:16:23.546Z"
+    },
+    "ISSUE-20261026061059-747c95": {
+      "status": "fixed",
+      "previous": "open",
+      "actor": "cursor",
+      "note": "新交付 DEL-20261026063907-c4218e（预检 collab 通过）。按上一轮留下的诊断定性：10 项失败全为受限令牌的环境能力缺口（临时目录 rename EPERM、git clone 的 upload-pack 子进程被拒 0xC0000022、CIM 查询被拒、慢沙箱撞 120s 墙），非业务回归。修复：clone 探针+SKIP 语义、doctor 只由",
+      "at": "2026-10-26T06:41:29.085Z"
+    },
+    "ISSUE-20261026121935-4e76e6": {
+      "status": "wontfix",
+      "previous": "open",
+      "actor": "codex",
+      "note": "误触：Cursor 带 --dry-run 调用 stage-review，该命令不识别此参数而完整执行；机器结果 157/157、0 失败、0 跳过，失败仅因未补证 --coverage",
+      "at": "2026-10-26T12:57:36.968Z"
+    },
+    "ISSUE-20261026135154-c11728": {
+      "status": "wontfix",
+      "previous": "open",
+      "actor": "codex",
+      "note": "交付快照未变；失败原因是交接单给出的检测命令未携带 --coverage，而 AC2-AC6 为自定义条款。已用同 DEL 补证重检。",
+      "at": "2026-10-27T00:48:27.575Z"
+    }
+  },
+  "deliveryStatus": {
+    "DEL-20261018093142-e163dc": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261018093335-80f2f4",
+      "taskId": "S01-COLLAB",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261018102037-2afe59": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261018102500-1304ad",
+      "taskId": "S01-COLLAB",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261018133503-848c0c": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261018134113-f7d6ec",
+      "taskId": "S02-Collab",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261022133019-2ea740": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261023012853-918599",
+      "taskId": "S07-Balance",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261023024646-8c0b59": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261023032726-42cba0",
+      "taskId": "S08-ShortHaul",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261023075811-29dbd2": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261024020055-18c33e",
+      "taskId": "S09-Residual",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261025125421-e0fbe0": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261025130530-eb6e48",
+      "taskId": "S03-Docs",
+      "actor": "cursor",
+      "note": "reconciled from handoff index",
+      "at": "2026-10-26T02:05:38.469Z"
+    },
+    "DEL-20261026092125-d3b2a1": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261026120855-4108a5",
+      "taskId": "S13-CollabSupersede",
+      "actor": "cursor",
+      "note": "S13 的 tools/collab 改动已被 S14 同根继续并独立通过（REV-20261026130014-dffbf3），不再单独复验",
+      "at": "2026-10-26T13:38:53.214Z"
+    },
+    "DEL-20261026120855-4108a5": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261026134228-f7662c",
+      "taskId": "S14-CollabBinding",
+      "actor": "cursor",
+      "note": "S14 的 tools/collab 改动已被 S15 同根继续并独立通过（REV-20261027004906-82ca95，163/0/0，AC1-AC6 补证），不再单独复验",
+      "at": "2026-10-27T00:59:15.589Z"
+    },
+    "DEL-20261026134228-f7662c": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261027010737-388256",
+      "taskId": "S15-CollabContract",
+      "actor": "cursor",
+      "note": "S15 的 tools/collab 改动已被 S16 同根继续并独立通过（REV-20261027011011-201cff，167/0/0，AC4-AC7 补证），不再单独复验",
+      "at": "2026-10-27T01:19:14.253Z"
+    },
+    "DEL-20261027031726-30842b": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261027034213-898afe",
+      "taskId": "S20-SnapshotHygiene",
+      "actor": "system",
+      "note": "superseded by DEL-20261027034213-898afe",
+      "at": "2026-10-27T03:43:33.786Z"
+    },
+    "DEL-20261027044854-190346": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261027065059-f2c0ac",
+      "taskId": "S23-RouteAblation",
+      "actor": "cursor",
+      "note": "declared superseded at DEL-20261027065059-f2c0ac close",
+      "at": "2026-10-27T06:51:07.976Z"
+    },
+    "DEL-20261027115400-6ee0b2": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261027123307-f320b4",
+      "taskId": "S26-T038MapRender",
+      "actor": "cursor",
+      "note": "S26 的渲染链路 4 条断言与 MapWidget 可断言化改动全部包含在 S27 中；S27 另含线宽档位 1.8/2.8/4.0 修正与间隔守卫。S26 从未送检，无需重复检测。",
+      "at": "2026-10-27T12:49:47.927Z"
+    },
+    "DEL-20261028000358-732bdf": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261028001602-440143",
+      "taskId": "S28-PressDeskSign",
+      "actor": "system",
+      "note": "superseded by DEL-20261028001602-440143",
+      "at": "2026-10-28T00:19:34.891Z"
+    },
+    "DEL-20261028001602-440143": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261028002145-55518e",
+      "taskId": "S28-PressDeskSign",
+      "actor": "cursor",
+      "note": "declared superseded at DEL-20261028002145-55518e close",
+      "at": "2026-10-28T00:25:15.636Z"
+    },
+    "DEL-20261028005552-275e82": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261028010243-671d55",
+      "taskId": "S29-CollabPendingFilter",
+      "actor": "system",
+      "note": "superseded by DEL-20261028010243-671d55",
+      "at": "2026-10-28T01:04:25.081Z"
     }
   }
 }

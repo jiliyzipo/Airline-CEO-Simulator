@@ -14,11 +14,13 @@ namespace AirlineCEO.EditorTools
     /// 改这层的起因：收件箱原先拿**发布单位**当发件人 —— 列表上排着「中央气象台 / 发改委 / 路透社」，
     /// 像公司自己开了一排机构的邮箱。真实公司只有一个对外入口：新闻官把各家来文原文整理后转呈 CEO。
     ///
-    /// 钉住四件事：
-    /// ① 发件人是新闻官（具名），发布单位退到正文，原文与落款一字不改；
+    /// 钉住五件事：
+    /// ① 发件人是新闻官（具名），发布单位退到正文；原文正文一字不改，机关名与文日改由转呈抬头点明；
     /// ② 姓名按存档派生：同一存档恒定（读档、跨年都不改名），不同开局不同名；
     /// ③ 姓名不进人事名单 —— 不占编制、不领薪、不可任命，故与人事去重无关；
-    /// ④ 信笺识别：新闻官的信不会被拼成「新闻官 · 负责人 张三」这种双重职务。
+    /// ④ 信笺识别：新闻官的信不会被拼成「新闻官 · 负责人 张三」这种双重职务；
+    /// ⑤ 正文末尾只有**转呈人落款**（新闻官 姓名 / 日期），不再出现右对齐的机关落款块 ——
+    ///    一封信两个落款，CEO 不知道该找谁。
     /// </summary>
     public static class PressDeskRegression
     {
@@ -88,7 +90,7 @@ namespace AirlineCEO.EditorTools
                 all &= signOk;
                 if (!signOk) Debug.LogError($"新闻官-④b 落款不符：「{sigLine}」期望「{PressDesk.Title} {n1}」");
 
-                // ⑤ 真邮件：外源来文投递后，发件人是新闻官，原文仍在
+                // ⑤ 真邮件：外源来文投递后，发件人是新闻官，原文与来源仍在
                 var payload = ExternalDataFetcher.DemoPayloads()[1];   // 台风预警（政府公文）
                 var ev = ExternalEventManager.Receive(gs, payload);
                 var mail = gs.inbox != null && gs.inbox.Count > 0 ? gs.inbox[gs.inbox.Count - 1] : null;
@@ -102,15 +104,32 @@ namespace AirlineCEO.EditorTools
                               && mail.body.Contains(payload.source)      // 发布单位在正文里
                               && mail.body.Contains("特此通报");           // 原文体例没被改写
                 bool noDeptLeak = sent && mail.sender != payload.source;   // 不再拿发布单位当发件人
-                all &= senderOk && roleOk && glyphOk && bodyOk && noDeptLeak;
+                // ⑥ 转呈人落款：正文最后两行必须是「新闻官 姓名」+ 日期。
+                //    原先正文只以原文机关落款收尾（中央气象台），读起来像局方写给 CEO 的，找不到递件人。
+                string signLabel = PressDesk.SignLabel(n1);
+                string[] bodyLines = sent
+                    ? mail.body.Replace("\r\n", "\n").Split('\n')
+                    : new string[0];
+                var tail = new List<string>();
+                for (int i = bodyLines.Length - 1; i >= 0 && tail.Count < 2; i--)
+                {
+                    string l = bodyLines[i].Trim();
+                    if (l.Length > 0) tail.Insert(0, l);
+                }
+                bool signOk2 = tail.Count == 2 && tail[0] == signLabel
+                               && tail[1].Contains("年") && tail[1].Contains("日");
+                bool noAgencySign = sent && !HasExactLine(bodyLines, payload.source);
+                all &= senderOk && roleOk && glyphOk && bodyOk && noDeptLeak && signOk2 && noAgencySign;
                 if (!all) Debug.LogError($"新闻官-⑤ 转呈件不符：发件人=「{mail?.sender}」角色=「{mail?.role}」"
                     + $" 头像=「{mail?.glyph}」 含转呈={mail != null && mail.body.Contains("整理转呈")}"
-                    + $" 含原文落款={mail != null && mail.body.Contains(payload.source)}");
+                    + $" 机关落款已撤={noAgencySign}"
+                    + $" 转呈落款=「{string.Join(" / ", tail)}」期望「{signLabel} / …年…月…日」");
 
                 Debug.Log($"新闻官 具名={named}（{n1}）　同存档恒定={stable}　跨年不改名={timeProof}"
                           + $"　换存档换人={differs}　识别={idOk}　落款=「{sigLine}」\n"
                           + $"　外源投递 发件人={senderOk} 角色={roleOk}（{mail?.role}） 头像={glyphOk}"
                           + $" 原文保留={bodyOk} 不再露出发布单位作发件人={noDeptLeak}\n"
+                          + $"　转呈落款={signOk2}（{string.Join(" / ", tail)}） 机关落款已撤={noAgencySign}\n"
                           + $"　正文首行：{(mail != null && mail.body.Length > 0 ? mail.body.Split('\n')[0] : "")}");
                 return all;
             }
@@ -118,6 +137,16 @@ namespace AirlineCEO.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(go);
             }
+        }
+
+        /// <summary>正文里是否存在「整行只剩这个机关名」的行（即原文的右对齐机关落款块）。</summary>
+        static bool HasExactLine(string[] lines, string text)
+        {
+            string t = (text ?? "").Trim();
+            if (lines == null || t.Length == 0) return false;
+            for (int i = 0; i < lines.Length; i++)
+                if (lines[i].Trim() == t) return true;
+            return false;
         }
     }
 }

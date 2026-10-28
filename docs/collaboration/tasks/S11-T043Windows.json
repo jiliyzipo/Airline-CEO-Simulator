@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Assets-Tests、Editor、Logic、Balance、Systems、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-25T09:46:31.963Z",
-  "updatedAt": "2026-10-25T10:42:52.638Z",
+  "updatedAt": "2026-10-28T00:31:04.114Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,31 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Review REV-20261025103525-a76682 still applies to delivery DEL-20261025094638-6f76b0.",
-  "staleForReviewId": null
+  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 19 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:33:26.643Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261025094638-6f76b0",
+    "basisCount": 66,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/balance/baseline/BASELINE_SOURCE.json",
+      "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 66,
+    "intact": 47,
+    "covered": 19,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
 }

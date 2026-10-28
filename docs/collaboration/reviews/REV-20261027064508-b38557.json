@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261027064508-b38557",
+  "deliveryId": "DEL-20261027044854-190346",
+  "taskId": "S23-RouteAblation",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "balance",
+  "profileDefinition": {
+    "kind": "dotnet",
+    "command": [
+      "dotnet",
+      "run",
+      "--project",
+      "tools/balance/AirlineCEO.Balance.csproj",
+      "-c",
+      "Release",
+      "--",
+      "--bridgecheck"
+    ],
+    "resultKind": "json",
+    "description": "离线平衡账目闸门：60 组合现金桥对账（期末 = 期初 + 净利 + IRROPS − 利息 + 未偿本金）+ 10 条对照实验不变量（成本明细可加、减机不改营收）；只判自洽，不判破产组合数量"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "3bed950aa11dac246e1baef7ce50e3da95b15110694b6c98636068292f580916",
+    "verification": "98123575ecb83bb0998e761b29faa06e936c2f0507b2d883a7e07427db512983",
+    "contract": "3418710ec764637292a8896607b739f37b04da2a847bbaa4ecb02277c794cf48"
+  },
+  "snapshotPath": "out/collab/DEL-20261027044854-190346",
+  "createdAt": "2026-10-27T06:45:08.838Z",
+  "updatedAt": "2026-10-27T06:45:21.833Z",
+  "runs": [
+    {
+      "at": "2026-10-27T06:45:10.917Z",
+      "finishedAt": "2026-10-27T06:45:14.660Z",
+      "runToken": "6998f9397366f3c1",
+      "profile": "balance",
+      "deliveryId": "DEL-20261027044854-190346",
+      "subjectImplementationFingerprint": "3bed950aa11dac246e1baef7ce50e3da95b15110694b6c98636068292f580916",
+      "subjectFingerprints": {
+        "implementation": "3bed950aa11dac246e1baef7ce50e3da95b15110694b6c98636068292f580916",
+        "verification": "98123575ecb83bb0998e761b29faa06e936c2f0507b2d883a7e07427db512983",
+        "contract": "3418710ec764637292a8896607b739f37b04da2a847bbaa4ecb02277c794cf48"
+      },
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tools/balance/AirlineCEO.Balance.csproj",
+        "-c",
+        "Release",
+        "--",
+        "--bridgecheck"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261027044854-190346",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261027064508-b38557/run-6998f9397366f3c1/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261027064508-b38557/run-6998f9397366f3c1/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261027064508-b38557/run-6998f9397366f3c1/stdout.txt",
+        "sha256": "1aa472366c38f6c0acf0f1139046ad26222b010dcf2148325694b91bc3befba9",
+        "bytes": 34057,
+        "runToken": "6998f9397366f3c1"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261027064508-b38557/run-6998f9397366f3c1/stderr.txt",
+        "sha256": "1b7696e92234b61627c1f1647d2157857415d3721205bdd24cd48bdc1085b701",
+        "bytes": 120,
+        "runToken": "6998f9397366f3c1"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=balance runToken=6998f9397366f3c1 counters={\"total\":70,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=balance runToken=6998f9397366f3c1 counters={\"total\":70,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=balance runToken=6998f9397366f3c1 counters={\"total\":70,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC4",
+      "result": "passed",
+      "evidence": "profile=balance runToken=6998f9397366f3c1 counters={\"total\":70,\"failed\":0,\"skipped\":0} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-27T06:45:10.892Z",
+  "assertions": {
+    "total": 70,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 70,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 70,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261027064508-b38557-1793083516149.json",
+  "finishedAt": "2026-10-27T06:45:21.833Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "6998f9397366f3c1",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261027044854-190346"
+  }
+}

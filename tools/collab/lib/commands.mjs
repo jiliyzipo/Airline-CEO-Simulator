@@ -48,8 +48,11 @@ import {
   reconcileManagedCheckboxes,
 } from './taskbook.mjs';
 import { hookStatus, runHook } from './hooks.mjs';
+import { clauseDriftWarning } from './clauses.mjs';
+import { rescopeVerdict, driftedSummary } from './basis.mjs';
 import {
   generateSummaries,
+  listDeliveries,
   loadAck,
   loadState,
   loadTask,
@@ -59,6 +62,7 @@ import {
   refreshFreshness,
   saveAck,
   saveState,
+  saveTask,
   withReviewLock,
   withStateLock,
 } from './state.mjs';
@@ -78,6 +82,106 @@ export function parseArgs(argv) {
     } else out._.push(a);
   }
   return out;
+}
+
+/**
+ * S15/AC3: every command declares the options it understands.
+ *
+ * `parseArgs` accepts any `--xxx` it is handed, so a misspelt option used to be
+ * dropped silently and the command then ran as if the caller had not asked for
+ * anything. The worst instance was `stage-review --dry-run`: `--dry-run` only
+ * exists on `stage-close`, but nothing rejected it on `stage-review`, so a call
+ * that read as "preview only" performed a full review.
+ */
+const GLOBAL_FLAGS = ['json', 'help'];
+
+export const COMMAND_FLAGS = {
+  doctor: [],
+  init: [],
+  status: [],
+  sync: [],
+  ack: ['actor', 'revision'],
+  claim: ['task', 'actor', 'expected-revision'],
+  deliver: [
+    'task',
+    'actor',
+    'summary',
+    'summary-file',
+    'model',
+    'profiles',
+    'authorization',
+    'files',
+    'risk',
+    'self-test',
+    'self-test-notes',
+    'gaps',
+  ],
+  'review-start': ['delivery', 'actor', 'profile', 'authorization'],
+  'review-run': ['review', 'actor', 'authorization'],
+  'review-finish': ['review', 'actor', 'evidence', 'coverage', 'auto-counters', 'from-result', 'passed', 'authorization'],
+  'review-evidence': ['review', 'actor', 'conclusion', 'coverage', 'note', 'authorization'],
+  'review-cancel': ['review', 'actor', 'reason', 'authorization'],
+  'review-recover': ['actor'],
+  release: ['task', 'actor'],
+  watch: ['interval'],
+  tasks: [],
+  gate: ['task'],
+  'clean-checkout-verify': ['actor', 'evidence', 'statement', 'keep'],
+  'task-add': ['definition', 'actor'],
+  'task-rescope': ['task', 'actor', 'dry-run'],
+  'taskbook-baseline': ['task'],
+  'taskbook-check': ['task', 'actor'],
+  'issue-update': ['issue', 'status', 'actor', 'note'],
+  hook: ['source', 'event', 'payload', 'payload-json', 'idempotency-key', 'actor'],
+  'hooks-status': [],
+  'stage-open': ['actor'],
+  'stage-close': [
+    'task',
+    'profile',
+    'roots',
+    'note',
+    'gaps',
+    'supersedes',
+    'no-preflight',
+    'refresh-ac',
+    'dry-run',
+    'force',
+    'title',
+    'unity',
+    'max-files',
+    'timeout-ms',
+    'model',
+    'risk',
+  ],
+  'stage-review': ['delivery', 'profile', 'coverage', 'actor', 'authorization', 'force', 'dry-run'],
+  'stage-fix': [],
+  'stage-board': [],
+  'stage-report': [],
+  'stage-reconcile': ['actor'],
+  'stage-supersede': ['delivery', 'by', 'actor', 'note'],
+};
+
+export function allowedFlags(command) {
+  const declared = COMMAND_FLAGS[command];
+  if (!declared) return null;
+  return [...GLOBAL_FLAGS, ...declared].sort();
+}
+
+/**
+ * Reject options a command never declared. Unknown options are a usage error,
+ * never a no-op: silently ignoring them is how a preview turns into a review.
+ */
+export function assertKnownFlags(command, args) {
+  const allowed = allowedFlags(command);
+  if (!allowed) return true;
+  const set = new Set(allowed);
+  const unknown = Object.keys(args || {}).filter((k) => k !== '_' && !set.has(k));
+  if (!unknown.length) return true;
+  return fail(
+    EXIT.USAGE,
+    `${command}: unknown option ${unknown.map((u) => `--${u}`).join(', ')}`,
+    { command, unknown, allowed },
+  );
 }
 
 export function unityRunning() {
@@ -622,6 +726,16 @@ function profileDeclaresResultContract(profile) {
   return !!(profile && (profile.resultKind || profile.resultFile));
 }
 
+/**
+ * Doctor's verdict: only checks that could actually be *performed* may fail it.
+ * An `unavailable` check is a capability gap of the current environment (see the
+ * AppContainer review sandbox that cannot enumerate processes). Exported so the
+ * rule is testable without staging a broken powershell.
+ */
+export function doctorOk(checks) {
+  return checks.filter((c) => !c.unavailable).every((c) => c.ok);
+}
+
 export function cmdDoctor(cfg) {
   const dirs = collabDirs(cfg);
   const local = localDirs(cfg);
@@ -640,15 +754,21 @@ export function cmdDoctor(cfg) {
     push('localTmpWritable', false, String(e.message || e));
   }
   const unity = unityRunning();
-  push(
-    'unityOccupancyCheck',
-    unity.checked,
-    unity.checked
+  // "I could not look" is not "I looked and it was wrong". Inside a restricted
+  // token (AppContainer, locked-down CI) the process query itself is denied; the
+  // collaboration loop still works, and the safety-critical path is the Unity
+  // preflight, which refuses to start when occupancy cannot be verified. Doctor
+  // reports the gap as a warning instead of failing the whole environment.
+  checks.push({
+    name: 'unityOccupancyCheck',
+    ok: unity.checked,
+    unavailable: !unity.checked,
+    detail: unity.checked
       ? unity.running
         ? `Unity running pids=${unity.pids.join(',')}; wait for user save/close`
         : 'no Unity.exe detected'
       : `unavailable: ${unity.error}`,
-  );
+  });
   for (const tool of [
     'tools/semcheck/run.js',
     'tools/regression/export-baseline.js',
@@ -685,6 +805,14 @@ export function cmdDoctor(cfg) {
 
   // A general config.toml is not proof that this project's hook is registered.
   const warnings = [];
+  // Capability gaps are surfaced as warnings, not failures: a check that could not
+  // be *performed* is not evidence that anything is broken.
+  for (const c of checks.filter((x) => x.unavailable)) {
+    warnings.push(
+      `check unavailable: ${c.name} — ${c.detail}. This is an environment capability gap, not a defect; ` +
+        'the Unity preflight still refuses to start when occupancy cannot be verified.',
+    );
+  }
   const clientConfigs = [
     path.join(cfg._repoRoot, '.cursor/hooks.json'),
     path.join(cfg._repoRoot, '.codex/hooks.json'),
@@ -743,7 +871,7 @@ export function cmdDoctor(cfg) {
     );
   }
 
-  const ok = checks.every((c) => c.ok);
+  const ok = doctorOk(checks);
   return {
     ok,
     checks,
@@ -847,11 +975,135 @@ export function cmdTaskAdd(cfg, args) {
   });
   generateSummaries(cfg);
   const roots = resolveTaskRoots(cfg, task);
+  // S16/AC7: a rewritten template clause no longer proves anything by machine. The
+  // author has to know that at creation time, not when a review comes back failed.
+  const driftWarning = clauseDriftWarning(cfg, task);
+  if (driftWarning) {
+    recordEvent(cfg, {
+      actor,
+      action: 'task-add-clause-drift',
+      taskId: task.taskId,
+      summary: `clause text differs from profile template: ${driftWarning.split('\n')[0].slice(0, 200)}`,
+    });
+  }
   return {
     taskId: task.taskId,
     file: path.relative(cfg._repoRoot, target).split(path.sep).join('/'),
     snapshotRoots: roots.implementationRoots,
     rootsSource: roots.source,
+    ...(driftWarning ? { warnings: [driftWarning] } : {}),
+    ...(driftWarning ? { report: `任务已创建：${task.taskId}\n\n${driftWarning}` } : {}),
+  };
+}
+
+export function cmdTaskRescope(cfg, args = {}) {
+  const actor = args.actor || 'cursor';
+  assertRoleAction(actor, 'task-add');
+  const taskId = args.task;
+  if (!taskId) fail(EXIT.USAGE, 'task-rescope requires --task <id>');
+  const dryRun = args['dry-run'] === true || args['dry-run'] === 'true';
+  const task = loadTask(cfg, taskId);
+
+  const taskDeliveries = listDeliveries(cfg).filter((d) => d.taskId === taskId);
+  const latest = taskDeliveries.at(-1) || null;
+  if (!latest) fail(EXIT.USAGE, `${taskId} has no delivery to derive a baseline from`);
+
+  const reviews = listReviews(cfg);
+  const latestFinished = (deliveryId) =>
+    reviews
+      .filter((r) => r.deliveryId === deliveryId && r.finishedAt)
+      .sort((a, b) => (Date.parse(a.finishedAt) || 0) - (Date.parse(b.finishedAt) || 0))
+      .at(-1) || null;
+  const verdict = rescopeVerdict(cfg._repoRoot, latest, {
+    deliveries: listDeliveries(cfg),
+    latestReviewFor: latestFinished,
+  });
+  const drift = verdict.drift;
+  if (!drift.basis.length) {
+    fail(
+      EXIT.USAGE,
+      `${taskId}: ${latest.deliveryId} recorded no changed files (${drift.note}); there is nothing to narrow the baseline to`,
+      { taskId, deliveryId: latest.deliveryId },
+    );
+  }
+  const review = reviews
+    .filter((r) => r.deliveryId === latest.deliveryId)
+    .at(-1) || null;
+  // S17 fix: same verdict as refreshFreshness, including takeover by a later
+  // passed delivery. Reporting raw drift here once told the operator "re-review
+  // required" for a task that was archived seconds later.
+
+  const report = [
+    `任务 ${taskId} · 交付 ${latest.deliveryId}`,
+    `改动文件 ${drift.basis.length} 个：未变 ${drift.intact.length}、已再次改动 ${drift.drifted.length}、其中已被后续通过交付接手 ${verdict.covered}`,
+    drift.unverifiable.length ? `快照未记录（无法比对）${drift.unverifiable.length} 个：${drift.unverifiable.slice(0, 5).join(', ')}` : '',
+    drift.drifted.length
+      ? `已变动：${driftedSummary(drift, 10)}`
+      : '全部改动文件与交付快照逐字节一致',
+    review ? `历史检测：${review.reviewId} → ${review.status}` : '历史检测：无',
+    '',
+    verdict.freshness === 'archived'
+      ? drift.drifted.length
+        ? `结论：变动部分的当前字节已由后续通过交付（${verdict.owners.slice(0, 3).join(', ')}）承担，按改动文件收敛并归档。`
+        : '结论：历史检测所覆盖的改动未被动过，按改动文件收敛基线并归档，不再要求项目级复验。'
+      : `结论：${verdict.uncoveredCount} 个改动文件被后续改动且无人复验，任务仍需按当前代码复验（不归档）：${verdict.uncovered.slice(0, 5).join(', ')}`,
+    '注意：归档不等于「当前全项目可信」；它只说明该任务自己改过的字节还在（或已被后续通过交付接手）。项目级结论仍由后续阶段承担。',
+  ].filter(Boolean).join('\n');
+
+  if (dryRun) {
+    return {
+      ok: true,
+      dryRun: true,
+      taskId,
+      deliveryId: latest.deliveryId,
+      freshness: verdict.freshness,
+      drift,
+      drifted: drift.drifted,
+      uncovered: verdict.uncovered,
+      covered: verdict.covered,
+      report,
+      exitCode: EXIT.OK,
+    };
+  }
+
+  const next = { ...task, scopePolicy: 'changed-files' };
+  next.rescope = {
+    at: nowIso(),
+    actor,
+    deliveryId: latest.deliveryId,
+    basisCount: drift.basis.length,
+    drifted: drift.drifted,
+    coveredBy: verdict.owners,
+    uncovered: verdict.uncovered,
+    unverifiable: drift.unverifiable,
+    reason: 'project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set',
+  };
+  // Written from the shared verdict; refreshFreshness recomputes it from the same
+  // helper, so the command's report and the persisted state cannot diverge.
+  next.freshness = verdict.freshness;
+  next.freshnessNote = verdict.freshness === 'archived'
+    ? `Rescoped to ${drift.basis.length} changed files; baseline holds (${verdict.covered} taken over by later passed deliveries).`
+    : `Rescoped to ${drift.basis.length} changed files; ${verdict.uncoveredCount} edited again with no passed delivery taking over — re-review required.`;
+  next.updatedAt = nowIso();
+  saveTask(cfg, next);
+  recordEvent(cfg, {
+    actor,
+    action: 'task-rescope',
+    taskId,
+    deliveryId: latest.deliveryId,
+    summary: `scopePolicy=changed-files basis=${drift.basis.length} drifted=${drift.drifted.length}`,
+    data: { drifted: drift.drifted.slice(0, 20) },
+  });
+  generateSummaries(cfg);
+  return {
+    ok: true,
+    taskId,
+    deliveryId: latest.deliveryId,
+    freshness: next.freshness,
+    basisCount: drift.basis.length,
+    drifted: drift.drifted,
+    report,
+    exitCode: EXIT.OK,
   };
 }
 
@@ -1065,6 +1317,25 @@ export function cmdHooksStatus(cfg) {
   return hookStatus(cfg);
 }
 
+/** Every part that identifies a delivery. Never a subset: see deliveryFingerprintTriplet. */
+const FINGERPRINT_PARTS = ['implementation', 'verification', 'contract'];
+
+/**
+ * S14/D1: a delivery is identified by all three fingerprints, not by the
+ * implementation hash alone. `tools/collab/tests/` is deliberately excluded from
+ * the implementation fingerprint (verification-owned tests must not mutate the
+ * implementation identity), so a test-only delivery has a *constant*
+ * implementation hash. Binding evidence to that hash alone cannot tell two such
+ * deliveries apart, which is exactly the supersede hole this closes.
+ */
+function deliveryFingerprintTriplet(delivery) {
+  const out = {};
+  for (const part of FINGERPRINT_PARTS) {
+    out[part] = delivery?.fingerprints?.[part]?.fingerprint || null;
+  }
+  return out;
+}
+
 export function cmdReviewEvidence(cfg, args) {
   assertReviewActor(args, 'review-evidence');
   const review = readJson(path.join(collabDirs(cfg).reviews, `${args.review}.json`));
@@ -1092,7 +1363,11 @@ export function cmdReviewEvidence(cfg, args) {
   if (!['passed', 'failed'].includes(conclusion)) fail(EXIT.USAGE, 'conclusion must be passed|failed');
   if (conclusion === 'passed' && (!parsed.ok || run.exitCode !== 0)) fail(EXIT.EVIDENCE, 'machine result does not support passed');
   const evidence = {
-    conclusion, subjectImplementationFingerprint: delivery.fingerprints.implementation.fingerprint,
+    conclusion,
+    // S14/D1: keep the legacy single field for readers, but the binding that is
+    // enforced covers all three parts (review-finish rejects a partial triplet).
+    subjectImplementationFingerprint: delivery.fingerprints.implementation.fingerprint,
+    subjectFingerprints: deliveryFingerprintTriplet(delivery),
     assertionsTotal: parsed.counters.total, assertionsFailed: parsed.counters.failed, assertionsSkipped: parsed.counters.skipped,
     coverage: task.acceptanceCriteria.map(ac => ({ id: ac.id, result: rows.get(ac.id) || 'not_run',
       evidence: args.note || `Explicit operator coverage declaration for run ${run.runToken}; inspect the bound output.` })),
@@ -1951,6 +2226,8 @@ export function cmdReviewRun(cfg, args) {
       profile: profileName,
       deliveryId: review.deliveryId,
       subjectImplementationFingerprint: delivery.fingerprints.implementation.fingerprint,
+      // S14/D1: the run record also carries the whole identity it executed against.
+      subjectFingerprints: deliveryFingerprintTriplet(delivery),
       command: cmdResolved,
       cwd: snapAbs,
       exitCode: result.status == null ? 1 : result.status,
@@ -2217,14 +2494,53 @@ export function cmdReviewFinish(cfg, args) {
       fail(EXIT.EVIDENCE, 'evidence.assertionsSkipped exceeds assertionsTotal');
     }
 
-    if (!evidence.subjectImplementationFingerprint) {
-      fail(EXIT.EVIDENCE, 'evidence.subjectImplementationFingerprint required');
+    // S14/D1: evidence must identify the reviewed delivery by *every* part.
+    // Matching only the implementation hash lets a test-only supersede reuse the
+    // previous delivery's evidence, because `tools/collab/tests/` never moves the
+    // implementation fingerprint.
+    const deliveryFps = deliveryFingerprintTriplet(delivery);
+    const reviewFps = review.subjectFingerprints && typeof review.subjectFingerprints === 'object'
+      ? review.subjectFingerprints
+      : deliveryFps;
+    const fpDrift = FINGERPRINT_PARTS.filter((p) => reviewFps[p] !== deliveryFps[p]);
+    if (fpDrift.length) {
+      fail(
+        EXIT.EVIDENCE,
+        `review ${reviewId} subject fingerprints disagree with delivery ${delivery.deliveryId} on ${fpDrift.join(', ')}; start a new review`,
+        { deliveryId: delivery.deliveryId, review: reviewFps, delivery: deliveryFps },
+      );
+    }
+    const declaredFps = evidence.subjectFingerprints;
+    if (!declaredFps || typeof declaredFps !== 'object' || Array.isArray(declaredFps)) {
+      fail(
+        EXIT.EVIDENCE,
+        'evidence.subjectFingerprints required: bind implementation, verification and contract to the reviewed delivery',
+        { required: FINGERPRINT_PARTS },
+      );
+    }
+    const missingFps = FINGERPRINT_PARTS.filter((p) => !declaredFps[p]);
+    if (missingFps.length) {
+      fail(EXIT.EVIDENCE, `evidence.subjectFingerprints missing ${missingFps.join(', ')}`, {
+        required: FINGERPRINT_PARTS,
+        got: Object.keys(declaredFps),
+      });
+    }
+    const mismatchedFps = FINGERPRINT_PARTS.filter((p) => declaredFps[p] !== deliveryFps[p]);
+    if (mismatchedFps.length) {
+      fail(
+        EXIT.EVIDENCE,
+        `evidence subject fingerprints do not match delivery ${delivery.deliveryId} on ${mismatchedFps.join(', ')}`,
+        { mismatched: mismatchedFps, expected: deliveryFps, got: declaredFps },
+      );
     }
     if (
-      evidence.subjectImplementationFingerprint !==
-      delivery.fingerprints.implementation.fingerprint
+      evidence.subjectImplementationFingerprint &&
+      evidence.subjectImplementationFingerprint !== declaredFps.implementation
     ) {
-      fail(EXIT.EVIDENCE, 'evidence fingerprint does not match delivery implementation fingerprint');
+      fail(
+        EXIT.EVIDENCE,
+        'evidence.subjectImplementationFingerprint disagrees with evidence.subjectFingerprints.implementation',
+      );
     }
 
     let task = loadTask(cfg, review.taskId);
@@ -2406,7 +2722,11 @@ export function cmdReviewFinish(cfg, args) {
         task.freshnessNote = task.freshness === 'stale'
           ? `Review ${review.reviewId} passed delivery ${review.deliveryId}; workspace already differs — pending re-review.`
           : `Review ${review.reviewId} applies to delivery ${review.deliveryId}.`;
-        if (task.freshness === 'stale') task.devStatus = 'rework';
+        // S15/AC5: a passed verdict is the end of the workflow. Without this the
+        // `rework` written by an earlier failed review survives forever and the
+        // board keeps showing the impossible `rework/passed`. Whether the verdict
+        // still applies to the current tree is `freshness`, not `devStatus`.
+        task.devStatus = 'ready_for_review';
       } else {
         task.devStatus = 'rework';
         task.freshness = 'current';

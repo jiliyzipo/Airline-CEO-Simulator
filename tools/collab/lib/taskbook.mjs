@@ -5,6 +5,7 @@ import { collabDirs, localDirs } from './paths.mjs';
 import { ensureDir, nowIso, readJson, writeFileAtomic, writeJsonAtomic } from './io.mjs';
 import { EXIT, fail } from './exit.mjs';
 import { listDeliveries, listIssues, listReviews } from './state.mjs';
+import { freshnessSettles } from './basis.mjs';
 import { gitTreeFingerprint, latestCleanCheckoutFor, treeFingerprintFor } from './cleancheckout.mjs';
 import { gitMeta } from './fingerprint.mjs';
 
@@ -337,7 +338,7 @@ function finishTaskGate(cfg, task, taskId, parts, { mapping, clause = null, unch
       detail: latestReviewForLatest?.independent === false ? 'developer self-check is not independent acceptance' : 'separate developer and reviewer roles' });
     parts.push({
       id: 'current-passed-review',
-      ok: latestReviewForLatest?.status === 'passed' && task.freshness === 'current',
+      ok: latestReviewForLatest?.status === 'passed' && freshnessSettles(task.freshness),
       detail: latestReviewForLatest
         ? `latest review ${latestReviewForLatest.reviewId} ${latestReviewForLatest.status}; freshness=${task.freshness || 'unknown'}`
         : task.freshnessNote || 'no passed review for the latest delivery',

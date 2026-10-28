@@ -36,6 +36,25 @@ namespace AirlineCEO.Data
         public string lastOverhaulType;   // A/B/C/D 检 · 发动机 · 起落架 · 客舱翻新
         public int lastOverhaulYear;
 
+        /// <summary>
+        /// 大修预计出厂时刻（UTC ticks）；0 = 无在排窗口。
+        ///
+        /// ★2026-10-27 修：此前 `停场 N 天` 只写在日志与文案里，机队里没有任何字段承载这个窗口，
+        /// 于是飞机进 `维护中` 之后**永远不会自己出厂**（只有财年末 `RefreshStatus` 会顺带刷回
+        /// 适航，且机龄 &gt; 15 时反而被永久钉在维护中）。n107 那句「停场 2 天」是不存在的承诺。
+        /// 现在窗口落在本字段上，由 <see cref="Systems.FleetManager.ReleaseCompletedOverhauls"/>
+        /// 在每日时钟上推进、到期复飞。
+        ///
+        /// 用 UTC ticks 而不是「剩余天数」：时钟可以一次跨好几天（`AdvanceGameMinutes` 有追赶上限），
+        /// 存绝对值才不会因为跳过某天而漏减。旧存档没有本字段 → 反序列化为 0 → 视为无窗口，
+        /// 与旧行为（永不自动出厂）一致，不需要迁移。
+        /// </summary>
+        public long maintenanceUntilUtcTicks;
+
+        /// <summary>是否仍在排定的停场窗口内（无窗口或已到期返回 false）。</summary>
+        public bool InScheduledMaintenance(DateTime nowUtc)
+            => maintenanceUntilUtcTicks > 0 && nowUtc.Ticks < maintenanceUntilUtcTicks;
+
         public int TotalSeats =>
             firstClassSeats + businessSeats + economySeats;
 

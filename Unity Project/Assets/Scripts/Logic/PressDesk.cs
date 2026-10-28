@@ -64,20 +64,63 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
-        /// 正文抬头：交代「这是谁整理的」。原文（含原机关落款）紧随其后，一字不改。
+        /// 对外名衔：「新闻官 孙远」；西文名留空格（新闻官 James Smith）。
+        /// 正文抬头用（中文名连写），落款另见 <see cref="SignLabel"/>。
         /// </summary>
-        public static string ForwardHead(string source, string officer)
+        public static string OfficerLabel(string officer)
+        {
+            string who = Title;
+            if (string.IsNullOrEmpty(officer)) return who;
+            string o = officer.Trim();
+            if (o.Length == 0) return who;
+            // 中文名连写（新闻官沈其昌），西文名留空格
+            return who + (o[0] < 0x2E80 ? " " : "") + o;
+        }
+
+        /// <summary>
+        /// 落款署名：「新闻官 孙远」—— 职务与姓名之间一律留一格。
+        /// 与正文抬头的连写体例不同，是为了跟 <see cref="InboxLetter.Sign"/>（「运营部 张伟」）
+        /// 及收件箱抬头「新闻官 孙远」对齐；同一封信里「由新闻官沈其昌整理」和
+        /// 落款「新闻官 沈其昌」并存，读起来也不打架。
+        /// </summary>
+        public static string SignLabel(string officer)
+        {
+            string who = Title;
+            if (string.IsNullOrEmpty(officer)) return who;
+            string o = officer.Trim();
+            return o.Length == 0 ? who : who + " " + o;
+        }
+
+        /// <summary>
+        /// 正文抬头：交代「这是谁、哪天的来文」。原文（除机关落款外）紧随其后，一字不改。
+        ///
+        /// 机关名与文日只在这里出现一次 —— 转呈件末尾只署新闻官，
+        /// 原文自带的「机关名 / 日期」落款块由 <see cref="OfficialBulletin.Compose"/> 的 signed=false 略去，
+        /// 所以来源与文日并没有丢，只是从落款挪到了抬头。
+        /// </summary>
+        public static string ForwardHead(string source, string officer, string dateText = null)
         {
             string from = (source ?? "").Trim();
             if (from.Length == 0) from = "有关方面";
-            string who = Title;
-            if (!string.IsNullOrEmpty(officer))
-            {
-                string o = officer.Trim();
-                // 中文名连写（新闻官沈其昌），西文名留空格（新闻官 James Smith）
-                who += (o.Length > 0 && o[0] < 0x2E80 ? " " : "") + o;
-            }
-            return $"<color=#7C8FA6>以下为{from}来文原文，由{who}整理转呈。</color>\n\n";
+            string when = (dateText ?? "").Trim();
+            string head = when.Length == 0
+                ? $"以下为{from}来文原文"
+                : $"以下为{from}来文原文（{when}）";
+            return $"<color=#7C8FA6>{head}，由{OfficerLabel(officer)}整理转呈。</color>\n\n";
+        }
+
+        /// <summary>
+        /// 转呈人落款：正文末尾右对齐，与原文机关落款同版心。
+        ///
+        /// 为什么原文已经署了机关名、这里还要署一次：那是**原文**的署名，回答「这份文件是谁发的」；
+        /// 这一行回答的是「这封信是谁递到我桌上的」。两者缺一，CEO 都分不清该找谁问。
+        /// 所以原文机关落款一字不动（原文照登），转呈落款另起一行，绝不合并成「中央气象台 · 新闻官 孙远」。
+        /// </summary>
+        public static string ForwardSign(string officer, string dateText)
+        {
+            string sign = OfficialBulletin.RightAligned(SignLabel(officer));
+            string d = (dateText ?? "").Trim();
+            return d.Length == 0 ? sign : sign + "\n" + OfficialBulletin.RightAligned(d);
         }
 
         /// <summary>

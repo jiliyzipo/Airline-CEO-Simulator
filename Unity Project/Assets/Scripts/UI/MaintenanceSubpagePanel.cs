@@ -181,7 +181,7 @@ namespace AirlineCEO.UI
             if (gs == null) return;
             var mnt = MaintenanceManager.EnsureState(gs);
             L("H", "航线与定检维修 · 一线即时诊疗与深度体检", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
-            L("Kpi", $"机队可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架", 0.0f, 0.82f, 0.6f, 0.90f, 13, UITheme.Success, true);
+            L("Kpi", $"目标可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架", 0.0f, 0.82f, 0.6f, 0.90f, 13, UITheme.Success, true);
             L("Levels", "定检等级：A检（~2月）· B检（~7月）· C检（~21月·停场1-2周）· D检（~7年·停场1-2月）", 0.0f, 0.72f, 1.0f, 0.80f, 12, UITheme.TextMuted);
 
             var sb = new StringBuilder("定检排程（未来 6 个月）：\n");

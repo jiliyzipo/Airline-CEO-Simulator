@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026064129-225d13",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 434,
+  "at": "2026-10-26T06:41:29.097Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026031355-16ec52",
+  "reviewId": "REV-20261026060606-ce441e",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026061059-747c95: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261026061059-747c95",
+    "from": "open",
+    "to": "fixed",
+    "note": "新交付 DEL-20261026063907-c4218e（预检 collab 通过）。按上一轮留下的诊断定性：10 项失败全为受限令牌的环境能力缺口（临时目录 rename EPERM、git clone 的 upload-pack 子进程被拒 0xC0000022、CIM 查询被拒、慢沙箱撞 120s 墙），非业务回归。修复：clone 探针+SKIP 语义、doctor 只由"
+  }
+}

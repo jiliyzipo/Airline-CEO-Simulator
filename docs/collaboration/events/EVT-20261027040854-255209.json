@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027040854-255209",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 566,
+  "at": "2026-10-27T04:08:54.465Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S17-ScopeBaseline",
+  "deliveryId": "DEL-20261027014232-7be62b",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=17 drifted=8",
+  "data": {
+    "drifted": [
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/collab/lib/basis.mjs"
+    ]
+  }
+}

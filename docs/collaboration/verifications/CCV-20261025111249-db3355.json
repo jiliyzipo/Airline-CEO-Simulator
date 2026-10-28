@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "ccvId": "CCV-20261025111249-db3355",
+  "kind": "clean-checkout-byte-reproduction",
+  "actor": "cursor",
+  "createdAt": "2026-10-25T11:13:06.117Z",
+  "gitHead": "77ad67bdd4f56a103f08df5f532b4da99928743c",
+  "gitBranch": "cursor/phase10-fleet-management",
+  "treeFingerprint": "602b75e51fc63a7d09b0f08b414f45f6dc587557d28787fdd3cd338bee3110a6",
+  "worktreeClean": true,
+  "ignoredForDirtyCheck": [
+    "docs/collaboration",
+    "out/collab",
+    ".collab-local"
+  ],
+  "fileCount": 2987,
+  "baselineFileCount": 2293,
+  "recordFileCount": 694,
+  "byteIdentical": 2293,
+  "different": [],
+  "differentCount": 0,
+  "missing": [],
+  "missingCount": 0,
+  "ok": true,
+  "claims": "Every baseline file tracked at gitHead is reproduced byte-for-byte by \"git clone\" of this repository into an empty directory. Collaboration records are excluded: they are notes about the baseline, and writing one changes it.",
+  "doesNotClaim": "Unity editor import, compilation or gameplay launch from the clone. Those need their own recorded run and evidence.",
+  "evidence": [],
+  "statement": "Cursor 在提交 77ad67b 后执行：全仓 clone 对比工作区逐字节一致，用于补全项目 gate 的 cleanGitCheckoutVerified 一项。不声明编译或运行通过。",
+  "clonePath": null
+}

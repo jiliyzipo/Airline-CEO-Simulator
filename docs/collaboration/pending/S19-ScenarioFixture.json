@@ -1,0 +1,51 @@
+{
+  "taskId": "S19-ScenarioFixture",
+  "title": "阶段 S19：任务书手测场景夹具（缺员/停飞/维护/缺槽一键构造）",
+  "scope": [
+    "Unity Project/Assets/Scripts/Editor/ScenarioFixture.cs",
+    "Unity Project/Assets/Scripts/Editor/ScenarioFixtureRegression.cs",
+    "Unity Project/Assets/Tests/EditMode/ScenarioFixtureTests.cs",
+    "Unity Project/Assets/Scripts/Systems/GameState.cs",
+    "tools/semcheck/enc_baseline.json",
+    "docs/handoff/P29_场景夹具_开发记录_2026-10-27.md"
+  ],
+  "snapshotRoots": [
+    "Unity Project/Assets/Scripts",
+    "Unity Project/Assets/Tests",
+    "tools/semcheck",
+    "tools/regression"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S19-ScenarioFixture）"
+    },
+    {
+      "id": "AC2",
+      "text": "语义编译检查通过：缺失类型/重复定义/编码门禁均为 0 失败（S19-ScenarioFixture）"
+    },
+    {
+      "id": "AC3",
+      "text": "检查报告来自本次 run，且计数与退出码一致（S19-ScenarioFixture）"
+    },
+    {
+      "id": "AC4",
+      "text": "夹具造出的每个局面都由生产代码的读取口判定，不读夹具自己写的字段：缺员读 CabinFilled/CabinEstablishment，停飞与维护读 FlightGroundLogic 且属持续性原因，缺槽读 SlotsAvailable==0 且 SlotPoolFull"
+    },
+    {
+      "id": "AC5",
+      "text": "已处于目标状态（已缺员／已全停飞／池已满／无持仓／空机队）时夹具如实返回 false 并给出原因，不得假装又生效一次"
+    },
+    {
+      "id": "AC6",
+      "text": "夹具只改 Play 模式内存态，不写 PlayerPrefs、不改存档槽位，也不改产品玩法数值"
+    },
+    {
+      "id": "AC7",
+      "text": "乘务识别复用 GameState.IsCabinCrew，Editor 侧不得另写一份判据"
+    }
+  ],
+  "dependencies": [
+    "S18-ScopeVerdictFix"
+  ]
+}

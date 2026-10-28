@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S28-PressDeskSign",
+  "title": "阶段 S28-PressDeskSign：Editor/Collab/Assets-Tests",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Editor、Collab、Assets-Tests、UI、Logic、Balance",
+    "改动文件数 115，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S28-PressDeskSign）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S28-PressDeskSign）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S28-PressDeskSign）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-28T00:02:21.815Z",
+  "updatedAt": "2026-10-28T00:38:57.179Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historical review REV-20261028002745-400331 passed delivery DEL-20261028002145-55518e; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261028002745-400331"
+}

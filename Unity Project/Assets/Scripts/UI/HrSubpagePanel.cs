@@ -275,11 +275,32 @@ namespace AirlineCEO.UI
                            + "\n" + cause;
             }
             bool crewAtRisk = pilotEst > 0 && (pilotOn < pilotEst || crewMult < 1f);
-            // 指标正常时不追加指路文案，避免占满三行（该标签高度按三行上限设计）。
+            // ★2026-10-27 新增：客舱乘务覆盖读数。
+            //   此前「客舱缺员」在整个界面上只有一个**被动**出口 —— 职业介绍所 ④ 那行编制数；
+            //   而驾驶舱有「驾驶舱机组覆盖 X%」这样的主动指标。两岗在排班闸门
+            //   `CrewCapacityLogic` 里是取小的，客舱缺员会让加密班次被拦下，却没有任何徽标提示，
+            //   属于 T05.2「缺员提示」的缺口。这里镜像驾驶舱那一行补上。
+            int cabinEst = gs.CabinEstablishment;
+            int cabinOn = gs.CabinFilled;
+            int cabinGap = Mathf.Max(0, cabinEst - cabinOn);
+            bool cabinShort = cabinEst > 0 && cabinGap > 0;
+            float cabinCover = cabinEst > 0 ? Mathf.Clamp01(cabinOn / (float)cabinEst) : 0f;
+            bool cabinAtRisk = cabinShort;
+            // 客舱缺员**不参与**利润乘数（该乘数按既定设计只走驾驶舱 IsPilot），只拦班次。
+            // 文案必须写明这一点，否则玩家会以为多招乘务能直接抬利润。
             string crewHint = crewAtRisk ? "\n编制缺口与补齐渠道见「职业介绍所」（同排页签）" : "";
-            L("Crew", crewEffect + crewHint,
+            string cabinLine = cabinEst <= 0
+                ? crewHint
+                : "\n" + (cabinShort ? "⚠ " : "")
+                  + $"客舱乘务覆盖 {cabinCover * 100:F0}%（乘务员 {cabinOn}/{cabinEst}）"
+                  + (cabinShort
+                        ? $" · 缺员 {cabinGap} 人，不折损利润，但会让加密班次被排班闸门拦下"
+                        : " · 编制齐备")
+                  + (crewAtRisk || cabinAtRisk ? " · 补齐见「职业介绍所」" : "");
+            bool anyShort = crewAtRisk || cabinAtRisk;
+            L("Crew", crewEffect + cabinLine,
                 0.0f, 0.680f, 1.0f, 0.820f, 12,
-                crewAtRisk ? UITheme.Warning : UITheme.Success, true);
+                anyShort ? UITheme.Warning : UITheme.Success, true);
 
             // —— 各职能入口（n88–n91 此前只能靠邮件深链到达）——
             L("FnH", "各职能入口", 0.0f, 0.600f, 0.60f, 0.665f, 12, UITheme.Accent, true);

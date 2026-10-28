@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013326-0fdbbe",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 514,
+  "at": "2026-10-27T01:33:26.658Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S11-T043Windows",
+  "deliveryId": "DEL-20261025094638-6f76b0",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=66 drifted=7",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/balance/baseline/BASELINE_SOURCE.json",
+      "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs"
+    ]
+  }
+}

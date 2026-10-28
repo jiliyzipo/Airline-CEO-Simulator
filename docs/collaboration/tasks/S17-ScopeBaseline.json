@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S17-ScopeBaseline",
+  "title": "阶段 S17：快照基线按改动文件收敛（陈旧阶段不再永久待办）",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "archived",
+  "holder": null,
+  "scope": [
+    "tools/collab/lib/basis.mjs",
+    "tools/collab/lib/state.mjs",
+    "tools/collab/lib/schemas.mjs",
+    "tools/collab/lib/commands.mjs",
+    "tools/collab/cli.mjs",
+    "tools/collab/tests/daily.test.mjs",
+    "docs/handoff/P27_快照基线按改动文件收敛_开发记录_2026-10-27.md"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S17-ScopeBaseline）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S17-ScopeBaseline）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S17-ScopeBaseline）"
+    },
+    {
+      "id": "AC4",
+      "text": "已通过检测的历史任务若其改动文件逐字节未变，freshness 收敛为 archived，且不再出现在 NEXT_CURSOR.md / NEXT_CODEX.md 待办里"
+    },
+    {
+      "id": "AC5",
+      "text": "改动文件被后续改动但已由更晚的通过交付接手、且当前字节与那份交付快照一致时判定 archived，并在 freshnessNote 点名接手交付"
+    },
+    {
+      "id": "AC6",
+      "text": "改动文件被后续改动且无人接手时保持 stale，待办条目直接列出这些文件与个数，而不是笼统写工作区已变"
+    },
+    {
+      "id": "AC7",
+      "text": "task-rescope 只接受有改动文件记录的交付；无记录时以用量错误拒绝且不写入半套 scopePolicy"
+    },
+    {
+      "id": "AC8",
+      "text": "归档不修改历史检测记录，也不改写任务的 snapshotRoots（抓取范围），且 CURRENT.md 明确标注基线为本任务改动文件"
+    }
+  ],
+  "dependencies": [
+    "S16-CollabFidelity"
+  ],
+  "blockers": [],
+  "sourceTaskBook": null,
+  "createdAt": "2026-10-27T01:42:09.191Z",
+  "updatedAt": "2026-10-28T01:10:19.918Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "Historic verdict REV-20261027014550-30756c covered 17 changed files; 9 were edited later and are now owned by passed deliveries DEL-20261028010243-671d55.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T04:08:54.447Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261027014232-7be62b",
+    "basisCount": 17,
+    "drifted": [
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/collab/lib/basis.mjs"
+    ],
+    "coveredBy": [
+      "DEL-20261027034213-898afe"
+    ],
+    "uncovered": [],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 17,
+    "intact": 8,
+    "covered": 9,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
+}

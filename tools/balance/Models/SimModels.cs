@@ -101,6 +101,20 @@ public sealed class YearSummary
     public float CarbonCostWan { get; init; }
     public float LoanPrincipalWan { get; init; }
     public float LoanInterestPaidWan { get; init; }
+    /// <summary>
+    /// 期末未偿还的贷款本金（万美元）。
+    ///
+    /// 这是现金桥等式里最容易被忽略的一项：银行放款时`cash += 本金`，但**只有还掉的部分**
+    /// 才从现金里出去。期末仍欠着的本金因此停在账上，是「净利 ≠ 现金变化」的一部分原因。
+    /// </summary>
+    public float LoanOutstandingWan { get; init; }
+    /// <summary>
+    /// 现金桥残差（万美元）：`期末现金 − (期初 + 净利 + IRROPS − 已付利息 + 未偿本金)`。
+    ///
+    /// 该项为 0 才说明「12 个月的现金变动能被逐项解释」。任何非零值都是漏记/重记的信号，
+    /// 不允许用「矩阵是投影不是台账」把它含糊过去 —— 投影也必须自洽。
+    /// </summary>
+    public float CashBridgeResidualWan { get; init; }
 
     // —— FLEET/NET 年闭环 ——
     public int FleetCount { get; init; }

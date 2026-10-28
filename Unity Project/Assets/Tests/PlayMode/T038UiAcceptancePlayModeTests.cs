@@ -418,12 +418,12 @@ namespace AirlineCEO.Tests.PlayMode
         // ⑧ 地图线宽：档位函数（肉眼能否分辨另说）
         // —————————————————————————————————————————————————————————————
 
-        [TestCase(0, 2.0f)]
-        [TestCase(7, 2.0f)]
-        [TestCase(8, 2.4f)]
-        [TestCase(20, 2.4f)]
-        [TestCase(21, 3.0f)]
-        [TestCase(28, 3.0f)]
+        [TestCase(0, 1.8f)]
+        [TestCase(7, 1.8f)]
+        [TestCase(8, 2.8f)]
+        [TestCase(20, 2.8f)]
+        [TestCase(21, 4.0f)]
+        [TestCase(28, 4.0f)]
         public void MapRouteThickness_FollowsWeeklyDepartureBands(int weeklyFlights, float expected)
         {
             var route = new RouteData { routeId = "T038-W", origin = "PEK", destination = "SHA", weeklyFlights = weeklyFlights };
@@ -431,15 +431,142 @@ namespace AirlineCEO.Tests.PlayMode
                 $"{weeklyFlights} 班/周 应画 {expected}px");
         }
 
+        /// <summary>
+        /// 三档之间的差必须 ≥1 px。
+        ///
+        /// 首版是 2.0 / 2.4 / 3.0，相邻只差 0.4 / 0.6 px —— 比一个像素还小，
+        /// 上机目测「线条粗细一样」（2026-10-27 用户实测）。档位函数当时是全绿的：
+        /// 断言只证明「取到了 2.0 和 3.0」，证明不了「这两个数看得出来」。
+        /// 所以补这条守卫，把「差值够不够看」变成机器可判定的下限，
+        /// 免得以后有人为了「更细腻」把档位又调回 0.x 的间隔。
+        /// </summary>
+        [Test]
+        public void MapRouteThickness_BandsAreSeparatedByAtLeastOnePixel()
+        {
+            var thin = new RouteData { routeId = "T038-S1", origin = "PEK", destination = "SHA", weeklyFlights = 7 };
+            var mid = new RouteData { routeId = "T038-S2", origin = "PEK", destination = "SHA", weeklyFlights = 14 };
+            var thick = new RouteData { routeId = "T038-S3", origin = "PEK", destination = "SHA", weeklyFlights = 21 };
+
+            float a = MapWidget.RouteThickness(thin);
+            float b = MapWidget.RouteThickness(mid);
+            float c = MapWidget.RouteThickness(thick);
+
+            Assert.GreaterOrEqual(b - a, 1.0f, $"细档→基准档只差 {b - a:F2}px，人眼分辨不出；至少 1px");
+            Assert.GreaterOrEqual(c - b, 1.0f, $"基准档→粗档只差 {c - b:F2}px，人眼分辨不出；至少 1px");
+            Assert.Greater(c - a, 1.5f, $"细档→粗档只差 {c - a:F2}px，运力分布仍然读不出来");
+        }
+
         [Test]
         public void MapRouteThickness_ReadsDepartureNotDutyTotals()
         {
             var route = new RouteData { routeId = "T038-W2", origin = "PEK", destination = "SHA" };
             route.SyncFlightsFromPrimary();          // 每日 7 班
-            Assert.AreEqual(2.0f, MapWidget.RouteThickness(route), 1e-4f);
+            Assert.AreEqual(1.8f, MapWidget.RouteThickness(route), 1e-4f);
             route.flights[0].weeklyFlights = 21;
-            Assert.AreEqual(3.0f, MapWidget.RouteThickness(route), 1e-4f,
+            Assert.AreEqual(4.0f, MapWidget.RouteThickness(route), 1e-4f,
                 "线宽取离港周合计；改班次后必须跟着变，不能沿用首次绘制的档位");
+        }
+
+        // —————————————————————————————————————————————————————————————
+        // ⑧b 地图渲染链路：档位函数对了，不等于画出来的线就是那个宽度
+        //
+        // 这一段补的是 ⑧ 覆盖不到的缝。⑧ 只验 RouteThickness(route) 的返回值；
+        // 真实的绘制要经过 DrawRoutes → DrawLine(写进 sizeDelta.y) → MapTrackZoom.RegisterLine，
+        // 任何一环把 thickness 丢掉或改写，⑧ 都照样全绿。
+        // 所以这里走真实绘制路径，断言三层同时一致：绘制条数 / 注册厚度 / 实际几何。
+        // —————————————————————————————————————————————————————————————
+
+        static GameObject MapCanvas(string name)
+        {
+            // 不建 MapViewport：视口缩放会把 sizeDelta.y 改成 thickness / viewScale，
+            // 那样断言的是「缩放到多少」而不是「登记了多少」。本段只验无缩放时的登记契约。
+            var go = new GameObject(name, typeof(RectTransform));
+            return go;
+        }
+
+        [Test]
+        public void MapRouteRender_PaintsBandsThroughRealDrawPath()
+        {
+            var gs = NewState("T038MapRender");
+            var thin = MakeRoute("T038-M1", "B-3801");                    // 每日 7 班 → ≤7 档
+            var thick = MakeRoute("T038-M2", "B-3802");
+            thick.destination = "PVG";                                    // 换目的地，避免两线重叠
+            thick.SyncFlightsFromPrimary();
+            thick.flights[0].weeklyFlights = 21;                          // >20 档
+            gs.activeRoutes.Add(thin);
+            gs.activeRoutes.Add(thick);
+
+            var map = Own(MapCanvas("T038MapRoot"));
+            int drawn = MapWidget.DrawRoutes(map.transform);
+
+            Assert.Greater(drawn, 0, "两条有效航线必须画出线段；0 表示绘制入口被跳过");
+            var zoom = map.GetComponent<MapTrackZoom>();
+            Assert.IsNotNull(zoom, "DrawRoutes 必须挂上 MapTrackZoom（否则缩放补偿整条链路失效）");
+            Assert.AreEqual(drawn, zoom.LineCount, "每条绘制成功的线段都必须登记，不能只画不登记");
+
+            var th = zoom.LineThicknesses;
+            CollectionAssert.Contains(th.ToArray(), 1.8f, "7 班/周 的航线必须是 1.8px 档");
+            CollectionAssert.Contains(th.ToArray(), 4.0f, "21 班/周 的航线必须是 4.0px 档");
+            foreach (var t in th)
+                Assert.IsTrue(Mathf.Approximately(t, 1.8f) || Mathf.Approximately(t, 2.8f) || Mathf.Approximately(t, 4.0f),
+                    $"绘制出了档位外的线宽 {t}；地图只允许 1.8 / 2.8 / 4.0 三档");
+        }
+
+        [Test]
+        public void MapRouteRender_WritesRegisteredThicknessIntoRealGeometry()
+        {
+            var gs = NewState("T038MapGeom");
+            var thin = MakeRoute("T038-G1", "B-3803");
+            var thick = MakeRoute("T038-G2", "B-3804");
+            thick.destination = "PVG";
+            thick.SyncFlightsFromPrimary();
+            thick.flights[0].weeklyFlights = 21;
+            gs.activeRoutes.Add(thin);
+            gs.activeRoutes.Add(thick);
+
+            var map = Own(MapCanvas("T038MapRoot2"));
+            MapWidget.DrawRoutes(map.transform);
+            var zoom = map.GetComponent<MapTrackZoom>();
+            Assert.IsNotNull(zoom);
+            Assert.Greater(zoom.LineCount, 0);
+
+            for (int i = 0; i < zoom.LineCount; i++)
+            {
+                var rt = zoom.LineAt(i);
+                Assert.IsNotNull(rt, $"第 {i} 条线段登记了却取不到 RectTransform");
+                Assert.AreEqual(zoom.LineThicknesses[i], rt.sizeDelta.y, 1e-3f,
+                    $"第 {i} 条线段登记的厚度与实际 sizeDelta.y 不一致 —— 绘制函数把档位丢了");
+                Assert.Greater(rt.sizeDelta.x, 0f, $"第 {i} 条线段长度为 0，画了等于没画");
+            }
+        }
+
+        [Test]
+        public void MapRouteRender_DrawLineHonoursThicknessForEveryBand()
+        {
+            var map = Own(MapCanvas("T038MapBands")).transform;
+            foreach (var band in new[] { 1.8f, 2.8f, 4.0f })
+            {
+                var rt = MapWidget.DrawLine(map, "band_" + band, Vector2.zero, new Vector2(100f, 0f),
+                    Color.white, band);
+                Assert.IsNotNull(rt, $"{band}px 档必须画得出来");
+                Assert.AreEqual(band, rt.sizeDelta.y, 1e-3f, $"DrawLine 未把 {band}px 写进 sizeDelta.y");
+                Assert.AreEqual(100f, rt.sizeDelta.x, 1e-3f, "线段长度必须等于两端点距离");
+            }
+        }
+
+        [Test]
+        public void MapRouteRender_AddsNoAmountsToTheMapLayer()
+        {
+            var gs = NewState("T038MapNoMoney");
+            gs.activeRoutes.Add(MakeRoute("T038-N1", "B-3805"));
+            var map = Own(MapCanvas("T038MapRoot3"));
+            MapWidget.DrawRoutes(map.transform);
+
+            // T03.8 的「地图口径」前提：航线绘制不往地图上写任何金额。
+            // 城市气泡里的 GDP / 吞吐量 / 买基地价属城市经济学，不是航线盈亏，不在此断言范围。
+            var money = Labels(map).FirstOrDefault(t => t != null && !string.IsNullOrEmpty(t.text)
+                && (t.text.Contains("万") || t.text.Contains("日利") || t.text.Contains("周利")));
+            Assert.IsNull(money, $"航线绘制不应产生金额文本，但出现了「{(money != null ? money.text : "")}」");
         }
 
         // —————————————————————————————————————————————————————————————

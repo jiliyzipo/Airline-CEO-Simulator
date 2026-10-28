@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": null,
   "createdAt": "2026-10-18T05:02:40.016Z",
-  "updatedAt": "2026-10-18T08:10:23.510Z",
+  "updatedAt": "2026-10-28T01:10:09.438Z",
   "snapshotRoots": [
     "tools/collab"
   ],
@@ -41,6 +41,41 @@
     "docs/collaboration/OPERATOR_MANUAL_ZH.md",
     "AGENTS.md"
   ],
-  "freshnessNote": "Historical review REV-20261018072743-74a233 passed delivery DEL-20261018071756-010504; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261018072743-74a233"
+  "freshnessNote": "Historic verdict REV-20261018072743-74a233 covered 35 changed files; 14 taken over by later passed deliveries, 2 still uncovered (AGENTS.md, docs/collaboration/README.md).",
+  "staleForReviewId": "REV-20261018072743-74a233",
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:33:20.835Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261018071756-010504",
+    "basisCount": 35,
+    "drifted": [
+      "AGENTS.md",
+      "docs/collaboration/OPERATOR_MANUAL_ZH.md",
+      "docs/collaboration/PROTOCOL.md",
+      "docs/collaboration/README.md",
+      "tools/collab/Collab.ps1",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/paths.mjs",
+      "tools/collab/lib/schemas.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/lib/taskbook.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 35,
+    "intact": 19,
+    "covered": 14,
+    "uncovered": [
+      "AGENTS.md",
+      "docs/collaboration/README.md"
+    ],
+    "uncoveredCount": 2
+  }
 }

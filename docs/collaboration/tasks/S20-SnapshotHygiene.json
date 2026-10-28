@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S20-SnapshotHygiene",
+  "title": "阶段 S20-SnapshotHygiene：Collab/Editor/Assets-Tests",
+  "revision": 3,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "archived",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：tools/collab（快照清理模块与回归）、docs/handoff（开发记录）",
+    "刻意不含 Unity 侧源码：本阶段未改动任何游戏代码，--roots 精确钉住范围",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S20-SnapshotHygiene）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S20-SnapshotHygiene）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S20-SnapshotHygiene）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-27T03:15:15.855Z",
+  "updatedAt": "2026-10-28T01:10:21.221Z",
+  "snapshotRoots": [
+    "tools/collab",
+    "docs/handoff"
+  ],
+  "freshnessNote": "Historic verdict REV-20261027035404-8c86c1 covered 40 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261028010243-671d55.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T04:18:06.348Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261027034213-898afe",
+    "basisCount": 40,
+    "drifted": [
+      "tools/collab/lib/state.mjs",
+      "docs/handoff/P30_快照卫生_开发记录_2026-10-27.md",
+      "tools/collab/lib/basis.mjs"
+    ],
+    "coveredBy": [
+      "DEL-20261027041226-5c9d55"
+    ],
+    "uncovered": [],
+    "unverifiable": [
+      "docs/handoff/verification/2026-10-27/ai-run-all.log"
+    ],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 40,
+    "intact": 33,
+    "covered": 6,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
+}

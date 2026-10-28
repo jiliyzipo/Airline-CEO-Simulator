@@ -130,6 +130,48 @@ namespace AirlineCEO.Systems
             return n;
         }
 
+        /// <summary>
+        /// 该机是否要在机队列表上挂「年结停场」徽标。
+        ///
+        /// ★2026-10-27：用户截图发现 `B-2005`（20 年）、`B-2006`（24 年）在列表里仍是
+        /// 一片绿色的 `适航` —— 延寿规则只在**点进详情页**时才出现，列表上毫无预警。
+        /// 玩家要一架架点开才知道下一个财年末会停哪几架。
+        ///
+        /// 判据**只写这一处**，列表徽标与详情页提示必须同源：若列表按当前机况判、
+        /// 详情页按年结口径（先扣年度磨损）判，同一架飞机会出现「列表无提示、点进去说要停场」。
+        ///
+        /// 排除项：
+        /// - 已退役 / 已退租 —— 本来就不飞了，提示只是噪音；
+        /// - 停场窗口内（<c>maintenanceUntilUtcTicks != 0</c>）—— 已有明确的 `维护中` 状态与出厂日期，
+        ///   再叠一条「年结会停场」会让玩家以为这次定检白做了。
+        /// </summary>
+        public static bool NeedsLifeExtensionWarning(Aircraft a)
+        {
+            if (a == null) return false;
+            // 已退役 / 已退租：ExitLabel 只在 status == Retired 时非空，故 IsDisposed 已覆盖两者
+            if (a.IsDisposed) return false;
+            if (a.maintenanceUntilUtcTicks != 0) return false;
+            if (a.age <= FleetEconomics.LifeExtensionAgeLimit) return false;
+            return !FleetEconomics.WillStayAirworthyAtYearEnd(a.age, a.condition);
+        }
+
+        /// <summary>
+        /// 年结会因机龄-机况停场的飞机数（列表徽标与顶栏汇总共用）。
+        ///
+        /// 刻意声明为 **static**：它只依赖传入的 <paramref name="gs"/>，与 <c>Instance</c> 无关。
+        /// 这样隔离回归不必先造一个 <c>FleetManager</c> 组件就能验证判据 ——
+        /// 判据一旦只能经 MonoBehaviour 调用，测试就会绕开它自己另写一份，两边迟早分叉。
+        /// </summary>
+        public static int CountLifeExtensionRisk(GameState gs = null)
+        {
+            gs ??= GameState.Instance;
+            if (gs?.fleet == null) return 0;
+            int n = 0;
+            for (int i = 0; i < gs.fleet.Count; i++)
+                if (NeedsLifeExtensionWarning(gs.fleet[i])) n++;
+            return n;
+        }
+
         public float AverageAge(GameState gs = null)
         {
             gs ??= GameState.Instance;
@@ -501,41 +543,129 @@ namespace AirlineCEO.Systems
             return true;
         }
 
-        /// <summary>n107 大修预算确认：锁定大修窗口 + 占用预算。</summary>
+        /// <summary>
+        /// n107 大修预算确认：扣款（预估 + 不可预见费）、置为维护中、写入停场窗口。
+        ///
+        /// ★2026-10-27 修三件事：
+        /// ① 扣款改为 <see cref="FleetEconomics.OverhaulCashCost"/> —— 预算页列的
+        ///   「不可预见费(+12%)」此前只显示不扣，实际扣款与屏幕数字不一致；
+        /// ② 写入 <see cref="Aircraft.maintenanceUntilUtcTicks"/>，「停场 N 天」第一次真的生效，
+        ///   到期由 <see cref="ReleaseCompletedOverhauls"/> 复飞；
+        /// ③ 返回值语义不变（是否排程成功），但 0 天 / 已退役的情形现在如实拒绝。
+        /// </summary>
         public bool ScheduleOverhaul(string registration, string overhaulType, out string message)
+            => ScheduleOverhaul(GameState.Instance, GetAircraftByRegistration(registration), overhaulType, out message);
+
+        /// <summary>
+        /// 与上面同一条链路，但显式收 <paramref name="gs"/> 与 <paramref name="ac"/>。
+        ///
+        /// 分出来是为了让 EditMode 回归能驱动真实扣款/排程路径：<see cref="GameState"/> 没有
+        /// <c>[ExecuteInEditMode]</c>，`AddComponent` 不跑 `Awake`，`GameState.Instance` 恒为 null，
+        /// 单例版在回归里根本走不到被测分支（同 `TermNavMap.Decorate(body, host)` 的取舍）。
+        /// 游戏内调用方一个字不用改。
+        /// </summary>
+        public static bool ScheduleOverhaul(GameState gs, Aircraft ac, string overhaulType, out string message)
         {
-            var ac = GetAircraftByRegistration(registration);
             if (ac == null)
             {
-                message = $"未找到飞机 {registration}";
+                message = "未找到飞机";
                 return false;
             }
-            var gs = GameState.Instance;
+            string registration = ac.registration;
+            if (ac.status == AircraftStatuses.Retired)
+            {
+                message = $"{registration} 已退出机队，不能安排大修。";
+                return false;
+            }
+            if (ac.status == AircraftStatuses.Maintenance)
+            {
+                message = $"{registration} 已在维护中"
+                          + (ac.maintenanceUntilUtcTicks > 0
+                              ? $"（排定出厂 {ReleaseDateLabel(ac)}），不能重复排程。"
+                              : "，不能重复排程。");
+                return false;
+            }
+
             bool wide = EconomyBalanceParams.IsWidebody(ac.type ?? "");
             float cost = FleetEconomics.OverhaulCost(overhaulType, wide);
+            float cashCost = FleetEconomics.OverhaulCashCost(overhaulType, wide);
             int days = FleetEconomics.OverhaulDays(overhaulType);
+            DateTime now = gs != null ? gs.SimUtc : DateTime.UtcNow;
 
-            if (gs != null && gs.cash + 0.01f < cost)
+            if (gs != null && gs.cash + 0.01f < cashCost)
             {
-                message = $"现金不足：{overhaulType} 预估 {cost:F0} 万，当前 {gs.cash:F0} 万。";
+                message = $"现金不足：{overhaulType} 预估 {cost:F0} 万 + 不可预见费 "
+                          + $"{cashCost - cost:F0} 万 = {cashCost:F0} 万，当前 {gs.cash:F0} 万。";
                 return false;
             }
 
-            if (gs != null) gs.cash -= cost;
+            if (gs != null) gs.cash -= cashCost;
             ac.lastOverhaulType = overhaulType;
             ac.lastOverhaulYear = gs != null ? gs.year : ac.lastOverhaulYear;
-            ac.condition = Mathf.Clamp(ac.condition + 25f, 0f, 100f);
+            ac.condition = Mathf.Clamp(ac.condition + FleetEconomics.OverhaulConditionGain, 0f, 100f);
             ac.status = AircraftStatuses.Maintenance;
             ac.isActive = true;
+            ac.maintenanceUntilUtcTicks = now.AddDays(days).Ticks;
 
-            gs?.AddDecisionLog($"安排大修 {registration}：{overhaulType} · 停场 {days} 天 · −{cost:F0} 万");
+            gs?.AddDecisionLog($"安排大修 {registration}：{overhaulType} · 停场 {days} 天 · −{cashCost:F0} 万"
+                               + $"（含不可预见费 {cashCost - cost:F0} 万）");
             gs?.NotifyChanged();
-            OnFleetChanged?.Invoke();
-            message = $"{registration} 已排程 {overhaulType}（停场 {days} 天，费用 {cost:F0} 万，状态→维护中）。";
+            Instance?.OnFleetChanged?.Invoke();
+            message = $"{registration} 已排程 {overhaulType}（停场 {days} 天，扣款 {cashCost:F0} 万"
+                      + $"，其中不可预见费 {cashCost - cost:F0} 万，状态→维护中，预计 {ReleaseDateLabel(ac)} 出厂）。";
             return true;
         }
 
-        /// <summary>单机大修预估费用（万美元）。</summary>
+        /// <summary>排定出厂日（本地日期），无窗口返回「未排定」。仅用于界面与日志文案。</summary>
+        public static string ReleaseDateLabel(Aircraft ac)
+        {
+            if (ac == null || ac.maintenanceUntilUtcTicks <= 0) return "未排定";
+            var dt = new DateTime(ac.maintenanceUntilUtcTicks, DateTimeKind.Utc).ToLocalTime();
+            return $"{dt.Month} 月 {dt.Day} 日";
+        }
+
+        /// <summary>
+        /// 每日时钟：把停场窗口已到期的飞机放回适航。
+        ///
+        /// 做成 <c>static</c> 而不是实例方法：EditMode 回归里没有 <see cref="Instance"/>，
+        /// 而验收必须能直接驱动这条路径（同 <see cref="RefreshStatus"/> 的取舍）。
+        /// 返回本次复飞架数，便于断言与「机务报告」取数。
+        ///
+        /// 刻意**不**在这里加「机况奖励」或改机龄：大修的效果（+25 机况）在排程那一刻已结算，
+        /// 复飞只负责把状态与窗口还原，避免同一次大修被结算两遍。
+        /// </summary>
+        public static int ReleaseCompletedOverhauls(GameState gs, DateTime? nowUtc = null)
+        {
+            if (gs?.fleet == null) return 0;
+            DateTime now = nowUtc ?? (gs.SimUtc);
+            int released = 0;
+            for (int i = 0; i < gs.fleet.Count; i++)
+            {
+                var a = gs.fleet[i];
+                if (a == null || a.maintenanceUntilUtcTicks <= 0) continue;
+                if (now.Ticks < a.maintenanceUntilUtcTicks) continue;
+                // 窗口到了：只在「仍处于维护中」时改写状态；若中途被退役/退租，只清窗口不动状态。
+                if (a.status == AircraftStatuses.Maintenance)
+                {
+                    a.status = AircraftStatuses.Airworthy;
+                    released++;
+                    gs.AddDecisionLog($"{a.registration} 定检出厂：状态 维护中 → 适航（{a.lastOverhaulType} 完成）");
+                }
+                a.maintenanceUntilUtcTicks = 0;
+            }
+            if (released > 0)
+            {
+                gs.NotifyChanged();
+                Debug.Log($"[Fleet] 大修到期出厂 {released} 架。");
+            }
+            return released;
+        }
+
+
+        /// <summary>
+        /// 单机大修预估费用（万美元）—— **不含不可预见费**，不能拿它当扣款额。
+        /// 实际扣款一律走 <see cref="FleetEconomics.OverhaulCashCost"/>（n107 屏幕上的「合计扣款」）。
+        /// </summary>
         public static float CalcOverhaulCost(Aircraft ac, string overhaulType)
         {
             bool wide = ac != null && EconomyBalanceParams.IsWidebody(ac.type ?? "");
@@ -603,7 +733,7 @@ namespace AirlineCEO.Systems
                 var a = gs.fleet[i];
                 if (a == null || a.status == AircraftStatuses.Retired) continue;
                 a.age = Mathf.Max(0, a.age + 1);
-                a.condition = Mathf.Clamp(a.condition - 2f, 20f, 100f);
+                a.condition = Mathf.Clamp(a.condition - FleetEconomics.AnnualConditionDecay, FleetEconomics.AnnualConditionFloor, 100f);
                 RefreshStatus(a);
             }
 
@@ -611,10 +741,24 @@ namespace AirlineCEO.Systems
             Debug.Log("[Fleet] 财年末机龄 +1 完成。");
         }
 
-        public static void RefreshStatus(Aircraft a)
+        /// <param name="nowUtc">判定「是否仍在停场窗口内」用的时刻；null = 取当前游戏时刻。回归可显式传入。</param>
+        public static void RefreshStatus(Aircraft a, DateTime? nowUtc = null)
         {
             if (a == null || a.status == AircraftStatuses.Retired) return;
-            if (a.age > 15)
+            // 停场窗口内的车不许被财年末这一刷提前放出来：否则「停场 N 天」在最坏情况下
+            // 会被年结缩短成 1 天，屏上那个 N 又变成假数字。到期由 ReleaseCompletedOverhauls 负责。
+            DateTime now = nowUtc ?? (GameState.Instance != null ? GameState.Instance.SimUtc : DateTime.UtcNow);
+            if (a.InScheduledMaintenance(now))
+            {
+                a.status = AircraftStatuses.Maintenance;
+                a.isActive = true;
+                return;
+            }
+            // ★2026-10-27 修：机龄超限不再是无条件死刑。原实现 `age > 15 → 维护中`，
+            // 且没有任何恢复路径（LiveClockSimulator 只处理 InFlight → 适航，落地时飞机已不在飞），
+            // 于是 16 年的飞机做完大修也救不回来。现在改由 FleetEconomics.CanExtendLife 判定：
+            // 机龄超限但机况达标 → 允许继续适航；机况不够 → 停场，且玩家可以去定检抬机况。
+            if (FleetEconomics.IsGroundedByAge(a.age, a.condition))
             {
                 a.status = AircraftStatuses.Maintenance;
                 a.isActive = true; // 仍在册，但非适航开通
@@ -697,7 +841,7 @@ namespace AirlineCEO.Systems
         {
             var gs = GameState.Instance;
             var sb = new StringBuilder();
-            sb.Append($"机队 {CountTotal(gs)} 架 · 适航 {CountAirworthy(gs)} · 均龄 {AverageAge(gs):F1} 年");
+            sb.Append($"机队 {CountTotal(gs)} 架 · 在役 {CountAirworthy(gs)} · 均龄 {AverageAge(gs):F1} 年");
             sb.Append($" · 月维护约 {CalcMonthlyMaintenance(gs):F1} 万");
             return sb.ToString();
         }

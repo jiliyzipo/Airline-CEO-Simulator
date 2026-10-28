@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026015327-0c2536",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 408,
+  "at": "2026-10-26T01:53:27.083Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S12-CommandConsole",
+  "deliveryId": "DEL-20261025130530-eb6e48",
+  "reviewId": "REV-20261025133501-b94646",
+  "parentEventId": null,
+  "summary": "ISSUE-20261025133539-5d00c2: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261025133539-5d00c2",
+    "from": "open",
+    "to": "fixed",
+    "note": "按条款分层修复：AC1-AC3 恢复 unity-editmode 机器条款原文，AC4-AC7 改为带证据用例名的业务条款；新增 OpenRouteStudyRegression/OpenRouteStudyTests 补 AC5 断言。新交付 DEL-20261025140410-e7b753 独立检测 REV-20261026015132-1bde4e 已通过（48/48），AC4-AC7 由检测者显式补证。verified/closed 待 Codex 判定。"
+  }
+}

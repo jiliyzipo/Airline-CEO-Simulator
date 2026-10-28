@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027014209-7009af",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 517,
+  "at": "2026-10-27T01:42:09.207Z",
+  "actor": "cursor",
+  "action": "task-add",
+  "taskId": "S17-ScopeBaseline",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "task-add S17-ScopeBaseline",
+  "data": {}
+}

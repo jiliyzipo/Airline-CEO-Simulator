@@ -1,0 +1,1458 @@
+{
+  "schemaVersion": 1,
+  "deliveryId": "DEL-20261026022132-804f18",
+  "taskId": "S13-CollabSupersede",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "tool": "cursor",
+  "model": "cursor-stage",
+  "summary": "阶段：阶段 S13-CollabSupersede：Collab\nprofile：collab\n对比基准：git\n改动文件：4\n分布：Collab(+0/~4/-0)\n\n重点文件：\n- 修改 tools/collab/cli.mjs\n- 修改 tools/collab/lib/stage.mjs\n- 修改 tools/collab/lib/state.mjs\n- 修改 tools/collab/tests/stage.test.mjs\n\n预检：交付后自动在快照内执行，结果见交接单\n\n说明：交付台账里登记「被取代的交付」：refreshFreshness 与看板只把未退休的交付当作任务的最新工作；stage-close 在写交接单时同步登记同任务的取代关系，新增 --supersedes 用于显式注销错挂在别的任务下的交付，新增 stage-reconcile 从 handoff 索引补齐台账。新增 SUP01/SUP02/SUP03 三条回归（collab 套件 147/147）。",
+  "files": {
+    "changedNote": "see fingerprints.implementation.entries / git porcelain",
+    "workspaceChanges": [
+      {
+        "status": " M",
+        "path": "tools/collab/cli.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/lib/stage.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/lib/state.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/tests/stage.test.mjs"
+      }
+    ]
+  },
+  "businessRisk": "none stated",
+  "selfTest": {
+    "performed": true,
+    "notes": "stage-close preflight: collab"
+  },
+  "knownGaps": [],
+  "git": {
+    "head": "77ad67bdd4f56a103f08df5f532b4da99928743c",
+    "branch": "cursor/phase10-fleet-management",
+    "changes": [
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Systems/GameState.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Systems/SaveManager.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/Systems/TimeManager.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/UI/OpenRouteDecisionFlow.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/UI/Shell/AdvisorModalUI.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/UI/Shell/AdvisorTutorialScript.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
+      },
+      {
+        "status": " M",
+        "path": "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs"
+      },
+      {
+        "status": " M",
+        "path": "docs/collaboration/CURRENT.md"
+      },
+      {
+        "status": " M",
+        "path": "docs/collaboration/NEXT_CODEX.md"
+      },
+      {
+        "status": " M",
+        "path": "docs/collaboration/NEXT_CURSOR.md"
+      },
+      {
+        "status": " M",
+        "path": "docs/collaboration/state.json"
+      },
+      {
+        "status": " M",
+        "path": "docs/collaboration/tasks/S11-T043Windows.json"
+      },
+      {
+        "status": " M",
+        "path": "docs/handoff/Baseline_2026-10-17.json"
+      },
+      {
+        "status": " M",
+        "path": "tools/balance/baseline/BASELINE_SOURCE.json"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/cli.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/lib/stage.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/lib/state.mjs"
+      },
+      {
+        "status": " M",
+        "path": "tools/collab/tests/stage.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs"
+      },
+      {
+        "status": "??",
+        "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs.meta"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/deliveries/DEL-20261025125421-e0fbe0.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/deliveries/DEL-20261025130530-eb6e48.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/deliveries/DEL-20261025140410-e7b753.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025120533-7b8dcf.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025120552-ac889a.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025125414-48f461.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025125428-6fa3ea.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025125829-1d6176.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025130315-5de05d.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025130410-67db64.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025130410-70e55f.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025130518-a97a42.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025130538-a2469d.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025131010-311cb3.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025133446-1a8d34.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025133446-7a273a.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025133502-e19954.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025133530-da4f91.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025133539-45277c.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025134242-e98105.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025140355-866a2d.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025140355-e6c03e.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025140421-97044a.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261025140949-4faaa9.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015118-210701.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015118-a76587.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015133-2b115d.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015211-cf2ea8.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015218-bb6439.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015327-0c2536.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015529-234299.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015644-af6f1c.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015645-d55150.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015814-7b7211.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026015821-326fc3.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026020538-8bef5c.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026020640-a061e2.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026022128-0b8edb.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/events/EVT-20261026022129-85c781.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/issues/ISSUE-20261025133539-5d00c2.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/reviews/REV-20261025133501-b94646.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/reviews/REV-20261026015132-1bde4e.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/tasks/S12-CommandConsole.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/tasks/S13-CollabSupersede.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/collaboration/verifications/CCV-20261025111249-db3355.json"
+      },
+      {
+        "status": "??",
+        "path": "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md"
+      },
+      {
+        "status": "??",
+        "path": "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md"
+      },
+      {
+        "status": "??",
+        "path": "docs/handoff/P23_教程与引导文案重写_开发记录_2026-10-25.md"
+      },
+      {
+        "status": "??",
+        "path": "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md"
+      },
+      {
+        "status": "??",
+        "path": "docs/handoff/两条账务口径裁定_2026-10-25.md"
+      }
+    ],
+    "dirty": true,
+    "cleanGitCheckoutVerified": false,
+    "sourceIncludesUncommittedFiles": true,
+    "cleanCheckoutRecordId": "CCV-20261025111249-db3355"
+  },
+  "fingerprints": {
+    "schemaVersion": 1,
+    "fingerprintPolicyVersion": 2,
+    "computedAt": "2026-10-26T02:21:31.988Z",
+    "git": {
+      "head": "77ad67bdd4f56a103f08df5f532b4da99928743c",
+      "branch": "cursor/phase10-fleet-management",
+      "changes": [
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Systems/GameState.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Systems/SaveManager.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/Systems/TimeManager.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/UI/OpenRouteDecisionFlow.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/UI/Shell/AdvisorModalUI.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/UI/Shell/AdvisorTutorialScript.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
+        },
+        {
+          "status": " M",
+          "path": "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs"
+        },
+        {
+          "status": " M",
+          "path": "docs/collaboration/CURRENT.md"
+        },
+        {
+          "status": " M",
+          "path": "docs/collaboration/NEXT_CODEX.md"
+        },
+        {
+          "status": " M",
+          "path": "docs/collaboration/NEXT_CURSOR.md"
+        },
+        {
+          "status": " M",
+          "path": "docs/collaboration/state.json"
+        },
+        {
+          "status": " M",
+          "path": "docs/collaboration/tasks/S11-T043Windows.json"
+        },
+        {
+          "status": " M",
+          "path": "docs/handoff/Baseline_2026-10-17.json"
+        },
+        {
+          "status": " M",
+          "path": "tools/balance/baseline/BASELINE_SOURCE.json"
+        },
+        {
+          "status": " M",
+          "path": "tools/collab/cli.mjs"
+        },
+        {
+          "status": " M",
+          "path": "tools/collab/lib/stage.mjs"
+        },
+        {
+          "status": " M",
+          "path": "tools/collab/lib/state.mjs"
+        },
+        {
+          "status": " M",
+          "path": "tools/collab/tests/stage.test.mjs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs"
+        },
+        {
+          "status": "??",
+          "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs.meta"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/deliveries/DEL-20261025125421-e0fbe0.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/deliveries/DEL-20261025130530-eb6e48.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/deliveries/DEL-20261025140410-e7b753.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025120533-7b8dcf.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025120552-ac889a.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025125414-48f461.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025125428-6fa3ea.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025125829-1d6176.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025130315-5de05d.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025130410-67db64.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025130410-70e55f.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025130518-a97a42.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025130538-a2469d.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025131010-311cb3.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025133446-1a8d34.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025133446-7a273a.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025133502-e19954.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025133530-da4f91.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025133539-45277c.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025134242-e98105.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025140355-866a2d.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025140355-e6c03e.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025140421-97044a.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261025140949-4faaa9.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015118-210701.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015118-a76587.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015133-2b115d.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015211-cf2ea8.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015218-bb6439.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015327-0c2536.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015529-234299.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015644-af6f1c.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015645-d55150.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015814-7b7211.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026015821-326fc3.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026020538-8bef5c.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026020640-a061e2.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026022128-0b8edb.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/events/EVT-20261026022129-85c781.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/issues/ISSUE-20261025133539-5d00c2.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/reviews/REV-20261025133501-b94646.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/reviews/REV-20261026015132-1bde4e.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/tasks/S12-CommandConsole.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/tasks/S13-CollabSupersede.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/collaboration/verifications/CCV-20261025111249-db3355.json"
+        },
+        {
+          "status": "??",
+          "path": "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md"
+        },
+        {
+          "status": "??",
+          "path": "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md"
+        },
+        {
+          "status": "??",
+          "path": "docs/handoff/P23_教程与引导文案重写_开发记录_2026-10-25.md"
+        },
+        {
+          "status": "??",
+          "path": "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md"
+        },
+        {
+          "status": "??",
+          "path": "docs/handoff/两条账务口径裁定_2026-10-25.md"
+        }
+      ],
+      "dirty": true,
+      "cleanGitCheckoutVerified": false,
+      "sourceIncludesUncommittedFiles": true
+    },
+    "implementation": {
+      "fingerprint": "19e2eb108dde194b7bf0b5d6c7c1645160ce05d278b6151b960a22084b391778",
+      "fileCount": 25,
+      "entries": [
+        {
+          "path": "tools/collab/adapters/client-hook.mjs",
+          "bytes": 2186,
+          "sha256": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.json.example",
+          "bytes": 589,
+          "sha256": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 556,
+          "sha256": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 333,
+          "sha256": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 2224,
+          "sha256": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 6788,
+          "sha256": "66b70533fe348baf5508743c68354beaf92006af0cd9a6fe6cfdf4494dbe27f6",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 9582,
+          "sha256": "536956b4841996ecf418ce426d6342d22ae38b6ceaaa46733a1fe3ceddba2c26",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 4934,
+          "sha256": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/authorization.mjs",
+          "bytes": 3630,
+          "sha256": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/cleancheckout.mjs",
+          "bytes": 13180,
+          "sha256": "8e90ad91ca63ab07517f58f0e1e647929b72ef87fcd53259ca96f85e72665459",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 103266,
+          "sha256": "a462b473253d70aa5a9fd7912c4d31bbe50767009a1fd70bb38a3b0dd5923c31",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 10346,
+          "sha256": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/hooks.mjs",
+          "bytes": 8113,
+          "sha256": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 6506,
+          "sha256": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 2688,
+          "sha256": "a7d575a338622b2a0b2b787606c1b5c3c97bf29e74f5e794cfbb2b48da2a62b1",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/roots.mjs",
+          "bytes": 1634,
+          "sha256": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 13516,
+          "sha256": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/stage.mjs",
+          "bytes": 64750,
+          "sha256": "65ec8775da287ded83db2468968f285b958e691e73aaa669b38be127e990c995",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 24162,
+          "sha256": "c45b023ed0fcab393190cb0f6d484baae9e973282e37440617b2b2686df47c22",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/taskbook.mjs",
+          "bytes": 25317,
+          "sha256": "7f0f50979845e5bd414b1da91487a5e1239da28d8c4d35155d27dac8e65cd83d",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/watch.mjs",
+          "bytes": 6207,
+          "sha256": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/xml.mjs",
+          "bytes": 9987,
+          "sha256": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/scripts/repair-task-state.mjs",
+          "bytes": 746,
+          "sha256": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1",
+          "tracked": true
+        }
+      ],
+      "roots": [
+        "tools/collab"
+      ]
+    },
+    "verification": {
+      "fingerprint": "2a82b09f1a9fa3a1e47481f84fe470b7bb19747adbed835832e3209d006a1937",
+      "fileCount": 35,
+      "entries": [
+        {
+          "path": "tools/collab/adapters/client-hook.mjs",
+          "bytes": 2186,
+          "sha256": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.json.example",
+          "bytes": 589,
+          "sha256": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/codex-hooks.toml.example",
+          "bytes": 556,
+          "sha256": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/cursor-hooks.json.example",
+          "bytes": 333,
+          "sha256": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/adapters/README.md",
+          "bytes": 2224,
+          "sha256": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/cli.mjs",
+          "bytes": 6788,
+          "sha256": "66b70533fe348baf5508743c68354beaf92006af0cd9a6fe6cfdf4494dbe27f6",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/Collab.ps1",
+          "bytes": 9582,
+          "sha256": "536956b4841996ecf418ce426d6342d22ae38b6ceaaa46733a1fe3ceddba2c26",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/config.example.json",
+          "bytes": 4934,
+          "sha256": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/authorization.mjs",
+          "bytes": 3630,
+          "sha256": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/cleancheckout.mjs",
+          "bytes": 13180,
+          "sha256": "8e90ad91ca63ab07517f58f0e1e647929b72ef87fcd53259ca96f85e72665459",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/commands.mjs",
+          "bytes": 103266,
+          "sha256": "a462b473253d70aa5a9fd7912c4d31bbe50767009a1fd70bb38a3b0dd5923c31",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/exit.mjs",
+          "bytes": 378,
+          "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/fingerprint.mjs",
+          "bytes": 10346,
+          "sha256": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/hooks.mjs",
+          "bytes": 8113,
+          "sha256": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/io.mjs",
+          "bytes": 6506,
+          "sha256": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/paths.mjs",
+          "bytes": 2688,
+          "sha256": "a7d575a338622b2a0b2b787606c1b5c3c97bf29e74f5e794cfbb2b48da2a62b1",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/roots.mjs",
+          "bytes": 1634,
+          "sha256": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/schemas.mjs",
+          "bytes": 13516,
+          "sha256": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/snapshot.mjs",
+          "bytes": 3919,
+          "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/stage.mjs",
+          "bytes": 64750,
+          "sha256": "65ec8775da287ded83db2468968f285b958e691e73aaa669b38be127e990c995",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/state.mjs",
+          "bytes": 24162,
+          "sha256": "c45b023ed0fcab393190cb0f6d484baae9e973282e37440617b2b2686df47c22",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/taskbook.mjs",
+          "bytes": 25317,
+          "sha256": "7f0f50979845e5bd414b1da91487a5e1239da28d8c4d35155d27dac8e65cd83d",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/watch.mjs",
+          "bytes": 6207,
+          "sha256": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/lib/xml.mjs",
+          "bytes": 9987,
+          "sha256": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/scripts/repair-task-state.mjs",
+          "bytes": 746,
+          "sha256": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/cleancheckout.test.mjs",
+          "bytes": 12051,
+          "sha256": "9c91206eafc39c7bde1f201aabf5d663b312def4bd806fc16efb7b2b18d9ccde",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/closure.test.mjs",
+          "bytes": 11680,
+          "sha256": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/collab.test.mjs",
+          "bytes": 34316,
+          "sha256": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/daily.test.mjs",
+          "bytes": 16612,
+          "sha256": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/reverse-review.test.mjs",
+          "bytes": 12069,
+          "sha256": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/run-all.mjs",
+          "bytes": 1822,
+          "sha256": "ffce2be2c169a2eb0301af41f2025b72ef5c9ee1b6a776ebef0d097f682bc077",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/smoke-profile.mjs",
+          "bytes": 759,
+          "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/stage.test.mjs",
+          "bytes": 28283,
+          "sha256": "989778010ad8653cd228afa451c9a370aa7b96399533bd23c134f257ff09ed84",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/stale-marker.txt",
+          "bytes": 20,
+          "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+          "tracked": true
+        },
+        {
+          "path": "tools/collab/tests/xml.test.mjs",
+          "bytes": 3227,
+          "sha256": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51",
+          "tracked": true
+        }
+      ],
+      "roots": [
+        "tools/collab"
+      ]
+    },
+    "contract": {
+      "fingerprint": "e2ec6279121aed1ce0b3b11898ad910c6ec7b220510ea3a014221d65680060bb",
+      "fileCount": 1,
+      "entries": [
+        {
+          "path": "(stable-contract-payload)",
+          "bytes": 694,
+          "sha256": "e2ec6279121aed1ce0b3b11898ad910c6ec7b220510ea3a014221d65680060bb"
+        }
+      ]
+    }
+  },
+  "recommendedProfiles": [
+    "collab"
+  ],
+  "snapshotPath": "out/collab/DEL-20261026022132-804f18",
+  "snapshotManifest": {
+    "sourceFingerprint": "2a82b09f1a9fa3a1e47481f84fe470b7bb19747adbed835832e3209d006a1937",
+    "copiedFileCount": 35,
+    "cleanGitCheckoutVerified": false,
+    "unlistedAtCreation": 0,
+    "entries": [
+      {
+        "path": "tools/collab/adapters/client-hook.mjs",
+        "sha256": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9",
+        "bytes": 2186,
+        "snapshotSha256": "062f02d9b3c7598b878d796788f5856704c6abba77acf407d6c3122f2b3e66c9"
+      },
+      {
+        "path": "tools/collab/adapters/codex-hooks.json.example",
+        "sha256": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f",
+        "bytes": 589,
+        "snapshotSha256": "6118a6273eb7711313d766bfb722e9f485fb0e2f353e335173a0cb3b1c8bae4f"
+      },
+      {
+        "path": "tools/collab/adapters/codex-hooks.toml.example",
+        "sha256": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5",
+        "bytes": 556,
+        "snapshotSha256": "ea7b6ae4779e2f68e919964e2d1024ea140cdf7fb19d17f0dcfc1f6c50dba6b5"
+      },
+      {
+        "path": "tools/collab/adapters/cursor-hooks.json.example",
+        "sha256": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732",
+        "bytes": 333,
+        "snapshotSha256": "0a62319b6551f547214d9bd58c9d69548cf7c76a65391085b54d19eac9ff1732"
+      },
+      {
+        "path": "tools/collab/adapters/README.md",
+        "sha256": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f",
+        "bytes": 2224,
+        "snapshotSha256": "9c412ed2d3322c567334d5d6c12e89548238520de9480a7ff3b68d936bcd9f0f"
+      },
+      {
+        "path": "tools/collab/cli.mjs",
+        "sha256": "66b70533fe348baf5508743c68354beaf92006af0cd9a6fe6cfdf4494dbe27f6",
+        "bytes": 6788,
+        "snapshotSha256": "66b70533fe348baf5508743c68354beaf92006af0cd9a6fe6cfdf4494dbe27f6"
+      },
+      {
+        "path": "tools/collab/Collab.ps1",
+        "sha256": "536956b4841996ecf418ce426d6342d22ae38b6ceaaa46733a1fe3ceddba2c26",
+        "bytes": 9582,
+        "snapshotSha256": "536956b4841996ecf418ce426d6342d22ae38b6ceaaa46733a1fe3ceddba2c26"
+      },
+      {
+        "path": "tools/collab/config.example.json",
+        "sha256": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09",
+        "bytes": 4934,
+        "snapshotSha256": "d7b4ded1a44e569e53470cef72f05dcc01cc7451c7f2d0753d5bd92eb1e2aa09"
+      },
+      {
+        "path": "tools/collab/lib/authorization.mjs",
+        "sha256": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069",
+        "bytes": 3630,
+        "snapshotSha256": "b7dacb54c10ceda41b23eca162cbba3bc41904bb9c17f9cc39c0cc5c8760f069"
+      },
+      {
+        "path": "tools/collab/lib/cleancheckout.mjs",
+        "sha256": "8e90ad91ca63ab07517f58f0e1e647929b72ef87fcd53259ca96f85e72665459",
+        "bytes": 13180,
+        "snapshotSha256": "8e90ad91ca63ab07517f58f0e1e647929b72ef87fcd53259ca96f85e72665459"
+      },
+      {
+        "path": "tools/collab/lib/commands.mjs",
+        "sha256": "a462b473253d70aa5a9fd7912c4d31bbe50767009a1fd70bb38a3b0dd5923c31",
+        "bytes": 103266,
+        "snapshotSha256": "a462b473253d70aa5a9fd7912c4d31bbe50767009a1fd70bb38a3b0dd5923c31"
+      },
+      {
+        "path": "tools/collab/lib/exit.mjs",
+        "sha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08",
+        "bytes": 378,
+        "snapshotSha256": "181dcd90c046b671d9d1a5d2253725abfef5cca297e78aae6460f6fa25498d08"
+      },
+      {
+        "path": "tools/collab/lib/fingerprint.mjs",
+        "sha256": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4",
+        "bytes": 10346,
+        "snapshotSha256": "a37e9ab12460cfae7abe1f597ecaf3f424ea0040f30e37496777cba02d669bd4"
+      },
+      {
+        "path": "tools/collab/lib/hooks.mjs",
+        "sha256": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608",
+        "bytes": 8113,
+        "snapshotSha256": "7a392b2aebeb62abf165025abf6f2539cc6b199b3aa17380b96426ef06d7a608"
+      },
+      {
+        "path": "tools/collab/lib/io.mjs",
+        "sha256": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab",
+        "bytes": 6506,
+        "snapshotSha256": "c3a5b8518d51565013682545accd85a7e3c88764dd02083847bbb6f76806ebab"
+      },
+      {
+        "path": "tools/collab/lib/paths.mjs",
+        "sha256": "a7d575a338622b2a0b2b787606c1b5c3c97bf29e74f5e794cfbb2b48da2a62b1",
+        "bytes": 2688,
+        "snapshotSha256": "a7d575a338622b2a0b2b787606c1b5c3c97bf29e74f5e794cfbb2b48da2a62b1"
+      },
+      {
+        "path": "tools/collab/lib/roots.mjs",
+        "sha256": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9",
+        "bytes": 1634,
+        "snapshotSha256": "5c4611fd78477a2f0678f9f2aba05d5ee4addc1a8c1dbe3b543333b9d9d955e9"
+      },
+      {
+        "path": "tools/collab/lib/schemas.mjs",
+        "sha256": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677",
+        "bytes": 13516,
+        "snapshotSha256": "57ef064b3b8c9543caf31af7fd0fec0ce117e7fb44f279f4e92ead63ff068677"
+      },
+      {
+        "path": "tools/collab/lib/snapshot.mjs",
+        "sha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca",
+        "bytes": 3919,
+        "snapshotSha256": "5a65fb69a650f6552fd4cd483457d78811e688d82b1af339c170516f9027beca"
+      },
+      {
+        "path": "tools/collab/lib/stage.mjs",
+        "sha256": "65ec8775da287ded83db2468968f285b958e691e73aaa669b38be127e990c995",
+        "bytes": 64750,
+        "snapshotSha256": "65ec8775da287ded83db2468968f285b958e691e73aaa669b38be127e990c995"
+      },
+      {
+        "path": "tools/collab/lib/state.mjs",
+        "sha256": "c45b023ed0fcab393190cb0f6d484baae9e973282e37440617b2b2686df47c22",
+        "bytes": 24162,
+        "snapshotSha256": "c45b023ed0fcab393190cb0f6d484baae9e973282e37440617b2b2686df47c22"
+      },
+      {
+        "path": "tools/collab/lib/taskbook.mjs",
+        "sha256": "7f0f50979845e5bd414b1da91487a5e1239da28d8c4d35155d27dac8e65cd83d",
+        "bytes": 25317,
+        "snapshotSha256": "7f0f50979845e5bd414b1da91487a5e1239da28d8c4d35155d27dac8e65cd83d"
+      },
+      {
+        "path": "tools/collab/lib/watch.mjs",
+        "sha256": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164",
+        "bytes": 6207,
+        "snapshotSha256": "86b2aabb8aa227b65100cdcc192d634e80b646a174df44c6ea38d28b52174164"
+      },
+      {
+        "path": "tools/collab/lib/xml.mjs",
+        "sha256": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c",
+        "bytes": 9987,
+        "snapshotSha256": "e6d3b5e2e02c2be3e95f8874506f40c491c9afd560d3ad97157ede8ea8d9c92c"
+      },
+      {
+        "path": "tools/collab/scripts/repair-task-state.mjs",
+        "sha256": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1",
+        "bytes": 746,
+        "snapshotSha256": "e26299436595317befce7e3b29a581b86ab46c08a6a97c5e52ba9e2bfe7399c1"
+      },
+      {
+        "path": "tools/collab/tests/cleancheckout.test.mjs",
+        "sha256": "9c91206eafc39c7bde1f201aabf5d663b312def4bd806fc16efb7b2b18d9ccde",
+        "bytes": 12051,
+        "snapshotSha256": "9c91206eafc39c7bde1f201aabf5d663b312def4bd806fc16efb7b2b18d9ccde"
+      },
+      {
+        "path": "tools/collab/tests/closure.test.mjs",
+        "sha256": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20",
+        "bytes": 11680,
+        "snapshotSha256": "b1a711ae20216e1452b98060e531043998cc368f197b93fe7167677d05323d20"
+      },
+      {
+        "path": "tools/collab/tests/collab.test.mjs",
+        "sha256": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a",
+        "bytes": 34316,
+        "snapshotSha256": "04e8165d4778d742396c10334bdec035be41ff1c61b29cfced5055abcc004f4a"
+      },
+      {
+        "path": "tools/collab/tests/daily.test.mjs",
+        "sha256": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483",
+        "bytes": 16612,
+        "snapshotSha256": "2c06db8e64e5d00ec498d3fa25680657346e1bd4f27350ec0c8f60a19e2ba483"
+      },
+      {
+        "path": "tools/collab/tests/reverse-review.test.mjs",
+        "sha256": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747",
+        "bytes": 12069,
+        "snapshotSha256": "e2ce58d5e2b9a6cc6ac100f7ed82d056ce9c8c5cf66533e766c05a61df912747"
+      },
+      {
+        "path": "tools/collab/tests/run-all.mjs",
+        "sha256": "ffce2be2c169a2eb0301af41f2025b72ef5c9ee1b6a776ebef0d097f682bc077",
+        "bytes": 1822,
+        "snapshotSha256": "ffce2be2c169a2eb0301af41f2025b72ef5c9ee1b6a776ebef0d097f682bc077"
+      },
+      {
+        "path": "tools/collab/tests/smoke-profile.mjs",
+        "sha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c",
+        "bytes": 759,
+        "snapshotSha256": "e8671239ffffd470ee277e2c8c45fcd2bd40899be88ac9a326d257dd4de3f18c"
+      },
+      {
+        "path": "tools/collab/tests/stage.test.mjs",
+        "sha256": "989778010ad8653cd228afa451c9a370aa7b96399533bd23c134f257ff09ed84",
+        "bytes": 28283,
+        "snapshotSha256": "989778010ad8653cd228afa451c9a370aa7b96399533bd23c134f257ff09ed84"
+      },
+      {
+        "path": "tools/collab/tests/stale-marker.txt",
+        "sha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1",
+        "bytes": 20,
+        "snapshotSha256": "a7459a121cf20e008ffed2e996b9f705294963ef6f5035945727134d5466e4f1"
+      },
+      {
+        "path": "tools/collab/tests/xml.test.mjs",
+        "sha256": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51",
+        "bytes": 3227,
+        "snapshotSha256": "32b0a54f8dd9c6ce0cfca2fbe358228de48dfd3da677713052422c87ecb85f51"
+      }
+    ]
+  },
+  "independentReviewPassed": false,
+  "createdAt": "2026-10-26T02:21:32.683Z"
+}

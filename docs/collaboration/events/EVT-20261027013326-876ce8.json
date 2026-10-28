@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013326-876ce8",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 513,
+  "at": "2026-10-27T01:33:26.186Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S10-PressDesk",
+  "deliveryId": "DEL-20261024124546-40a7ec",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=56 drifted=12",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/InboxLetter.cs",
+      "Unity Project/Assets/Scripts/Logic/PersonnelGenerator.cs",
+      "Unity Project/Assets/Scripts/Logic/SlotCandidateLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
+      "Unity Project/Assets/Scripts/Systems/FinanceManager.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/balance/README.md",
+      "tools/balance/baseline/BASELINE_SOURCE.json"
+    ]
+  }
+}

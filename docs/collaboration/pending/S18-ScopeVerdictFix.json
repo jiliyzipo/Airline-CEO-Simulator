@@ -1,0 +1,43 @@
+{
+  "taskId": "S18-ScopeVerdictFix",
+  "title": "阶段 S18：收敛判定单一口径（预览与落盘不得互相矛盾）",
+  "scope": [
+    "tools/collab/lib/basis.mjs",
+    "tools/collab/lib/state.mjs",
+    "tools/collab/lib/commands.mjs",
+    "tools/collab/tests/daily.test.mjs",
+    "docs/handoff/P28_收敛判定单一口径_开发记录_2026-10-27.md"
+  ],
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S18-ScopeVerdictFix）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S18-ScopeVerdictFix）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S18-ScopeVerdictFix）"
+    },
+    {
+      "id": "AC4",
+      "text": "task-rescope 的判定与 refreshFreshness 共用同一实现，预览给出的 freshness 必须与随后 sync 落盘的状态一致"
+    },
+    {
+      "id": "AC5",
+      "text": "存在被后续通过交付接手的漂移时，预览与报告判定 archived 并点名接手交付，不得输出仍需复验的结论"
+    },
+    {
+      "id": "AC6",
+      "text": "仍有无人接手的漂移时，预览判定 stale 并在报告中逐个列出这些文件"
+    }
+  ],
+  "dependencies": [
+    "S17-ScopeBaseline"
+  ]
+}

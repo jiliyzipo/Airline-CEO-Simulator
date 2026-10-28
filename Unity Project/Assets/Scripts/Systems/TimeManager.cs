@@ -108,6 +108,9 @@ namespace AirlineCEO.Systems
                 ExternalEventManager.Tick(gs, fromUtc, gs.SimUtc);
                 StaffRecruitment.Tick(gs, gs.SimUtc);
                 HrManager.TickDay(gs, gs.SimUtc);
+                // 大修的停场窗口按「到期时刻」推进，不按「扣一天」推进：本方法可能一次跨好几天，
+                // 用绝对时刻才不会漏减。放在 TickDay 之后，保证先按旧状态结算当日成本再复飞。
+                FleetManager.ReleaseCompletedOverhauls(gs);
                 InboxManager.DeliverDue(gs, gs.SimUtc);
                 remaining -= step;
                 if (within + step >= minutesPerQuarter)
@@ -193,7 +196,11 @@ namespace AirlineCEO.Systems
             float allianceIncome = gs.stg?.alliance != null ? gs.stg.alliance.revenueLiftWan / 4f : 0f;
             float quarterIncome = liveIn + allianceIncome;
             // 部门口径支出（分摊到预算项做超支问责）
-            float deptQuarterExpense = (gs.monthlyBurnRate + gs.FleetMonthlyMaintenance + gs.FleetMonthlyLease + gs.CeoMonthlyPayWan) * 3f;
+            // R-A / A2（2026-10-25 裁定）：改用逐日累计，而不是「季末费率 ×3」反推整季。
+            // 中途加机／退租／改烧钱率的玩家，前 45 天不再被按新费率重算。
+            // 口径只含四项（烧钱率 + 机队维护 + 租赁 + CEO 薪酬），不含工资与危机加成，
+            // 与 liveQuarterExpense 的现金口径刻意不同；理由见 GameState.liveQuarterDeptExpense 注释。
+            float deptQuarterExpense = gs.liveQuarterDeptExpense;
             // Payroll, maintenance, lease and crisis costs have already been booked daily.
             float quarterExpense = liveEx;
             float net = allianceIncome;
@@ -207,6 +214,7 @@ namespace AirlineCEO.Systems
             // 见习期软保护（GDB 28.1）：季度支出按部门份额分摊累计，供财年末超支问责
             // 只分摊部门口径支出，运行人员薪资不进部门预算问责
             FinanceManager.AccrueBudgetSpend(gs, deptQuarterExpense);
+            gs.liveQuarterDeptExpense = 0f;   // 与 liveQuarterIncome/Expense 同点清零，避免跨季重复分摊
 
             if (BoardManager.Instance != null)
                 BoardManager.UpdateSimulatedKpis(gs);

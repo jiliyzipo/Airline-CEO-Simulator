@@ -129,6 +129,36 @@ namespace AirlineCEO.UI.Shell
         /// <summary>RPM 卡给出的日基准利润（每日 1 班口径）。</summary>
         public const float RouteDailyBaseline = 16.2f;
 
+        // ———— 首航结算：文案与入账**必须同一对常量** ————
+        //
+        // 这两条不是「演示数字」，它们就是 ApplyFirstFlightRewards 真正加进账里的量。
+        // 写成常量而不是各写一遍字面量，是因为以前的文案会漂：信里说 +6.2、代码里改 +5，
+        // 玩家会发现「账没对上」，而这种漂移只能靠人肉比对发现。
+        public const float FirstFlightNetProfit = 6.2f;
+        public const float FirstFlightBoardGain = 5f;
+
+        /// <summary>开航启动资金。取 <see cref="ActionExecutor.OpenRouteStartupCost"/>，绝不另写一个数。</summary>
+        public static string StartupCostText => $"{ActionExecutor.OpenRouteStartupCost:F0} 万美元";
+
+        // ———— S6「下一程」：教命令台，而不是再点一遍页面 ————
+        //
+        // 旧版这是第二条航线的推销（成都—上海 12.8 万 / 79 分 / 2 家航司），
+        // 三个数字都无处可查；而玩家真正需要的下一课是**怎么不再逐页点**。
+        // 文案里点名的五种说法，正是 <see cref="AirlineCEO.Logic.CeoCommandRouter"/> 认得的五类。
+        public const string NextHookBody =
+            "航空顾问：\n\n" +
+            "“恭喜，[玩家姓名]。从发现机会、开会、配机到排班，一个完整闭环您已经走完了。”\n\n" +
+            "“接下来不必每一步都点页面 —— 看屏幕最下方那一条，那是命令台。您直接说一句话，我按话里的事派给对应部门：”\n\n" +
+            "“· 问情况：财务还能撑几个月 → 财务部回函\n" +
+            "· 开航线：开通成都—上海 → 运营部把开航研究会纪要送进收件箱\n" +
+            "· 增运力：买 2 架 A320neo → 机队发展部发购机请示\n" +
+            "· 补人手：招聘 10 名飞行员 → 人力资源部发招聘请示\n" +
+            "· 找钱：申请银行贷款 → 财务部发融资请示”\n\n" +
+            "“要动钱、动编制、动机队的事，命令台只发请示 —— 批不批，仍然是您说了算。”\n\n" +
+            "“说过的每一句都留在「历史」里，可以翻回去重看当时的回执；常说的句子可以收藏。”";
+
+        public const string NextHookExtra = "引导结束 · 顾问转入待命；底栏命令台随时可用";
+
         /// <summary>估算日利润 = 基准 × 频率收益 × 时段需求。</summary>
         public static float EstimateDailyProfit(float slotDemand, float freqRevenue)
         {

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S14-CollabBinding",
+  "title": "阶段 S14-CollabBinding：检测证据绑定与待办收敛",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "unknown",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab（tools/collab）",
+    "承接 S13-CollabSupersede 遗留的两项工具缺陷；S13 已由独立检测 REV-20261026104036-ebca7d 通过，本阶段不改动其已验证行为",
+    "不含业务代码（Unity Project/Assets）改动，不含本阶段未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S14-CollabBinding）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity），各子套件退出码为 0 且断言计数与机器结果一致（S14-CollabBinding）"
+    },
+    {
+      "id": "AC3",
+      "text": "检测证据必须绑定被检交付的全部身份指纹：review-evidence / review-finish 校验的证据指纹需同时覆盖 implementation、verification、contract 三项并与 review.subjectFingerprints 一致，任一项缺失或不符即以 EXIT.EVIDENCE 拒绝；只有 verification/contract 变化（实现指纹恒定的测试类交付）时不得复用旧证据。证据：collab 子套件中“仅差异验证指纹的两份交付不可互换证据”与“缺字段证据被拒”两条用例（S14-CollabBinding）"
+    },
+    {
+      "id": "AC4",
+      "text": "生成的待办清单必须反映真实待办：sync 产出 NEXT_CURSOR / NEXT_CODEX 时，reviewStatus=passed 且 freshness=current 的任务不再以“已交付，等待 Codex”或待检测条目出现（缺陷行按缺陷状态单独输出）；freshness=stale 或需复验的任务仍需保留并注明原因。证据：collab 子套件中“已通过且 current 的任务不出现在 NEXT_*.md”与“stale 任务仍出现”两条用例（S14-CollabBinding）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-26T11:48:59.673Z",
+  "updatedAt": "2026-10-27T00:59:24.489Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261026134228-f7662c",
+    "taskId": "S15-CollabContract",
+    "actor": "cursor",
+    "note": "S14 的 tools/collab 改动已被 S15 同根继续并独立通过（REV-20261027004906-82ca95，163/0/0，AC1-AC6 补证），不再单独复验",
+    "at": "2026-10-27T00:59:15.600Z"
+  }
+}

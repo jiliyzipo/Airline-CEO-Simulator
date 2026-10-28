@@ -519,8 +519,8 @@ namespace AirlineCEO.Systems
             // 发件人一律是新闻官（不拿发布单位当发件人）；发布单位退到正文，原文照登。
             string officer = PressDesk.Name(gs);
             string role = PressDesk.RoleLine(OfficialBulletin.RoleLabel(ev.source, ev.category));
-            string body = PressDesk.ForwardHead(ev.source, officer)
-                + OfficialBulletin.Compose(ev, date, triggered: false);
+            string body = PressDesk.ForwardHead(ev.source, officer, date)
+                + OfficialBulletin.Compose(ev, date, triggered: false, signed: false);
             if (ev.isolated)
                 body += "\n\n" + InboxLetter.Bullet("（未见前置来文，本条按孤立事件归档。）");
             if (HasImpact(ev))
@@ -529,6 +529,8 @@ namespace AirlineCEO.Systems
                     + InboxLetter.Bullet(ImpactLine(ev, forecast: true));
             if (ev.inferred)
                 body += InboxLetter.Bullet("研判依据：" + InferNote(ev));
+            // 转呈人落款：放在最后一行，回答「这封信是谁递的」；原文机关落款仍在原文里，不动。
+            body += "\n\n" + PressDesk.ForwardSign(officer, date);
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_r_" + ev.id + "_" + ev.gameReceivedTicks,
@@ -560,12 +562,14 @@ namespace AirlineCEO.Systems
                 : "施行通报";
             string role = PressDesk.RoleLine(docLabel);
             var body = new StringBuilder();
-            body.Append(PressDesk.ForwardHead(ev.source, officer));
-            body.Append(OfficialBulletin.Compose(ev, date, triggered: true));
+            body.Append(PressDesk.ForwardHead(ev.source, officer, date));
+            body.Append(OfficialBulletin.Compose(ev, date, triggered: true, signed: false));
             body.Append("\n\n").Append(AnnotLine).Append('\n');
             body.Append(InboxLetter.Section("对公司的影响"));
             body.Append(InboxLetter.Bullet(ImpactLine(ev, forecast: false)));
             if (ev.inferred) body.Append(InboxLetter.Bullet("研判依据：" + InferNote(ev)));
+            // 转呈人落款：放在最后一行，回答「这封信是谁递的」；原文机关落款仍在原文里，不动。
+            body.Append('\n').Append(PressDesk.ForwardSign(officer, date)).Append('\n');
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_t_" + ev.id + "_" + ev.gameEffectiveTicks,

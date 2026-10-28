@@ -34,6 +34,9 @@ Commands:
   clean-checkout-verify [--actor cursor|codex|user] [--evidence a.log,b.xml] [--statement text] [--keep]
                                      clone HEAD into an empty dir and compare every tracked file byte-for-byte
   task-add --definition <file.json> [--actor cursor|user]
+  task-rescope --task <id> [--actor cursor|user] [--dry-run]
+                                     narrow a finished task's freshness baseline to the
+                                     files its delivery actually changed
   taskbook-baseline [--task <id>]    (records the clause text so later edits are detected)
   taskbook-check --task <id> [--actor codex|user]
   issue-update --issue <id> --status <fixing|fixed|verified|closed|wontfix|open> --actor cursor|codex|user [--note <text>]
@@ -43,12 +46,18 @@ Commands:
 Stage automation (one command per side):
   stage-open   [--actor cursor]                       sync + ack + status board
   stage-close  [--task <id>] [--profile <p>] [--roots <a,b>] [--note <text>] [--gaps <text>]
-               [--no-preflight] [--dry-run] [--force]
+               [--supersedes <DEL,...>] [--no-preflight] [--refresh-ac] [--dry-run] [--force]
                                                       auto task + summary + DEL + preflight + handoff
-  stage-review [--delivery <id>] [--profile <p>] [--coverage AC1=passed,...] [--actor codex]
+                                                      (--refresh-ac re-derives AC when the task was
+                                                       created for a different profile)
+  stage-review [--delivery <id>] [--profile <p>] [--coverage AC1=passed,...] [--actor codex] [--dry-run]
                                                       start + run + evidence + finish + ISSUEs
   stage-fix                                           actionable defect list for the developer
   stage-board                                         compact status panel
+  stage-reconcile [--actor cursor|codex|user]         copy supersede facts from the local handoff
+                                                      index into the shared delivery ledger
+  stage-supersede --delivery <old> --by <new> [--actor cursor|codex|user] [--note <text>]
+                                                      record after the fact that <old> was replaced by <new>
 
 Exit codes: 0 ok | 2 usage | 3 conflict/CAS | 4 locked | 5 check failed | 6 evidence | 7 forbidden
 `.trim();
@@ -104,6 +113,7 @@ function main() {
     gate: () => cmds.cmdGate(cfg, args),
     'clean-checkout-verify': () => cleanCheckout.cmdCleanCheckoutVerify(cfg, args),
     'task-add': () => cmds.cmdTaskAdd(cfg, args),
+    'task-rescope': () => cmds.cmdTaskRescope(cfg, args),
     'taskbook-baseline': () => cmds.cmdTaskBookBaseline(cfg, args),
     'taskbook-check': () => cmds.cmdTaskBookCheck(cfg, args),
     'issue-update': () => cmds.cmdIssueUpdate(cfg, args),
@@ -115,6 +125,8 @@ function main() {
     'stage-fix': () => stage.cmdStageFix(cfg, args),
     'stage-board': () => stage.cmdStageBoard(cfg, args),
     'stage-report': () => stage.cmdStageReport(cfg, args),
+    'stage-reconcile': () => stage.cmdStageReconcile(cfg, args),
+    'stage-supersede': () => stage.cmdStageSupersede(cfg, args),
   };
 
   if (!map[command]) {
@@ -124,6 +136,7 @@ function main() {
   }
 
   try {
+    cmds.assertKnownFlags(command, args);
     const result = map[command]();
     if (command === 'watch') return; // keeps process alive
     if (json) console.log(JSON.stringify(result, null, 2));

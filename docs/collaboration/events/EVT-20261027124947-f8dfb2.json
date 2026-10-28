@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027124947-f8dfb2",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 636,
+  "at": "2026-10-27T12:49:47.951Z",
+  "actor": "cursor",
+  "action": "stage-supersede",
+  "taskId": "S26-T038MapRender",
+  "deliveryId": "DEL-20261027115400-6ee0b2",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "DEL-20261027115400-6ee0b2 superseded by DEL-20261027123307-f320b4",
+  "data": {
+    "supersededBy": "DEL-20261027123307-f320b4",
+    "successorTaskId": "S27-MapBandLegibility",
+    "crossTask": true
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261027033436-155e44",
+  "deliveryId": "DEL-20261027024816-5a1cf9",
+  "taskId": "S19-ScenarioFixture",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "compile",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/semcheck/run.js"
+    ],
+    "resultKind": "semcheck",
+    "runOutputs": [
+      "tools/semcheck/semcheck_report.txt"
+    ],
+    "description": "Semantic compile checks; resultKind=semcheck enforces the two assembly gates plus the encoding gate; semcheck_report.txt is a declared run output, not a delivery input"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "390d1176a6cbb31bb9b8d530fa7bd88c700d5272953af86c1906f0f91840544e",
+    "verification": "c4cf079d7b92b1e86d8b6ca1b5d8b094b3ae66bb56b319bf6d7b0e294b1d2d6a",
+    "contract": "bf07aada5ce3efe284946ac7537df4e42f2c127b4150e8dfb28ff46eaa052f4b"
+  },
+  "snapshotPath": "out/collab/DEL-20261027024816-5a1cf9",
+  "createdAt": "2026-10-27T03:34:36.468Z",
+  "updatedAt": "2026-10-27T03:34:45.152Z",
+  "runs": [
+    {
+      "at": "2026-10-27T03:34:36.949Z",
+      "finishedAt": "2026-10-27T03:34:43.580Z",
+      "runToken": "cb19780121de54af",
+      "profile": "compile",
+      "deliveryId": "DEL-20261027024816-5a1cf9",
+      "subjectImplementationFingerprint": "390d1176a6cbb31bb9b8d530fa7bd88c700d5272953af86c1906f0f91840544e",
+      "subjectFingerprints": {
+        "implementation": "390d1176a6cbb31bb9b8d530fa7bd88c700d5272953af86c1906f0f91840544e",
+        "verification": "c4cf079d7b92b1e86d8b6ca1b5d8b094b3ae66bb56b319bf6d7b0e294b1d2d6a",
+        "contract": "bf07aada5ce3efe284946ac7537df4e42f2c127b4150e8dfb28ff46eaa052f4b"
+      },
+      "command": [
+        "node",
+        "tools/semcheck/run.js"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261027024816-5a1cf9",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261027033436-155e44/run-cb19780121de54af/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261027033436-155e44/run-cb19780121de54af/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261027033436-155e44/run-cb19780121de54af/stdout.txt",
+        "sha256": "7224da0e07b67e21b3322542e689c160acff1560228f3560ef0a30022b9c6f39",
+        "bytes": 3270,
+        "runToken": "cb19780121de54af"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261027033436-155e44/run-cb19780121de54af/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "cb19780121de54af"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC4",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC5",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC6",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    },
+    {
+      "id": "AC7",
+      "result": "passed",
+      "evidence": "profile=compile runToken=cb19780121de54af counters={\"total\":3,\"failed\":0,\"skipped\":0} | reviewer-attested"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-27T03:34:36.935Z",
+  "assertions": {
+    "total": 3,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "semcheck",
+      "total": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261027033436-155e44-1793072084055.json",
+  "finishedAt": "2026-10-27T03:34:45.152Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "cb19780121de54af",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261027024816-5a1cf9"
+  }
+}

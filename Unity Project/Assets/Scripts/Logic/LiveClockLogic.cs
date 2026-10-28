@@ -195,5 +195,19 @@ namespace AirlineCEO.Logic
             if (month < 0f) month = 0f;
             return month / 30f;
         }
+
+        /// <summary>
+        /// 日**部门可管**固定成本（万美元/日）—— 季末部门预算问责的逐日分母（2026-10-25 裁定 R-A / A2）。
+        ///
+        /// 只含四项：烧钱率 + 机队维护 + 租赁 + CEO 薪酬。刻意**不含**危机加成、运行人员薪资、
+        /// 存量人力成本 —— 那三项不是任何部门额度能决定的，摊进去只会让运营／人力部每季必「超支」。
+        /// 与 <see cref="DailyFixedCostWan"/> 同日同费率，保证「按日累计」与「按日实扣」不会各算各的。
+        /// </summary>
+        public static float DeptDailyFixedCostWan(float monthlyBurn, float fleetMaint, float fleetLease, float ceoMonth)
+        {
+            float month = monthlyBurn + fleetMaint + fleetLease + ceoMonth;
+            if (month < 0f) month = 0f;
+            return month / 30f;
+        }
     }
 }

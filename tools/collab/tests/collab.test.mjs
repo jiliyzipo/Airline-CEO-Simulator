@@ -16,6 +16,7 @@ import {
   resolveRunOutputRels,
   verifySnapshotIntegrity,
   cmdIssueUpdate,
+  doctorOk,
 } from '../lib/commands.mjs';
 import {
   computeTaskGate,
@@ -30,6 +31,10 @@ import { computeFingerprints } from '../lib/fingerprint.mjs';
 import { stableContractPayload } from '../lib/schemas.mjs';
 import { resolveTaskRoots } from '../lib/roots.mjs';
 import { isArtifactDirName, isGeneratedFileName } from '../lib/fingerprint.mjs';
+import { extractFailures, extractSkips, isFixtureBroken, resolveEvidenceDir, suiteVerdict } from '../lib/suite-report.mjs';
+import { pruneSnapshotArtifacts } from '../lib/snapshot-hygiene.mjs';
+import * as stage from '../lib/stage.mjs';
+import { cloneCapability } from '../lib/cleancheckout.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const toolRoot = path.resolve(__dirname, '..');
@@ -876,6 +881,189 @@ test('declared run output is tolerated in a snapshot, every other stray file is 
       }),
     /snapshot tampered: tools\/tool\.js/,
   );
+});
+
+// A failing `collab` profile must hand the reviewer a cause, not 92 identical
+// counters (REV-20261026023352-31f65f). These lock the reporting contract.
+test('reporting keeps the cause of a broken fixture instead of only counters', () => {
+  const stdout = [
+    'PASS D01 doctor is read-only',
+    'FAIL D02 malformed stdin is rejected: EPERM: operation not permitted, mkdir',
+    'FAIL D03 idempotency keys are separate: EPERM: operation not permitted, mkdir',
+    'FAIL D04 rapid distinct edits: EPERM: operation not permitted, mkdir',
+  ].join('\n');
+  const { first, signatures } = extractFailures(stdout, '');
+  assert.equal(first.length, 3);
+  // Three failures, one cause: the signature collapses the repetition.
+  assert.equal(signatures.length, 1);
+  assert.match(signatures[0], /EPERM: operation not permitted/);
+  assert.equal(extractFailures('', '').signatures.length, 0);
+  // An import-time crash prints no FAIL line at all; stderr is still searched.
+  assert.match(extractFailures('', 'not ok - boot: cannot find module').signatures[0], /cannot find module/);
+});
+
+test('reporting flags a whole-suite failure as a fixture verdict, not N regressions', () => {
+  assert.equal(isFixtureBroken(0, 21), true);
+  assert.equal(isFixtureBroken(24, 14), false);
+  assert.equal(isFixtureBroken(38, 0), false);
+});
+
+test('reporting writes evidence into the per-run directory when one is provided', () => {
+  const runDir = path.join(os.tmpdir(), 'collab-run-dir');
+  assert.equal(resolveEvidenceDir({ COLLAB_RUN_DIR: runDir }, 'C:/tmp/root'), path.join(runDir, 'collab-suite'));
+  // Standalone invocation has no run directory: fall back to the temp root.
+  assert.equal(resolveEvidenceDir({}, 'C:/tmp/root'), 'C:/tmp/root');
+  assert.equal(resolveEvidenceDir({ COLLAB_RUN_DIR: '   ' }, 'C:/tmp/root'), 'C:/tmp/root');
+});
+
+// REV-20261026060606-ce441e: an AppContainer sandbox denied git's upload-pack
+// child and the process query. Neither is a product regression, and neither may
+// become an invisible pass either.
+test('a capability gap fails the doctor only when the check could actually run', () => {
+  const gap = [
+    { name: 'node', ok: true },
+    { name: 'unityOccupancyCheck', ok: false, unavailable: true, detail: 'unavailable: CIM denied' },
+  ];
+  // Could not look => environment gap, still usable.
+  assert.equal(doctorOk(gap), true);
+  // Looked and it was wrong => real defect, doctor fails.
+  assert.equal(doctorOk([{ name: 'node', ok: true }, { name: 'repoRoot', ok: false }]), false);
+  // An `unavailable` entry must never launder a genuine failure next to it.
+  assert.equal(
+    doctorOk([{ name: 'unityOccupancyCheck', ok: false, unavailable: true }, { name: 'repoRoot', ok: false }]),
+    false,
+  );
+});
+
+test('a skipped assertion is neither a pass nor a failure', () => {
+  const stdout = [
+    'PASS CCV03 uncommitted source changes are refused',
+    'SKIP CCV01 clone reproduces every tracked file: git clone unusable here: sh.exe 0xC0000022',
+    'SKIP CCV02 a second run appends: git clone unusable here: sh.exe 0xC0000022',
+  ].join('\n');
+  const reasons = extractSkips(stdout);
+  assert.equal(reasons.length, 1, 'two identical skip reasons collapse to one');
+  assert.match(reasons[0], /git clone unusable/);
+  // A suite with passes and skips, but no failures, is a valid (incomplete) run.
+  assert.equal(suiteVerdict({ exitCode: 0, passed: 3, failed: 0, skipped: 8 }), true);
+  // A suite that executed nothing at all proves nothing.
+  assert.equal(suiteVerdict({ exitCode: 0, passed: 0, failed: 0, skipped: 11 }), false);
+  // A skip must never hide a real regression.
+  assert.equal(suiteVerdict({ exitCode: 0, passed: 3, failed: 1, skipped: 8 }), false);
+  assert.equal(suiteVerdict({ exitCode: 1, passed: 3, failed: 0, skipped: 8 }), false);
+});
+
+test('skipped assertions downgrade machine-mapped criteria to reviewer attestation', () => {
+  const task = {
+    taskId: 'S13-ENV',
+    acceptanceCriteria: [
+      { id: 'AC1', text: '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S13-ENV）' },
+    ],
+  };
+  // A clean run proves the generated clause.
+  assert.equal(stage.machineCoverageFor(task, 'collab', { total: 150, failed: 0, skipped: 0 }).rows[0].machine, true);
+  // The same clause is unproved once the environment skipped part of the suite.
+  const skipped = stage.machineCoverageFor(task, 'collab', { total: 150, failed: 0, skipped: 8 });
+  assert.equal(skipped.rows[0].machine, false);
+  assert.match(skipped.rows[0].reason, /8 项断言.*跳过/);
+});
+
+test('the clone probe reports a capability ceiling instead of throwing', () => {
+  // Deterministic simulation of the review sandbox: git itself runs, but it may
+  // not clone. The probe must answer "not executable here" with a reason, never
+  // crash, and never pretend the byte-reproduction check failed on its own.
+  //
+  // The assertions are written so this test is valid *inside* an environment that
+  // already cannot clone (which is exactly where the review runs): it compares the
+  // probe's answer before and after the restriction instead of assuming "before"
+  // was capable.
+  const tmp = os.tmpdir();
+  const before = cloneCapability(tmp);
+  assert.equal(typeof before.ok, 'boolean');
+  if (!before.ok) assert.ok(before.reason && before.reason.length > 0, 'a refusal must carry a reason');
+
+  const saved = { ...process.env };
+  let blocked;
+  try {
+    process.env.GIT_CONFIG_COUNT = '1';
+    process.env.GIT_CONFIG_KEY_0 = 'protocol.file.allow';
+    process.env.GIT_CONFIG_VALUE_0 = 'never';
+    blocked = cloneCapability(tmp);
+  } finally {
+    for (const k of ['GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0']) {
+      if (saved[k] === undefined) delete process.env[k];
+      else process.env[k] = saved[k];
+    }
+  }
+  assert.equal(blocked.ok, false, 'forbidding file transport must refuse the probe');
+  assert.match(blocked.reason, /clone failed/i);
+  // The probe is a measurement, not a mutation: the environment answers as before.
+  assert.equal(cloneCapability(tmp).ok, before.ok);
+});
+
+/* ------------------------------------------------------------------ *
+ * S20: snapshot hygiene — a unity preflight must not leave 1.9 GB behind
+ * ------------------------------------------------------------------ */
+
+test('pruning drops regenerable snapshot debris but never evidence', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-'));
+  try {
+    const put = (rel, text) => {
+      const abs = path.join(tmp, rel);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, text);
+    };
+    // Regenerable: Unity's cache, the log directory, .NET intermediates.
+    put('Unity Project/Library/ArtifactDB', 'x'.repeat(4096));
+    put('Unity Project/Library/abc/big.bin', 'y'.repeat(2048));
+    put('Unity Project/Temp/tmpfile', 'z');
+    put('tools/semcheck/obj/project.assets.json', '{}');
+    put('tools/semcheck/bin/semcheck.dll', 'bin');
+    // Must survive: manifest source, and the NUnit XML a unity profile writes
+    // *inside* the very Logs directory we are pruning.
+    put('Unity Project/Assets/Scripts/Foo.cs', 'class Foo {}');
+    put('Unity Project/Logs/Tasks20261017_abcdef.xml', '<test-run/>');
+    put('Unity Project/Logs/Editor.log', 'noise');
+
+    const kept = 'Unity Project/Assets/Scripts/Foo.cs';
+    const result = 'Unity Project/Logs/Tasks20261017_abcdef.xml';
+    const stats = pruneSnapshotArtifacts(tmp, { keep: [kept], protect: [result] });
+
+    const gone = (rel) => !fs.existsSync(path.join(tmp, rel));
+    const here = (rel) => fs.existsSync(path.join(tmp, rel));
+
+    assert.equal(here(kept), true, 'a manifest-listed source file must never be deleted');
+    assert.equal(here(result), true, 'the declared result file is evidence, not debris');
+    assert.equal(gone('Unity Project/Logs/Editor.log'), true, 'injected noise inside Logs still goes');
+    assert.equal(gone('Unity Project/Library/ArtifactDB'), true, 'Unity cache must be pruned');
+    assert.equal(gone('Unity Project/Library'), true, 'an emptied artifact root is removed too');
+    assert.equal(gone('Unity Project/Temp'), true);
+    assert.equal(gone('tools/semcheck/obj'), true);
+    assert.equal(gone('tools/semcheck/bin'), true);
+    assert.equal(here('tools/semcheck'), true, 'a non-artifact parent stays');
+
+    assert.equal(stats.freedBytes, 4096 + 2048 + 1 + 2 + 3 + 5);
+    // Only files the prune actually had to spare *inside* an artifact directory are
+    // counted; the Assets source above is never visited at all.
+    assert.equal(stats.keptFiles, 1);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('pruning a snapshot that has no artifacts is a no-op', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-empty-'));
+  try {
+    fs.mkdirSync(path.join(tmp, 'Unity Project/Assets'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'class A {}');
+    const before = fs.readFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'utf8');
+    const stats = pruneSnapshotArtifacts(tmp, {});
+    assert.equal(stats.freedBytes, 0);
+    assert.equal(stats.removedFiles, 0);
+    assert.equal(fs.readFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'utf8'), before);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 console.log(failed ? `\n${failed} failed` : '\nall tests passed');

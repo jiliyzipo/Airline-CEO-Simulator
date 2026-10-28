@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261026121935-4e76e6",
+  "taskId": "S14-CollabBinding",
+  "deliveryId": "DEL-20261026120855-4108a5",
+  "reviewId": "REV-20261026121713-f02d73",
+  "title": "验收条件缺少机器验证，且检测者未显式补证",
+  "repro": "任务 S14-CollabBinding 的验收条件与 profile collab 的机器契约不一致",
+  "expected": "机器可验证的条款由 profile 覆盖；其余条款必须由检测者用 --coverage 显式声明，或判定失败",
+  "actual": "AC2（AC2 已被改写为自定义条款，机器计数无法证明它）；AC3（AC3 已被改写为自定义条款，机器计数无法证明它）；AC4（profile collab 没有为 AC4 生成机器条款）",
+  "evidence": ".collab-local/logs/REV-20261026121713-f02d73/run-bfa9c5625882c6a7/stdout.txt",
+  "severity": "blocker",
+  "suggestedOwner": "codex",
+  "status": "open",
+  "createdAt": "2026-10-26T12:19:35.353Z"
+}

@@ -223,7 +223,20 @@ namespace AirlineCEO.Logic
             RegexOptions.Compiled);
 
         /// <summary>把正文里的白名单词包成 TMP 链接（已含 link 的片段不重复处理）。</summary>
-        public static string Decorate(string body)
+        public static string Decorate(string body) => Decorate(body, null);
+
+        /// <summary>
+        /// 同 <see cref="Decorate(string)"/>，但显式指定「从哪台 GameState 取航线号段」。
+        ///
+        /// 为什么需要这个重载（2026-10-27）：航班号包裹依赖 <c>GameState.Instance</c>，
+        /// 而 <c>GameState</c> 没有 <c>[ExecuteInEditMode]</c> —— EditMode 下
+        /// <c>AddComponent&lt;GameState&gt;()</c> **不会调用 Awake**，<c>Instance</c> 恒为 null。
+        /// 于是所有 EditMode 回归里「航班号能不能点」这条断言**一直在空转**：
+        /// 它拿到的永远是原文，`Contains("link=flight:…")` 永远为 false。
+        /// 传 <paramref name="host"/> 后回归可以喂进自己造的那台，不必依赖全局单例。
+        /// 游戏内调用方不传，行为与旧版完全一致。
+        /// </summary>
+        public static string Decorate(string body, GameState host)
         {
             if (string.IsNullOrEmpty(body)) return body ?? "";
 
@@ -236,7 +249,7 @@ namespace AirlineCEO.Logic
             for (int i = 0; i < codes.Length; i++)
                 iataTerms[i] = (codes[i], "city:" + codes[i]);
             s = WrapAircraftRegs(WrapAirportCodes(s, iataTerms));
-            return WrapFlightNumbers(s);
+            return WrapFlightNumbers(s, host ?? GameState.Instance);
         }
 
         /// <summary>
@@ -250,10 +263,9 @@ namespace AirlineCEO.Logic
         /// 呈报里提到的待加班次往往还没有航班实体，只认已建班会让这封信里的号点不动。
         /// 只包**已知号**，不做 `[A-Z]{2}\d+` 泛匹配 —— 否则 A320、B738 这类机型名也会被当成航班号。
         /// </summary>
-        static string WrapFlightNumbers(string s)
+        static string WrapFlightNumbers(string s, GameState gs)
         {
             if (string.IsNullOrEmpty(s)) return s ?? "";
-            var gs = GameState.Instance;
             if (gs?.activeRoutes == null || gs.activeRoutes.Count == 0) return s;
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

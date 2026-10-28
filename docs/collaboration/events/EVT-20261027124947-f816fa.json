@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027124947-f816fa",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 635,
+  "at": "2026-10-27T12:49:47.932Z",
+  "actor": "cursor",
+  "action": "delivery-superseded",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "superseded: DEL-20261027115400-6ee0b2",
+  "data": {
+    "marked": [
+      "DEL-20261027115400-6ee0b2"
+    ],
+    "note": "S26 的渲染链路 4 条断言与 MapWidget 可断言化改动全部包含在 S27 中；S27 另含线宽档位 1.8/2.8/4.0 修正与间隔守卫。S26 从未送检，无需重复检测。"
+  }
+}

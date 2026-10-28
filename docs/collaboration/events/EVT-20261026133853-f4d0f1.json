@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261026133853-f4d0f1",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 471,
+  "at": "2026-10-26T13:38:53.223Z",
+  "actor": "cursor",
+  "action": "delivery-superseded",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "superseded: DEL-20261026092125-d3b2a1",
+  "data": {
+    "marked": [
+      "DEL-20261026092125-d3b2a1"
+    ],
+    "note": "S13 的 tools/collab 改动已被 S14 同根继续并独立通过（REV-20261026130014-dffbf3），不再单独复验"
+  }
+}

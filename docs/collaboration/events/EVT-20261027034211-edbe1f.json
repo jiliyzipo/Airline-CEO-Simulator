@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027034211-edbe1f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 555,
+  "at": "2026-10-27T03:42:11.916Z",
+  "actor": "cursor",
+  "action": "stage-refresh-ac",
+  "taskId": "S20-SnapshotHygiene",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "acceptance criteria re-derived: unity-editmode -> collab",
+  "data": {
+    "from": "unity-editmode",
+    "to": "collab",
+    "previous": [
+      {
+        "id": "AC1",
+        "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S20-SnapshotHygiene）"
+      },
+      {
+        "id": "AC2",
+        "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S20-SnapshotHygiene）"
+      },
+      {
+        "id": "AC3",
+        "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S20-SnapshotHygiene）"
+      }
+    ]
+  }
+}

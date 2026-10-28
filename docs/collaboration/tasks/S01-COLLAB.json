@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Collab",
@@ -31,10 +31,40 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T09:31:41.179Z",
-  "updatedAt": "2026-10-18T12:55:50.070Z",
+  "updatedAt": "2026-10-28T01:10:17.076Z",
   "snapshotRoots": [
     "tools/collab"
   ],
-  "freshnessNote": "Historical review REV-20261018103950-3b9460 passed delivery DEL-20261018102500-1304ad; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261018103950-3b9460"
+  "freshnessNote": "Historic verdict REV-20261018103950-3b9460 covered 33 changed files; 14 were edited later and are now owned by passed deliveries DEL-20261018130325-dd2da0, DEL-20261028010243-671d55.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-27T01:33:22.509Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261018102500-1304ad",
+    "basisCount": 33,
+    "drifted": [
+      "tools/collab/Collab.ps1",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/paths.mjs",
+      "tools/collab/lib/schemas.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/lib/taskbook.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/run-all.mjs",
+      "tools/collab/tests/stage.test.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 33,
+    "intact": 19,
+    "covered": 14,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
 }

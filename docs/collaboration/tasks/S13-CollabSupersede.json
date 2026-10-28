@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S13-CollabSupersede",
+  "title": "阶段 S13-CollabSupersede：Collab",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab",
+    "改动文件数 4，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S13-CollabSupersede）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S13-CollabSupersede）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S13-CollabSupersede）"
+    },
+    {
+      "id": "AC4",
+      "text": "协作工具回归失败必须留下可行动的原因：每次运行的子套件 stdout/stderr 落到本次运行证据目录（COLLAB_RUN_DIR 存在时），失败消息去重后同时输出到 stderr；整套 0 通过一律判为夹具/环境问题（fixtureBroken）而不是 N 条回归，并对夹具探针（工具树复制 + cmdInit）单独报告。证据：collab 子套件 reporting 三条用例（keep-cause / fixture-verdict / evidence-dir）（S13-CollabSupersede）"
+    },
+    {
+      "id": "AC5",
+      "text": "受限令牌下无法执行的检查必须与业务回归区分：git clone 不可用时 cleancheckout 记 SKIP（含原因）而非 FAIL，整套全跳过仍判负；doctor 只由“执行了但不通过”的检查判负，unavailable 只记警告；skip>0 时机器条款自动降级为需检测者显式补证，绝不静默通过。证据：collab 子套件 doctorOk / skipped-assertion / clone-probe 三组用例与 cleancheckout 的 SKIP 路径（S13-CollabSupersede）"
+    },
+    {
+      "id": "AC6",
+      "text": "受限环境下的临时目录不留残余：run-all 回退到工作区临时目录时，只删除本进程自己创建的那一个，且仅当它不含本次证据（COLLAB_RUN_DIR 已给出证据目录时才删）；裸跑时保留并打印 kept ... 与证据路径。证据：系统临时目录指向不可写盘（Q:\\）且 COLLAB_RUN_DIR 指向 .collab-local/logs 时，运行后 suite-* 残留为 0 且证据完整；无 COLLAB_RUN_DIR 时残留 1 并打印 kept 提示（S13-CollabSupersede）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-26T02:21:29.695Z",
+  "updatedAt": "2026-10-26T13:40:12.401Z",
+  "snapshotRoots": [
+    "tools/collab"
+  ],
+  "freshnessNote": "Historical review REV-20261026064716-f5b286 passed delivery DEL-20261026063907-c4218e; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261026064716-f5b286",
+  "supersededBy": {
+    "deliveryId": "DEL-20261026120855-4108a5",
+    "taskId": "S14-CollabBinding",
+    "actor": "cursor",
+    "note": "S13 的 tools/collab 改动已被 S14 同根继续并独立通过（REV-20261026130014-dffbf3），不再单独复验",
+    "at": "2026-10-26T13:38:53.241Z"
+  }
+}

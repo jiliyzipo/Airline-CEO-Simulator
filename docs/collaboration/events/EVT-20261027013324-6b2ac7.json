@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027013324-6b2ac7",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 509,
+  "at": "2026-10-27T01:33:24.266Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S06-BatchB",
+  "deliveryId": "DEL-20261022023213-67df8c",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=113 drifted=34",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Data/AirlineProfile.cs",
+      "Unity Project/Assets/Scripts/Data/PresetAirlines.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/AirportRegions.cs",
+      "Unity Project/Assets/Scripts/Logic/FleetEconomics.cs",
+      "Unity Project/Assets/Scripts/Logic/InboxLetter.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/RouteGeography.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/Systems/SaveManager.cs",
+      "Unity Project/Assets/Scripts/Systems/TakeoverWorldBuilder.Apply.cs",
+      "Unity Project/Assets/Scripts/Systems/TakeoverWorldBuilder.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/OpenRouteDecisionFlow.cs",
+      "Unity Project/Assets/Scripts/UI/Setup/AirlineOverviewUI.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/AdvisorModalUI.cs"
+    ]
+  }
+}

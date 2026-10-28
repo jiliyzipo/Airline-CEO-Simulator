@@ -233,6 +233,29 @@ namespace AirlineCEO.Data
         /// </summary>
         public float FlightNetDailyProfit => dailyProfit / FlightCount;
 
+        /// <summary>
+        /// 该班次的**周净利**（万美元/周），与 <see cref="dailyProfit"/> 同口径、可直接相加。
+        ///
+        /// 必须是「航线日净利 × 7 × 本班周班次占比」，**不是**「单班日利 × 本班周班次」：
+        /// <see cref="dailyProfit"/> 已经由 <c>OpsEconomics.ToDailyProfit</c> 按 <c>weeklyFlights/7</c>
+        /// 摊到每个日历日了，再乘一次周班次等于把「加密」那部分乘第二遍。
+        ///
+        /// 实测事故（2026-10-27，T03.8 逐屏 · NS100/NS101 PEK⇄PVG 20 班/周）：
+        /// 同一屏上摘要行写「周利 4.2 万」（= 日利 × 7，正确）、时刻表头写「WEEKLY PROFIT 12.0 万」
+        /// （= 单班日利 × 20），比值 12.0/4.2 = 20/7 = 2.857 —— 正好是周班次倍数。
+        /// 旧式 `FlightNetDailyProfit * WeeklyOf(f)` 只在「每班恰好 7 班/周」时正确，
+        /// 所以 3 波 × 7 班的回归夹具与每周 7 班的长航线都测不出来，加密到非 7 班才暴露。
+        /// </summary>
+        /// <param name="f">本航线下的某一班次；为 null 或不属于本航线时按整条航线算。</param>
+        public float WeeklyProfitOf(RouteFlight f)
+        {
+            int total = WeeklyFlightsDeparture();
+            if (total <= 0) total = 7;
+            int here = FlightScheduleFormat.WeeklyOf(f);
+            if (here <= 0) here = total;   // 无班次信息时退化成整条航线，不做 0 权重
+            return dailyProfit * 7f * here / total;
+        }
+
 
         /// <summary>本航线是否有执飞机（接管局的机队缺口会造成无飞机的航线）。</summary>
         public bool HasAircraft => !string.IsNullOrEmpty(registration);

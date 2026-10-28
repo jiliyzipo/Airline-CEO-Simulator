@@ -262,6 +262,27 @@ static class Program
                 head.Contains("中央气象台") && head.Contains("整理转呈") && head.Contains("新闻官" + nA1),
                 head.Replace("\n", " "));
             Check("新闻官 无来源兜底", PressDesk.ForwardHead("", nA1).Contains("有关方面"));
+            // 机关名与文日只出现在抬头（原文的机关落款块已撤）
+            string headWithDate = PressDesk.ForwardHead("中央气象台", nA1, "2030年5月10日");
+            Check("新闻官 抬头带文日",
+                headWithDate.Contains("中央气象台") && headWithDate.Contains("2030年5月10日")
+                && headWithDate.Contains("整理转呈"),
+                headWithDate.Replace("\n", " "));
+
+            // 转呈人落款：正文末尾必须署「新闻官 姓名」+ 日期，否则 CEO 只能看到原文机关落款
+            string sign = PressDesk.ForwardSign(nA1, "2030年5月10日");
+            string[] signLines = sign.Replace("\r\n", "\n").Split('\n');
+            Check("新闻官 转呈落款两行", signLines.Length == 2, sign.Replace("\n", " / "));
+            Check("新闻官 转呈落款署名", signLines.Length == 2
+                && signLines.Length > 0 && signLines[0].Trim() == "新闻官 " + nA1,
+                signLines.Length > 0 ? signLines[0].Trim() : "（空）");
+            Check("新闻官 转呈落款日期", signLines.Length == 2 && signLines[1].Trim() == "2030年5月10日",
+                signLines.Length > 1 ? signLines[1].Trim() : "（空）");
+            Check("新闻官 转呈落款右对齐（前导全角空格）",
+                signLines.Length > 0 && signLines[0].Length > signLines[0].TrimStart().Length,
+                $"前导空白={(signLines.Length > 0 ? signLines[0].Length - signLines[0].TrimStart().Length : 0)}");
+            Check("新闻官 无日期只出署名",
+                PressDesk.ForwardSign(nA1, "").Replace("\r\n", "\n").Split('\n').Length == 1);
         }
 
         Console.WriteLine(fails == 0 ? "ALL PASS" : $"{fails} FAILED");

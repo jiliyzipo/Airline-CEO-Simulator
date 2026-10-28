@@ -576,14 +576,18 @@ namespace AirlineCEO.EditorTools
                 var mT = gsX.inbox.Find(m => m != null && m.id != null && m.id.StartsWith("ext_r_typhoon"));
                 Debug.Log($"外事 公文口吻 立项={mN != null} 含尊敬的={mN != null && mN.body.Contains("尊敬的")}（期望 False）"
                     + $" 含特此通知={mN != null && mN.body.Contains("特此通知")} 落款含游戏日期={mN != null && mN.body.Contains("2030年5月10日")}");
+                // 信面口径（抬头 / 落款 / 机关落款块）已抽成 ExternalForwardingTests 的机器断言，
+                // 这里只打印正文末尾两行，供人核对观感 —— 不再用 Debug.Log 冒充回归。
                 Debug.Log($"外事 预告文种 {mT?.role}（期望 新闻官 · 预警通报） 分类={InboxManager.KindLabel(mT?.kind)}（期望 来文）"
                     + $" 含特此通报={mT != null && mT.body.Contains("特此通报")} 标题式={mT != null && mT.body.Contains("\n关于")}"
                     + $" 发件人为新闻官={mT != null && PressDesk.IsPressOfficer(gsX, mT.sender)}（期望 True）"
-                    + $" 含转呈抬头={mT != null && mT.body.Contains("整理转呈")} 原文落款未丢={mT != null && mT.body.Contains("中央气象台")}");
+                    + $" 含转呈抬头={mT != null && mT.body.Contains("整理转呈")} 来源机关在抬头={mT != null && mT.body.Contains("中央气象台")}"
+                    + $" 末尾两行=「{TailCsv(mT, 2)}」");
                 var mTb = gsX.inbox.Find(m => m != null && m.id != null && m.id.StartsWith("ext_t_typhoon"));
                 Debug.Log($"外事 施行通报 {(mTb != null ? "有" : "无")} 文种={mTb?.role}（期望 新闻官 · 施行通报） 含已自施行={mTb != null && mTb.body.Contains("已自")}"
                     + $" 影响行={mTb != null && mTb.body.Contains("起降受限")}"
-                    + $" 含转呈抬头={mTb != null && mTb.body.Contains("整理转呈")}");
+                    + $" 含转呈抬头={mTb != null && mTb.body.Contains("整理转呈")}"
+                    + $" 末尾两行=「{TailCsv(mTb, 2)}」");
             }
             finally
             {
@@ -1881,6 +1885,10 @@ namespace AirlineCEO.EditorTools
                 // 2026-10-23 K17：接管成本继承粒度 —— 四段式与部门账本同账、
                 // 跑道路标 8/6/4/3 不漂移、落盘预算与季度问责同尺。
                 TakeoverCostLedgerRegression.Run();
+
+                // 2026-10-25：命令台历史 / 回执回溯 / 收藏 —— 去重只压紧邻完全相同、
+                // 60 条上限从队尾淘汰、Amend 只改最近匹配、清历史不连坐收藏、Ensure 幂等。
+                CommandLogRegression.Run();
                 // —— R14：时刻槽**逐停站**建模（一条槽 = 某停站一次停留的一对「到场 + 离场」）——
                 //     本场端 1 条、对端 1 条；有经停时经停站一趟往返停两次 = **2 条**（共 4 条）。
                 var goTwoEnd = new GameObject("__slot_two_end__");
@@ -5523,6 +5531,23 @@ namespace AirlineCEO.EditorTools
                 sb.Append($"{r.origin}→{r.destination}({r.distanceKm:F0}km→{r.aircraftType})");
             }
             return sb.Length > 0 ? sb.ToString() : "（无远程线）";
+        }
+
+        /// <summary>
+        /// 打印正文末尾 n 行（去掉空行与右对齐的前导全角空格）。
+        /// 只做观察不做断言 —— 断言在 ExternalForwardingTests 里。
+        /// </summary>
+        static string TailCsv(InboxMail mail, int n)
+        {
+            if (mail == null || string.IsNullOrEmpty(mail.body)) return "（无）";
+            var lines = mail.body.Replace("\r\n", "\n").Split('\n');
+            var tail = new List<string>();
+            for (int i = lines.Length - 1; i >= 0 && tail.Count < n; i--)
+            {
+                string l = lines[i].Trim();
+                if (l.Length > 0) tail.Insert(0, l);
+            }
+            return string.Join(" / ", tail);
         }
     }
 }

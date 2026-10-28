@@ -44,6 +44,12 @@ namespace AirlineCEO.Logic
             /// </summary>
             public bool needsRun;
             /// <summary>
+            /// 写指令的参数快照：<see cref="Build"/> 收到什么就原样存这里，
+            /// <see cref="RunPending"/> 执行时**只认这一份**，不再读命令条上的输入框 ——
+            /// 否则 CEO 在确认前改了草稿，执行的就是另一句话了。
+            /// </summary>
+            public CeoCommandRouter.CeoAsk ask;
+            /// <summary>
             /// true = 这是一句**关于某条具体航线**的询问：交运营部按本线台账写答复件
             /// （汇报件，无需批复），不走「部门总账」那张汇报表。
             /// </summary>
@@ -73,6 +79,10 @@ namespace AirlineCEO.Logic
 
             if (ask.topic == CeoCommandRouter.TopicCloseRoute) return CloseRouteReview(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicCapacity) return CapacityDirective(gs, ask, raw);
+            if (ask.topic == CeoCommandRouter.TopicOpenRoute) return OpenRouteDirective(ask);
+            if (ask.topic == CeoCommandRouter.TopicFleetBuy) return FleetBuyDirective(ask);
+            if (ask.topic == CeoCommandRouter.TopicHrRecruit) return HrRecruitDirective(ask);
+            if (ask.topic == CeoCommandRouter.TopicFinance) return FinanceDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicRouteQuery) return RouteQuery(gs, ask, raw);
             if (ask.topic == CeoCommandRouter.TopicFeasibility) return Feasibility(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicCompany) return CompanyOverview(gs);
@@ -417,7 +427,7 @@ namespace AirlineCEO.Logic
             var mnt = MaintenanceManager.EnsureState(gs);
             var sb = new StringBuilder();
             sb.Append(InboxLetter.Section("机队可用性"));
-            sb.Append(InboxLetter.Row("机队可用率", $"{mnt.fleetAvailability:F1}%"));
+            sb.Append(InboxLetter.Row("维修策略目标可用率", $"{mnt.fleetAvailability:F1}%"));
             sb.Append(InboxLetter.Row("停飞飞机", $"{mnt.groundedCount} 架"));
             sb.Append(InboxLetter.Row("维修差错率", $"{mnt.errorRate:F1}%"));
             sb.Append(InboxLetter.Row("持证工程师", $"{mnt.engineerCount} 人"));
@@ -425,11 +435,11 @@ namespace AirlineCEO.Logic
                 ? $"当前 {mnt.groundedCount} 架停飞，机务正在排检修；可用运力以「机队」页为准。"
                 : "当前没有停飞飞机，可用运力充足。"));
 
-            string subject = $"【汇报】机务现状：可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架";
+            string subject = $"【汇报】机务现状：目标可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架";
             return Answer("MNT", subject,
                 InboxLetter.Frame(gs, "机务工程部", "机务汇报", subject, sb.ToString(),
                     "本封为通报，无需批复。", null, needDecision: false),
-                $"可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架");
+                $"目标可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架");
         }
 
         // ———————————————————————— 战略（非可行性） ————————————————————————
@@ -964,6 +974,109 @@ namespace AirlineCEO.Logic
                 ? $"{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}"
                   + $" · 呈报已受理，约 {InboxCadence.ReportHours} 小时后到收件箱（待您批复）"
                 : $"{route.DualWeeklyLine()} · 呈报未能投递，请检查收件箱状态";
+            return ok;
+        }
+
+        // ———————————————————————— 四类写指令（开线 / 购机 / 招聘 / 融资） ————————————————————————
+
+        /// <summary>
+        /// 这四类的产物**本来就是请示件**：CEO 要在收件箱批一次，批错了还能驳回。
+        ///
+        /// 所以这里刻意**不再弹确认卡**（与运力调令同一条理由）：同一件事问两遍，
+        /// 会让人以为第一次没生效，而且真正的决定点始终是收件箱里那封信。
+        /// 本类只负责把参数原样交给 <c>InboxManager</c> 的既有呈报方法，**不写任何台账**。
+        /// </summary>
+        static DeptAnswer Directive(CeoCommandRouter.CeoAsk ask, string dept, string oneLine)
+            => new DeptAnswer
+            {
+                ok = true,
+                needsRun = true,
+                ask = ask,
+                deptCode = dept,
+                oneLine = oneLine
+            };
+
+        static DeptAnswer OpenRouteDirective(CeoCommandRouter.CeoAsk ask)
+            => Directive(ask, "OPS",
+                $"{ask.origin}—{ask.dest}" + (string.IsNullOrEmpty(ask.via) ? "" : "（经停 " + ask.via + "）"));
+
+        static DeptAnswer FleetBuyDirective(CeoCommandRouter.CeoAsk ask)
+            => Directive(ask, CeoCommandRouter.DeptFleet, $"{ask.aircraftType} ×{ask.count} · {ask.source}");
+
+        static DeptAnswer HrRecruitDirective(CeoCommandRouter.CeoAsk ask)
+            => Directive(ask, "HR", $"{ask.position} ×{ask.count} · {ChannelName(ask.channel)}");
+
+        static DeptAnswer FinanceDirective(CeoCommandRouter.CeoAsk ask)
+            => Directive(ask, "FIN", FinanceKindName(ask.financeKind));
+
+        static string FinanceKindName(int kind)
+            => kind == 3 ? "股东增资" : kind == 2 ? "高息过桥" : "银行贷款";
+
+        static string ChannelName(int channel)
+            => channel == 3 ? "内部转岗" : channel == 2 ? "海外引进" : channel == 1 ? "猎头挖角" : "校园招聘";
+
+        /// <summary>
+        /// 命令条的统一执行入口：按 topic 把参数交给**既有**管线。
+        ///
+        /// 之所以要这样一个入口，是因为命令条不该知道「哪一类指令走哪个方法」——
+        /// 那会让壳层（UI）再长出第二套分派表，与路由里的那张迟早对不上。
+        /// </summary>
+        public static bool RunPending(GameState gs, DeptAnswer ans, string raw, out string receipt)
+        {
+            receipt = "";
+            switch (ans.ask.topic)
+            {
+                case CeoCommandRouter.TopicCapacity:
+                    return RunCapacityDirective(gs, ans.routeKey, raw, out receipt);
+                case CeoCommandRouter.TopicOpenRoute:
+                    return RunOpenRoute(gs, ans.ask, out receipt);
+                case CeoCommandRouter.TopicFleetBuy:
+                    return RunFleetBuy(gs, ans.ask, out receipt);
+                case CeoCommandRouter.TopicHrRecruit:
+                    return RunHrRecruit(gs, ans.ask, out receipt);
+                case CeoCommandRouter.TopicFinance:
+                    return RunFinanceRequest(gs, ans.ask, out receipt);
+            }
+            receipt = "这条指令没有可执行的管线。";
+            return false;
+        }
+
+        static bool RunOpenRoute(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            // 与页面「提交研究」同一个组装函数：同一条航线不会有两个版本的研究会纪要。
+            var plan = OpenRouteStudyLogic.Build(gs, ask.origin, ask.dest, ask.via);
+            if (!plan.ok)
+            {
+                receipt = string.IsNullOrEmpty(plan.reject) ? "这条航线不成立，未发请示。" : plan.reject;
+                return false;
+            }
+            bool ok = InboxManager.QueueOpenRouteStudy(gs, ask.origin, ask.dest, ask.via,
+                plan.subject, plan.body);
+            receipt = ok
+                ? $"{plan.path}：开航研究会已在收件箱呈报（{plan.rpm.score} 分，"
+                  + $"约 {InboxCadence.StudyBusinessDays} 个工作日后到件；批准后仍须办妥准入）"
+                : $"{plan.path}：请示未能投递，请检查收件箱状态";
+            return ok;
+        }
+
+        static bool RunFleetBuy(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            bool ok = InboxManager.OfferFleetBuy(gs, ask.aircraftType, ask.count, ask.source, out string msg);
+            receipt = msg;
+            return ok;
+        }
+
+        static bool RunHrRecruit(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            bool ok = InboxManager.OfferHrRecruit(gs, ask.position, ask.count, ask.urgency, ask.channel, out string msg);
+            receipt = msg;
+            return ok;
+        }
+
+        static bool RunFinanceRequest(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            bool ok = InboxManager.OfferFinanceLoan(gs, ask.financeKind, out string msg);
+            receipt = msg;
             return ok;
         }
 

@@ -148,7 +148,7 @@ namespace AirlineCEO.UI
             int airworthy = FleetManager.Instance != null ? FleetManager.Instance.CountAirworthy(gs) : 0;
             _kpiText.text =
                 $"准点率 {gs.onTimePercent:F0}% · 客座示意 {gs.loadFactorPercent:F0}% · 预测延误 {avgDelay * 100f:F0}%\n" +
-                $"适航飞机 {airworthy} · 开通航线 {(gs.activeRoutes?.Count ?? 0)} · 油价 {gs.fuelPricePerTon:F0} $/t";
+                $"在役飞机 {airworthy} · 开通航线 {(gs.activeRoutes?.Count ?? 0)} · 油价 {gs.fuelPricePerTon:F0} $/t";
 
             int hedges = gs.hedgeContracts?.Count ?? 0;
             _fuelLinkText.text = hedges > 0
@@ -334,7 +334,7 @@ namespace AirlineCEO.UI
             string msg = gap > 0
                 ? $"运力缺口约 {gap} 架：已提交购机/租机议题到收件箱。"
                 : "当前运力基本覆盖航网；可按战略规划预购窄体机作备份。";
-            gs.AddDecisionLog($"【运营部→CEO 购机建议】适航 {airworthy} · 航线 {routes}。{msg}");
+            gs.AddDecisionLog($"【运营部→CEO 购机建议】在役 {airworthy} · 航线 {routes}。{msg}");
             if (gap > 0) InboxManager.QueueCapacityMail(gs, gap);
             gs.NotifyChanged();
             FindFirstObjectByType<EventLogUI>()?.Show();

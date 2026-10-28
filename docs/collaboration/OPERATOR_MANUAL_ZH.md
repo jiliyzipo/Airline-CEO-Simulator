@@ -79,6 +79,8 @@ node tools/collab/cli.mjs stage-close [--task S01-UI] [--note "本次修了什�
 → 自动写交付摘要 → 生成 DEL → 在交付快照内跑一次该 profile 预检 → 写交接单 `out/collab/handoff/<DEL>.md`。
 
 - 预检通过：交接单状态 `可检测`，把 `DEL` 交给 Codex。
+  本机还会把 `stage-review … --actor codex` 写入剪贴板并播放交接提示音（远处可闻）；
+  到 Codex 会话直接粘贴即可。关闭：`COLLAB_HANDOFF_NOTIFY=0`。**不会**自动冒充 Codex 执行检测。
 - 预检失败：退出码 5，交接单标记 `预检未通过`，`stage-review` 会跳过该 DEL；修复后重跑同一条命令即可。
   预检会在执行前后各校验一次交付快照：清单文件被改写、缺失、夹带源码都算预检失败，
   不会出现“跑完了但快照已被污染还标成可检测”。

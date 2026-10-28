@@ -354,12 +354,32 @@ namespace AirlineCEO.UI
             Color statusColor = ac.status == AircraftStatuses.Airworthy ? UITheme.Success
                 : ac.status == AircraftStatuses.Maintenance ? UITheme.Warning : UITheme.TextMuted;
             string ovh = string.IsNullOrEmpty(ac.lastOverhaulType) ? "无记录" : $"{ac.lastOverhaulType}（{ac.lastOverhaulYear} 年）";
+            // 排定窗口如实写到屏幕上：否则「维护中」这个状态看不出还要停几天。
+            string releasePart = ac.InScheduledMaintenance(gs != null ? gs.SimUtc : System.DateTime.UtcNow)
+                ? $" · 预计 {FleetManager.ReleaseDateLabel(ac)} 出厂"
+                : "";
 
             // 顶栏：身份与状态
             L("Reg", $"{ac.registration} · {ac.type}", 0.0f, 0.885f, 0.55f, 0.965f, 18, UITheme.TextPrimary, true);
             L("Name", $"「{(string.IsNullOrEmpty(ac.aircraftName) ? "未命名" : ac.aircraftName)}」 · {ac.source}", 0.55f, 0.885f, 1.0f, 0.965f, 13,
                 UITheme.TextMuted, false, TextAlignmentOptions.MidlineRight);
-            L("Status", $"状态 {statusWord} · 机龄 {ac.age} 年 · 机况 {ac.condition:F0}% · 舱位 头 {ac.firstClassSeats}/商 {ac.businessSeats}/经 {ac.economySeats}（总 {ac.TotalSeats}） · 估值 {residual:F0} 万 · 月维护 {maint:F1} 万 · 累计飞行 {ac.flightHours:F0} 小时 / {ac.flightCycles} 次起降 · 最近大修 {ovh}",
+            // 机龄越过 15 年后，「能不能继续飞」由机况决定（FleetEconomics.CanExtendLife）。
+            // 这一格必须把判据和后果一起说清：否则玩家在年结那天看到飞机莫名停场，
+            // 只会以为又出了 bug。判定与 FleetManager.RefreshStatus 共用同一对常量。
+            string ageCondPart;
+            if (!disposed && ac.age > FleetEconomics.LifeExtensionAgeLimit)
+            {
+                bool canExtend = FleetEconomics.WillStayAirworthyAtYearEnd(ac.age, ac.condition);
+                ageCondPart = $"机龄 {ac.age} 年 · 机况 {ac.condition:F0}%"
+                            + $"（超 {FleetEconomics.LifeExtensionAgeLimit} 年，延寿需机况 ≥ {FleetEconomics.LifeExtensionMinCondition:F0}%："
+                            + (canExtend ? "达标，可继续适航" : "⚠ 不足，年结将停场 → 先做定检抬机况")
+                            + "）";
+            }
+            else
+            {
+                ageCondPart = $"机龄 {ac.age} 年 · 机况 {ac.condition:F0}%";
+            }
+            L("Status", $"状态 {statusWord}{releasePart} · {ageCondPart} · 舱位 头 {ac.firstClassSeats}/商 {ac.businessSeats}/经 {ac.economySeats}（总 {ac.TotalSeats}） · 估值 {residual:F0} 万 · 月维护 {maint:F1} 万 · 累计飞行 {ac.flightHours:F0} 小时 / {ac.flightCycles} 次起降 · 最近大修 {ovh}",
                 0.0f, 0.815f, 1.0f, 0.885f, 11, statusColor, true);
 
             // 执飞航线 + 日循环 + 航班环
@@ -489,8 +509,9 @@ namespace AirlineCEO.UI
 
             bool wide = EconomyBalanceParams.IsWidebody(ac.type ?? "");
             float cost = FleetEconomics.OverhaulCost(_overhaulKind, wide);
+            float contingency = FleetEconomics.OverhaulContingency(_overhaulKind, wide);
+            float cashCost = FleetEconomics.OverhaulCashCost(_overhaulKind, wide);
             int days = FleetEconomics.OverhaulDays(_overhaulKind);
-            float contingency = cost * 0.12f;
             var gs = GameState.Instance;
 
             L("H", $"{ac.registration} · 大修预算确认", 0.0f, 0.90f, 1.0f, 0.97f, 16, UITheme.Warning, true);
@@ -508,14 +529,35 @@ namespace AirlineCEO.UI
             }
 
             // 预算面板（右侧）
+            // ★2026-10-27 修：这一栏此前列了「不可预见费(+12%)」，但 ScheduleOverhaul 只扣预估成本，
+            //   于是屏幕上写着的钱和账上扣的钱不是同一个数。现在三行全部由 FleetEconomics 的同源函数算出，
+            //   「合计扣款」这一行就是实际扣款的数 —— 玩家可以直接拿它和现金对账。
             L("Budget", "预算与财务", 0.44f, 0.72f, 1.0f, 0.78f, 13, UITheme.Accent, true);
-            L("B1", $"预估费用 {cost:F0} 万", 0.44f, 0.64f, 1.0f, 0.70f, 13);
-            L("B2", $"不可预见费(+12%) {contingency:F0} 万", 0.44f, 0.57f, 1.0f, 0.63f, 13);
-            L("B3", $"停场 {days} 天 · 状态→维护中", 0.44f, 0.50f, 1.0f, 0.56f, 13, UITheme.Warning);
-            L("B4", $"当前现金 {gs?.cash ?? 0:F0} 万", 0.44f, 0.43f, 1.0f, 0.49f, 13, UITheme.TextMuted);
+            L("B1", $"预估费用 {cost:F0} 万", 0.44f, 0.66f, 1.0f, 0.71f, 12);
+            L("B2", $"不可预见费(+12%) {contingency:F0} 万", 0.44f, 0.60f, 1.0f, 0.65f, 12);
+            L("B2b", $"合计扣款 {cashCost:F0} 万", 0.44f, 0.545f, 1.0f, 0.595f, 12, UITheme.Warning, true);
+            L("B3", $"停场 {days} 天 · 状态→维护中（到期自动复飞）", 0.44f, 0.485f, 1.0f, 0.535f, 12, UITheme.Warning);
+            L("B4", $"当前现金 {gs?.cash ?? 0:F0} 万", 0.44f, 0.43f, 1.0f, 0.48f, 12, UITheme.TextMuted);
 
             B("Confirm", "确认排程", 0.44f, 0.30f, 0.74f, 0.39f, UITheme.Accent, ConfirmOverhaul, 15);
-            L("Note", "确认后锁定大修窗口并占用预算，写入机务维修甘特图", 0.44f, 0.22f, 1.0f, 0.28f, 11, UITheme.TextMuted);
+            // 原文案写「写入机务维修甘特图」—— 全仓没有甘特图这个东西，承诺是空的。
+            // 改成实现里真有的事：按合计扣款、停场 N 天、到期由每日时钟自动放回适航。
+            // ★2026-10-27 二次修：机龄越过 15 年后，能不能继续飞由机况决定，所以老飞机这一屏
+            //   必须说清「这次定检把机况抬到多少、够不够延寿门槛」，否则玩家花完钱才知道会停场。
+            string extendNote = "";
+            if (ac.age > FleetEconomics.LifeExtensionAgeLimit)
+            {
+                float after = UnityEngine.Mathf.Clamp(ac.condition + FleetEconomics.OverhaulConditionGain, 0f, 100f);
+                bool ok = FleetEconomics.WillStayAirworthyAtYearEnd(ac.age, after);
+                extendNote = $"\n机龄 {ac.age} 年已超 {FleetEconomics.LifeExtensionAgeLimit} 年："
+                           + $"本次定检后机况 {ac.condition:F0}% → {after:F0}%，"
+                           + $"延寿门槛 ≥{FleetEconomics.LifeExtensionMinCondition:F0}% —— "
+                           + (ok ? "达标，年结可继续适航。" : "仍不足，年结会停场，需再做定检。");
+            }
+            L("Note", $"确认后一次性扣 {cashCost:F0} 万（含不可预见费 {contingency:F0} 万），"
+                      + $"机况 +{FleetEconomics.OverhaulConditionGain:F0}，"
+                      + $"停场 {days} 天；到期自动恢复适航。" + extendNote,
+                0.44f, 0.20f, 1.0f, 0.28f, 11, UITheme.TextMuted);
         }
 
         void ConfirmOverhaul()

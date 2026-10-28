@@ -257,7 +257,7 @@ namespace AirlineCEO.UI
             var mnt = MaintenanceManager.EnsureState(gs);
             Row("H", "维修培训与资质 · 机务人才培养",
                 mnt == null ? "游戏未就绪" :
-                $"持证工程师 {mnt.engineerCount} 人 · 在培 {mnt.trainingCount} 人 · 可用率 {mnt.fleetAvailability:F1}%",
+                $"持证工程师 {mnt.engineerCount} 人 · 在培 {mnt.trainingCount} 人 · 目标可用率 {mnt.fleetAvailability:F1}%",
                 0.82f, UITheme.Accent);
             Note("N", "机型改装：自建中心 / 外包 / OEM。职业路径：机械师 → 工程师 → 放行工程师。", 0.58f);
             Act("Train", "发起机务培训（12 人 / 80 万）", 0.04f, 0.08f, UITheme.Accent, () =>
@@ -316,7 +316,7 @@ namespace AirlineCEO.UI
             float exec = mnt != null && mnt.budgetWan > 0 ? mnt.budgetUsedWan / mnt.budgetWan * 100f : 0f;
             Row("H", "适航总览 · 机队健康度",
                 mnt == null ? "游戏未就绪" :
-                $"可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架 · 差错率 {mnt.errorRate:F1}% · {strat}（预算执行 {exec:F0}%）",
+                $"目标可用率 {mnt.fleetAvailability:F1}% · 停飞 {mnt.groundedCount} 架 · 差错率 {mnt.errorRate:F1}% · {strat}（预算执行 {exec:F0}%）",
                 0.82f, UITheme.Accent);
             Note("N", "定检、工程、航材与适航质量从这里进入详情。维修策略可在维护页调整。", 0.58f);
             Act("A1", "航线与定检", 0.04f, 0.28f, UITheme.PanelDeep,

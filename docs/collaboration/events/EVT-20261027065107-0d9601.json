@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027065107-0d9601",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 601,
+  "at": "2026-10-27T06:51:07.986Z",
+  "actor": "cursor",
+  "action": "stage-close",
+  "taskId": "S24-UtilizationAudit",
+  "deliveryId": "DEL-20261027065059-f2c0ac",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "stage-close profile=balance preflight=pass",
+  "data": {
+    "profile": "balance",
+    "handoffFile": "out/collab/handoff/DEL-20261027065059-f2c0ac.md"
+  }
+}

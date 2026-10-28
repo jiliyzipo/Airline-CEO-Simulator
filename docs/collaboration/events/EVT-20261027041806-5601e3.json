@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027041806-5601e3",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 577,
+  "at": "2026-10-27T04:18:06.368Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S20-SnapshotHygiene",
+  "deliveryId": "DEL-20261027034213-898afe",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=40 drifted=3",
+  "data": {
+    "drifted": [
+      "tools/collab/lib/state.mjs",
+      "docs/handoff/P30_快照卫生_开发记录_2026-10-27.md",
+      "tools/collab/lib/basis.mjs"
+    ]
+  }
+}

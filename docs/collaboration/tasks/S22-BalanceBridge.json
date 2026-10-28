@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S22-BalanceBridge",
+  "title": "阶段 S22-BalanceBridge：Collab/Editor/Assets-Tests",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Collab、Editor、Assets-Tests、Balance、Logic、UI",
+    "改动文件数 80，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S22-BalanceBridge）"
+    },
+    {
+      "id": "AC2",
+      "text": "现金桥对账在 60 组合上全部通过（期末 = 期初 + 净利 + IRROPS − 利息 + 未偿本金，残差 ≤ 容差）（S22-BalanceBridge）"
+    },
+    {
+      "id": "AC3",
+      "text": "断言计数与机器结果一致：total>0、failed=0、skipped<total（S22-BalanceBridge）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-27T04:34:40.494Z",
+  "updatedAt": "2026-10-27T04:48:03.588Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historical review REV-20261027043857-e4c054 passed delivery DEL-20261027043524-cb5539; verification baseline changed — re-review required.",
+  "staleForReviewId": "REV-20261027043857-e4c054"
+}

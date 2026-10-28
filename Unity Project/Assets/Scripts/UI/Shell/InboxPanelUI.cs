@@ -409,8 +409,10 @@ namespace AirlineCEO.UI.Shell
                     body =
                         InboxLetter.Section("提案要点") +
                         InboxLetter.Bullet("航线　深圳宝安（SZX）→ 北京首都（PEK），即 SZX-PEK") +
-                        InboxLetter.Bullet("评估　RPM 综合评分 86 分（绿色）") +
-                        InboxLetter.Bullet("预估日利润　16.2 万美元；启动资金 300 万美元") +
+                        InboxLetter.Bullet("评估　以「战略 → 新航线 RPM 评估台」的当场测算为准"
+                                           + "（本函为引导演示件，不另报一个评分）") +
+                        InboxLetter.Bullet($"预估日利润　日基准 {AdvisorTutorialScript.RouteDailyBaseline:F1} 万美元；"
+                                           + $"启动资金 {AdvisorTutorialScript.StartupCostText}") +
                         InboxLetter.Section("建议") +
                         InboxLetter.Bullet("尽快启动开航程序；批准后转入局方准入办理，取证后开航"),
                     tag = "紧急"

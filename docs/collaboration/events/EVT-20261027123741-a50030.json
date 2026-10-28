@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261027123741-a50030",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 628,
+  "at": "2026-10-27T12:37:41.392Z",
+  "actor": "cursor",
+  "action": "stage-close",
+  "taskId": "S27-MapBandLegibility",
+  "deliveryId": "DEL-20261027123307-f320b4",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "stage-close profile=unity-playmode preflight=pass",
+  "data": {
+    "profile": "unity-playmode",
+    "handoffFile": "out/collab/handoff/DEL-20261027123307-f320b4.md"
+  }
+}

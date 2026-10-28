@@ -265,7 +265,7 @@ namespace AirlineCEO.UI
             if (_kpiText != null)
             {
                 _kpiText.text =
-                    $"总航线 {routes} · 适航 {airworthy} 架 · 缺口 {gap} 架（{ratio * 100f:F0}%）{(red ? " · 红灯>20%" : "")} · 覆盖城市 {cities.Count} · 网络日利润 {totalDaily:F1} 万\n" +
+                    $"总航线 {routes} · 在役 {airworthy} 架 · 缺口 {gap} 架（{ratio * 100f:F0}%）{(red ? " · 红灯>20%" : "")} · 覆盖城市 {cities.Count} · 网络日利润 {totalDaily:F1} 万\n" +
                     $"准点率 {gs.onTimePercent:F0}% · 客座率 {gs.loadFactorPercent:F0}% · 平均航距见单航线详情";
             }
 
@@ -539,13 +539,13 @@ namespace AirlineCEO.UI
             int gap = CapacityPlanning.Gap(routes, airworthy);
             float ratio = CapacityPlanning.GapRatio(routes, airworthy);
             _gapBody.text =
-                $"适航飞机　{airworthy} 架\n" +
+                $"在役飞机　{airworthy} 架\n" +
                 $"已开通航线　{routes} 条\n" +
-                $"运力缺口　{gap} 架（航线数 − 适航架数）\n" +
+                $"运力缺口　{gap} 架（航线数 − 在役架数）\n" +
                 $"缺口率　{ratio:P0}\n\n" +
                 (gap > 0
                     ? "建议由机队补强。点下方按钮把补强议题发到收件箱，由您以 CEO 身份决策。"
-                    : "当前适航运力可覆盖航网，暂不需要引进。");
+                    : "当前在役运力可覆盖航网，暂不需要引进。");
         }
 
         void EnsureRouteEmbed()
@@ -594,10 +594,10 @@ namespace AirlineCEO.UI
             if (gap > 0)
             {
                 InboxManager.QueueCapacityMail(gs, gap);
-                gs.AddDecisionLog($"【航线网】运力缺口 {gap} 架（适航 {airworthy} / 航线 {routes}），已提交补强议题。");
+                gs.AddDecisionLog($"【航线网】运力缺口 {gap} 架（在役 {airworthy} / 航线 {routes}），已提交补强议题。");
             }
             else
-                gs.AddDecisionLog($"【航线网】适航 {airworthy} 架覆盖航线 {routes} 条，暂无缺口。");
+                gs.AddDecisionLog($"【航线网】在役 {airworthy} 架覆盖航线 {routes} 条，暂无缺口。");
             gs.NotifyChanged();
             Refresh();
         }

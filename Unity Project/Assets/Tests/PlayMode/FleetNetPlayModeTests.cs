@@ -113,13 +113,20 @@ namespace AirlineCEO.Tests.PlayMode
             Assert.AreEqual(150, ac.economySeats);
             Assert.AreEqual(182, ac.TotalSeats);
 
-            // 大修回写（C 检窄体 300 万）
+            // 大修回写（C 检窄体：预估 300 万 + 不可预见费 12% = 扣 336 万）
+            // ★2026-10-27：此前只扣预估 300 万，而 n107 屏幕上同时列着「不可预见费(+12%)」，
+            // 屏幕与账本对不上。扣款统一走 FleetEconomics.OverhaulCashCost，本断言随之改为合计。
             float cashBefore = gs.cash;
             bool okOverhaul = fm.ScheduleOverhaul(reg, FleetEconomics.OverhaulC, out string ovhMsg);
             Assert.IsTrue(okOverhaul, ovhMsg);
-            Assert.AreEqual(cashBefore - 300f, gs.cash, 0.01f);
+            float expectOverhaul = FleetEconomics.OverhaulCashCost(FleetEconomics.OverhaulC, false);
+            Assert.AreEqual(336f, expectOverhaul, 0.01f, "C 检窄体合计扣款应为 300 × 1.12");
+            Assert.AreEqual(cashBefore - expectOverhaul, gs.cash, 0.01f);
             Assert.AreEqual(AircraftStatuses.Maintenance, ac.status);
             Assert.AreEqual(FleetEconomics.OverhaulC, ac.lastOverhaulType);
+            // 停场窗口必须真的落在飞机上：修之前这里恒为 0，「停场 10 天」是句空话。
+            Assert.IsTrue(ac.maintenanceUntilUtcTicks > 0, "排程后必须写入停场窗口");
+            Assert.IsTrue(ac.InScheduledMaintenance(gs.SimUtc), "排程当下应处于停场窗口内");
 
             Object.Destroy(fmGo);
             Object.Destroy(gsGo);

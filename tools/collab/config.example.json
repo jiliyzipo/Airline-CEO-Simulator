@@ -52,7 +52,10 @@
   "profiles": {
     "collab": {
       "kind": "node",
-      "command": ["node", "tools/collab/tests/run-all.mjs"],
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
       "resultKind": "json",
       "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
     },
@@ -129,14 +132,35 @@
       "resultKind": "nunit",
       "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
       "description": "Real Unity PlayMode tests in the isolated snapshot; {runToken} makes the result path unique per execution"
+    },
+    "balance": {
+      "kind": "dotnet",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tools/balance/AirlineCEO.Balance.csproj",
+        "-c",
+        "Release",
+        "--",
+        "--bridgecheck"
+      ],
+      "resultKind": "json",
+      "description": "离线平衡账目闸门：60 组合现金桥对账（期末 = 期初 + 净利 + IRROPS − 利息 + 未偿本金）+ 10 条对照实验不变量（成本明细可加、减机不改营收）；只判自洽，不判破产组合数量"
     }
   },
   "unityOccupiedPolicy": "wait-user-close",
   "hooks": {
     "enabled": true,
     "clients": {
-      "cursor": {"mode": "manual", "reason": "Project Hooks are optional and not natively verified; use sync/ack and foreground watch."},
-      "codex": {"mode": "manual", "reason": "Native Hooks require project configuration and client trust; neither is inferred from CLI counters. Use sync/ack and foreground watch."}
+      "cursor": {
+        "mode": "manual",
+        "reason": "Project Hooks are optional and not natively verified; use sync/ack and foreground watch."
+      },
+      "codex": {
+        "mode": "manual",
+        "reason": "Native Hooks require project configuration and client trust; neither is inferred from CLI counters. Use sync/ack and foreground watch."
+      }
     },
     "debounceMs": 2000,
     "dedupeWindowMs": 60000

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261028005737-1eb5fd",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 658,
+  "at": "2026-10-28T00:57:37.401Z",
+  "actor": "cursor",
+  "action": "stage-close",
+  "taskId": "S29-CollabPendingFilter",
+  "deliveryId": "DEL-20261028005552-275e82",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "stage-close profile=collab preflight=pass",
+  "data": {
+    "profile": "collab",
+    "handoffFile": "out/collab/handoff/DEL-20261028005552-275e82.md"
+  }
+}
