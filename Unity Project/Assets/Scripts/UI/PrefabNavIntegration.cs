@@ -146,6 +146,10 @@ namespace AirlineCEO.UI
             _shell.TabSelected += OnTabSelected;
             _shell.BackClicked += GoBack;
             _shell.ForwardClicked += GoForward;
+            // 弹窗登记/注销时刷新 < 的可用态：弹窗不进路由栈也不进浏览历史，
+            // 不订阅就只能在别的动作发生时被动刷新（见 ModalBackStack）。
+            ModalBackStack.Changed -= RefreshHistoryButtons;
+            ModalBackStack.Changed += RefreshHistoryButtons;
             RefreshHistoryButtons();
             ApplyChromeVisibility();
 
@@ -1113,6 +1117,7 @@ namespace AirlineCEO.UI
 
         void OnDestroy()
         {
+            ModalBackStack.Changed -= RefreshHistoryButtons;
             if (_shell != null)
             {
                 _shell.TabSelected -= OnTabSelected;
@@ -1132,11 +1137,20 @@ namespace AirlineCEO.UI
         {
             bool overlayBack = _router != null && _router.StackDepth > 0
                                && !IsShellTab(_router.CurrentPageId);
-            _shell?.SetHistoryEnabled(_history.CanBack || overlayBack, _history.CanForward);
+            // 弹窗也算「有一层可退」：否则主页地图上弹出开线表单时 < 是禁用的，
+            // 玩家点它没反应 —— 而弹窗本身没有任何别的出口。
+            bool modalBack = ModalBackStack.HasOpen;
+            _shell?.SetHistoryEnabled(_history.CanBack || overlayBack || modalBack, _history.CanForward);
         }
 
         void GoBack()
         {
+            // 弹窗优先：它盖在页面之上，返回一次只关最上面那层。
+            if (ModalBackStack.TryDismissTop())
+            {
+                RefreshHistoryButtons();
+                return;
+            }
             // 栈顶若是底栏 L1，不要 Pop（会清空内容区变空白），按浏览历史回上一页。
             if (_router != null && _router.StackDepth > 0 && !IsShellTab(_router.CurrentPageId))
             {
@@ -1189,9 +1203,10 @@ namespace AirlineCEO.UI
              || pageId.Contains("主页") || pageId.Contains("Dashboard"));
 
         /// <summary>顶栏 / a+c 那条 / 底栏始终压在地图与夜幕之上。</summary>
-        void RaiseChrome()
+        void RaiseChrome(bool includeContentOverlays = true)
         {
-            if (_overlayHost != null) _overlayHost.SetAsLastSibling();
+            // 内容区叠加层不算 chrome：弹窗要盖住页面内容，却必须让底栏可点。
+            if (includeContentOverlays && _overlayHost != null) _overlayHost.SetAsLastSibling();
             if (_dock != null) _dock.transform.SetAsLastSibling();
             if (_shell != null) _shell.transform.SetAsLastSibling();
             // 顶栏只在玩法态上浮：向导期它是隐藏的（见 ApplyChromeVisibility），
@@ -1199,6 +1214,19 @@ namespace AirlineCEO.UI
             // 「开始界面顶栏浮在菜单上」这个现象的成因（叠加层只在创建那一刻 SetAsLastSibling 过一次）。
             if (_gameplayReady && _topBar != null) _topBar.SetAsLastSibling();
             FindFirstObjectByType<AdvisorModalUI>()?.BringToFront();
+        }
+
+        /// <summary>
+        /// 让底栏 / 状态条 / 顶栏浮到覆盖层之上。
+        ///
+        /// 覆盖式弹窗自己是 <c>SetAsLastSibling()</c>，而它的蒙层是**全屏** raycast 目标 ——
+        /// 底栏被压在下面时，&lt; 的点击会被蒙层吞掉，看起来就是「点了没反应」。
+        /// 弹窗在登记返回目标时调用本方法，把这条可达路径拿回来。
+        /// </summary>
+        public static void RaiseChromeAboveOverlays()
+        {
+            var nav = FindFirstObjectByType<PrefabNavIntegration>();
+            if (nav != null) nav.RaiseChrome(includeContentOverlays: false);
         }
 
         /// <summary>主页地图全幅：ContentHost 贴左右屏幕边、上到顶栏下缘、下到 a+c 那条的上缘（无四周留白）；其他页恢复内边距。</summary>

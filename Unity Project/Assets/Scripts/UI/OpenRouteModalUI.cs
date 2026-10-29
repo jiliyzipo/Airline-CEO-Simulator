@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
+using AirlineCEO.UI.Navigation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -210,10 +211,38 @@ namespace AirlineCEO.UI
             var confirmLbl = _card != null ? _card.Find("Confirm")?.GetComponentInChildren<TextMeshProUGUI>() : null;
             if (confirmLbl != null) confirmLbl.text = ConfirmLabel;
             WireFooter(form: true);
+            if (!_embedded) RegisterBack();
+        }
+
+        /// <summary>
+        /// 把本弹窗挂到底栏 &lt; 的返回目标上，并让底栏浮到蒙层之上。
+        ///
+        /// 两件事必须一起做，缺一件就等于没做：
+        /// ① 不登记 —— &lt; 在主页地图上本就是禁用态（没有浏览历史、路由栈里也没有本弹窗），点了没反应；
+        /// ② 不抬高底栏 —— 蒙层是全屏 raycast 目标，点击根本到不了 &lt;，登记了也点不着。
+        /// </summary>
+        void RegisterBack()
+        {
+            ModalBackStack.Push(this, TryBack);
+            PrefabNavIntegration.RaiseChromeAboveOverlays();
+        }
+
+        /// <summary>
+        /// 底栏 &lt; 的返回目标：关掉弹窗。
+        /// 不在弹窗态时返回 false，让 &lt; 继续按浏览历史 / 路由栈退页。
+        /// </summary>
+        public bool TryBack()
+        {
+            if (_embedded || !gameObject.activeSelf) return false;
+            Hide();
+            return true;
         }
 
         public void Hide()
         {
+            // 先注销再收尾：Hide 可能由返回键触发（ModalBackStack 已摘掉本条），
+            // 也可能是页面自己关的（此时还没摘）。两处都调，未登记时是无操作。
+            ModalBackStack.Pop(this);
             CloseOtherPickers(null);
             if (_embedded)
             {
@@ -305,11 +334,14 @@ namespace AirlineCEO.UI
         public void ShowSubmitted(Selection sel)
         {
             EnsureChrome();
+            // 「已提交」态把表单与两个按钮全部隐藏，页内没有别的出口 ——
+            // 这里补登记一次，保证即使有人不经 Show() 直接展示结果页，底栏 < 仍然关得掉它。
+            if (!_embedded) RegisterBack();
             string path = string.IsNullOrEmpty(sel.viaCode)
                 ? $"{sel.originCode} → {sel.destCode}"
                 : $"{sel.originCode} → {sel.viaCode} → {sel.destCode}";
             SetSubmitted(true);
-            if (_title != null) _title.text = "已提交运营部研究";
+            if (_title != null) _title.text = "已交由运营部跟进";
             if (_resultBody != null)
             {
                 _resultBody.text =
@@ -345,7 +377,13 @@ namespace AirlineCEO.UI
             }
 
             RpmPreview.Seed(o.code, d.code);
-            if (!_embedded) gameObject.SetActive(false);
+            if (!_embedded)
+            {
+                // 这里不是「关闭」，而是把弹窗让给评估台：仍要先注销返回登记，
+                // 否则底栏 < 会留下一层点不动的空登记（TryBack 对已隐藏的弹窗返回 false）。
+                ModalBackStack.Pop(this);
+                gameObject.SetActive(false);
+            }
             StrategyPanelUI.OpenStrategyPage("n35_新航线_RPM_评估台");
         }
 

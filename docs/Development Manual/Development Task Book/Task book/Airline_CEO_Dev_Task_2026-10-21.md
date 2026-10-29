@@ -4373,3 +4373,70 @@ diff 是 7048 行新增 —— 为了放行一个文件的正常变化，赔上�
 上一节我写的"撤回能力已生效"是**过度声明**。真正生效的是"清单不再催人测"，
 而"测不了"这一层根本没做。以后凡是加"禁止"类语义，验收条件必须是
 **点名到那个对象去试**，而不是观察清单里没有它。
+
+## 47. 开线结果页没有出口：底栏 `<` 关不掉弹窗（2026-10-28）
+
+### 47.1 报障
+
+> 在首页地图里点击两个城市开通航线后，弹窗「已提交运营部研究」出现，点击左下角的返回键没有效果。
+
+同时要求文案改为「已交由运营部跟进」。
+
+### 47.2 根因：两个缺陷叠成一次软锁
+
+**① 底栏 `<` 根本没把弹窗算进「可返回」。** `PrefabNavIntegration.RefreshHistoryButtons` 的判据是
+`浏览历史.CanBack || 路由栈顶不是底栏 L1`。`OpenRouteModalUI` 既不进 `NavigationRouter`，
+也不写浏览历史 —— 在主页地图上，这两个条件都是 false，于是 `_backBtn.interactable = false`，
+点下去连事件都不会发。这就是"没有效果"的直接来路。
+
+**② 结果页页内没有第二个出口。** `ShowSubmitted` 走 `SetSubmitted(true)` + `WireFooter(form:false)`，
+把表单、`申请开通`、`RPM 评估` 全部隐藏，只剩一段说明文字。而弹窗根节点是全屏 `Image`
+（`raycastTarget = true`）—— 点蒙层也关不掉。
+
+单独看 ① 只是"返回键不好用"；① + ② 一起，**提交开线申请之后就再也退出不了这个界面**，
+只能重启。报障里说的"没有效果"其实是软锁的外在表现。
+
+### 47.3 修法
+
+- 新增 `UI/Navigation/ModalBackStack.cs`：覆盖式弹窗的返回登记簿（后进先出），
+  只提供 `Push/Pop/TryDismissTop/HasOpen` 与一个 `Changed` 事件。
+  它不关闭任何东西，只回答"这一层返回该交给谁"。
+- `OpenRouteModalUI`：`Show` 与 `ShowSubmitted` 各登记一次（按 owner 去重），
+  `Hide` 与"让位给 RPM 评估台"两条路径都注销；`TryBack()` 返回 false 表示"这一层不归我管"，
+  让 `<` 继续按浏览历史退页。
+- `PrefabNavIntegration`：`RefreshHistoryButtons` 把 `ModalBackStack.HasOpen` 并入可返回判据，
+  `GoBack` 先尝试关弹窗；订阅 `Changed` 让 `<` 的可用态跟着弹窗开关走。
+- **层叠**：弹窗 `SetAsLastSibling()` 之后必须把底栏/状态条/顶栏重新抬起来
+  （`RaiseChromeAboveOverlays`）。蒙层是全屏 raycast 目标，底栏被压在下面时
+  点击根本到不了 `<` —— 登记了也点不着。这两件事缺一件就等于没做。
+- 文案：结果页标题 `已提交运营部研究` → `已交由运营部跟进`（正文未改：
+  说的仍是"召集财务/市场/人力/安全/机务会商、两个工作日后进收件箱"，与"跟进"不冲突）。
+
+### 47.4 自测
+
+| 项 | 结果 |
+|---|---|
+| `semcheck` 运行时程序集 | errors=0 |
+| `semcheck` 测试程序集 | errors=0 |
+| `enc` 中文基线 | errors=0（新增文件已并入基线） |
+| 新增 `ModalBackStackTests`（EditMode，5 例） | 栈空让行 / 后进先出 / Pop 不触发关闭 / 同 owner 去重 / owner 被销毁后不阻塞返回 |
+| 新增 `OpenRouteModalBackPlayModeTests`（PlayMode，3 例） | 提交态可被 `<` 关闭并注销；标题改为「已交由运营部跟进」；**真底栏 `NavBack` 按钮**在弹窗打开时变为可点、点击后弹窗关闭并回落到禁用态 |
+| EditMode 全集 | 57/57 通过，失败 0，跳过 0 |
+| PlayMode 全集 | 143 项：通过 98、失败 0、跳过 45（跳过项均为既有 `[Ignore]`，与本次改动无关） |
+
+**负面控制**：把 `RefreshHistoryButtons` 的判据临时退回 `CanBack || overlayBack`（即修复前的写法），
+端到端用例在 `Assert.IsTrue(back.interactable)` 处失败（`Expected: True / But was: False`），
+恢复后重新全绿。只跑"修复后通过"无法排除用例本身是空断言 —— 这条必须两个方向都跑。
+
+**过程中的一次事故（留档）**：做负面控制时先用 PowerShell 5.1 的 `Get-Content -Raw` 读源文件再写回，
+它按系统代码页（GBK）解码 UTF-8，把中文注释整段写成乱码，`git diff` 从 31 行涨到 576 行。
+已 `git checkout` 恢复并用 `StrReplace` 重新应用全部改动，之后改用 Node 读写（UTF-8 安全）重做控制。
+教训：改源码文件的脚本不要用 PowerShell 的默认文本读写。
+
+**实机确认**（用户执行，2026-10-29 17:43）：主页地图点两座城市 → 提交 → 点左下角 `<`，
+弹窗关闭、地图恢复可点、标题为「已交由运营部跟进」；其它页面的 `<` 退页行为照常，未受影响。
+
+用例走 `Button.onClick.Invoke()`，覆盖"按钮是否可点 + 点击接到 `GoBack`"，但不覆盖
+"这一点位置有没有被别的 raycast 目标挡住" —— 那一层由上面的实机点击确认补上。
+
+
