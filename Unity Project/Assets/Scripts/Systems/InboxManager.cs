@@ -3565,6 +3565,31 @@ namespace AirlineCEO.Systems
         public static bool IsFinanceRestructure(InboxMail mail)
             => mail != null && (mail.dest == "restructure" || mail.dest == "ch11");
 
+        /// <summary>
+        /// 未结的财务危机函。n103 条款确认 / n106 重组条件页要拿它来签署 —— 签署页本身
+        /// 没有任何「哪一封邮件」的信息，靠调用方先记下 id（<c>FinanceContext.PendingFinanceMailId</c>）；
+        /// 从财务部直接进来时没有 id，就退回到最新一封未结的危机函。
+        ///
+        /// 两个入口共用这一个查找，避免「从收件箱进来能签、从财务部进来签不了」。
+        /// </summary>
+        public static InboxMail OpenFinanceCrisisMail(GameState gs, string preferId = null)
+        {
+            if (gs?.inbox == null) return null;
+            if (!string.IsNullOrEmpty(preferId))
+            {
+                var exact = FindMail(gs, preferId);
+                if (exact != null && exact.action == "finance_crisis" && IsOpen(exact)) return exact;
+            }
+            InboxMail best = null;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || m.action != "finance_crisis" || !IsOpen(m)) continue;
+                if (best == null || m.receivedUtcTicks >= best.receivedUtcTicks) best = m;
+            }
+            return best;
+        }
+
         public static int ParseFinanceKind(InboxMail mail)
         {
             if (mail == null || string.IsNullOrEmpty(mail.dest)) return (int)FinancingKind.Bank;

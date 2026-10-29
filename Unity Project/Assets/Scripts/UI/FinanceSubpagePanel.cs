@@ -1,3 +1,4 @@
+using System;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
@@ -24,6 +25,8 @@ namespace AirlineCEO.UI
         [SerializeField] string pageKind;
 
         string _pageKind;
+        /// <summary>上一次渲染的页；用来判断「换了页」以便清掉上一页留下的报错行。</summary>
+        string _lastShownKind;
         Transform _content;
         TextMeshProUGUI _toast;
 
@@ -136,6 +139,9 @@ namespace AirlineCEO.UI
                 case "n106": RenderRestructuring(); break;
                 default: RenderFallback(); break;
             }
+            // 上一页留下的报错不该跟着换页跑（例如 n103 被拒贷的说明带到 n106）。
+            if (_lastShownKind != _pageKind) Toast("");
+            _lastShownKind = _pageKind;
             HideCloseXButtons(transform);
         }
 
@@ -152,6 +158,23 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(x0, y0), new Vector2(x1, y1), Vector2.zero, Vector2.zero),
                 color ?? UITheme.TextPrimary, bold ? FontStyles.Bold : FontStyles.Normal);
             return l;
+        }
+
+        Button Btn(string name, string text, float x0, float y0, float x1, float y1,
+            Color color, Action onClick, int size = 14)
+        {
+            return UIFactory.Button(_content, name, text,
+                new UIFactory.Anchor(new Vector2(x0, y0), new Vector2(x1, y1), Vector2.zero, Vector2.zero),
+                color, () => onClick?.Invoke(), size);
+        }
+
+        /// <summary>签署页底部的状态行；text 为空则整行隐藏（不留一条空白占位）。</summary>
+        void Toast(string text, Color? color = null)
+        {
+            if (_toast == null) return;
+            _toast.text = text ?? "";
+            _toast.color = color ?? UITheme.Warning;
+            _toast.gameObject.SetActive(!string.IsNullOrEmpty(_toast.text));
         }
 
         // —— n22 年度预算 ——
@@ -267,7 +290,7 @@ namespace AirlineCEO.UI
             L("H", "紧急融资 / 破产保护", 0.0f, 0.90f, 1.0f, 0.97f, 15, UITheme.Warning, true);
             L("Status", $"{CashRunnelCalculator.FormatPlayerLabel(runway)} · 信用 {LoanManager.CreditLabel(credit)} · WACC {wacc:F1}%",
                 0.0f, 0.82f, 1.0f, 0.89f, 13, UITheme.TextMuted);
-            L("Hint", "银行贷款、过桥、增资或重组均由财务总监发函，请在收件箱批复。本页只列示流动性。",
+            L("Hint", "银行贷款、过桥、增资或重组均由财务总监发函：收件箱批准后到条款确认页签署，签署才生效。本页只列示流动性。",
                 0.0f, 0.68f, 1.0f, 0.80f, 13, UITheme.TextMuted);
             L("Ch11", "跑道过短时将另行发函请示 Chapter 11 重组。", 0.0f, 0.56f, 1.0f, 0.66f, 12, UITheme.TextMuted);
         }
@@ -303,7 +326,63 @@ namespace AirlineCEO.UI
             L("C", $"抵押/标的：{term.collateral}", 0.52f, 0.80f, 1.0f, 0.87f, 13, UITheme.TextMuted);
             L("Cond", $"条件：{term.condition}", 0.52f, 0.71f, 1.0f, 0.78f, 13, UITheme.TextMuted);
             L("Risk", $"风险提示：{term.riskNote}", 0.52f, 0.62f, 1.0f, 0.69f, 13, UITheme.Danger);
-            L("Irrev", "签署须在收件箱批复紧急融资函，本页不可生效。", 0.0f, 0.10f, 1.0f, 0.20f, 13, UITheme.TextMuted, false, TextAlignmentOptions.Center);
+
+            // 签署按钮就在本页 —— 见 SignPanel 的注释（旧文案让人回收件箱批示，那条路上
+            // 批准只是再打开本页，两页互相指路，融资永远签不成）。
+            SignPanel(InboxManager.OpenFinanceCrisisMail(gs, FinanceContext.PendingFinanceMailId));
+        }
+
+        /// <summary>
+        /// 签署区：确认 / 取消。
+        ///
+        /// 旧实现本页只有一句「签署须在收件箱批复紧急融资函，本页不可生效」，而收件箱的
+        /// 「批准」也只把玩家送到本页（<c>InboxPanelUI.Approve</c> 只记 <c>PendingFinanceMailId</c>
+        /// 就 return）。两页互相指路，没有任何一处真正调用审批 —— 融资危机**无法签署**。
+        /// 现在由本页的「确认」调 <see cref="InboxManager.Approve"/>，执行分发仍只有那一处，
+        /// 不新增第二套生效路径；「取消」只退回上一层，函件保持未结。
+        /// </summary>
+        void SignPanel(InboxMail mail)
+        {
+            if (mail == null)
+            {
+                // 没有待签的函：按钮禁用而不是隐藏 —— 保留位置，玩家能看到「这里本该能签」。
+                var off = Btn("Sign", "确认", 0.62f, 0.02f, 0.80f, 0.11f, UITheme.PanelDeep, () => { }, 14);
+                off.interactable = false;
+                Btn("Cancel", "取消", 0.82f, 0.02f, 1.0f, 0.11f, UITheme.PanelDeep, BackOne, 14);
+                L("SignNote", "当前没有待签的融资函；危机函抵达后可在本页签署。", 0.0f, 0.13f, 0.60f, 0.21f, 12, UITheme.TextMuted);
+                return;
+            }
+
+            Btn("Sign", "确认", 0.62f, 0.02f, 0.80f, 0.11f, UITheme.Success, () => Sign(mail), 14);
+            Btn("Cancel", "取消", 0.82f, 0.02f, 1.0f, 0.11f, UITheme.PanelDeep, BackOne, 14);
+            L("SignNote", "签署即生效并写入决策日志；点「取消」退回，函件保持待处理。",
+                0.0f, 0.13f, 0.60f, 0.21f, 12, UITheme.TextMuted);
+        }
+
+        /// <summary>签署：走收件箱「批准」同一套分发；成功后关掉本页，失败留在本页说明原因。</summary>
+        void Sign(InboxMail mail)
+        {
+            var gs = GameState.Instance;
+            if (gs == null) { Toast("游戏未就绪。", UITheme.Danger); return; }
+            // 按钮闭包里握着渲染那一刻的邮件引用。若这封函已被别处处理（决策会议裁决、
+            // 或连点两下「确认」），再调一次 Approve 会**重复放款**，所以先验状态。
+            if (!InboxManager.IsOpen(mail))
+            {
+                RefreshBody();   // 重绘成「无待签函件」的禁用态
+                Toast("这封函已处理，无需再次签署。", UITheme.TextMuted);
+                return;
+            }
+            if (!InboxManager.Approve(gs, mail, out string msg))
+            {
+                // 例如信用不足被银行拒贷：这不是「点击失败」，是业务结论，必须留在本页说清。
+                Toast(string.IsNullOrEmpty(msg) ? "签署未生效。" : msg, UITheme.Danger);
+                return;
+            }
+            FinanceContext.PendingFinanceMailId = null;
+            // 决策日志由 InboxManager.Mark 统一写（「收件箱批准：…」）；这里不再补一条，
+            // 否则玩家在「历史」里会看到同一次批准出现两行。
+            gs.NotifyChanged();
+            BackOne();
         }
 
         // —— n106 重组条件说明 ——
@@ -334,7 +413,22 @@ namespace AirlineCEO.UI
             }
 
             L("Brand", $"品牌净值影响 −{impact.brandLoss:F0} · 重组后跑道约 {runwayAfter:F1} 月", 0.0f, y - 0.01f, 1.0f, y + 0.04f, 13, UITheme.Warning, true);
-            L("Mail", "是否进入重组，请在收件箱批复财务总监来函。", 0.0f, 0.08f, 1.0f, 0.16f, 13, UITheme.TextMuted);
+
+            // 与 n103 同一个缺陷、同一套修法：旧文案把玩家推回收件箱，而收件箱「批准」只是
+            // 再次打开本页。重组的签与不签都在这里决定。
+            var mail = InboxManager.OpenFinanceCrisisMail(gs, FinanceContext.PendingFinanceMailId);
+            if (mail == null)
+            {
+                var off = Btn("Sign", "确认重组", 0.62f, 0.02f, 0.80f, 0.11f, UITheme.PanelDeep, () => { }, 14);
+                off.interactable = false;
+                Btn("Cancel", "取消", 0.82f, 0.02f, 1.0f, 0.11f, UITheme.PanelDeep, BackOne, 14);
+                L("SignNote", "当前没有待批复的重组请示。", 0.0f, 0.13f, 0.60f, 0.21f, 12, UITheme.TextMuted);
+                return;
+            }
+            Btn("Sign", "确认重组", 0.62f, 0.02f, 0.80f, 0.11f, UITheme.Danger, () => Sign(mail), 14);
+            Btn("Cancel", "取消", 0.82f, 0.02f, 1.0f, 0.11f, UITheme.PanelDeep, BackOne, 14);
+            L("SignNote", "确认后即申请破产保护并写入决策日志；点「取消」退回，请示保持待处理。",
+                0.0f, 0.13f, 0.60f, 0.21f, 12, UITheme.TextMuted);
         }
 
         void RenderFallback()
