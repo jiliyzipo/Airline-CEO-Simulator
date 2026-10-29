@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Logic、Assets-Tests、Data、Editor、Systems",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-29T12:10:35.407Z",
-  "updatedAt": "2026-10-29T12:18:58.666Z",
+  "updatedAt": "2026-10-29T14:12:15.731Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Review REV-20261029121552-3283e3 applies to delivery DEL-20261029121039-25aaa7.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261029121552-3283e3 passed delivery DEL-20261029121039-25aaa7; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261029121552-3283e3"
 }

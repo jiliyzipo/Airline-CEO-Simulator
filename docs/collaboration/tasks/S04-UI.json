@@ -35,8 +35,8 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-29T12:07:28.213Z",
-  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 5 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Logic/InboxCadence.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).",
+  "updatedAt": "2026-10-29T14:11:35.589Z",
+  "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 6 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Logic/TermNavMap.cs, Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).",
   "staleForReviewId": "REV-20261019094559-31090f",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -58,12 +58,11 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 1,
-    "covered": 5,
+    "covered": 6,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Logic/InboxCadence.cs",
-      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/Logic/TermNavMap.cs",
       "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 2
   }
 }
