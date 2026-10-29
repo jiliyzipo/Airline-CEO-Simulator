@@ -891,6 +891,10 @@ namespace AirlineCEO.Logic
             {
                 ok = true,
                 needsRun = true,
+                // ★2026-10-29：`ask` 快照必须带出去。RunPending 按 `ask.topic` 分派，
+                //   漏了这一行，运力调令在命令台上就会落到「没有可执行的管线」——
+                //   四类写指令走 Directive() 都有 ask，唯独调令单独构造，很容易再漏。
+                ask = ask,
                 routeKey = route.routeId,
                 deptCode = "OPS",
                 sender = "运营部",
@@ -954,7 +958,9 @@ namespace AirlineCEO.Logic
                 return false;
             }
 
-            var rep = CapacityDirectiveLogic.Execute(gs, route, d);
+            // ★2026-10-29：改为**试算**（Plan）—— 运营部排一遍拿到呈报里的数字，随即回退，
+            //   账面停在指令前；真正排班在 CEO 批准那一刻（ApproveCapacityDirective 重跑 Execute）。
+            var rep = CapacityDirectiveLogic.Plan(gs, route, d);
             if (!rep.ok)
             {
                 receipt = string.IsNullOrEmpty(rep.note) ? "未能执行（运营部未改动本线班次）。" : rep.note;
@@ -968,14 +974,15 @@ namespace AirlineCEO.Logic
                 return true;
             }
 
-            bool ok = InboxManager.QueueCapacityReport(gs, route, rep);
+            bool ok = InboxManager.QueueCapacityReport(gs, route, rep, -1, true);
             // 挂起「原话 → 解析结果」：CEO 在收件箱批准后才真正成为记忆（与页面同源）
             DirectiveLexicon.Stage(d.raw, d, d.fromAi);
 
-            string ring = string.IsNullOrEmpty(rep.ringIdsCsv) ? "未编环" : "航班环 " + rep.ringIdsCsv;
+            string ring = string.IsNullOrEmpty(rep.ringIdsCsv) ? "未编环" : "拟定航班环 " + rep.ringIdsCsv;
             receipt = ok
                 ? $"{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}"
-                  + $" · 呈报已受理，约 {InboxCadence.ReportHours} 小时后到收件箱（待您批复）"
+                  + $" · 运营部已受理：约 {InboxCadence.StudyBusinessDays} 个工作日研究后进收件箱"
+                  + "（班次此刻未动，批准后立即排班）"
                 : $"{route.DualWeeklyLine()} · 呈报未能投递，请检查收件箱状态";
             return ok;
         }

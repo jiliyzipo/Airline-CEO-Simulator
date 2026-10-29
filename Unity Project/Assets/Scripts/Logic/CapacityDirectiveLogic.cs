@@ -175,6 +175,11 @@ namespace AirlineCEO.Logic
             public bool failureQueued;
             /// <summary>失败时复核报告的投递回执（成功为空串或原文）。</summary>
             public string failureNote = "";
+            /// <summary>
+            /// true = 本次是**试算**（见 <see cref="Plan"/>）：呈报里的数字是排完班读出来的，
+            /// 但排班已当场回退，账面仍是指令前。批准后才会真正落账。
+            /// </summary>
+            public bool deferred;
         }
 
         // ———————————————————————— 指令解析 ————————————————————————
@@ -1017,6 +1022,52 @@ namespace AirlineCEO.Logic
             rep.linkedSection = BuildLinkedSection(gs, route, beforeStaff);
             rep.impactSection = BuildImpactSection(gs, route, beforeProfit);
             rep.ok = true;
+            return rep;
+        }
+
+        /// <summary>
+        /// 试算（★2026-10-29）：按 <see cref="Execute"/> 真排一遍，拿到呈报需要的全部数字
+        /// （班次 / 航班环 / 缺口归因 / 联动部门 / 日利影响），**随后立刻把改动全部退回**，
+        /// 台账回到指令前 —— 研究期与呈报待批期间，本线一个字节都不动。
+        ///
+        /// 为什么不是「纯函数算一遍」：呈报每一节都是**排完班之后**才读得出来的（环要挑机、缺口要跑到
+        /// 三根硬轴上才知道缺哪一端、联动部门要看地勤人数变化），纯算算不出来。真排一遍拿结果、再回退，
+        /// 与业务事实同构：运营部确实研究过了，但落地要 CEO 签字。
+        ///
+        /// 回退用的是既有部件（`ReleaseByRoute` / `RestoreScheduleFromBackup` / `BindRouteFlights` /
+        /// `RemoveRings`），与 <see cref="Revert"/>（退回呈报）同源，不是第二套回滚；
+        /// 只是**不写那句「已退回运力调整」的决策日志** —— 研究期里没发生过「调整」。
+        ///
+        /// 批准时由 <c>InboxManager.ApproveCapacityDirective</c> 按 <c>directiveNote</c> 重跑
+        /// <see cref="Execute"/> 才真正落账；驳回则无痕（本来就什么都没动）。
+        /// </summary>
+        public static Report Plan(GameState gs, RouteData route, Directive d)
+        {
+            if (gs == null || route == null || d == null) return Execute(gs, route, d);
+
+            int staff = route.groundStaffAssigned;
+            bool schedulePending = route.schedulePending;
+
+            var rep = Execute(gs, route, d);
+            if (rep == null || !rep.ok || rep.assignment) return rep;
+            // 先打标记再谈回退：呈报正文按这个标记改写「批准/退回」的说法，
+            // 「维持现状」这类零改动的令同样是拟定件（批准时也不用再排一遍）。
+            rep.deferred = true;
+            // 「维持现状」这类不动班次的令没有快照可退（本来就是零改动），保持原样
+            if (!route.hasPreDirective) return rep;
+
+            RoutePermitLogic.ReleaseByRoute(gs, route.routeId);
+            route.RestoreScheduleFromBackup();
+            RoutePermitLogic.BindRouteFlights(gs, route);
+            RemoveRings(gs, rep.ringIdsCsv);
+            // 地勤人数与排班待批标记是 Execute 顺带写进去的，同样要回退：
+            // 只退排班不退地勤，研究期页面上的地勤数就和指令前不一致，「一个字节没动」就不成立。
+            route.groundStaffAssigned = staff;
+            route.schedulePending = schedulePending;
+            // 但「运力调令在途」这个标记要**留**着：`MaybeOfferOpsSchedule` 靠它避免同一航线
+            // 同时挂两封待办（一封排班呈报、一封运力呈报）。研究期里指令确实在途，只是还没落账。
+            route.directivePending = true;
+            OpsEconomics.ApplyToRoute(route, OpsEconomics.ResolvedSingleFlightBaseline(route), gs.onTimePercent);
             return rep;
         }
 
@@ -1968,25 +2019,46 @@ namespace AirlineCEO.Logic
             sb.Append(rep.impactSection);
 
             sb.Append(InboxLetter.Section("请批复"));
+            // ★2026-10-29：拟定件（deferred）此刻**账面还没动**，所以「批准」不是「追认已排定的班次」，
+            //   而是「按这份方案现在排班」；「退回」也不再是「恢复并退还槽」——本来就什么都没占。
             if (rep.crewFirst)
             {
                 sb.Append(InboxLetter.Bullet("第一阶段　请先补机组：到 人力 → 招聘 补飞行员（本档若未按人建机组，则加机抬编制）。"
                     + "机组不够，班次排出来也没人飞 —— 这是与时刻槽并列的一道闸门。"));
                 sb.Append(InboxLetter.Bullet("第二阶段　机组到位后，在本航线再下加密指令，运营部按新机组产能重排满班次。"));
-                sb.Append(InboxLetter.Bullet("批准　仅确认已经排定的班次与日循环生效（不视为缺机组时段已解决）。"));
+                sb.Append(InboxLetter.Bullet(rep.deferred
+                    ? "批准　按上述方案排班：排得出的班次即刻生效；缺机组时段仍待补，本批复不视为该缺口已解决。"
+                    : "批准　仅确认已经排定的班次与日循环生效（不视为缺机组时段已解决）。"));
             }
             else if (rep.slotFirst)
             {
-                sb.Append(InboxLetter.Bullet("第一阶段　请先批准战略部「申请时刻槽」邮件（下季扣款交割）。缺槽时段本呈报无法加密。"));
-                sb.Append(InboxLetter.Bullet("第二阶段　槽到位后，在本航线再下加密指令，运营部按新持仓重排班次。"));
-                sb.Append(InboxLetter.Bullet("批准　仅确认已经排定的班次与日循环生效（不视为缺槽时段已解决）。"));
+                if (rep.deferred)
+                {
+                    // 拟定件的槽单**还没开**（研究期不该替 CEO 去协调人要槽）：批准这一刻才派单。
+                    // 所以这里不能写「请先批准战略部那封申请单」—— 那封信此刻还不存在。
+                    sb.Append(InboxLetter.Bullet("第一阶段　批准本呈报后，战略发展部即就缺槽的那一端开「申请时刻槽」单"
+                        + "（协调池，免费，下季交割）；槽未到手前，缺槽时段排不进去。"));
+                    sb.Append(InboxLetter.Bullet("第二阶段　交割到账后运营部按新持仓重排本线并另行呈报，无需重下这条指令。"));
+                }
+                else
+                {
+                    sb.Append(InboxLetter.Bullet("第一阶段　请先批准战略部「申请时刻槽」邮件（下季扣款交割）。缺槽时段本呈报无法加密。"));
+                    sb.Append(InboxLetter.Bullet("第二阶段　槽到位后，在本航线再下加密指令，运营部按新持仓重排班次。"));
+                }
+                sb.Append(InboxLetter.Bullet(rep.deferred
+                    ? "批准　按上述方案排班：排得出的班次即刻生效，缺槽时段仍待补；缺槽单在批准后才向协调人提出。"
+                    : "批准　仅确认已经排定的班次与日循环生效（不视为缺槽时段已解决）。"));
             }
             else
             {
-                sb.Append(InboxLetter.Bullet("批准　运力与航班环按上述执行。"));
+                sb.Append(InboxLetter.Bullet(rep.deferred
+                    ? "批准　按上述方案立即排班（此前本线班次未作任何改动）。"
+                    : "批准　运力与航班环按上述执行。"));
             }
             sb.Append(InboxLetter.Bullet("提出修改　在下框写下新的调令（如「再加一班红眼」「减到每天 2 班」），运营部重编再报。"));
-            sb.Append(InboxLetter.Bullet("退回　恢复到指令前的运力与航班环，并退还本次占用的时刻槽。"));
+            sb.Append(InboxLetter.Bullet(rep.deferred
+                ? "退回　方案作废：本线维持原状（班次、机号与航班环自始至终未改动）。"
+                : "退回　恢复到指令前的运力与航班环，并退还本次占用的时刻槽。"));
             return sb.ToString();
         }
 

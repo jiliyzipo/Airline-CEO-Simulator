@@ -20,7 +20,14 @@ namespace AirlineCEO.EditorTools
     /// </summary>
     public static class CeoCommandRegression
     {
-        public static void Run()
+        /// <summary>
+        /// 返回全项结论：<c>true</c> 才代表这一整套口径都成立。
+        ///
+        /// 2026-10-29 起改为返回 bool —— 原先只 Debug.Log，于是它只能挂在
+        /// <c>LogicSelfTests.Run()</c> 的手动总集合上，隔离跑批里没有入口，
+        /// 「命令台分派」这一格从来没人断言过（见 ⑪h）。
+        /// </summary>
+        public static bool Run()
         {
             // ① 页面 → 默认部门
             bool pageMap =
@@ -303,11 +310,78 @@ namespace AirlineCEO.EditorTools
                 bool capRouteOk = capAns.ok && capAns.needsRun && !capAns.needsConfirm
                                   && capAns.routeKey == "R-CAP-1";
 
-                // ⑪b 真下达：管线落账（directivePending = 呈报待批），回执指向收件箱
+                // ⑪b 真下达：只**试算**，不落账 —— 账面停在指令前，拟定呈报压在待发队列里等研究期满。
+                //     ★2026-10-29 报障：「下达增加航班的指令后，运营部不应该立即回复邮件，需要有个研究时间。
+                //     并且批准后，应该立即排班」—— 旧口径是**先斩后奏**（指令即 ApplyWaves、批准只是追认），
+                //     这条断言随之改为「班次一动没动 + 拟定件已在队列」。
+                int wavesBeforeCap = capRoute.FlightCount;
                 bool capRan = DeptReportLogic.RunCapacityDirective(gs, "R-CAP-1",
                     "把北京--上海加密到每天 2 班", out string capReceipt);
-                bool capLedger = capRan && capRoute.directivePending
-                                 && capReceipt.Contains("收件箱");
+                bool capStaged = false;
+                if (gs.pendingInbox != null)
+                {
+                    for (int i = 0; i < gs.pendingInbox.Count; i++)
+                    {
+                        var pm = gs.pendingInbox[i]?.mail;
+                        if (pm == null || pm.action != InboxManager.CapacityDirectiveAction) continue;
+                        if (pm.origin != "R-CAP-1" || !pm.capDeferred) continue;
+                        capStaged = true;
+                    }
+                }
+                bool capLedger = capRan && capRoute.FlightCount == wavesBeforeCap
+                                 && capRoute.directivePending && capStaged
+                                 && capReceipt.Contains("研究") && capReceipt.Contains("收件箱");
+
+                // ⑪b2 研究期 / 批准才排班（★2026-10-29 报障：运营部不该立即回邮件；批准后才排班）。
+                //     钉三件事：①研究期未满不进箱、账不动；②期满才进箱；③**批准那一刻才 ApplyWaves**。
+                //     用 opsPlanRevision 判「真的排过班」而不是比班次数：缺槽时批准也只能排出 1 段，
+                //     拿班次数当判据会把「排了但排不满」误判成「没排」。
+                var laterRoute = new RouteData
+                {
+                    routeId = "R-CAP-3", origin = "PEK", destination = "CTU", distanceKm = 1500f,
+                    aircraftType = "A320neo", flightNumber = "NV2003", registration = "B-3002",
+                    depTime = "08:00", arrTime = "10:30", daysOfWeek = "每日", weeklyFlights = 7,
+                    baseDailyProfit = 9f, dailyProfit = 9f, groundStaffAssigned = 2
+                };
+                laterRoute.SyncFlightsFromPrimary();
+                gs.activeRoutes.Add(laterRoute);
+                int laterWaves = laterRoute.FlightCount;
+                int laterRev = laterRoute.opsPlanRevision;
+                bool laterRan = DeptReportLogic.RunCapacityDirective(gs, "R-CAP-3",
+                    "把北京--成都加密到每天 2 班", out string laterReceipt);
+                bool laterStaged = laterRan
+                                   && laterRoute.FlightCount == laterWaves
+                                   && laterRoute.opsPlanRevision == laterRev
+                                   && laterRoute.groundStaffAssigned == 2
+                                   && laterRoute.directivePending          // 在途标记留着（防同线两封待办）
+                                   && FindCapacityMail(gs, "R-CAP-3") == null
+                                   && HasPendingCapacityMail(gs, "R-CAP-3")
+                                   && !HasAnySlotMailFor(gs, "R-CAP-3");  // 槽单不在研究期派生
+                // 研究期未满（＋1 小时）不该进箱
+                InboxManager.DeliverDue(gs, gs.SimUtc.AddHours(1));
+                bool laterHeld = FindCapacityMail(gs, "R-CAP-3") == null;
+                // 研究期满（2 个工作日）→ 进箱，且此刻**仍未排班**
+                InboxManager.DeliverDue(gs, InboxCadence.StudyReady(gs.SimUtc).AddMinutes(1));
+                var laterMail = FindCapacityMail(gs, "R-CAP-3");
+                bool laterArrived = laterMail != null && laterMail.capDeferred
+                                    && laterRoute.opsPlanRevision == laterRev;
+                // 批准 → 才 ApplyWaves；回执件同时进箱，缺槽单也在这一刻才派生
+                string laterMsg = "";
+                bool laterApproved = laterArrived
+                                     && InboxManager.ApproveCapacityDirective(gs, laterMail, out laterMsg)
+                                     && laterMail.status == "approved"
+                                     && !laterRoute.directivePending
+                                     && laterRoute.opsPlanRevision > laterRev
+                                     && laterRoute.FlightCount >= laterWaves;
+                // 「需要获得时刻槽后，再重新排班」—— 缺槽单是**批准后**才向协调人提的，
+                // 研究期一张都没有（见 laterStaged 的最后一项）。
+                bool laterSlotQueued = HasAnySlotMailFor(gs, "R-CAP-3") || HasPendingSlotMailFor(gs, "R-CAP-3");
+                Debug.Log($"⑪b2 研究期/批准才排班 → 拟定不落账={laterStaged}（班次 {laterWaves}→{laterRoute.FlightCount}"
+                          + $" · rev {laterRev}→{laterRoute.opsPlanRevision}）　研究期未满不进箱={laterHeld}"
+                          + $"　期满进箱且仍未排班={laterArrived}　批准才排班={laterApproved}"
+                          + $"　批准后才开槽单={laterSlotQueued}"
+                          + (string.IsNullOrEmpty(laterMsg) ? "" : $"（回执：{Trim(laterMsg, 60)}）"));
+                gs.activeRoutes.Remove(laterRoute);
 
                 // ⑪c 读不懂幅度就不办：「加密」只有方向没有量，系统不得自己定幅度
                 int wavesAfterCap = capRoute.FlightCount;
@@ -344,6 +418,38 @@ namespace AirlineCEO.EditorTools
                 bool capGone = !DeptReportLogic.RunCapacityDirective(gs, "R-CAP-GONE",
                                    "加密到每天 2 班", out string goneReceipt)
                                && goneReceipt.Contains("不在运营");
+
+                // ⑪h 命令台的**分派入口**：Build 出来的 DeptAnswer 必须带着 ask 快照，
+                //     RunPending 才认得出这是一条运力调令。
+                //
+                //     ★2026-10-29 报障原话：「NS148/NS149增班到每日一往返」→
+                //       「未下达：这条指令没有可执行的管线。」
+                //     根因不是听不懂，而是 CapacityDirective 单独构造 DeptAnswer 时漏了 ask = ask；
+                //     RunPending 按 ask.topic 分派，读到 null 就落到兜底那句。
+                //     为什么以前没测出来：⑪a–⑪g 全都直接调 RunCapacityDirective，
+                //     **绕过了 RunPending**，于是「管线本身没问题、只是没人调它」这个洞一直空着。
+                var dispRoute = new RouteData
+                {
+                    routeId = "R-DISP-1", origin = "IST", destination = "PEK", distanceKm = 7100f,
+                    aircraftType = "A330-300", flightNumber = "NS148", registration = "B-3901",
+                    depTime = "01:30", arrTime = "17:20", daysOfWeek = "每周一三五", weeklyFlights = 6,
+                    baseDailyProfit = 8f, dailyProfit = 8f, groundStaffAssigned = 2
+                };
+                dispRoute.SyncFlightsFromPrimary();
+                gs.activeRoutes.Add(dispRoute);
+                gs.fleet.Add(new Aircraft { registration = "B-3901", type = "A330-300", isActive = true, status = AircraftStatuses.Airworthy, age = 5 });
+                string dispRaw = "NS148/NS149增班到每日一往返";
+                var dispAns = DeptReportLogic.Build(gs, CeoCommandRouter.Route("n12_航线网络", dispRaw), dispRaw);
+                bool dispTopic = dispAns.ok && dispAns.needsRun
+                                 && dispAns.ask.topic == CeoCommandRouter.TopicCapacity;
+                DeptReportLogic.RunPending(gs, dispAns, dispRaw, out string dispReceipt);
+                // 管线自己可能拒绝（幅度/运力/机组），那也说明**认得出**这是调令；
+                // 唯一不能出现的回执就是兜底那句。
+                bool dispRouted = !string.IsNullOrEmpty(dispReceipt)
+                                  && !dispReceipt.Contains("没有可执行的管线");
+                bool capDispatch = dispTopic && dispRouted;
+                string dispWhy = capDispatch ? "" : $"（topic={dispAns.ask.topic ?? "null"} · 回执={Trim(dispReceipt, 40)}）";
+                gs.activeRoutes.Remove(dispRoute);
 
                 // ⑫ 单航线询问（P2）：问句必须按**本线台账**答，不能落进「运营部总账」。
                 //    总账里只有「航线 8 条 / 周 84 班 / 亏损线 2 条」，答不到「周三为什么不排」。
@@ -472,7 +578,8 @@ namespace AirlineCEO.EditorTools
                            && confirmOk && closeUnknownBody && execOk && execLedger && execLetters
                            && cancelNoSideEffect && cancelReissuable
                            && execOnce && dupOk && bareCloseOk && bareFreqOk && bareWhyOk && capRouteOk && capLedger && capNoGuess && capQuery
-                           && capDaysOnly && capDup && capGone
+                           && capDaysOnly && capDup && capGone && capDispatch
+                           && laterStaged && laterHeld && laterArrived && laterApproved && laterSlotQueued
                            && qRouteOk && qLetter && qDedupe && qNoLedger && badFnOk && genStillWorks && companyOk && bareOk && noClueOk && ambQOk && fnOk && legOk
                            && dedupe && noDecision;
 
@@ -488,7 +595,8 @@ namespace AirlineCEO.EditorTools
                           + $"　同城对不猜={dupOk}"
                           + $"　裸关线（不带「航线」）={bareCloseOk}　带班次不关线={bareFreqOk}　疑问不关线={bareWhyOk}"
                           + $"　运力调令认线={capRouteOk}　已下达={capLedger}　不猜幅度={capNoGuess}"
-                          + $"　问句不办={capQuery}　改班期指回页面={capDaysOnly}　多班不猜={capDup}　航线已消失={capGone}"
+                          + $"　问句不办={capQuery}　改班期指回页面={capDaysOnly}　多班不猜={capDup}　航线已消失={capGone}　命令台分派={capDispatch}{dispWhy}"
+                          + $"　研究期/批准才排班={laterStaged && laterHeld && laterArrived && laterApproved}"
                           + $"　单线询问={qRouteOk}　答复件={qLetter}{qLetterWhy}　同句只更新={qDedupe}　问句不动账={qNoLedger}　未知班号={badFnOk}　泛问句仍答={genStillWorks}　空问句不派件={bareOk}"
                           + $"　无航线不派件={noClueOk}　同城对问句不猜={ambQOk}　点名航班号={fnOk}　逐班号={legOk}（{lastOut}）{legWhy}"
                           + $"　公司整体→顾问={companyOk}"
@@ -498,6 +606,7 @@ namespace AirlineCEO.EditorTools
                           + $"　国内线不提航权={domNoRightWord}"
                           + $"　同句去重={dedupe}（{afterFirst}/{afterSecond}）　汇报件无需批复={noDecision}"
                           + $"　{(all ? "✓" : "✗")}");
+                return all;
             }
             finally
             {
@@ -505,9 +614,59 @@ namespace AirlineCEO.EditorTools
             }
         }
 
-        /// <summary>失败诊断用：把长文案截短并压成一行，别让一封公函把日志撑爆。</summary>
-        static string Trim(string s, int max)
+        /// <summary>收件箱里这条航线的运力呈报（没有则 null）。</summary>
+        static InboxMail FindCapacityMail(GameState gs, string routeId)
         {
+            if (gs?.inbox == null) return null;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m != null && m.action == InboxManager.CapacityDirectiveAction && m.origin == routeId) return m;
+            }
+            return null;
+        }
+
+        /// <summary>待发队列里这条航线的运力呈报（研究期未满时它只在这里）。</summary>
+        static bool HasPendingCapacityMail(GameState gs, string routeId)        {
+            if (gs?.pendingInbox == null) return false;
+            for (int i = 0; i < gs.pendingInbox.Count; i++)
+            {
+                var m = gs.pendingInbox[i]?.mail;
+                if (m != null && m.action == InboxManager.CapacityDirectiveAction && m.origin == routeId) return true;
+            }
+            return false;
+        }
+
+        /// <summary>收件箱里这条航线的时刻槽单据（申请/购入/改时）—— 研究期必须一张都没有。</summary>
+        static bool HasAnySlotMailFor(GameState gs, string routeId)
+        {
+            if (gs?.inbox == null) return false;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || m.slotRouteId != routeId) continue;
+                if (m.action == InboxManager.ApplySlotAction || m.action == "buy_slot"
+                    || m.action == InboxManager.ChangeSlotAction) return true;
+            }
+            return false;
+        }
+
+        /// <summary>待发队列里这条航线的时刻槽单据（批准后按 <c>ReportHours</c> 延后投递）。</summary>
+        static bool HasPendingSlotMailFor(GameState gs, string routeId)
+        {
+            if (gs?.pendingInbox == null) return false;
+            for (int i = 0; i < gs.pendingInbox.Count; i++)
+            {
+                var m = gs.pendingInbox[i]?.mail;
+                if (m == null || m.slotRouteId != routeId) continue;
+                if (m.action == InboxManager.ApplySlotAction || m.action == "buy_slot"
+                    || m.action == InboxManager.ChangeSlotAction) return true;
+            }
+            return false;
+        }
+
+        /// <summary>失败诊断用：把长文案截短并压成一行，别让一封公函把日志撑爆。</summary>
+        static string Trim(string s, int max)        {
             if (string.IsNullOrEmpty(s)) return "";
             s = s.Replace("\r", " ").Replace("\n", " ").Trim();
             return s.Length <= max ? s : s.Substring(0, max) + "…";

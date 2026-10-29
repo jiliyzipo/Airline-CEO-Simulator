@@ -3842,7 +3842,10 @@ namespace AirlineCEO.Systems
             if (d.waves <= 0 && (d.deps == null || d.deps.Length == 0) && !d.maximize)
                 d.maximize = true;   // 旧档「挖满全天」解析成自动 +1 时，按挖满重编
 
-            var rep = CapacityDirectiveLogic.Execute(gs, route, d);
+            // ★2026-10-29：拟定件重编也必须只试算 —— 旧档迁移不能顺手把「批准才排班」破了。
+            var rep = mail.capDeferred
+                ? CapacityDirectiveLogic.Plan(gs, route, d)
+                : CapacityDirectiveLogic.Execute(gs, route, d);
             if (!rep.ok) { mail.capEngineRev = CapacityDirectiveLogic.EngineRev; return false; }
 
             mail.body = CapacityDirectiveLogic.FormatReportBody(gs, route, rep);
@@ -3851,7 +3854,7 @@ namespace AirlineCEO.Systems
             mail.subject = $"关于 {route.origin}—{route.destination} 运力调整与航班环的报告（请批复）";
             mail.capEngineRev = CapacityDirectiveLogic.EngineRev;
             mail.status = "pending";
-            QueueSlotApplications(gs, route, rep.shortages);
+            if (!mail.capDeferred) QueueSlotApplications(gs, route, rep.shortages);
             gs.AddDecisionLog(
                 $"运营：按新排班口径重编 {route.origin}—{route.destination}（{route.DualWeeklyLine()}），呈报已更新。");
             return true;
@@ -3882,14 +3885,22 @@ namespace AirlineCEO.Systems
         /// 呈报投递延迟（游戏小时）。-1 = 按 <see cref="InboxCadence.ReportHours"/> 延后（线上路径）；
         /// 0 = 立即入箱（回归用例用，断言的是「这封该不该生成」而不是「几小时后到」）。
         /// </param>
+        /// <param name="deferred">
+        /// true = 这封是**拟定件**（<see cref="CapacityDirectiveLogic.Plan"/> 试算出来的）：账面还没动，
+        /// 批准时才排班。此时投递延迟默认改为「研究期」（<see cref="InboxCadence.StudyBusinessDays"/> 个工作日），
+        /// 且**不派生时刻槽单** —— 缺槽是批准之后才该派生的活。
+        /// </param>
         public static bool QueueCapacityReport(GameState gs, RouteData route, CapacityDirectiveLogic.Report rep,
-                                               int delayHours = -1)
+                                               int delayHours = -1, bool deferred = false)
         {
             if (gs == null || route == null || rep == null || !rep.ok) return false;
             // 指派/改派执飞飞机的呈报走 assign_aircraft 专用邮件（Execute 里已直接投递提名件）。
             // 这里早退，免得同一件事出现两封待批邮件（一封挑机号、一封说班次没变）。
             if (rep.assignment) return true;
             if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+
+            // 试算出来的呈报（Plan）本身就是拟定件：调用方漏传也不至于把「批准才排班」办成追认。
+            deferred = deferred || rep.deferred;
 
             string id = CapacityMailId(route.routeId, route.opsPlanRevision);
             // 原排班呈报若还挂着，标记为已被指令取代，避免同一航线两封待办互相阻断
@@ -3901,7 +3912,11 @@ namespace AirlineCEO.Systems
             DropPendingCapacityReports(gs, route, id);
 
             int hours = delayHours >= 0 ? delayHours : InboxCadence.ReportHours;
-            string subject = rep.slotFirst
+            // ★2026-10-29：拟定件按「研究期」（工作日）投递，而不是 2 小时。CEO 报障原话：
+            //   「下达增加航班的指令后，运营部不应该立即回复邮件，需要有个研究时间。」
+            // 2 小时在 4× 下只有 30 秒，看起来和「立即回复」没有区别。
+            DateTime? deferredWhen = (deferred && delayHours < 0) ? InboxCadence.StudyReady(gs.SimUtc) : (DateTime?)null;
+            string subject = (rep.slotFirst && !deferred)
                 ? $"关于 {route.origin}—{route.destination} 运力调整（先批时刻槽）"
                 : $"关于 {route.origin}—{route.destination} 运力调整与航班环的报告（请批复）";
             string body = CapacityDirectiveLogic.FormatReportBody(gs, route, rep);
@@ -3920,9 +3935,11 @@ namespace AirlineCEO.Systems
                     m.ringIdsCsv = rep.ringIdsCsv;
                     m.directiveNote = rep.directiveRaw;
                     m.capEngineRev = CapacityDirectiveLogic.EngineRev;
+                    m.capDeferred = deferred;
                     StampCapacityFacts(m, rep);
-                    m.tag = rep.slotFirst ? "待槽" : "呈报";
-                    QueueSlotApplications(gs, route, rep.shortages, hours);
+                    m.tag = (rep.slotFirst && !deferred) ? "待槽" : "呈报";
+                    // 拟定件不在这里派生时刻槽单：缺槽是批准之后才该派生的活（见 ApproveCapacityDirective）
+                    if (!deferred) QueueSlotApplications(gs, route, rep.shortages, hours);
                     Changed?.Invoke();
                     gs.NotifyChanged();
                     return true;
@@ -3941,10 +3958,11 @@ namespace AirlineCEO.Systems
                 dest = route.destination,
                 subject = subject,
                 body = body,
-                tag = rep.slotFirst ? "待槽" : "呈报",
+                tag = (rep.slotFirst && !deferred) ? "待槽" : "呈报",
                 ringIdsCsv = rep.ringIdsCsv,
                 directiveNote = rep.directiveRaw,
                 capEngineRev = CapacityDirectiveLogic.EngineRev,
+                capDeferred = deferred,
                 receivedYear = gs.year,
                 receivedQuarter = gs.quarter,
                 time = gs.DateLabel,
@@ -3953,13 +3971,20 @@ namespace AirlineCEO.Systems
             StampCapacityFacts(fresh, rep);
             // ★2026-10-19：呈报是「运营部编完班、组完环、联动完各部门之后写出来的东西」，
             // 不该在指令敲完的同一秒躺进收件箱（报障原话）。改为按游戏时钟延后投递，
-            // 到点由 TimeManager → DeliverDue 送进收件箱；此间航线已按新方案排好、directivePending 挂着。
-            Enqueue(gs, fresh, hours);
-            gs.AddDecisionLog(hours > 0
-                ? $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），呈报约 {hours} 小时后送达。"
-                : $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），已呈报待批。");
+            // 到点由 TimeManager → DeliverDue 送进收件箱。
+            // ★2026-10-29：拟定件的延迟改为「研究期」；此间航线**没有被改过**（Plan 已回退），
+            // 排班发生在批准那一刻。
+            if (deferredWhen.HasValue) Schedule(gs, fresh, deferredWhen.Value);
+            else Enqueue(gs, fresh, hours);
+            gs.AddDecisionLog(deferred
+                ? $"运营：受理 CEO 对 {route.origin}—{route.destination} 的运力指令（{route.DualWeeklyLine()}），"
+                  + $"研究约 {InboxCadence.StudyBusinessDays} 个工作日后呈报；班次此刻未动，批准后才排班。"
+                : hours > 0
+                    ? $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），呈报约 {hours} 小时后送达。"
+                    : $"运营：按 CEO 指令调整 {route.origin}—{route.destination} 运力（{route.DualWeeklyLine()}），已呈报待批。");
             // 时刻槽单同样延后：缺槽是这条指令派生的活，不是「指令一敲战略发展部就到了」。
-            QueueSlotApplications(gs, route, rep.shortages, hours);
+            // 拟定件不派生：槽是批准后才该向协调人提的（否则在研究期就替 CEO 花钱）。
+            if (!deferred) QueueSlotApplications(gs, route, rep.shortages, hours);
             gs.NotifyChanged();
             return true;
         }
@@ -4107,6 +4132,26 @@ namespace AirlineCEO.Systems
                 return true;
             }
 
+            // ★2026-10-29：拟定件（capDeferred）在指令期只试算、没落账 —— **批准才是排班那一刻**。
+            //   重跑 Execute 才真正ApplyWaves；缺槽单也在这里才派生（研究期不该替 CEO 去协调人要槽）。
+            //   旧档（capDeferred=false）走追认口径，保持原样。
+            if (mail.capDeferred)
+            {
+                var d = CapacityDirectiveLogic.Parse(mail.directiveNote);
+                // 与下令时同源：「调整为每日一段往返」这类只说目标的令，方向要按现状与目标比出来
+                CapacityDirectiveLogic.ResolveStatedTarget(route, d);
+                var applied = CapacityDirectiveLogic.Execute(gs, route, d);
+                if (applied != null && applied.ok)
+                {
+                    // 环是这次新建的，编号可能与拟定件里那串不同；回执的「详见」必须指到真实存在的环
+                    if (!string.IsNullOrEmpty(applied.ringIdsCsv)) mail.ringIdsCsv = applied.ringIdsCsv;
+                    // 槽单在批准这一刻立刻开（不延迟）：CEO 刚点了批准，缺的那一端本就该马上有人去跑，
+                    // 而且回执要能列出「在办的单子」，延迟投递会让回执写成「缺口待办」却查无此单。
+                    QueueSlotApplications(gs, route, applied.shortages);
+                }
+                mail.capDeferred = false;
+            }
+
             route.directivePending = false;
             route.hasPreDirective = false;   // 新运力成为后续指令的基线
             route.schedulePending = false;
@@ -4180,7 +4225,18 @@ namespace AirlineCEO.Systems
                 gs.NotifyChanged();
                 return true;
             }
-            CapacityDirectiveLogic.Revert(gs, route, mail.ringIdsCsv, out message);
+            // ★2026-10-29：拟定件在指令期本来就什么都没动 —— 驳回就是无痕，
+            //   不能走 Revert（那会往决策日志里写一句「已退回运力调整」，等于承认曾经调过）。
+            if (mail.capDeferred)
+            {
+                mail.capDeferred = false;
+                route.directivePending = false;   // 在途标记随「方案作废」一起撤掉
+                message = $"已驳回 {route.origin}—{route.destination} 运力呈报：本线班次、机号与航班环自始至终未变动。";
+            }
+            else
+            {
+                CapacityDirectiveLogic.Revert(gs, route, mail.ringIdsCsv, out message);
+            }
             // 驳回 = 这次理解（或这次方案）不算数 → 丢弃候选；若这句话此前已被记住，一并抹掉。
             // 宁可少记，不可记错：记忆会让一句话压过关键词猜测，误读一旦被固化就再也改不回来。
             DirectiveLexicon.Discard(mail.directiveNote);
@@ -4234,7 +4290,10 @@ namespace AirlineCEO.Systems
                 Changed?.Invoke();
                 return false;
             }
-            var rep = CapacityDirectiveLogic.Execute(gs, route, d);
+            // ★2026-10-29：拟定件改稿同样只试算（Plan）—— 改稿不是落账，落账仍在批准那一刻。
+            var rep = mail.capDeferred
+                ? CapacityDirectiveLogic.Plan(gs, route, d)
+                : CapacityDirectiveLogic.Execute(gs, route, d);
             if (!rep.ok)
             {
                 // 呈报仍留在收件箱（未改动），但**未能执行也要回一封复核报告**，

@@ -22,6 +22,10 @@ namespace AirlineCEO.Logic
         /// ★2026-10-19 报障：「CEO 下达指令后，邮箱立即收到汇报，应该是过几小时才把呈报送到收件箱」。
         /// 旧版 `QueueCapacityReport` 直接 `Add`，指令刚敲完呈报就躺在收件箱里，
         /// 会让人以为「运营部不用干活」；且呈报是待批件，立刻出现等于把审批压在一瞬间。
+        ///
+        /// ★2026-10-29：线上路径已改为**研究期**（<see cref="StudyBusinessDays"/> 个工作日），
+        /// 见 <c>QueueCapacityReport(..., deferred: true)</c>。本常量只留给**非拟定**的老口径
+        /// （旧档迁移重编、回归用例里的「先排后报」路径）作「部门受理到落笔」的短延迟。
         /// </summary>
         public const int ReportHours = 2;
 

@@ -87,6 +87,17 @@ namespace AirlineCEO.Data
         /// 批复回执照抄一段并写明「本批复不视为该缺口已解决」，免得回执只报一句「已生效」。
         /// </summary>
         public string capGapSection = "";
+        /// <summary>
+        /// true = 这封呈报**只拟定、未落账**：指令下达时运营部只试算一遍就回退了，班次、机组、航班环
+        /// 一个字节都没动，**批准那一刻才真正排班**。
+        ///
+        /// ★2026-10-29 报障原话：「下达增加航班的指令后，运营部不应该立即回复邮件，需要有个研究时间。
+        /// 并且批准后，应该立即排班，需要获得时刻槽后，再重新排班。」—— 旧口径是**先斩后奏**：
+        /// `Execute` 在下令那一刻就把班排好了，批准只是追认（`ApproveCapacityDirective` 一次 `ApplyWaves`
+        /// 都没有）。于是「研究期」和「批准后排班」在账本上都看不见。
+        /// 旧档（false）沿用追认口径，避免已存盘里的待批呈报被重算一遍。
+        /// </summary>
+        public bool capDeferred;
         /// <summary>呈报所依据的排班引擎修订号；低于 CapacityDirectiveLogic.EngineRev 则自动重编。</summary>
         public int capEngineRev;
         /// <summary>本函关联的业务主键（如过渡询价的报价 id，逗号分隔）。</summary>
