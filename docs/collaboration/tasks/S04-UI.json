@@ -35,7 +35,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-28T08:14:25.275Z",
+  "updatedAt": "2026-10-29T10:31:12.983Z",
   "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).",
   "staleForReviewId": "REV-20261019094559-31090f",
   "scopePolicy": "changed-files",

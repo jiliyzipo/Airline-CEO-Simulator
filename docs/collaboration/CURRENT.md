@@ -1,9 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-28T13:51:29.430Z
-状态 revision：699
-Cursor 最近确认读取：revision 699 @ 2026-10-28T13:51:29.046Z
-Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
+生成时间：2026-10-29T10:31:28.464Z
+状态 revision：708
+Cursor 最近确认读取：revision 708 @ 2026-10-29T10:31:28.191Z
+Codex 最近确认读取：revision 703 @ 2026-10-29T10:22:33.980Z
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -22,7 +22,7 @@ Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
 - **C-ENG** 工程入口串联验收（compile / slotcheck / 隔离 Unity） · 开发=rework · 检测=cancelled · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
 - **D2-TierLadder** 阶段 D2-TierLadder：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 35 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 35 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs, Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs, Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs …).
 - **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261018103950-3b9460 covered 33 changed files; 9 taken over by later passed deliveries, 5 still uncovered (tools/collab/cli.mjs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).
 - **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
@@ -32,9 +32,9 @@ Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
 - **S04-UI** 阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261019094559-31090f covered 9 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs).
 - **S05-P2Close** 阶段 S05-P2Close：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 38 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 38 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs, Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs, Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs …).
 - **S06-BatchB** 阶段 S06-BatchB：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 38 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 38 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs, Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs, Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs …).
 - **S07-Balance** 阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测 · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
   - Historic verdict REV-20261023015616-582178 covered 33 changed files; 18 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261028002145-55518e.
 - **S08-ShortHaul** 阶段 S08-ShortHaul：Balance/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
@@ -81,6 +81,8 @@ Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
   - Historical review REV-20261028022523-acfde4 passed delivery DEL-20261028021245-f4c95c; current workspace needs re-review.
 - **S31-RouteConsoleMerge** 阶段 S31-RouteConsoleMerge：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261028110915-15a8d5 passed delivery DEL-20261028092502-0f6037; current workspace needs re-review.
+- **S33-Assets-Tests** 阶段 S33-Assets-Tests：Assets-Tests/Systems/UI · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261029102331-4029cf still applies to delivery DEL-20261029101047-774313.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
@@ -96,11 +98,11 @@ Codex 最近确认读取：revision 697 @ 2026-10-28T13:40:20.741Z
 
 ## 最新交付
 
-- DEL-20261028105347-defc40 → S03-Docs @ 2026-10-28T10:53:52.765Z
+- DEL-20261029101047-774313 → S33-Assets-Tests @ 2026-10-29T10:10:49.672Z
 
 ## 最新检测
 
-- REV-20261028110915-15a8d5 → delivery DEL-20261028092502-0f6037 status=passed · 独立检测角色 @ 2026-10-28T11:12:20.893Z
+- REV-20261029102331-4029cf → delivery DEL-20261029101047-774313 status=passed · 独立检测角色 @ 2026-10-29T10:25:00.997Z
 
 ## 开放缺陷
 
