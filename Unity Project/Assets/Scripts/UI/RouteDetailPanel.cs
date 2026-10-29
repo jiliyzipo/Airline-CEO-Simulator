@@ -420,11 +420,13 @@ namespace AirlineCEO.UI
 
             // —— 执飞机与收益（压成一行，把高度让给周视图）——
             string reg = string.IsNullOrEmpty(f.registration) ? "未分配" : f.registration;
-            string ring = RingOf(gs, r, reg);
+            // 无执飞机时不印「0 座」：那是「查不到这架机」的副产物，读起来像载客量为零的真数据。
+            int seats = TotalSeats(r, reg);
+            string seatsPart = seats > 0 ? $" · {seats} 座" : "";
             WireKeywordNav(L1("Ac",
                 $"执飞　{TermNavMap.AircraftLink(reg)}　{r.aircraftType}　｜　" +
-                (string.IsNullOrEmpty(ring) ? "未串环（本线往返）" : "航班环 " + ring) +
-                $"　｜　单班日利 {r.FlightNetDailyProfit:F2} 万 · 往返 {FlightScheduleFormat.Duration(trip.cycleMinutes)}（含过站 {trip.turnMinutes} 分）· {TotalSeats(r, reg)} 座",
+                RingSegment(gs, r, reg) +
+                $"　｜　单班日利 {r.FlightNetDailyProfit:F2} 万 · 往返 {FlightScheduleFormat.Duration(trip.cycleMinutes)}（含过站 {trip.turnMinutes} 分）{seatsPart}",
                 0.0f, 0.005f, 1.0f, 0.075f, 12, f.dailyProfit >= 0 ? UITheme.Success : UITheme.Danger));
         }
 
@@ -453,9 +455,9 @@ namespace AirlineCEO.UI
             return sb.Length > 0 ? sb.ToString() : "—";
         }
 
-        static string RingOf(GameState gs, RouteData r, string reg)
+        static FlightRing FindRing(GameState gs, RouteData r, string reg)
         {
-            if (gs?.flightRings == null || r == null || string.IsNullOrEmpty(reg)) return "";
+            if (gs?.flightRings == null || r == null || string.IsNullOrEmpty(reg)) return null;
             for (int i = 0; i < gs.flightRings.Count; i++)
             {
                 var ring = gs.flightRings[i];
@@ -463,9 +465,83 @@ namespace AirlineCEO.UI
                 if (!string.Equals(ring.registration, reg, StringComparison.OrdinalIgnoreCase)) continue;
                 if (string.Equals(ring.legARouteId, r.routeId, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(ring.legBRouteId, r.routeId, StringComparison.OrdinalIgnoreCase))
-                    return $"{ring.ringId}（过站 {ring.turnMinutes} 分 · {(ring.valid ? "合格" : "未通过")}）";
+                    return ring;
             }
-            return "";
+            return null;
+        }
+
+        /// <summary>机号是不是「没有飞机」的占位值。`未分配` 是这个页面自己的占位（见 <see cref="TermNavMap.AircraftLink"/>），
+        /// `运力不足 · 待复航` 是 <see cref="RouteData.UnassignedAircraftLabel"/>，两者都必须在判空里认出。</summary>
+        static bool NoAircraft(string reg) =>
+            string.IsNullOrEmpty(reg) || reg == "未分配" || reg == RouteData.UnassignedAircraftLabel;
+
+        /// <summary>
+        /// 「执飞行」里的串环一格。
+        ///
+        /// ★2026-10-29 CEO 问「单航线的『未串环』是什么意思」—— 旧文案只写
+        /// <c>未串环（本线往返）</c>：既不说明后果，也不说明去哪办，读起来像一条告警。
+        /// 现在补上「这架机一天用掉多少」和入口：
+        /// · <b>本机日利用</b> = 该机号**全部航线**的周均轮挡（一圈 2 段、不含过站），
+        ///   与 <see cref="EconomyBalanceParams.TargetDailyUtilizationHours"/> 对比 ——
+        ///   这是「还剩多少时间可以再串一条线」唯一可比的读数；
+        /// · <b>点此串环</b> 落到 n98「航线/航班环选择器」，落地时把本机号写进上下文
+        ///   （见 <see cref="OnKeyword"/>），免得打开的是「上一次选中的那架机」。
+        ///
+        /// 无执飞机时**不得**说「未串环」：连飞机都没有，谈不上串不串环。旧版把
+        /// <see cref="RouteData.UnassignedAircraftLabel"/> 当机号去查环，必然查不到，
+        /// 于是停飞航线也印「未串环（本线往返）」—— 把「没飞机」读成了「有飞机、只是没串」。
+        /// </summary>
+        static string RingSegment(GameState gs, RouteData r, string reg)
+        {
+            if (r == null || NoAircraft(reg))
+                return "未配执飞机 · 本线停飞 · " + TermNavMap.PageLink("n9_机队", "去机队配机 ›");
+
+            string util = $"本机日利用 {AircraftDailyUtilHours(gs, reg):F1}/{EconomyBalanceParams.TargetDailyUtilizationHours:0}h";
+            var ring = FindRing(gs, r, reg);
+            if (ring == null)
+                return $"未串环 · {util} · " + TermNavMap.PageLink("n98_航线航班环选择器", "点此串环 ›");
+
+            // 合格是常态，只把例外印出来 —— 这一行是单行截断的，多两个字就可能把后面的日利挤没了。
+            return $"航班环 {ring.ringId}（过站 {ring.turnMinutes} 分{(ring.valid ? "" : " · 未通过")}）· {util}";
+        }
+
+        /// <summary>
+        /// 该机号的**周均**日轮挡（小时）：把全机队每条航线每班的轮挡按班期折到日均再相加。
+        ///
+        /// 口径必须与 <see cref="OpsEconomics.Evaluate"/> 的 <c>dailyUtilizationHours</c> 同源
+        /// （一圈 2 段、不含过站、按 <c>weeklyFlights/7</c> 摊），否则同屏会出现两个「日利用」：
+        /// 上面摘要行印本线 0.9h、这里印本机 2.2h，玩家只会当成算错了。
+        /// 单线单班时两者恰好相等；一条线多班或已串线时，本机值 ≥ 本线值 —— 这是加法关系。
+        /// </summary>
+        static float AircraftDailyUtilHours(GameState gs, string reg)
+        {
+            if (gs?.activeRoutes == null || string.IsNullOrEmpty(reg)) return 0f;
+            float hours = 0f;
+            for (int i = 0; i < gs.activeRoutes.Count; i++)
+            {
+                var r = gs.activeRoutes[i];
+                if (r == null) continue;
+                float block = OpsEconomics.BlockHours(r.distanceKm > 0f ? r.distanceKm : 1000f);
+                int n = r.flights != null ? r.flights.Count : 0;
+                if (n == 0)
+                {
+                    // 班次还没展开：按主字段折算一次往返（就是 EnsureFlights 会生成的那一班）。
+                    // 这里**不**调 EnsureFlights —— 打开一条航线，不该顺手改写别条航线的班次与时刻。
+                    if (!string.Equals(r.registration, reg, StringComparison.OrdinalIgnoreCase)) continue;
+                    int w0 = r.weeklyFlights > 0 ? r.weeklyFlights : 7;
+                    hours += block * OpsEconomics.RoundTripSectors * w0 / 7f;
+                    continue;
+                }
+                for (int f = 0; f < n; f++)
+                {
+                    var fl = r.flights[f];
+                    if (fl == null || !string.Equals(fl.registration, reg, StringComparison.OrdinalIgnoreCase)) continue;
+                    int weekly = FlightScheduleFormat.WeeklyOf(fl);
+                    if (weekly <= 0) weekly = 7;
+                    hours += block * OpsEconomics.RoundTripSectors * weekly / 7f;
+                }
+            }
+            return hours;
         }
 
         static int TotalSeats(RouteData r, string reg)
@@ -546,6 +622,21 @@ namespace AirlineCEO.UI
             {
                 OpenAircraft(hit.routeKey);
                 return;
+            }
+            // 「点此串环」→ n98「航线/航班环选择器」：落地页按 OpsSubpageContext 选机，
+            // 不把本页这架机写进去，就会打开「上一次选中的那架机」，玩家以为串错了。
+            if (hit.pageId != null && hit.pageId.StartsWith("n98"))
+            {
+                string reg = "";
+                var r0 = CurrentRoute();
+                if (r0 != null)
+                {
+                    r0.EnsureFlights();
+                    var f0 = (_selFlight >= 0 && _selFlight < r0.flights.Count) ? r0.flights[_selFlight] : null;
+                    reg = f0 != null && !string.IsNullOrEmpty(f0.registration) ? f0.registration : r0.registration;
+                }
+                if (!string.IsNullOrEmpty(reg) && reg != RouteData.UnassignedAircraftLabel)
+                    OpsSubpageContext.SelectedRegistration = reg;
             }
             // ★2026-10-19：本页正文也会走 TermNavMap.Decorate，于是航班号（flight:→n43）与
             // 三字码对（route:→n41）这类带键链接会出现在这里。落地页按上下文键选对象，

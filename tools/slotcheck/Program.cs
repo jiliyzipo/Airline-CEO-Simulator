@@ -2312,6 +2312,19 @@ namespace SlotCheck
             string mixed = TermNavMap.Decorate(TermNavMap.Decorate("北京首都 B-2004 A320neo\n　·　B-2005 737-800"));
             Check("[关键] 二次 Decorate 不得把已链接片段之后的机号漏掉",
                 mixed.Contains("<link=aircraft:B-2004>") && mixed.Contains("<link=aircraft:B-2005>"), ref fail);
+
+            // —— ⑤ 「去某页办这件事」的显式页面链接必须与关键词链接同口径，且能解析回同一页 ——
+            // 单航线页「点此串环 ›」就是这类：文案写着一个页面名，落地却要精确到 pageId。
+            // 判据分两段：包出来的 markup 里带的 id 必须是 page: 前缀；TryResolve 解回去必须是原页。
+            string n98 = TermNavMap.PageLink("n98_航线航班环选择器", "点此串环 ›");
+            bool wrapped = n98.Contains("<link=page:n98_航线航班环选择器>") && n98.Contains("点此串环 ›");
+            bool resolved = TermNavMap.TryResolve("page:n98_航线航班环选择器", out var hitRing)
+                            && hitRing.pageId == "n98_航线航班环选择器";
+            Check("[关键] PageLink 包出的页面链接可解析回原页面（串环入口点得动）",
+                wrapped && resolved, ref fail);
+            Check("PageLink 传空页 id 时原样返回文案（不产出死链）",
+                TermNavMap.PageLink("", "点此串环 ›") == "点此串环 ›"
+                && TermNavMap.PageLink("n9_机队", null) == "", ref fail);
         }
 
         /// <summary>R19 诊断行：打印一条 CEO 指令的实际解析结果（walk the parse）。</summary>

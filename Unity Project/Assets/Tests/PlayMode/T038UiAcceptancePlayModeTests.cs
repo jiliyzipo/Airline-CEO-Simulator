@@ -415,6 +415,74 @@ namespace AirlineCEO.Tests.PlayMode
         }
 
         // —————————————————————————————————————————————————————————————
+        // ⑦b 「执飞行」的串环一格：没飞机说没飞机，有飞机说利用率并给入口
+        //
+        // 2026-10-29 CEO 问「单航线的『未串环』是什么意思」，暴露旧文案只写「未串环（本线往返）」：
+        // 既不说明后果，也不说明去哪办。更糟的是它**在没飞机时也这么说** —— 旧版把 "未分配"
+        // 当机号去查环，必然查不到，于是停飞航线也印「未串环」，把「没飞机」读成「有飞机、
+        // 只是没串环」，同一行还跟着印一个「0 座」。
+        // —————————————————————————————————————————————————————————————
+
+        [UnityTest]
+        public IEnumerator FlightDetailRingCell_SaysNoAircraft_WhenRegistrationEmpty()
+        {
+            var gs = NewState("T038NoPlane");
+            var route = MakeRoute("T038-NOPLANE", "");
+            gs.activeRoutes.Add(route);
+            FleetNetContext.SelectedRouteId = route.routeId;
+            OpsSubpageContext.SelectedRouteId = null;
+
+            var detail = RouteDetailPanel.Build("单航线");
+            Own(detail.gameObject);
+            yield return null;
+
+            var hit = detail.GetComponentsInChildren<Button>(true).FirstOrDefault(b => b.name == "Hit");
+            Assert.IsNotNull(hit, "班次行缺少点击热区，进不了单班页");
+            hit.onClick.Invoke();
+            yield return null;
+
+            var ac = LabelNamed(detail.gameObject, "Ac");
+            Assert.IsNotNull(ac, "单班页缺少「执飞行」");
+            StringAssert.Contains("未配执飞机", ac.text, "没有执飞机就必须说没有执飞机");
+            StringAssert.DoesNotContain("未串环", ac.text,
+                "「没飞机」不得读成「有飞机、只是没串环」（旧版把「未分配」当机号查环，必然查不到）");
+            StringAssert.DoesNotContain("0 座", ac.text, "载客量查不到时不得印「0 座」，那是空值的伪装");
+        }
+
+        [UnityTest]
+        public IEnumerator FlightDetailRingCell_ShowsUtilizationOver10h_WhenAircraftAssigned()
+        {
+            var gs = NewState("T038Util");
+            var route = MakeRoute("T038-UTIL", "B-3811");   // 每日 1 班、1100 km、A320neo
+            gs.activeRoutes.Add(route);
+            gs.fleet.Add(MakeAircraft("B-3811"));
+            FleetNetContext.SelectedRouteId = route.routeId;
+            OpsSubpageContext.SelectedRouteId = null;
+
+            var detail = RouteDetailPanel.Build("单航线");
+            Own(detail.gameObject);
+            yield return null;
+
+            var hit = detail.GetComponentsInChildren<Button>(true).FirstOrDefault(b => b.name == "Hit");
+            Assert.IsNotNull(hit, "班次行缺少点击热区");
+            hit.onClick.Invoke();
+            yield return null;
+
+            var ac = LabelNamed(detail.gameObject, "Ac");
+            Assert.IsNotNull(ac, "单班页缺少「执飞行」");
+            StringAssert.Contains("未串环", ac.text, "没有航班环记录时必须如实说未串环");
+            StringAssert.Contains("点此串环", ac.text, "必须给出串环入口，否则玩家不知道去哪办");
+
+            // 口径：一圈 = 去 + 回两段（不含过站），与 OpsEconomics.dailyUtilizationHours 同源。
+            // 1100 km / 850 kmh = 1.29h 单程 → 每日 1 班 = 2.59h/日；目标 10h 由常量给出。
+            float expect = OpsEconomics.BlockHours(route.distanceKm) * OpsEconomics.RoundTripSectors;
+            Assert.AreEqual(expect, NumberAfter(ac.text, "本机日利用"), 0.051f,
+                "本机日利用必须按「一圈 2 段」累计（F1 一位小数，容差半个刻度）");
+            StringAssert.Contains($"/{EconomyBalanceParams.TargetDailyUtilizationHours:0}h", ac.text,
+                "利用率必须与目标时长并列，否则「2.6h 算高还是低」无从判断");
+        }
+
+        // —————————————————————————————————————————————————————————————
         // ⑧ 地图线宽：档位函数（肉眼能否分辨另说）
         // —————————————————————————————————————————————————————————————
 

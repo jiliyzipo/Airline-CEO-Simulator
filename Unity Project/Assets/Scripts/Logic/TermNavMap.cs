@@ -378,6 +378,19 @@ namespace AirlineCEO.Logic
             });
         }
 
+        /// <summary>
+        /// 显式页面跳转链接（`page:` 前缀，见 <see cref="TryResolve"/>）。
+        ///
+        /// 存在的理由：正文里那些「去某页办这件事」的指引（如单航线页的「点此串环」）
+        /// 必须与关键词链接同一个颜色/下划线口径，否则同一行里两种链接长得不一样，
+        /// 玩家会以为其中一种不能点。颜色写在这里一处，调用方不要再抄一遍色值。
+        /// </summary>
+        public static string PageLink(string pageId, string shown)
+        {
+            if (string.IsNullOrEmpty(pageId) || string.IsNullOrEmpty(shown)) return shown ?? "";
+            return Markup("page:" + pageId, shown);
+        }
+
         static string Markup(string id, string shown) =>
             $"<color=#7EB6FF><u><link={id}>{shown}</link></u></color>";
 
