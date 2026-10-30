@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-25T09:46:31.963Z",
-  "updatedAt": "2026-10-29T14:11:36.410Z",
+  "updatedAt": "2026-10-30T00:03:42.714Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 19 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/slotcheck/Program.cs, Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs).",
+  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 18 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/MapWidget.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/slotcheck/Program.cs …).",
   "staleForReviewId": "REV-20261025103525-a76682",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -68,12 +68,13 @@
   "scopeDrift": {
     "basis": 66,
     "intact": 44,
-    "covered": 19,
+    "covered": 18,
     "uncovered": [
+      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "tools/slotcheck/Program.cs",
       "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 4
   }
 }

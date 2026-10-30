@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceHead": "77ad67bdd4f56a103f08df5f532b4da99928743c",
+  "sourceHead": "2a5b84a855c18bb3235b3705e2fa1259a8dbeb2e",
   "sourceIncludesUncommittedFiles": true,
   "cleanGitCheckoutVerified": false,
   "nodeVersion": "v24.18.0",
   "dotnetVersion": "8.0.423",
   "fingerprintScope": "Unity assets/packages/settings and tools; documentation is hashed individually but excluded from the runtime fingerprint.",
-  "sourceFingerprint": "36dd437675e2052f86bf21cd39eef08fed0cdf80c76920b8e9346083d6980454",
+  "sourceFingerprint": "ad6fc90cfbc7fa3a951fc6f1685cc928467c18fc04393d66696a327290a6bb2e",
   "overlay": "Only exported ProjectSettings companyName/productName changed to isolate player data.",
   "entries": [
     {
@@ -1643,8 +1643,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Data/Aircraft.cs",
-      "bytes": 3531,
-      "sha256": "88e002d2cca0d2d674261fd58da17d3d033be14fba5e1f4285420a2e77b1b045",
+      "bytes": 4879,
+      "sha256": "d8c75294abb1a0a2a7b9deb3c42d1372d4d16a94900414ce2d87c030a47f75d8",
       "tracked": true
     },
     {
@@ -1895,8 +1895,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Data/InboxMail.cs",
-      "bytes": 10256,
-      "sha256": "eb2dcfcecc4f3726b217b58ef894d435eb671f163e6ed0fa27d236281802d05b",
+      "bytes": 11174,
+      "sha256": "d089bed766fb316bc9aece2580a72be3e08f4b5d96c78df1f9d456e33a9b3911",
       "tracked": true
     },
     {
@@ -2003,8 +2003,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Data/RouteData.cs",
-      "bytes": 28326,
-      "sha256": "a32c0176f5b67cd2d62c7ec64715a8dd396b5c9aab48c38a39f046314e512069",
+      "bytes": 29911,
+      "sha256": "44a7f4b8787bdf59c55f91db006e4e4cd74f80d684cfe4e38b03f3624a072287",
       "tracked": true
     },
     {
@@ -2213,8 +2213,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs",
-      "bytes": 39006,
-      "sha256": "83cd8f325ccf0f85a54102b2478190e85f94cf2f4b502ff8458b4675b721cb81",
+      "bytes": 49962,
+      "sha256": "b9d6d9f51ae3424c76efbe81e5b76c0a679a1327c6fda7c2880b807991b6cba4",
       "tracked": true
     },
     {
@@ -2239,13 +2239,13 @@
       "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs",
       "bytes": 7723,
       "sha256": "3eb266d78f8687209f1cb1fd3334bd4719b2b62bbdcbfc26f6188f50089f5c3c",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/CommandLogRegression.cs.meta",
       "bytes": 60,
       "sha256": "dc0931c941f4b5224c0a58e9b9a1c6507f9c3fdd97d28601254ec0a4cb1978b5",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/CreateFrameworkPrefabs.cs",
@@ -2332,6 +2332,18 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/Editor/ExternalForwardingRegression.cs",
+      "bytes": 11562,
+      "sha256": "3e6716ef42a5bb79200a4a0b16509dbcee5709ffc827e5b3f5720a5896d3a865",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/ExternalForwardingRegression.cs.meta",
+      "bytes": 60,
+      "sha256": "ab13fd52900aafd0fdfd15e18c8676dab27292ad60b956094d7cae30afdb0e03",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Scripts/Editor/ExternalSourceWindow.cs",
       "bytes": 7823,
       "sha256": "9bc3dc6ded86288c83bc580bced6bfdb289598090e5e3df4ba38dafa1028b2b3",
@@ -2368,6 +2380,18 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/Editor/InboxRowLayoutRegression.cs",
+      "bytes": 9184,
+      "sha256": "3e7ba4fb7110661b31f075eb8686abd5afb2cfc13c6ab57ce2dbad6651ef4b53",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/InboxRowLayoutRegression.cs.meta",
+      "bytes": 60,
+      "sha256": "c08b4c21f28be205624dbff5a3cad883af466a677bc7134ef681d988761b66c4",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Scripts/Editor/InboxStatusRegression.cs",
       "bytes": 8522,
       "sha256": "cac4f9acf09c9c3498604653b5e73bc2e397fa5e0b8796aac9f5dbda7a1b011c",
@@ -2381,8 +2405,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
-      "bytes": 430140,
-      "sha256": "cbf6b176b3f7fe671694776c4bbf5cf70a76327bb70b1da976f62ad0ff1f658f",
+      "bytes": 431244,
+      "sha256": "fe90c2dfadfa18c5e78c5b36f375de2cdadfe775ea9d9551829de48e2220a0f0",
       "tracked": true
     },
     {
@@ -2393,14 +2417,14 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs",
-      "bytes": 6455,
-      "sha256": "b7b223b113e8654634224d7d008b8c0bf5503fac0c27f6168d7cfb347a8c2d36",
+      "bytes": 6583,
+      "sha256": "221d4f23861d29ec83539cac28f5313539e82952511feda7ad284ee13e935ba5",
       "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/NetworkPoolVisibilityRegression.cs.meta",
-      "bytes": 60,
-      "sha256": "8de519edcde255a4cf9347f7e4a34c85588d139832787992b0b604443d077cdc",
+      "bytes": 62,
+      "sha256": "5803560ff33f37959425cf92f82509c39024111fd56883a0ab2db8d25fa3c5b3",
       "tracked": true
     },
     {
@@ -2431,13 +2455,13 @@
       "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs",
       "bytes": 6852,
       "sha256": "227be70be0fdf129139102076c842ef9b4832c0a2a7cfa285e9eecc2fa7ac715",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs.meta",
       "bytes": 62,
       "sha256": "cc146df2de79b9da487c57ea78cb3d7761623063b542ccaa81f18f2e356a901e",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/OpsManualTestMenu.cs",
@@ -2449,6 +2473,18 @@
       "path": "Unity Project/Assets/Scripts/Editor/OpsManualTestMenu.cs.meta",
       "bytes": 59,
       "sha256": "d7d7f4c47913e61249056eb80a38877f74d80b1716127d51a8705622cca1b5f7",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/OverhaulMaintenanceRegression.cs",
+      "bytes": 15438,
+      "sha256": "cdc1c4f65776d68d21998e4398234b78fb6ec0b98841fae4683b3c2de323f130",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/OverhaulMaintenanceRegression.cs.meta",
+      "bytes": 60,
+      "sha256": "150d229cbab8b88321333f0fced37d3c4873eddba97eb918c6e43e9dfc67e6ef",
       "tracked": true
     },
     {
@@ -2585,8 +2621,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/PressDeskRegression.cs",
-      "bytes": 6909,
-      "sha256": "ba8ec7ae1100806c8f11e0a37d0bb1e24c7de9b98c5ddbddcdf83e67b0e3dbaa",
+      "bytes": 8811,
+      "sha256": "9d493e506fdafc971b1ff6a20b4fa2babfdc3da80014b52f244b2601ef4e0507",
       "tracked": true
     },
     {
@@ -2620,6 +2656,30 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "bytes": 22422,
+      "sha256": "8fb75c34f5c9b4e3d764414ae1ea169df61784e67477b5b279c690346ff73d11",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs.meta",
+      "bytes": 59,
+      "sha256": "3d79d21e9cbf12c95280bee7acfd8fa1b33f9f09cbe2b9f061f656db13cf56fd",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/RouteConsoleMergeRegression.cs",
+      "bytes": 11593,
+      "sha256": "f0988961ab48bfd03b6129032e0889fe4fd4b6efa83d1628448fbcd3327b9ff2",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/RouteConsoleMergeRegression.cs.meta",
+      "bytes": 59,
+      "sha256": "078b51343192fffe53c0ba4c9fb2d74c43db837434a4a02505aca1f3ac6e9a41",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Scripts/Editor/RpmPreviewRegression.cs",
       "bytes": 6805,
       "sha256": "5f36832274237115860c6cad3b202e1615888dbc78f6e648f3e7b4ef106b52ef",
@@ -2644,9 +2704,33 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/Editor/ScenarioFixture.cs",
+      "bytes": 20259,
+      "sha256": "116a41cda437437bb1a8c521360c12c13976935e1258175624af7a611fddeffa",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/ScenarioFixture.cs.meta",
+      "bytes": 59,
+      "sha256": "0adfd26d58877650546bea5332c072d7f1116abbef0f53baa3beb0784a24520f",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/ScenarioFixtureRegression.cs",
+      "bytes": 8952,
+      "sha256": "5f6baa0e430de819684199db2a4007685c5c44277d688879e11ad67d6f202f19",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/ScenarioFixtureRegression.cs.meta",
+      "bytes": 59,
+      "sha256": "0afa1b1138970e410177c4bad13d7d3715412fca874f99ab63ea04ed4b0b156b",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Scripts/Editor/SchedulePageRegression.cs",
-      "bytes": 9128,
-      "sha256": "2aa514fcc38ba7f9a55d0c4a689c8c1a8db360050e2483991ee8f40514b45b5b",
+      "bytes": 13627,
+      "sha256": "6d32de7fd1bcc7fc58ec02e47ee37796e0d7f0fd3a5995c9d236762f3c64c043",
       "tracked": true
     },
     {
@@ -2693,14 +2777,26 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs",
-      "bytes": 9030,
-      "sha256": "4c1ed259ef5c75097c17f44bca694732894e79da299ebe2fa855824bd132a01f",
+      "bytes": 9230,
+      "sha256": "436d5c328768be17b06ce7a3aa6d637ba040a99ced70f026cfffc9d668e3043c",
       "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs.meta",
       "bytes": 60,
       "sha256": "67dcc8a43f0958764bed5dbb542c7c5caaf20bc8b18c0bb7f1b903f3d917a1ac",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/StatusBarReconcileRegression.cs",
+      "bytes": 7907,
+      "sha256": "97c3a860d1d809cfae5a8adb6694dc1f79958923db0007ac8928d92cd32ed880",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/StatusBarReconcileRegression.cs.meta",
+      "bytes": 60,
+      "sha256": "9c6c4efcc3499d3b3ddce776fc0f0d74f2d893faa9d004728a9742427772a9b9",
       "tracked": true
     },
     {
@@ -2731,13 +2827,13 @@
       "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs",
       "bytes": 6046,
       "sha256": "e405fb3b120150dce5eca8e55fa5197d17892be20203678ba7f9c65cc7bab191",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/TutorialCopyRegression.cs.meta",
       "bytes": 62,
       "sha256": "23f341d1a271906fc7028da8bd2d2b67aae4aa0950e7e5451d73592e6f86d247",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/WeatherTileDomainReload.cs",
@@ -2755,13 +2851,13 @@
       "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs",
       "bytes": 12866,
       "sha256": "5ca7fb8d9f8675f89396247f2ee31beb8727b3c47e3d4368960cb0c7408e57e9",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/WriteCommandRegression.cs.meta",
       "bytes": 62,
       "sha256": "2b2da72e4c4b4204c14256f5ad35ac494fa55727b24085a2cb3dd5ec4fbda475",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor.meta",
@@ -2792,6 +2888,18 @@
       "bytes": 59,
       "sha256": "33bb54f2ae457dfd84aea67b632ba0088991bb631e9c0de4f7edd1cf5c88114e",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/AircraftSilhouette.cs",
+      "bytes": 20884,
+      "sha256": "87eb12cb420fab5e101e6f83bdec841106665c4f334b60a1fb68899c6b8e7091",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/AircraftSilhouette.cs.meta",
+      "bytes": 63,
+      "sha256": "ae611b19916f1ab60edc62765241733da9ef1fa4a2d7bf3f5e675afa2f567a30",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/AirportCommerceEconomics.cs",
@@ -2831,8 +2939,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CapacityDirectiveLogic.cs",
-      "bytes": 142754,
-      "sha256": "70b9edcb14ff9e6d830ab1cbcfa31547e2659dbe5ea075c04abe21bdb9f07dfa",
+      "bytes": 148393,
+      "sha256": "d99529ea920637f467b1528d732b6da8a917bc60c923634f71b6ebec53b4d05c",
       "tracked": true
     },
     {
@@ -2855,8 +2963,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CapacityPlanning.cs",
-      "bytes": 697,
-      "sha256": "99d282ef5fa46fab34e13aab8df5294b168edcc2e802f8f2a32e5b544d6c03d1",
+      "bytes": 1082,
+      "sha256": "dbd83421ba9b8b8eeba797d8955126a2a92013e1710e01fb7ffc7a9adee43550",
       "tracked": true
     },
     {
@@ -2915,8 +3023,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "bytes": 52663,
-      "sha256": "d3edec96e0673c8937cab09c673935ebc70a47c8c3ed36802b4a218bf330352a",
+      "bytes": 55303,
+      "sha256": "d90d82f176dd7e104159197038843899121c7d6b15929dc55b65f501ddcb84b9",
       "tracked": true
     },
     {
@@ -2965,13 +3073,13 @@
       "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs",
       "bytes": 8746,
       "sha256": "d74a7142032d0f9e3951fed0a7f4922e52ddc4cf6272eba7c89464713a89ce6f",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CommandLog.cs.meta",
       "bytes": 60,
       "sha256": "07d81650be32544ffdfd060b8e7c28b6d609badccfc32d58654a7913060e22a3",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CrewCapacityLogic.cs",
@@ -3011,8 +3119,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
-      "bytes": 87386,
-      "sha256": "fcdee6b5c4dec83ea935c58335ce7ec2c445c2c824fe8565d83b1b70a5ddfb86",
+      "bytes": 88721,
+      "sha256": "60ac542e02dff3f4fee0333e914cd08a3a24dc9d4b1024ea9a8b4beba6795296",
       "tracked": true
     },
     {
@@ -3107,8 +3215,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/FleetEconomics.cs",
-      "bytes": 9032,
-      "sha256": "eac84a4a251b3419e54c587adc9742c4bb9f6e57104ab1c9c04de39592a669a3",
+      "bytes": 13957,
+      "sha256": "48aee3ac5ef441638623fa03af7b8d647c29d1bc77159f6cde660d87b4523c6f",
       "tracked": true
     },
     {
@@ -3227,8 +3335,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/InboxCadence.cs",
-      "bytes": 2686,
-      "sha256": "8afb8565160551d9cc57264cebdd00c8572ee58f18eb0b777d3df064fdd92be9",
+      "bytes": 3055,
+      "sha256": "58cfccb3a61dbfbec762a96ee39d71cc168fb33af3e8a92a52568b0130a4e054",
       "tracked": true
     },
     {
@@ -3431,8 +3539,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OfficialBulletin.cs",
-      "bytes": 11325,
-      "sha256": "e617803b6104b15061567928bf89246b50f10c5d8b403c60332274000c7bb1d4",
+      "bytes": 12250,
+      "sha256": "16552d8b1985fdcc4e005547142b2fee8f804e7fe3e18afd46db5967beb70d1e",
       "tracked": true
     },
     {
@@ -3445,13 +3553,13 @@
       "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs",
       "bytes": 9571,
       "sha256": "2bc681e860dee2b528ed538580f24b713c9090fa92d62b9de315e17f795e090e",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OpenRouteStudyLogic.cs.meta",
       "bytes": 62,
       "sha256": "800e468956d53ff6a0bc3c7006b4dba05b03d5cf125602d2745e671b2fbf22fb",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OpsEconomics.cs",
@@ -3551,8 +3659,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/PressDesk.cs",
-      "bytes": 6146,
-      "sha256": "50b3a3aa44f522032c19297d605f440a71e20515b1aa825b104b2afe134dec01",
+      "bytes": 8586,
+      "sha256": "23e58fe8149893cfd3b88d28d60210ceaf37092a479846cb29d801bd6579d808",
       "tracked": true
     },
     {
@@ -3887,8 +3995,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/TermNavMap.cs",
-      "bytes": 27407,
-      "sha256": "d709156eca5f2a6aeeb8a084363745ec22eb98aead9a2653aa109f7425efcc61",
+      "bytes": 29089,
+      "sha256": "5906f9261b789b3e4f7c5ed9c8ec58c2effd5595bf1ef56452cdc516b21c5211",
       "tracked": true
     },
     {
@@ -4014,7 +4122,7 @@
     {
       "path": "Unity Project/Assets/Scripts/Systems/ActionExecutor.cs",
       "bytes": 14591,
-      "sha256": "98299310fd8658f68ca6526b6fd46d9ed6325e67ae20f20c7e8b8bf31438edd0",
+      "sha256": "8815b2979a4120ccf780e5ae9b9f846bc7bca8e797ad240e69e217f79c8a61da",
       "tracked": true
     },
     {
@@ -4157,8 +4265,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
-      "bytes": 34622,
-      "sha256": "cb09a24c40e6c9679e09eb66b289de635a4522d25887c826cb17c0147c12a537",
+      "bytes": 35092,
+      "sha256": "4dda47aacb61ef40d04e8cf02d133e376776c0de13a9b0f15c0dfd6d657c6b46",
       "tracked": true
     },
     {
@@ -4181,8 +4289,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/FleetManager.cs",
-      "bytes": 28975,
-      "sha256": "9d4a3afacdb267d0536e885ed4197d9c78c25f540c42c02a5b2c42ff2b958555",
+      "bytes": 37759,
+      "sha256": "20e87ddef579f5d92e3cf15ba93056e703bebe155afbddde8c0ddbe54dfc65d4",
       "tracked": true
     },
     {
@@ -4205,8 +4313,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/GameState.cs",
-      "bytes": 56713,
-      "sha256": "49ae5000f2735629ac49b972f647b89446d862329e4b9b4da7ca1d3fbbfd7d1c",
+      "bytes": 59017,
+      "sha256": "67a13cd9b0b4d151ba329ea2eb61a9060fd5ff8f52d3186fd8d64ad62e9490e7",
       "tracked": true
     },
     {
@@ -4241,8 +4349,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
-      "bytes": 331919,
-      "sha256": "9cb8f482472bc519a815e6ecd35bf577b94bd5a1fda8ab9a9f3cba11cb1a22e1",
+      "bytes": 339694,
+      "sha256": "b6cf9d974a91c025ba6b8724f08c506828cc19df899bc93745392bde37c1fee8",
       "tracked": true
     },
     {
@@ -4313,8 +4421,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/MaintenanceManager.cs",
-      "bytes": 10049,
-      "sha256": "9e0e414db7a113407cfbf969fbce398ce1e6efaef094ae9b91dc465080844c6e",
+      "bytes": 12096,
+      "sha256": "0c451863021980402e4696bb50fa54a5ab94a29f720a3f08aa21e9db0298c461",
       "tracked": true
     },
     {
@@ -4517,8 +4625,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
-      "bytes": 39912,
-      "sha256": "bb7058d6d4acbeb1d9c26c486e3231cb3243c44ef2f80de6b5ccb2b3673e3b04",
+      "bytes": 40237,
+      "sha256": "4c270e4ac7f0cd0514bdabba896cce68de5e55b5c7098e08f07da0bb29efdc31",
       "tracked": true
     },
     {
@@ -4793,8 +4901,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/FinanceSubpagePanel.cs",
-      "bytes": 17388,
-      "sha256": "fef74193f8b3d2789acf73377895fab52dbb77b0dd22405050b3e23020844533",
+      "bytes": 22996,
+      "sha256": "04d90ebf184f0b979f44dc0ed4c55f79e3baa6462736d7f4e82d029009408f7c",
       "tracked": true
     },
     {
@@ -4817,8 +4925,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/FleetSubpagePanel.cs",
-      "bytes": 26330,
-      "sha256": "f941e656ebf823dba6bf397331e96a49b4b970bdd5d0e6feff9847e71bb5b48d",
+      "bytes": 29853,
+      "sha256": "19fde1ae2362fe06db9557a1875efd907e313847cfc6358e0b3c31ac736b1940",
       "tracked": true
     },
     {
@@ -4829,8 +4937,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/FleetUI.cs",
-      "bytes": 53249,
-      "sha256": "4b25a1bc28bf927b4082068deb35d6a2ad7375702b68e346664f5944368e25ab",
+      "bytes": 55382,
+      "sha256": "c9811cf1ec4470f2713c09bc6d489b13578189b85f8b26e6479055a722904553",
       "tracked": true
     },
     {
@@ -5027,8 +5135,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/HrSubpagePanel.cs",
-      "bytes": 27460,
-      "sha256": "460fa833f75709c8bcf02af1c5498dfaec2f71f9386151998f65c3bd41306961",
+      "bytes": 29018,
+      "sha256": "1482cd13bf3ac3c17007f139287824e5d2d6914774f948baca9dce273f873aa5",
       "tracked": true
     },
     {
@@ -5099,8 +5207,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MaintenancePanelUI.cs",
-      "bytes": 14601,
-      "sha256": "49919f12cb35113bf427c2bb19ad3a8b950913fe42d88f6e40dad0fe8a7cff4f",
+      "bytes": 14613,
+      "sha256": "72d086789bfd238e3fe3709d4202fd12fb632bd080d5c58edbd335f602841332",
       "tracked": true
     },
     {
@@ -5112,7 +5220,7 @@
     {
       "path": "Unity Project/Assets/Scripts/UI/MaintenanceSubpagePanel.cs",
       "bytes": 20753,
-      "sha256": "5bfca638580c80f72db2ebde4404864eb0969f5ad4caf347b2950a2f8772605f",
+      "sha256": "e98bb8c5a2d5463ff49b4abd3ad971e36c096edf2e137b858bd09683fb63c188",
       "tracked": true
     },
     {
@@ -5120,6 +5228,18 @@
       "bytes": 59,
       "sha256": "c01df87a0c24397b72789380a1def957c05c004b6553a70579e02e54dbb3cf9a",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/MapAircraftIcons.cs",
+      "bytes": 2903,
+      "sha256": "01dcc6aef5df4e9b10ad96d7f033d90c8fa70ecf765dbdeb4b22d920ffb10362",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/MapAircraftIcons.cs.meta",
+      "bytes": 63,
+      "sha256": "45674ff07179418e05b131e8b65d96c555b5aad5ef1dc958cbd6525c5b0ea364",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapCityPopup.cs",
@@ -5195,8 +5315,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapWidget.cs",
-      "bytes": 75503,
-      "sha256": "a8c11bfc254c902da7393286c304206f15a235ba9fbd2e4ab52f1c28fe81e961",
+      "bytes": 81101,
+      "sha256": "4dee052448e698896785b234ab184e3330e231a2cd4bb8346b2cc69ea554c90a",
       "tracked": true
     },
     {
@@ -5311,6 +5431,18 @@
       "path": "Unity Project/Assets/Scripts/UI/Navigation/MktRuntimeFactory.cs.meta",
       "bytes": 59,
       "sha256": "277ae76cb79e9f96f6567a86ffa4902d41766363bd7558d6290d516e102533be",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/Navigation/ModalBackStack.cs",
+      "bytes": 4374,
+      "sha256": "bdf2e342cc6280bf7ad2d8547b727aa403113a5402cd034378e75b4c1dc98c75",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/Navigation/ModalBackStack.cs.meta",
+      "bytes": 60,
+      "sha256": "34f0d5fcd35cb667de803fb454171f69e93da8c70db428471a37f282e2ed0c80",
       "tracked": true
     },
     {
@@ -5430,7 +5562,7 @@
     {
       "path": "Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs",
       "bytes": 29178,
-      "sha256": "e7bf9b7a1e6e01fa3c03fb4d914a2479008bd08c1ebf82bb3bf9c90e7e90c824",
+      "sha256": "4ee12022cfc00d26fc196fba7a8acd000c498e777283a1f178b0cbb8bf543a1e",
       "tracked": true
     },
     {
@@ -5453,8 +5585,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs",
-      "bytes": 30544,
-      "sha256": "6c6c81901beee2fadf29f451648ff5caecf36daf76c35e05a76727261d44b604",
+      "bytes": 32487,
+      "sha256": "78431ee0027daad2b0ae2083c21bdc1b7d28bcad6dd8e7c95dc4c76256dc4987",
       "tracked": true
     },
     {
@@ -5478,7 +5610,7 @@
     {
       "path": "Unity Project/Assets/Scripts/UI/OpsPanelUI.cs",
       "bytes": 18350,
-      "sha256": "46641459301087aee69a3e34369ff1f8476aab09adad73980267ef4b4c9120b0",
+      "sha256": "12fb48146d7a6e9fd3f661dc82b1d03370feeb0e9970899a823c35c70ccc9942",
       "tracked": true
     },
     {
@@ -5525,8 +5657,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs",
-      "bytes": 56886,
-      "sha256": "464b99491199bd607e2260bbebbd15b87ea9215afce66861c4377121db37d1dd",
+      "bytes": 58606,
+      "sha256": "50ea21bfebab33aeef279abc8ce9471e6c032cc1ea7c2ca4ab75629ca544861b",
       "tracked": true
     },
     {
@@ -5585,8 +5717,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs",
-      "bytes": 52028,
-      "sha256": "5f0ff72860d2ef20548946c281d4f41f7ed4ed2cdc4e5c04d82789a306febbc4",
+      "bytes": 40453,
+      "sha256": "4d8e3fbebe8d102c7b40d1a9ed9dfaf09cff4d7ea04ac93deeeee80c0f4cd95e",
       "tracked": true
     },
     {
@@ -5795,8 +5927,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
-      "bytes": 29113,
-      "sha256": "cffc0c1e6b0f13db3ba4b00ca07ae5d9f784086b1d5ac9b829f929a34aa273e7",
+      "bytes": 30282,
+      "sha256": "bb5798bf2bb992c6994b910773bedd9639e790dc1853b7602e47e3af0c9a8f4d",
       "tracked": true
     },
     {
@@ -5807,8 +5939,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/DashboardPanelUI.cs",
-      "bytes": 15947,
-      "sha256": "3978a268ac162ee0abd73558a529457f505329a3e3a1a66bcf0f7820f659bfd4",
+      "bytes": 17858,
+      "sha256": "afb4466853f6936f0dbf0c68054177c7d31bf69f940fa829f41cda22c1f3cc5e",
       "tracked": true
     },
     {
@@ -5855,8 +5987,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "bytes": 102164,
-      "sha256": "eb7ef2faecdbd77034314f071b5c5f391f4003923b97b642fb0b0892f30363bc",
+      "bytes": 103741,
+      "sha256": "6fbccf332a036d6dd09d6507f66dbb03c905ed0fdec0001710ed5159a478ef90",
       "tracked": true
     },
     {
@@ -5915,8 +6047,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/StatusBarView.cs",
-      "bytes": 5447,
-      "sha256": "f01fef27908b4c3d7b359a984268de28f96e2c2dad91d3df4dcdcb8978c0be13",
+      "bytes": 8350,
+      "sha256": "46051ddc3ed541c9e6623107742a492507ec0c45ee16ab7278f6a25a4f32c265",
       "tracked": true
     },
     {
@@ -5957,8 +6089,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/StrategySubpagePanel.cs",
-      "bytes": 62270,
-      "sha256": "8de5e6b99fd204d5070467cdf97b0d396ff7ec9ad8f38f32785ea213d481bfde",
+      "bytes": 62387,
+      "sha256": "ccf55321b11faad6a4d12d24e7cbab4a50089bd79f91d4aae829d9fd44e33570",
       "tracked": true
     },
     {
@@ -5981,8 +6113,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/TrainingHubPanel.cs",
-      "bytes": 20615,
-      "sha256": "28f9800fd00335929062bf72b2dbe551cb366d2b4f4691cf634b3419e1333907",
+      "bytes": 20627,
+      "sha256": "14d43ab73859514f188d0217d8a2a773c468e14988e35adae837715cfe0239eb",
       "tracked": true
     },
     {
@@ -5993,8 +6125,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/UIFactory.cs",
-      "bytes": 34601,
-      "sha256": "506437cfb056ce7dda8f1726c402d4f856f74a7a83ee01ca7186c6c28738ae0e",
+      "bytes": 37136,
+      "sha256": "c660422d1290484a6e2bd6738a8cd1daef63c062bf6993da1b39baa044850124",
       "tracked": true
     },
     {
@@ -6205,25 +6337,61 @@
       "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs",
       "bytes": 3769,
       "sha256": "a0a878a3730ef9a8ae4ed4dd4be8793fec376adeda89ff2d329f367dbe76bd40",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/BudgetAccrualTests.cs.meta",
       "bytes": 60,
       "sha256": "7f27ebd8fe83c059135a27330cd86b2ff968e3229a4ce0b6bccce6ab6bc0dd2f",
-      "tracked": false
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/CeoCommandTests.cs",
+      "bytes": 1273,
+      "sha256": "5384040a0abb9fdc198f983046ba5580c95dbe71b6684194b1fb7f683a4d17a6",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/CeoCommandTests.cs.meta",
+      "bytes": 60,
+      "sha256": "c1a4b75f9380fa0d047d3ead3ee305665441541404c528840debcb4f4f000c83",
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs",
       "bytes": 5625,
       "sha256": "ea763ea9c1ada101c0242664a1a7b16351febabaa27f9d0398ac9e465d65855e",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/CommandLogTests.cs.meta",
       "bytes": 60,
       "sha256": "2482673045d41463b07997e5539be10180d41a5cf519feb9e27566053c2a3ac7",
-      "tracked": false
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/ExternalForwardingTests.cs",
+      "bytes": 961,
+      "sha256": "2a72d093f84efbf02d666702a7fcfc48c46928854083dd7a853c24dc16f23683",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/ExternalForwardingTests.cs.meta",
+      "bytes": 60,
+      "sha256": "719a9810ae234b9cbd177f4ca6c7d1ccef36d110c72298497f3ce5e56e6f4577",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/InboxRowLayoutTests.cs",
+      "bytes": 1002,
+      "sha256": "42a90f033654f0c71b6e36d92157e8bf1715dafdff3079fb98ba54682844dead",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/InboxRowLayoutTests.cs.meta",
+      "bytes": 60,
+      "sha256": "587a0c7178469d9b9ff488a452317ed37c927d0e3091b9a0ff752eb8f730eb4f",
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/InboxStatusTests.cs",
@@ -6250,28 +6418,40 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Tests/EditMode/ModalBackStackTests.cs",
+      "bytes": 3492,
+      "sha256": "457553f3ace2aa51581406e41103ac0d585c32d1802733c28a32d91cab2e4121",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/ModalBackStackTests.cs.meta",
+      "bytes": 60,
+      "sha256": "3fbb231857c400cc1879c79f7f0a6056a57f9a341ba457a6b3a45ec9efe134e8",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs",
-      "bytes": 872,
-      "sha256": "6b4393bf5fcb2282d59bd05678bfa71bcd11f7403148facb01aa34b40382b4ad",
+      "bytes": 895,
+      "sha256": "de1cfa49c4dd96612c1efd11f5262945ee539ab30e63d996095e841889955d19",
       "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/NetworkPoolVisibilityEditModeTests.cs.meta",
-      "bytes": 60,
-      "sha256": "b09de868b4e1dd5b1d41a0f68a930fff6a783632d04a5eb3b689294e13cb00b5",
+      "bytes": 62,
+      "sha256": "1dc94ddc5d08781b7305a0e127b02d32ba06b7f573d0b5848682c853a7e43225",
       "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs",
       "bytes": 1080,
       "sha256": "5608127eb5dbbc76b733a2802517756677dbdcc6b8b68688896eefb5a0f4e521",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/OpenRouteStudyTests.cs.meta",
       "bytes": 62,
       "sha256": "636d18c46867cb470e32240c6a8401659059bbb9370dc6baf86c059ad9f59408",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/OpsEconomicsTests.cs",
@@ -6287,8 +6467,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/PressDeskTests.cs",
-      "bytes": 1008,
-      "sha256": "5dcd4b831b0b8ca3a3f65449e1b8101a2d78d2cf67dc86b74d2f0db0ef46619f",
+      "bytes": 1102,
+      "sha256": "5d328fdc7e13490f823298b9aa97076cb4402ba12a006b334663a3862e3b5772",
       "tracked": true
     },
     {
@@ -6310,6 +6490,18 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Tests/EditMode/RouteConsoleMergeTests.cs",
+      "bytes": 1226,
+      "sha256": "acb4d3dfb388a68bbfe96d1edfaff9e5e5bb3602295354d3312f0d0985376351",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/RouteConsoleMergeTests.cs.meta",
+      "bytes": 59,
+      "sha256": "3ada5473457154a9563ea2624d9c7ee36d9a9c8bec7b2e5055dcf09cda1e24a7",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Tests/EditMode/RunwayDebtEditModeTests.cs",
       "bytes": 1320,
       "sha256": "a432b345029dbfe0cc5b152ce8ea7818799517b9b38bcda27d700adb24824c87",
@@ -6319,6 +6511,18 @@
       "path": "Unity Project/Assets/Tests/EditMode/RunwayDebtEditModeTests.cs.meta",
       "bytes": 60,
       "sha256": "4fe18245bbd752d941e8a824ea7fcd579c6423999b72c390074b5435c087849b",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/ScenarioFixtureTests.cs",
+      "bytes": 1309,
+      "sha256": "d03c7ab21a25140a5cdc51f5c74931fa85e40c347cc6943aec2ff9f2f48bd717",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/EditMode/ScenarioFixtureTests.cs.meta",
+      "bytes": 59,
+      "sha256": "98274745108c4baa3e29cea6557208ec05638823a8f69fb4fb12eeafff8b8808",
       "tracked": true
     },
     {
@@ -6361,25 +6565,25 @@
       "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs",
       "bytes": 1037,
       "sha256": "c2909461ff31be34c8479f65bd24ffcc71afe7e49b7d60cfbfb3b6f4ab391531",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/TutorialCopyTests.cs.meta",
       "bytes": 62,
       "sha256": "e5f8253f236ef993abd986c296c55f3a9a4e068c65457fab910d63a42f091a55",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs",
       "bytes": 1322,
       "sha256": "9af37f1494b2ac8e492c23d52873a58c2ca3ca1727a4bb472d0175bb267621b3",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/WriteCommandTests.cs.meta",
       "bytes": 62,
       "sha256": "9f67002ae0470caad48753249ce999eea389055b26bb223b8baa253b011ea5e5",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode.meta",
@@ -6496,9 +6700,21 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Tests/PlayMode/FinanceTermSignPlayModeTests.cs",
+      "bytes": 8865,
+      "sha256": "5be32dbca26fe81b69e48c5f907f129a79fd7554d7656a0781b44c79d54acecd",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/PlayMode/FinanceTermSignPlayModeTests.cs.meta",
+      "bytes": 60,
+      "sha256": "7805b4c17ea99db6d0b26ed8091dc71d13dd0fc6e7c64696d4ab8f25616fb7dc",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Tests/PlayMode/FleetNetPlayModeTests.cs",
-      "bytes": 9946,
-      "sha256": "2037177c0d9e18e1503c3956c22e31f0ad8bb634c41496f58bb619d357b92d94",
+      "bytes": 10769,
+      "sha256": "b36e55cd490b9c4089845b8eb5c15f4733f98888fb834b7d631f3b38f54f7bbd",
       "tracked": true
     },
     {
@@ -6580,6 +6796,18 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Tests/PlayMode/OpenRouteModalBackPlayModeTests.cs",
+      "bytes": 6088,
+      "sha256": "c3ad827008bff273ba96b4d19ff012aef86458a9bc858707502779dee146e71b",
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Tests/PlayMode/OpenRouteModalBackPlayModeTests.cs.meta",
+      "bytes": 60,
+      "sha256": "e29764c0c34a2f2dffa2644ce50abaf112aa226b3b58c5296129f25598ed1592",
+      "tracked": true
+    },
+    {
       "path": "Unity Project/Assets/Tests/PlayMode/OpsNavigationPlayModeTests.cs",
       "bytes": 9747,
       "sha256": "12818fbee939f7ece9962c512295982100e13e6f411981126b7c733d1d99ff05",
@@ -6617,8 +6845,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
-      "bytes": 28196,
-      "sha256": "0ec8a6360f78a2c101f015aecd6cfd4e7be5db02469c4f94e13097e1b1327057",
+      "bytes": 45199,
+      "sha256": "61f35a658d0a7c93880b5a835c16fdd6206d75baa1a2504fe81b5a3abc5625c0",
       "tracked": true
     },
     {
@@ -7427,8 +7655,8 @@
     },
     {
       "path": "tools/balance/Models/SimModels.cs",
-      "bytes": 7656,
-      "sha256": "4614765c866018ae4d0386b2113c7c37d349b137c1de5b4a58dd85212feceb8a",
+      "bytes": 8531,
+      "sha256": "85925d5dbc678c4b2d189961c810364b7cc3a1f76c5e992ff22265f6cffea6d6",
       "tracked": true
     },
     {
@@ -7451,8 +7679,8 @@
     },
     {
       "path": "tools/balance/Program.cs",
-      "bytes": 45793,
-      "sha256": "5c116b8264c17bf0be67886160e7b6c10b3892d581a0025f16da01179eddddad",
+      "bytes": 52801,
+      "sha256": "954fc12205acd13beb31061cd5459263871a30ff77a072ff69166ef358de5077",
       "tracked": true
     },
     {
@@ -7463,8 +7691,8 @@
     },
     {
       "path": "tools/balance/README.md",
-      "bytes": 20638,
-      "sha256": "23481b49457e2647e47e594b3b1f59f57d8dedc57aae2af22308d4668ba83043",
+      "bytes": 25294,
+      "sha256": "e90a3c71095cb2cd6510e530d6dc7003a67b4cb865fab7efc09d1b3b809cec08",
       "tracked": true
     },
     {
@@ -7493,20 +7721,38 @@
     },
     {
       "path": "tools/balance/Sim/AirlineYearSimulator.cs",
-      "bytes": 24811,
-      "sha256": "9a5c6518347dc2e1f68a2ca1647a6fd967453ad861368cba2e6c065ce89ba53c",
+      "bytes": 25184,
+      "sha256": "2bb2bafcc5dbeea540c8fc806641ce321d8dcb1eddc7d44fa4fbe4645c64dc68",
+      "tracked": true
+    },
+    {
+      "path": "tools/balance/Sim/CashBridge.cs",
+      "bytes": 3791,
+      "sha256": "79d61d712191391714e805c60277e1b536630de8ba8c33f460f9657497f72be6",
       "tracked": true
     },
     {
       "path": "tools/balance/Stress/NetworkPoolStressReport.cs",
-      "bytes": 33059,
-      "sha256": "ad8af1e15d371e892a46ed7440495b848e12b5aad90aa6cbdaca72d1327d0512",
+      "bytes": 33687,
+      "sha256": "2c09e2356109b0504841bcfadf4defaabbfe2b0d687e54a80292d9112bee9985",
+      "tracked": true
+    },
+    {
+      "path": "tools/balance/Stress/RouteAblation.cs",
+      "bytes": 25250,
+      "sha256": "8ceddb6730f4d43e6295608c1ca6c6847727096d2eede700c3caaea7a8a1d863",
       "tracked": true
     },
     {
       "path": "tools/balance/Stress/StressTestRunner.cs",
-      "bytes": 10126,
-      "sha256": "41395a8e3ed3024ddfcc5086c71555a166fd74bd5987260c838d03d8d04f8c25",
+      "bytes": 10991,
+      "sha256": "425fd229a997adf305a219997acb4e46e537d2e9046d0b5f6aafc7f9eb651f91",
+      "tracked": true
+    },
+    {
+      "path": "tools/balance/Stress/UtilizationAudit.cs",
+      "bytes": 10594,
+      "sha256": "1d6fc4ea1876fb768db0016dc42ffd6edcc85730ea29ae9909ba46fce5aa8c17",
       "tracked": true
     },
     {
@@ -7523,8 +7769,8 @@
     },
     {
       "path": "tools/balance/baseline/BASELINE_SOURCE.json",
-      "bytes": 496,
-      "sha256": "7043774db025d0050339179de1d4c37d28ca6a9a147245495f2ba54b97a97853",
+      "bytes": 917,
+      "sha256": "f4ead6c681033314259bb2ced37af3f5b11b79e187f424e32415f67e8b3e991c",
       "tracked": true
     },
     {
@@ -7547,8 +7793,8 @@
     },
     {
       "path": "tools/semcheck/enc_baseline.json",
-      "bytes": 25459,
-      "sha256": "2c9bacf918502e27aed32a463862a6d5e5e6cabb4a68d234ee7f10dbaa6ab0bf",
+      "bytes": 25748,
+      "sha256": "be520865cfd6a9684bc0c08bf438e3da94fedec3661f8f9d286a5efbd55438af",
       "tracked": true
     },
     {
@@ -7601,8 +7847,8 @@
     },
     {
       "path": "tools/slotcheck/Program.cs",
-      "bytes": 183075,
-      "sha256": "58c65f5b4643cd3e40e3cd054ccc431a8d005d4a50e709e8c6901ba1d2f1754c",
+      "bytes": 190981,
+      "sha256": "5efa178b730f3a89433405252f9f726dff6af2a500b4b0a6f8fe90b1af6f2bd3",
       "tracked": true
     },
     {
@@ -7621,6 +7867,12 @@
       "path": "tools/regression/RunUnityTests.ps1",
       "bytes": 1880,
       "sha256": "357a6d8bbdb32c72e17b0f85f201097d1a26044d03afd90ddad4922b52ecfd27",
+      "tracked": true
+    },
+    {
+      "path": "tools/regression/ai-run.mjs",
+      "bytes": 10228,
+      "sha256": "6b7d40608ceddd2350ece3cfec40663ec95365c1d9455c89071ab359e85907fb",
       "tracked": true
     },
     {

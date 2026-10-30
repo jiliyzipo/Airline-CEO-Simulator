@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 725,
-  "updatedAt": "2026-10-29T23:08:07.128Z",
+  "revision": 734,
+  "updatedAt": "2026-10-30T00:18:50.962Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -90,7 +90,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:23.236Z"
     },
@@ -369,12 +369,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-29T14:13:26.837Z"
+    },
+    "S36-UI": {
+      "title": "阶段 S36-UI：UI/Logic/Slotcheck",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-30T00:06:00.292Z"
     }
   },
-  "lastDeliveryId": "DEL-20261029141334-977163",
+  "lastDeliveryId": "DEL-20261030000612-d2695d",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
