@@ -15,6 +15,7 @@ namespace AirlineCEO.UI.Shell
     {
         Image _weatherIconImg;                 // 云图标着色（开=亮蓝 / 关=灰）
         GameObject _weatherBtnGo;
+        Image _routeIconImg;                   // 航线图标着色（开=亮蓝 / 关=灰）
         GameObject _stylePopup;                // 地球按钮弹出的样式选择面板
         Image _globeIconImg;                   // 地球图标着色（弹窗开着=高亮）
         readonly Outline[] _thumbBorders = new Outline[2];  // 缩略图选中描边
@@ -89,34 +90,38 @@ namespace AirlineCEO.UI.Shell
             // 左上角统计 HUD 与底部图例条已按新主页设计移除：
             // 财务/航线/机队状态整合进底栏上方的独立状态栏（StatusBarView）
 
-            // 右侧图层栏：横排两个正方形图标按钮（左地球=地图模式，右云=天气开关），对齐飞常准
+            // 右侧图层栏：横排三个正方形图标按钮（航线 / 地球=地图模式 / 云=天气开关），对齐飞常准
             // overlay 是 stage 全幅；用固定像素 sizeDelta 保证 1:1 正方形（不随分辨率比例变形）
             const float IconPx = 60f;
             const float IconGap = 8f;
+            const int IconCount = 3;
             var layerBar = new GameObject("LayerBar", typeof(RectTransform));
             layerBar.transform.SetParent(overlay.transform, false);
             var lbrt = layerBar.GetComponent<RectTransform>();
             lbrt.anchorMin = lbrt.anchorMax = new Vector2(1f, 1f);  // 右上角锚点
             lbrt.pivot = new Vector2(1f, 1f);
             lbrt.anchoredPosition = new Vector2(-14f, -14f);        // 右上留 14px 边距
-            lbrt.sizeDelta = new Vector2(2f * IconPx + IconGap, IconPx); // 宽 = 两按钮 + 间距
+            lbrt.sizeDelta = new Vector2(IconCount * IconPx + (IconCount - 1) * IconGap, IconPx);
             layerBar.AddComponent<CanvasRenderer>();
 
-            // 地球按钮：左，点击弹出样式选择面板（默认/卫星缩略图）
+            // 航线按钮：最左。★2026-10-30 CEO 要求——地图默认只有飞机在动，点了才显示航线
+            var routeBtn = UIFactory.IconButton(layerBar.transform, "Routes", UIFactory.RouteSprite,
+                PixelSlot(0, IconPx, IconGap),
+                new Color(0.03f, 0.08f, 0.15f, 0.88f), ToggleRoutes, new Color(0.75f, 0.88f, 1f, 1f));
+            UIFactory.AddBorder(routeBtn.gameObject, UITheme.Border, new Vector2(1f, -1f));
+            _routeIconImg = routeBtn.transform.Find("Icon").GetComponent<Image>();
+
+            // 地球按钮：中，点击弹出样式选择面板（默认/卫星缩略图）
             var globeBtn = UIFactory.IconButton(layerBar.transform, "Globe", UIFactory.GlobeSprite,
-                new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(0.5f, 1f), Vector2.zero, Vector2.zero),
+                PixelSlot(1, IconPx, IconGap),
                 new Color(0.03f, 0.08f, 0.15f, 0.88f), ToggleStylePopup, new Color(0.75f, 0.88f, 1f, 1f));
-            globeBtn.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 0f);
-            globeBtn.GetComponent<RectTransform>().offsetMax = new Vector2(-IconGap * 0.5f, 0f); // 与云按钮各让一半间距
             UIFactory.AddBorder(globeBtn.gameObject, UITheme.Border, new Vector2(1f, -1f));
             _globeIconImg = globeBtn.transform.Find("Icon").GetComponent<Image>();
 
             // 云按钮：右，点击直接开关天气
             var weatherBtn = UIFactory.IconButton(layerBar.transform, "Weather", UIFactory.CloudSprite,
-                new UIFactory.Anchor(new Vector2(0.5f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero),
+                PixelSlot(2, IconPx, IconGap),
                 new Color(0.03f, 0.08f, 0.15f, 0.88f), ToggleWeather, new Color(0.75f, 0.92f, 1f, 1f));
-            weatherBtn.GetComponent<RectTransform>().offsetMin = new Vector2(IconGap * 0.5f, 0f);
-            weatherBtn.GetComponent<RectTransform>().offsetMax = new Vector2(0f, 0f);
             UIFactory.AddBorder(weatherBtn.gameObject, UITheme.Border, new Vector2(1f, -1f));
             _weatherIconImg = weatherBtn.transform.Find("Icon").GetComponent<Image>();
             _weatherBtnGo = weatherBtn.gameObject;
@@ -125,10 +130,23 @@ namespace AirlineCEO.UI.Shell
             BuildStylePopup(globeBtn.transform, IconPx, IconGap);
             RefreshStyleHighlight();
             RefreshWeatherIcon();
+            RefreshRouteIcon();
 
             BuildHomeTabs(overlay.transform);
 
             // 右下角顾问气泡已并入画布级 AdvisorModalUI（收起=图标，展开=同一矩形伸展成弹窗）。
+        }
+
+        /// <summary>
+        /// 图层栏里第 index 个按钮的锚位（左下角起按固定像素排）。
+        /// 不用「anchorMin=0 / anchorMax=1/3」那种均分写法：栏宽里含 2 个间距，
+        /// 均分后中间那个会比两侧窄 4 px（肉眼看得出来大小不齐）。这里直接给像素。
+        /// </summary>
+        static UIFactory.Anchor PixelSlot(int index, float px, float gap)
+        {
+            float x = index * (px + gap);
+            return new UIFactory.Anchor(Vector2.zero, Vector2.zero,
+                new Vector2(x, 0f), new Vector2(x + px, px));
         }
 
         void BuildHomeTabs(Transform overlay)
@@ -266,6 +284,25 @@ namespace AirlineCEO.UI.Shell
             RefreshWeatherIcon();
         }
 
+        /// <summary>航线图层开关：地图默认不画航线，点一下才显示（对齐 Airline Sim 的地图图层）。</summary>
+        void ToggleRoutes()
+        {
+            MapWidget.ToggleRoutes();
+            RefreshRouteIcon();
+        }
+
+        /// <summary>
+        /// 航线按钮的着色：开=亮蓝（与地图上的弧线呼应），关=灰暗。
+        /// 与云按钮同一口径 —— 图层按钮不靠 Tooltip 表达状态，玩家瞄一眼颜色就知道开没开。
+        /// </summary>
+        void RefreshRouteIcon()
+        {
+            if (_routeIconImg == null) return;
+            _routeIconImg.color = MapWidget.RoutesVisible
+                ? new Color(0.45f, 0.85f, 1f, 1f)
+                : new Color(0.5f, 0.58f, 0.66f, 0.75f);
+        }
+
         void RefreshWeatherIcon()
         {
             // 开=亮蓝（与云图呼应）；关=灰暗
@@ -283,6 +320,7 @@ namespace AirlineCEO.UI.Shell
             MapWidget.Refresh();
             MapWidget.RefreshTerminator();
             RefreshWeatherIcon();  // 重建层级后图标颜色可能未同步开关状态
+            RefreshRouteIcon();
             var gs = GameState.Instance;
             if (gs != null) gs.OnStateChanged += OnStateChanged;
             if (TimeManager.Instance != null)

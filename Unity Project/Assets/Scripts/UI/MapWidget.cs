@@ -60,11 +60,17 @@ namespace AirlineCEO.UI
         static bool _geoBuilt;
         static readonly List<GameObject> _roots = new List<GameObject>();
 
-        static Sprite _planeSprite;
         static Sprite _radialSprite;
         static Material _glowMat;
         static string _lastSig = string.Empty;
         static float _lastLivePlaneAt = -10f;
+
+        /// <summary>
+        /// 航线图层是否可见。**默认关**——★2026-10-30 CEO 要求地图默认只有飞机在动，
+        /// 点了「航线」按钮才画航线（对齐 Airline Sim 的地图：航线是可按需打开的图层，不是常驻底图）。
+        /// 默认关还有一个实际好处：开局的航线网络还没铺开时，满屏弧线会把机场和飞机压得看不清。
+        /// </summary>
+        public static bool RoutesVisible { get; private set; }
 
         static void EnsureGeo()
         {
@@ -244,7 +250,22 @@ namespace AirlineCEO.UI
             if (gs == null) return "none";
             int routes = gs.activeRoutes != null ? gs.activeRoutes.Count : 0;
             int fleet = gs.fleet != null ? gs.fleet.Count : 0;
-            return $"{gs.hubIata}|{routes}|{fleet}";
+            // 机型直接决定飞机图标的形状，必须进签名：换机后机队条数不变，
+            // 只按「航线数|机队数」判会认为「什么都没变」，地图上继续画旧机型，
+            // 一直等到下一次时钟刷新（1× 下最长约一分钟）才换过来 —— 那时玩家早以为换机失败了。
+            var sb = new System.Text.StringBuilder(64);
+            sb.Append(gs.hubIata).Append('|').Append(routes).Append('|').Append(fleet);
+            sb.Append('|').Append(RoutesVisible ? '1' : '0');
+            if (gs.activeRoutes != null)
+            {
+                for (int i = 0; i < gs.activeRoutes.Count; i++)
+                {
+                    var r = gs.activeRoutes[i];
+                    if (r == null) continue;
+                    sb.Append('|').Append(r.aircraftType).Append(':').Append(r.registration);
+                }
+            }
+            return sb.ToString();
         }
 
         /// <summary>重建 Dynamic 叠加层（航线/机场/航班）。host 为 World 下 Dynamic_*，始终位于全部 Tile 之上。</summary>
@@ -264,11 +285,32 @@ namespace AirlineCEO.UI
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
 
-            DrawRoutes(layer.transform);
+            // 顺序即层序：航线在最底（不能让弧线压住机场圆点/城市标签），飞机在最上。
+            DrawRouteLayer(layer.transform);   // 默认关：见 RoutesVisible
             DrawAirports(layer.transform);
             DrawAirportLabels(layer.transform);
-            DrawPlanes(layer.transform);
+            DrawPlaneMarks(layer.transform);
         }
+
+        /// <summary>
+        /// 只画「可见图层」的那部分航线。RebuildDynamic 走这里，测试也走这里 ——
+        /// 直接调 <see cref="DrawRoutes"/> 仍然无条件绘制（那是绘制原语，宽度/几何的自检要用它）。
+        /// </summary>
+        public static int DrawRouteLayer(Transform map)
+            => RoutesVisible ? DrawRoutes(map) : 0;
+
+        /// <summary>
+        /// 开/关航线图层并重绘。切换要立刻可见，所以直接重建 Dynamic，不等下一次 Refresh 的签名变化。
+        /// 开关状态是 static：切页回来不该被重置成「又看不见了」。
+        /// </summary>
+        public static void SetRoutesVisible(bool visible)
+        {
+            if (RoutesVisible == visible) return;
+            RoutesVisible = visible;
+            RebuildDynamicLayers();
+        }
+
+        public static void ToggleRoutes() => SetRoutesVisible(!RoutesVisible);
 
         // ── 持久层：ArcGIS World Imagery 瓦片（与 HTML Leaflet 同源，放大换更高清图块）──
         static void BuildEarth(Transform map)
@@ -767,8 +809,9 @@ namespace AirlineCEO.UI
             return null;
         }
 
-        // ── 航班箭标：对照本地时刻；空中沿航迹，落地停到达场，未起飞停出发场 ──
-        static void DrawPlanes(Transform map)
+        // ── 航班图标：对照本地时刻；空中沿航迹，落地停到达场，未起飞停出发场 ──
+        // ★2026-10-30：图标按**执飞的机型**画（剪影族 + 尺寸），不再是所有航班共用一张白三角。
+        public static void DrawPlaneMarks(Transform map)
         {
             var gs = GameState.Instance;
             if (gs == null || gs.activeRoutes == null) return;
@@ -789,7 +832,7 @@ namespace AirlineCEO.UI
                 bool grounded = FlightGroundLogic.IsPersistent(FlightGroundLogic.RouteOf(gs, r));
                 if (grounded)
                 {
-                    PlacePlaneOnArc(map, arc, 0f, false, glowMat);
+                    PlacePlaneOnArc(map, arc, 0f, false, glowMat, TypeOf(gs, r, null));
                     continue;
                 }
 
@@ -800,15 +843,36 @@ namespace AirlineCEO.UI
                     if (fl == null) continue;
                     float frac = LiveClockLogic.MapRouteFrac(localNow, fl.daysOfWeek, fl.weeklyFlights,
                         fl.depTime, fl.arrTime, r.distanceKm, r.aircraftType, r.groundStaffAssigned, out bool inAir);
-                    PlacePlaneOnArc(map, arc, frac, inAir, glowMat);
+                    PlacePlaneOnArc(map, arc, frac, inAir, glowMat, TypeOf(gs, r, fl));
                     drawn++;
                 }
                 if (drawn == 0)
-                    PlacePlaneOnArc(map, arc, 0.12f, false, glowMat);
+                    PlacePlaneOnArc(map, arc, 0.12f, false, glowMat, TypeOf(gs, r, null));
             }
         }
 
-        static void PlacePlaneOnArc(Transform map, List<Vector2> arc, float frac, bool inAir, Material glowMat)
+        /// <summary>
+        /// 这一班到底由什么机型飞。**先看机号对应的机队记录，再看航线上的 aircraftType**：
+        /// 航线上的 aircraftType 是「最近一次排班用的机型」，换机之后可能还没同步；
+        /// 机队里的 type 才是机号的真身。两者都没有时才退回航线值（不返回空 —— 空会让图标变成默认窄体，
+        /// 而「看起来像窄体」比「不画」更难发现）。
+        /// </summary>
+        static string TypeOf(GameState gs, RouteData r, RouteFlight fl)
+        {
+            string reg = fl != null && !string.IsNullOrEmpty(fl.registration) ? fl.registration : (r != null ? r.registration : null);
+            if (gs != null && gs.fleet != null && !string.IsNullOrEmpty(reg))
+            {
+                for (int i = 0; i < gs.fleet.Count; i++)
+                {
+                    var ac = gs.fleet[i];
+                    if (ac == null || string.IsNullOrEmpty(ac.type)) continue;
+                    if (string.Equals(ac.registration, reg, StringComparison.OrdinalIgnoreCase)) return ac.type;
+                }
+            }
+            return r != null ? r.aircraftType : null;
+        }
+
+        static void PlacePlaneOnArc(Transform map, List<Vector2> arc, float frac, bool inAir, Material glowMat, string aircraftType)
         {
             if (arc == null || arc.Count < 2) return;
             frac = Mathf.Clamp01(frac);
@@ -823,9 +887,10 @@ namespace AirlineCEO.UI
             prt.sizeDelta = Vector2.zero;
             prt.anchoredPosition = p;
             planeRoot.AddComponent<MapScreenConstant>();
+            float size = MapAircraftIcons.SizeFor(aircraftType);
             var glow = inAir ? new Color(0.45f, 0.95f, 1f, 0.85f) : new Color(1f, 0.92f, 0.45f, 0.7f);
-            DrawGlowDot(planeRoot.transform, "PlaneGlow", Vector2.zero, inAir ? 52f : 40f, glow, 0.55f, glowMat);
-            DrawPlane(planeRoot.transform, "Plane", Vector2.zero, ang);
+            DrawGlowDot(planeRoot.transform, "PlaneGlow", Vector2.zero, size * (inAir ? 1.55f : 1.2f), glow, 0.55f, glowMat);
+            DrawPlane(planeRoot.transform, "Plane", Vector2.zero, ang, aircraftType, size);
         }
 
         // ── 绘制原语 ──
@@ -905,13 +970,29 @@ namespace AirlineCEO.UI
             return rt;
         }
 
-        static void DrawPlane(Transform map, string name, Vector2 p, float angleDeg)
+        /// <summary>
+        /// 画一架飞机：**机型剪影**（机头朝上）+ 一圈深色描边垫底。
+        ///
+        /// 描边不是装饰：地图有卫星（深色）与矢量（浅色）两套底图，纯白剪影在浅色底图上翼尖会糊掉。
+        /// 深色描边用「同一张图放大 1.18 倍、垫在下面、染深色」实现 —— 比 Unity 的 <c>Outline</c>
+        /// 效果好得多：Outline 只沿四个方向复制顶点，斜边会出现明显锯齿。
+        /// </summary>
+        static void DrawPlane(Transform map, string name, Vector2 p, float angleDeg, string aircraftType, float size)
         {
-            EnsurePlaneSprite();
-            var rt = NewChild(map, name, 34f, 34f, p);
-            rt.localRotation = Quaternion.Euler(0f, 0f, angleDeg - 90f);
+            var sprite = MapAircraftIcons.SpriteFor(aircraftType);
+            float rot = angleDeg - 90f;
+
+            var edge = NewChild(map, name + "Edge", size * 1.18f, size * 1.18f, p);
+            edge.localRotation = Quaternion.Euler(0f, 0f, rot);
+            var edgeImg = edge.GetComponent<Image>();
+            edgeImg.sprite = sprite;
+            edgeImg.type = Image.Type.Simple;
+            edgeImg.color = new Color(0.02f, 0.05f, 0.10f, 0.92f);
+
+            var rt = NewChild(map, name, size, size, p);
+            rt.localRotation = Quaternion.Euler(0f, 0f, rot);
             var img = rt.GetComponent<Image>();
-            img.sprite = _planeSprite;
+            img.sprite = sprite;
             img.type = Image.Type.Simple;
             img.color = PlaneCol;
         }
@@ -928,25 +1009,7 @@ namespace AirlineCEO.UI
             return rt;
         }
 
-        // 纸飞机箭标（机头朝上，rotation = heading − 90° 后指向航迹方向）
-        static void EnsurePlaneSprite()
-        {
-            if (_planeSprite != null) return;
-            const int S = 32;
-            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
-            var cols = new Color32[S * S];
-            for (int y = 0; y < S; y++)
-            {
-                float t = Mathf.Clamp01((y - 2) / 26f);
-                int left = Mathf.RoundToInt(Mathf.Lerp(6f, 15.5f, t));
-                int right = Mathf.RoundToInt(Mathf.Lerp(26f, 16.5f, t));
-                for (int x = left; x <= right; x++)
-                    cols[y * S + x] = new Color32(255, 255, 255, 255);
-            }
-            tex.SetPixels32(cols);
-            tex.Apply(false, true);
-            _planeSprite = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), S);
-        }
+        // （旧的白色纸飞机贴图 EnsurePlaneSprite 已删除：2026-10-30 起按机型剪影绘制，见 MapAircraftIcons）
     }
 
     /// <summary>挂 MapWidget 根上：启用时刷新动态层（航线/枢纽随存档变化）。</summary>

@@ -39,6 +39,7 @@ namespace AirlineCEO.Tests.PlayMode
             for (int i = 0; i < _owned.Count; i++)
                 if (_owned[i] != null) UnityEngine.Object.DestroyImmediate(_owned[i]);
             _owned.Clear();
+            MapWidget.SetRoutesVisible(false);   // 图层开关是 static，别把状态泄给下一条用例
         }
 
         void RequireBaseline()
@@ -635,6 +636,106 @@ namespace AirlineCEO.Tests.PlayMode
             var money = Labels(map).FirstOrDefault(t => t != null && !string.IsNullOrEmpty(t.text)
                 && (t.text.Contains("万") || t.text.Contains("日利") || t.text.Contains("周利")));
             Assert.IsNull(money, $"航线绘制不应产生金额文本，但出现了「{(money != null ? money.text : "")}」");
+        }
+
+        // —————————————————————————————————————————————————————————————
+        // ⑩ 地图图层：航线默认不画（点按钮才画）+ 飞机按执飞机型画
+        //
+        // ★2026-10-30 CEO 两条要求：「白色三角形换成执飞的机型图标」「默认只有飞机在动，点了航线按钮才显示航线」。
+        // 这一段验的是**接线**（开关 → 绘制入口、机型 → 图标），不是好看不好看。
+        // —————————————————————————————————————————————————————————————
+
+        [Test]
+        public void MapRouteLayer_StaysHiddenUntilTheRoutesButtonIsOn()
+        {
+            var gs = NewState("T038RouteLayer");
+            gs.activeRoutes.Add(MakeRoute("T038-L1", "B-3901"));
+            var map = Own(MapCanvas("T038RouteLayerRoot"));
+
+            try
+            {
+                MapWidget.SetRoutesVisible(false);
+                Assert.AreEqual(0, MapWidget.DrawRouteLayer(map.transform),
+                    "没点过「航线」按钮时，地图上不得出现航线");
+                Assert.IsNull(map.transform.Find("Route_0_0"), "航线图层关着却画出了线段");
+
+                MapWidget.SetRoutesVisible(true);
+                Assert.Greater(MapWidget.DrawRouteLayer(map.transform), 0,
+                    "点了「航线」按钮必须把航线画出来");
+                Assert.IsNotNull(map.transform.Find("Route_0_0"), "图层开着却没有线段");
+            }
+            finally
+            {
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapPlaneMarks_UseTheAircraftThatActuallyFlies()
+        {
+            var gs = NewState("T038PlaneIcon");
+            var ac = MakeAircraft("B-3902");
+            ac.type = "B787-9";                       // 机队里的真身是宽体
+            gs.fleet.Add(ac);
+
+            var r = MakeRoute("T038-P1", "B-3902");
+            r.aircraftType = "A321";                  // 航线字段还是旧的窄体（换机后没同步）
+            r.SyncFlightsFromPrimary();
+            gs.activeRoutes.Add(r);
+            // 08:00–10:30 的班，本地时间放在 09:00（本班在空）
+            gs.SetSimUtc(new DateTime(2026, 1, 5, 9, 0, 0) - GameState.LocalUtcOffset);
+
+            var map = Own(MapCanvas("T038PlaneIconRoot"));
+            MapWidget.DrawPlaneMarks(map.transform);
+
+            var icons = map.GetComponentsInChildren<Image>(true)
+                .Where(i => i != null && i.name == "Plane").ToList();
+            Assert.IsNotEmpty(icons, "有执飞机的航线必须在地图上画出一架飞机");
+            Assert.AreSame(MapAircraftIcons.SpriteFor("B787-9"), icons[0].sprite,
+                "图标必须按机队里这架机的机型画（B787-9 宽体），不能沿用航线上的旧字段（A321 窄体）");
+        }
+
+        [Test]
+        public void MapPlaneIcons_DifferPerAircraftFamily()
+        {
+            var narrow = MapAircraftIcons.SpriteFor("A321");
+            var wide = MapAircraftIcons.SpriteFor("B787-9");
+            var quad = MapAircraftIcons.SpriteFor("A380-800");
+            var prop = MapAircraftIcons.SpriteFor("ATR72-600");
+            var regional = MapAircraftIcons.SpriteFor("CRJ900");
+
+            Assert.IsNotNull(narrow);
+            Assert.AreNotSame(narrow, wide, "窄体与宽体不能共用同一张图 —— 那就是旧的「全图一个白三角」");
+            Assert.AreNotSame(wide, quad, "宽体与四发必须是两张图（发动机台数不同）");
+            Assert.AreNotSame(quad, prop, "四发与涡桨必须是两张图（后掠翼 vs 平直翼 + 桨盘）");
+            Assert.AreNotSame(prop, regional, "涡桨与尾吊支线必须是两张图（机翼 vs 尾吊发动机）");
+
+            // 尺寸按翼展拉开：A380 的图标必须明显大于 CRJ
+            Assert.Greater(MapAircraftIcons.SizeFor("A380-800"), MapAircraftIcons.SizeFor("A321"));
+            Assert.Greater(MapAircraftIcons.SizeFor("A321"), MapAircraftIcons.SizeFor("CRJ900"));
+        }
+
+        [Test]
+        public void HomeLayerBar_HasRoutesButton_ThatDrivesTheMapLayer()
+        {
+            RequireBaseline();
+            var dash = Own(DashboardPanelUI.Build().gameObject);
+            var btn = dash.GetComponentsInChildren<Button>(true)
+                .FirstOrDefault(b => b != null && b.name == "Routes");
+            Assert.IsNotNull(btn, "主页图层栏必须有「航线」按钮（否则玩家永远打不开航线）");
+
+            try
+            {
+                MapWidget.SetRoutesVisible(false);
+                btn.onClick.Invoke();
+                Assert.IsTrue(MapWidget.RoutesVisible, "点一下「航线」按钮必须打开航线图层");
+                btn.onClick.Invoke();
+                Assert.IsFalse(MapWidget.RoutesVisible, "再点一下必须关掉");
+            }
+            finally
+            {
+                MapWidget.SetRoutesVisible(false);
+            }
         }
 
         // —————————————————————————————————————————————————————————————

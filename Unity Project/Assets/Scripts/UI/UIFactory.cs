@@ -79,6 +79,15 @@ namespace AirlineCEO.UI
 
         // ———— 线性图标（程序化栅格化，白色形状 + alpha，靠 Image.color 上色）————
 
+        static Sprite _routeSprite;
+
+        /// <summary>
+        /// 航线图层图标：一条大圆弧 + 两端机场点（对齐 Airline Sim 的「Routes & Flights」按钮）。
+        /// 用程序化栅格化而不是 PNG：现有图层栏两个图标都是外置 PNG，
+        /// 但这个图形本身和 <see cref="MapWidget"/> 里的大圆弧是同一个概念，
+        /// 画在同一处、改配色时一起变，不必再多一个图片资源 + meta。
+        /// </summary>
+        public static Sprite RouteSprite => _routeSprite ??= BuildRouteSprite(64);
         static Sprite _gearSprite;
         static Sprite _searchSprite;
         static Sprite _chatSprite;
@@ -644,6 +653,28 @@ namespace AirlineCEO.UI
                 float ring = Ring(px, py, 0.44f, 0.56f, 0.24f, 0.05f);
                 float handle = Stroke(px, py, 0.61f, 0.39f, 0.82f, 0.18f, 0.055f);
                 return Mathf.Max(ring, handle);
+            });
+
+        /// <summary>航线图层图标：一条大圆弧（两端机场点）—— 与地图上的大圆航带同义。</summary>
+        static Sprite BuildRouteSprite(int size)
+            => Rasterize(size, (px, py) =>
+            {
+                const float ax = 0.15f, ay = 0.30f, qx = 0.50f, qy = 0.99f, bx = 0.85f, by = 0.30f;
+                float acc = 0f;
+                float prevX = ax, prevY = ay;
+                const int Steps = 14;
+                for (int i = 1; i <= Steps; i++)
+                {
+                    float t = i / (float)Steps;
+                    float u = 1f - t;
+                    float x = u * u * ax + 2f * u * t * qx + t * t * bx;
+                    float y = u * u * ay + 2f * u * t * qy + t * t * by;
+                    acc = Mathf.Max(acc, Stroke(px, py, prevX, prevY, x, y, 0.040f));
+                    prevX = x; prevY = y;
+                }
+                acc = Mathf.Max(acc, Disc(px, py, ax, ay, 0.085f));
+                acc = Mathf.Max(acc, Disc(px, py, bx, by, 0.085f));
+                return acc;
             });
 
         static Sprite BuildChatSprite(int size)

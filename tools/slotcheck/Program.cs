@@ -394,6 +394,7 @@ namespace SlotCheck
             R24AircraftNomination(ref fail);
             R25NoDeadBand(ref fail);
             R28StatedTarget(ref fail);
+            R40PlaneSilhouettes(ref fail);
 
             Console.WriteLine(fail == 0 ? "SLOTCHECK OK" : $"SLOTCHECK FAIL {fail}");
             return fail == 0 ? 0 : 1;
@@ -2325,6 +2326,111 @@ namespace SlotCheck
             Check("PageLink 传空页 id 时原样返回文案（不产出死链）",
                 TermNavMap.PageLink("", "点此串环 ›") == "点此串环 ›"
                 && TermNavMap.PageLink("n9_机队", null) == "", ref fail);
+        }
+
+        // ———————————————————— R40 地图机型剪影（2026-10-30 CEO：白三角换成机型图标） ————————————————————
+        //
+        // 报障原文：「地图上的飞机用的白色三角形，换成执飞的机型，用相应的机型图标」。
+        // 这里不验「好不好看」（那是人眼的事），只验三件机器可判定的事：
+        // ① 机型代号分到哪个外形族（分错了，图标就永远画错）；
+        // ② 剪影本身是否成立（非空、左右对称、不吃图边）；
+        // ③ 六个族是否真的**互不相同**（全画成同一个形状等于没换）。
+        static void R40PlaneSilhouettes(ref int fail)
+        {
+            Console.WriteLine("\nR40 地图机型剪影（几台发动机 / 装在哪儿 / 机翼姿势）：");
+
+            var cases = new (string type, AircraftSilhouette want, string why)[]
+            {
+                ("A321", AircraftSilhouette.Narrowbody, "窄体双发"),
+                ("B737-800", AircraftSilhouette.Narrowbody, "窄体双发"),
+                ("C919", AircraftSilhouette.Narrowbody, "窄体双发"),
+                ("B787-9", AircraftSilhouette.Widebody, "宽体双发"),
+                ("A330-900", AircraftSilhouette.Widebody, "宽体双发"),
+                ("B777-300ER", AircraftSilhouette.Widebody, "宽体双发"),
+                ("A380-800", AircraftSilhouette.QuadJet, "四发"),
+                ("B747-8", AircraftSilhouette.QuadJet, "四发"),
+                ("A340-600", AircraftSilhouette.QuadJet, "四发"),
+                ("MD-11", AircraftSilhouette.TriJet, "三发"),
+                ("ATR72-600", AircraftSilhouette.Turboprop, "涡桨（平直翼 + 桨盘）"),
+                ("DHC8-400", AircraftSilhouette.Turboprop, "涡桨（平直翼 + 桨盘）"),
+                ("CRJ900", AircraftSilhouette.RegionalJet, "尾吊双发支线"),
+                ("ERJ145", AircraftSilhouette.RegionalJet, "尾吊双发支线"),
+            };
+            for (int i = 0; i < cases.Length; i++)
+            {
+                var got = AircraftSilhouetteGeometry.Classify(cases[i].type);
+                Check($"{cases[i].type} → {cases[i].why}"
+                      + (got == cases[i].want ? "" : $"（实得 {AircraftSilhouetteGeometry.Label(got)}）"),
+                    got == cases[i].want, ref fail);
+            }
+
+            // 目录/存档里可能留着旧代号或不存在的型号：兜底必须是「能画出来」，不能是空
+            Check("目录外的机型代号兜底为窄体（不返回空、不抛异常）",
+                AircraftSilhouetteGeometry.Classify("XX-999") == AircraftSilhouette.Narrowbody
+                && AircraftSilhouetteGeometry.Classify(null) == AircraftSilhouette.Narrowbody
+                && AircraftSilhouetteGeometry.Classify("") == AircraftSilhouette.Narrowbody, ref fail);
+
+            // 尺寸必须按翼展拉开：A380 与 CRJ 在 40 px 上还要能看出大小差
+            float sQuad = AircraftSilhouetteGeometry.IconSizePx(AircraftSilhouette.QuadJet);
+            float sWide = AircraftSilhouetteGeometry.IconSizePx(AircraftSilhouette.Widebody);
+            float sNarrow = AircraftSilhouetteGeometry.IconSizePx(AircraftSilhouette.Narrowbody);
+            float sProp = AircraftSilhouetteGeometry.IconSizePx(AircraftSilhouette.Turboprop);
+            Check($"图标尺寸随翼展递减 四发 {sQuad:F0} > 宽体 {sWide:F0} > 窄体 {sNarrow:F0} > 涡桨 {sProp:F0}",
+                sQuad > sWide && sWide > sNarrow && sNarrow > sProp && sProp >= 26f && sQuad <= 50f, ref fail);
+
+            // 剪影本身的几何不变量
+            const int N = 64;
+            var kinds = (AircraftSilhouette[])Enum.GetValues(typeof(AircraftSilhouette));
+            var covs = new Dictionary<AircraftSilhouette, float[]>();
+            for (int k = 0; k < kinds.Length; k++)
+                covs[kinds[k]] = AircraftSilhouetteGeometry.Coverage(kinds[k], N);
+
+            for (int k = 0; k < kinds.Length; k++)
+            {
+                var cov = covs[kinds[k]];
+                string name = AircraftSilhouetteGeometry.Label(kinds[k]);
+                float sum = 0f, maxAsym = 0f;
+                int minRow = N, maxRow = -1, minCol = N, maxCol = -1;
+                for (int y = 0; y < N; y++)
+                    for (int x = 0; x < N; x++)
+                    {
+                        float a = cov[y * N + x];
+                        sum += a;
+                        float d = Math.Abs(a - cov[y * N + (N - 1 - x)]);
+                        if (d > maxAsym) maxAsym = d;
+                        if (a <= 0.02f) continue;
+                        if (y < minRow) minRow = y;
+                        if (y > maxRow) maxRow = y;
+                        if (x < minCol) minCol = x;
+                        if (x > maxCol) maxCol = x;
+                    }
+
+                Check($"{name}：剪影非空且不糊成一片（覆盖 {sum / (N * N) * 100f:F1}%）",
+                    sum / (N * N) > 0.05f && sum / (N * N) < 0.75f, ref fail);
+                Check($"{name}：左右对称（最大偏差 {maxAsym:F3}）", maxAsym <= 0.02f, ref fail);
+
+                if (maxRow < 0) { Check($"{name}：有空包围盒", false, ref fail); continue; }
+                // 归一化包围盒（-1..1）：机翼要够宽、机身要够长，否则「认不出是飞机」
+                float bx0 = minCol * 2f / N - 1f, bx1 = (maxCol + 1) * 2f / N - 1f;
+                float by0 = minRow * 2f / N - 1f, by1 = (maxRow + 1) * 2f / N - 1f;
+                Check($"{name}：翼展 {bx1 - bx0:F2} / 机长 {by1 - by0:F2} 都够辨认",
+                    bx1 - bx0 >= 0.45f && by1 - by0 >= 0.60f, ref fail);
+                Check($"{name}：包围盒不贴图边（描边放大时不会被裁）",
+                    bx0 > -0.99f && bx1 < 0.99f && by0 > -0.99f && by1 < 0.99f, ref fail);
+            }
+
+            for (int a = 0; a < kinds.Length; a++)
+                for (int b = a + 1; b < kinds.Length; b++)
+                {
+                    var ca = covs[kinds[a]];
+                    var cb = covs[kinds[b]];
+                    int diff = 0;
+                    for (int i = 0; i < ca.Length; i++)
+                        if (Math.Abs(ca[i] - cb[i]) > 0.5f) diff++;
+                    Check($"{AircraftSilhouetteGeometry.Label(kinds[a])} ≠ {AircraftSilhouetteGeometry.Label(kinds[b])}"
+                          + $"（不同的像素 {diff} 个）",
+                        diff > ca.Length / 100, ref fail);
+                }
         }
 
         /// <summary>R19 诊断行：打印一条 CEO 指令的实际解析结果（walk the parse）。</summary>
