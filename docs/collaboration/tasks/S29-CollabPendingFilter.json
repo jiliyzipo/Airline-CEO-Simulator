@@ -31,12 +31,12 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T00:55:46.890Z",
-  "updatedAt": "2026-10-31T05:22:06.663Z",
+  "updatedAt": "2026-10-31T06:19:24.710Z",
   "snapshotRoots": [
     "tools/collab",
     "docs"
   ],
-  "freshnessNote": "Historic verdict REV-20261028010721-cc34b5 covered 510 changed files; 5 taken over by later passed deliveries, 6 still uncovered (docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
+  "freshnessNote": "Historic verdict REV-20261028010721-cc34b5 covered 510 changed files; 4 taken over by later passed deliveries, 7 still uncovered (docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
   "staleForReviewId": "REV-20261028010721-cc34b5",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -534,15 +534,16 @@
   "scopeDrift": {
     "basis": 510,
     "intact": 42,
-    "covered": 5,
+    "covered": 4,
     "uncovered": [
       "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md",
       "docs/collaboration/OPERATOR_MANUAL_ZH.md",
       "docs/collaboration/PROTOCOL.md",
+      "docs/handoff/Baseline_2026-10-17.json",
       "tools/collab/cli.mjs",
       "tools/collab/lib/stage.mjs",
       "tools/collab/tests/stage.test.mjs"
     ],
-    "uncoveredCount": 6
+    "uncoveredCount": 7
   }
 }

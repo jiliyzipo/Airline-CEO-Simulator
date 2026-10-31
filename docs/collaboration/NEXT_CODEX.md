@@ -10,6 +10,9 @@
 - S02-Collab: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S05-P2Close: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S06-BatchB: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S07-Balance: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S08-ShortHaul: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S09-Residual: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S10-PressDesk: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S11-T043Windows: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S12-CommandConsole: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
@@ -27,6 +30,15 @@
 - S28-PressDeskSign: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S29-CollabPendingFilter: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S30-InboxRowLayout: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S31-RouteConsoleMerge: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S35-Slotcheck: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S36-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S39-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S40-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S41-CollabFpCache: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
+- S42-Docs: 开发=ready_for_review 检测=queued freshness=stale
+- S43-TaskBookClose: 开发=ready_for_review 检测=queued freshness=stale
+- S44-TaskBookClose: 开发=ready_for_review 检测=queued freshness=current
 - 缺陷 ISSUE-20261025133539-5d00c2 [fixed/blocker] 归属建议=codex · task=S12-CommandConsole
 - 缺陷 ISSUE-20261026023527-01bb24 [fixed/blocker] 归属建议=cursor · task=S13-CollabSupersede
 - 缺陷 ISSUE-20261026061059-747c95 [fixed/blocker] 归属建议=cursor · task=S13-CollabSupersede

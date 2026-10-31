@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T12:33:01.628Z",
-  "updatedAt": "2026-10-31T05:22:06.014Z",
+  "updatedAt": "2026-10-31T06:19:21.379Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 17 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/collab/cli.mjs, tools/collab/lib/stage.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 16 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs, Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs …).",
   "staleForReviewId": "REV-20261027124433-1357a2",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -97,16 +97,18 @@
   },
   "scopeDrift": {
     "basis": 110,
-    "intact": 87,
-    "covered": 17,
+    "intact": 86,
+    "covered": 16,
     "uncovered": [
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs",
+      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
       "tools/collab/cli.mjs",
       "tools/collab/lib/stage.mjs",
       "tools/collab/tests/stage.test.mjs",
       "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
       "tools/regression/ai-run.mjs"
     ],
-    "uncoveredCount": 6
+    "uncoveredCount": 8
   }
 }

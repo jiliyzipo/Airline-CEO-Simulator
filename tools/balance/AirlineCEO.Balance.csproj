@@ -39,6 +39,10 @@
              Link="Shared\Logic\RouteFrequencyModel.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\LiveClockLogic.cs"
              Link="Shared\Logic\LiveClockLogic.cs" />
+    <!-- 2026-10-31：LiveClockLogic.Project() 改成投影到 MapFlightState.Snapshot，
+         离线平衡工程漏了这个文件就会 CS0103（balance 整条流水线跟着挂）。 -->
+    <Compile Include="$(UnityScriptsDir)\Logic\MapFlightState.cs"
+             Link="Shared\Logic\MapFlightState.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\ScheduleSlots.cs"
              Link="Shared\Logic\ScheduleSlots.cs" />
     <Compile Include="$(UnityScriptsDir)\Logic\OpsIrropsLogic.cs"

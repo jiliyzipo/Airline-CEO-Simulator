@@ -111,6 +111,198 @@ namespace AirlineCEO.Tests.PlayMode
                 status = AircraftStatuses.Airworthy, age = 3, condition = 100f, economySeats = 180
             };
 
+        // ─────────────────────────────────────────────────────────────────────
+        // S4 维护（定检预付 + 月维护日摊）—— 实时窗口
+        // ─────────────────────────────────────────────────────────────────────
+        [UnityTest]
+        public IEnumerator S4_MaintenanceCheckIsPrepaidOnce_AndMonthlyMaintAccruesDaily()
+        {
+            var gs = State("S4GS");
+            gs.fleet.Add(MakeAircraft("B-MNT"));
+            gs.activeRoutes.Add(MakeRoute("S4-ROUTE", "B-MNT"));
+            var mnt = new GameObject("S4Mnt").AddComponent<MaintenanceManager>();
+            // 月维护口径挂在 FleetManager.Instance 上（GameState.FleetMonthlyMaintenance 只做转发），
+            // 少了它 daily 里就没有维护项，这条用例会退化成「只测烧钱率」。
+            new GameObject("S4Fleet").AddComponent<FleetManager>();
+
+            float daily = DailyFixed(gs);
+            Assert.Greater(gs.FleetMonthlyMaintenance, 0.01f, "前置：在役机必须计月维护，否则日摊无从证明");
+
+            float cash0 = gs.cash;
+            Advance(gs, 3);
+
+            float mult = gs.CrewQualityMultiplier;
+            Assert.AreEqual(3f * ProfitPerDay * mult, gs.liveQuarterIncome, Tol, "三日营收按机组乘数入桶");
+            Assert.AreEqual(3f * daily, gs.liveQuarterExpense, Tol,
+                "月维护必须按日摊进季度支出桶（季末一次性入账会让中途退租/加机对不上）");
+            AssertCashEqualsBuckets(gs, cash0, 0f, 0f, 0f, "S4 飞行三日");
+
+            // —— 定检：当天扣现金，但不进桶、不冲损益 ——
+            // 进桶 = 季末再计一次（双扣）；冲损益 = 与现金重复计一次。
+            float cost = MaintenanceEconomics.CheckCostWan("C", gs.fleet.Count);
+            Assert.Greater(cost, 0.01f, "前置：C 检报价必须为正");
+            float cashBeforeCheck = gs.cash;
+            float expBeforeCheck = gs.liveQuarterExpense;
+            float profitBeforeCheck = gs.yearNetProfit;
+            int checksBefore = MaintenanceManager.EnsureState(gs).checks.Count;
+
+            Assert.IsTrue(mnt.ScheduleCheck(gs, "B-MNT", "C", 1, out string msg), "排检被拒：" + msg);
+            Assert.AreEqual(cashBeforeCheck - cost, gs.cash, Tol, "排检必须当天扣报价全额");
+            Assert.AreEqual(expBeforeCheck, gs.liveQuarterExpense, Tol,
+                "定检预付不得进季度支出桶 —— 否则季末按桶再结算一次就是双扣");
+            Assert.AreEqual(profitBeforeCheck, gs.yearNetProfit, Tol, "定检预付不得直接冲损益");
+            Assert.AreEqual(checksBefore + 1, MaintenanceManager.EnsureState(gs).checks.Count, "排检必须留一条记录");
+
+            // —— 跨过到期月：不得再扣第二次，也不得凭空多出一条记录 ——
+            float cashAfterCheck = gs.cash;
+            float expMark = gs.liveQuarterExpense;
+            float incMark = gs.liveQuarterIncome;
+            float transMark = gs.liveQuarterTransitionIncome;
+            Advance(gs, 32);
+            float expDelta = gs.liveQuarterExpense - expMark;
+            Assert.AreEqual(32f * daily, expDelta, Tol, "跨月后日固定照常逐日入桶");
+            // 这 32 天里航线照飞、落地照入营收，所以现金净变化不再是「−32×日成本」的纯支出，
+            // 只能改用「Δ现金 = Σ桶」的恒等式：定检费若在到期月被二次扣除，现金会比台账少
+            // 一整个报价，恒等式立刻失败（既证桶外无扣款，也证没有重复计一次）。
+            AssertCashEqualsBuckets(gs, cashAfterCheck, incMark, expMark, transMark,
+                "S4 跨到期月（定检费已在排检当日扣清，桶外不得再扣）");
+            Assert.AreEqual(checksBefore + 1, MaintenanceManager.EnsureState(gs).checks.Count,
+                "定检记录不得被重复登记或悄悄清掉");
+            yield return null;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // S5 退租／退役（自有回收残值、租赁交还出租人）—— 实时窗口
+        // ─────────────────────────────────────────────────────────────────────
+        [UnityTest]
+        public IEnumerator S5_RetireOwnedAndReturnLeased_HitCashNotBuckets_AndStopMonthlyCharges()
+        {
+            var gs = State("S5GS");
+            var owned = OwnedAircraft("B-OWN", 1000f, 5);
+            var leased = OwnedAircraft("B-LEASE", 0f, 3);
+            leased.source = FleetEconomics.SourceOperatingLease;
+            leased.monthlyLeaseWan = 6f;
+            gs.fleet.Add(owned);
+            gs.fleet.Add(leased);
+            gs.activeRoutes.Add(MakeRoute("S5-ROUTE", "B-OWN"));
+
+            var fm = new GameObject("S5Fleet").AddComponent<FleetManager>();
+            float daily0 = DailyFixed(gs);
+            float cash0 = gs.cash;
+            Advance(gs, 2);
+            Assert.AreEqual(2f * daily0, gs.liveQuarterExpense, Tol, "两日日固定入桶");
+            AssertCashEqualsBuckets(gs, cash0, 0f, 0f, 0f, "S5 处置前");
+
+            // ① 自有机退役：现金 += 残值，损益与桶都不动（残值是处置现金，不是经营收入）
+            float residual = FleetManager.CalcResidualValue(owned);
+            Assert.Greater(residual, 0.01f, "前置：5 年自有机残值必须为正");
+            float cashBeforeOwned = gs.cash;
+            float profitBeforeOwned = gs.yearNetProfit;
+            float expBeforeOwned = gs.liveQuarterExpense;
+            Assert.IsTrue(fm.TryRetireAircraft(gs, "B-OWN", out string msgOwned), msgOwned);
+            Assert.AreEqual(cashBeforeOwned + residual, gs.cash, Tol, "退役必须回收残值到现金");
+            Assert.AreEqual(profitBeforeOwned, gs.yearNetProfit, Tol,
+                "残值不得进损益 —— 进了就是「卖飞机算经营利润」，年报与现金流会长期打架");
+            Assert.AreEqual(expBeforeOwned, gs.liveQuarterExpense, Tol, "残值不得进支出桶（负数支出语义是错的）");
+
+            float dailyAfterOwned = DailyFixed(gs);
+            Assert.Less(dailyAfterOwned, daily0 - 0.01f, "退役后该机月维护必须停止（否则退了还在扣维护）");
+
+            // ② 经营租赁退租：违约金 0 → 现金不动、不回收残值（产权在出租人）
+            float cashBeforeLease = gs.cash;
+            float profitBeforeLease = gs.yearNetProfit;
+            Assert.IsTrue(fm.TryRetireAircraft(gs, "B-LEASE", out string msgLease), msgLease);
+            Assert.AreEqual(cashBeforeLease, gs.cash, Tol,
+                "经营租赁退租不得回收残值 —— 零成本租进、按目录价卖出等于凭空造钱");
+            Assert.AreEqual(profitBeforeLease, gs.yearNetProfit, Tol, "退租不得改损益");
+
+            float dailyAfterLease = DailyFixed(gs);
+            Assert.Less(dailyAfterLease, dailyAfterOwned - 0.01f, "退租后月租必须停止");
+
+            // ③ 处置后再走两日：执飞机已退役 → 无营收，只扣新的日固定
+            float cashAfterBoth = gs.cash;
+            float incMark = gs.liveQuarterIncome;
+            float expMark = gs.liveQuarterExpense;
+            Advance(gs, 2);
+            Assert.AreEqual(incMark, gs.liveQuarterIncome, Tol, "机号已退役不得继续产生营收（幽灵收入）");
+            Assert.AreEqual(expMark + 2f * dailyAfterLease, gs.liveQuarterExpense, Tol, "处置后日固定按新费率入桶");
+            Assert.AreEqual(cashAfterBoth - 2f * dailyAfterLease, gs.cash, Tol, "处置后现金只减新日固定");
+
+            // 恒等式要**显式**写上残值这一项：它是一次性处置现金，不属于任何经营桶。
+            // 若哪天有人把残值塞进收入桶，这条会立刻翻红（那就是双计）。
+            float expectedCash = cash0
+                                 + (gs.liveQuarterIncome - 0f)
+                                 + (gs.liveQuarterTransitionIncome - 0f)
+                                 - (gs.liveQuarterExpense - 0f)
+                                 + residual;
+            Assert.AreEqual(expectedCash, gs.cash, Tol,
+                "Δ现金 == Σ经营桶 + 处置残值（残值不得隐含在任何桶里）");
+            yield return null;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // S7 贷款偿还（季末一次扣 3 个月本息；本金不动损益）—— 实时窗口
+        // ─────────────────────────────────────────────────────────────────────
+        [UnityTest]
+        public IEnumerator S7_QuarterEndRepayment_TakesPrincipalFromCash_OnlyInterestFromProfit()
+        {
+            var gs = State("S7GS");
+            gs.activeLoans = new List<Loan>
+            {
+                new Loan
+                {
+                    id = "S7-LOAN", type = "bank", principal = 120f, remainingPrincipal = 120f,
+                    interestRate = 0.12f, monthlyPayment = 11.2f, termMonths = 12, monthsRemaining = 12
+                }
+            };
+            new GameObject("S7Loans").AddComponent<LoanManager>();
+            var loanMgr = LoanManager.Instance;
+            var clock = new GameObject("S7Clock").AddComponent<TimeManager>();
+            clock.oilEventChance = 0;
+
+            const float due = 33.6f;          // 11.2 × 3
+            const float interest = 3.6f;      // 120 × 0.12 / 12 × 3
+            const float principal = 30f;      // 33.6 − 3.6
+
+            // ── 1) 口径：现金扣本息全额、损益只扣利息 ──
+            // 单独调一次还款，把季末那些**不属于贷款**的一次性项（FX 汇兑、油价对冲、
+            // 安全罚金……）排除在外 —— 它们会双向变动现金，混进来就分辨不出本金去了哪。
+            float cash0 = gs.cash;
+            float profit0 = gs.yearNetProfit;
+            string receipt = loanMgr.ProcessQuarterRepayments();
+
+            Assert.AreEqual(cash0 - due, gs.cash, Tol, "本息必须全额从现金扣（本金也是真金白银）");
+            Assert.AreEqual(profit0 - interest, gs.yearNetProfit, Tol,
+                "损益只承担利息：本金偿还是融资现金流出，不是经营亏损");
+            StringAssert.Contains("融资本息", receipt, "还款必须留下可读回执（财务流水）");
+            Assert.AreEqual(1, gs.activeLoans.Count, "未还清的贷款必须留在册");
+            Assert.AreEqual(120f - principal, gs.activeLoans[0].remainingPrincipal, 0.001f, "本金余额必须减 30");
+            Assert.AreEqual(9, gs.activeLoans[0].monthsRemaining, "剩余期数必须减 3");
+
+            // ── 2) 时间边界：季度推进必须自动触发还款，不用玩家点按钮 ──
+            float cash1 = gs.cash;
+            var result = clock.AdvanceQuarter();
+            Assert.IsTrue(result.success, "季度推进失败：" + result.message);
+            // 二期利息按**上期余额** 90 计（不是原始本金 120），所以本金部分比首期多 0.9：
+            // 33.6 − 90×1%×3 = 30.9。按等额本息摊销，余额越还越少、利息越还越少。
+            float interest2 = 90f * 0.12f / 12f * 3f;
+            float principal2 = due - interest2;
+            Assert.AreEqual(90f - principal2, gs.activeLoans[0].remainingPrincipal, 0.001f,
+                "季结必须再自动扣一期本金（窗口没触发，贷款就会被无限拖下去）");
+            Assert.AreEqual(6, gs.activeLoans[0].monthsRemaining, "季结必须再自动扣 3 期");
+            Assert.Less(gs.cash, cash1, "季结现金必须下降（经营成本 + 本息；一次性项可能双向，故不锁死金额）");
+            Assert.AreEqual(0f, gs.liveQuarterExpense, Tol, "季末桶必须清零（否则下一季重复分摊）");
+            yield return null;
+        }
+
+        static Aircraft OwnedAircraft(string registration, float purchasePrice, int age)
+            => new Aircraft
+            {
+                registration = registration, type = "A320neo", isActive = true,
+                status = AircraftStatuses.Airworthy, condition = 100f, economySeats = 180,
+                purchasePrice = purchasePrice, purchaseYear = 1, age = age
+            };
+
         /// <summary>现金恒等式：Δ现金必须等于 Σ季度桶的增量（没有桶外项目时才成立）。</summary>
         static void AssertCashEqualsBuckets(GameState gs, float cash0, float income0, float expense0,
             float transition0, string what)

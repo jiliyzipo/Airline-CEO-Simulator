@@ -417,6 +417,63 @@ namespace AirlineCEO.Tests.PlayMode
         }
 
         // —————————————————————————————————————————————————————————————
+        // ⑦a 四口径：邮件里的数字必须与列表、详情同源（T03.8 剩下的那一半）
+        //
+        // 此前只有「卡片 ↔ 详情」两条腿（§⑦）。任务书要的是「列表、详情、地图、邮件」
+        // 四处一致，而**邮件**是最容易分叉的一处：它由 DeptReportLogic/OpsQueryLogic 拼接，
+        // 历史事故正是「把航线级日利当单班级写进信里」。地图层不承担数字（只画线与城市名，
+        // 已由 §⑦ 之外的地图用例钉住「地图层不写金额」），所以这里钉「邮件 ↔ 详情 ↔ 卡片」三处
+        // 读的是同一个 route.dailyProfit，且「单班日利」确实是它除以班次。
+        // —————————————————————————————————————————————————————————————
+
+        [Test]
+        public void MailAnswer_CarriesTheSameRouteAndNumbersAsListAndDetail()
+        {
+            var gs = NewState("T038MailFourWays");
+            var route = MakeRoute("T038-MAIL", "B-3805");
+            gs.activeRoutes.Add(route);
+            gs.fleet.Add(MakeAircraft("B-3805"));
+            OpsSubpageContext.SelectedRouteId = route.routeId;
+            FleetNetContext.SelectedRouteId = null;
+
+            // ① 邮件：走真链路（命令台问句 → 运营部按本线台账答复 → 收件箱汇报件）
+            Assert.IsTrue(DeptReportLogic.RunRouteQuery(gs, route.routeId, "这条线现在赚多少", out string receipt),
+                "运营部未能就本线作答：" + receipt);
+            Assert.IsNotNull(gs.inbox, "收件箱未初始化");
+            InboxMail mail = gs.inbox.Count > 0 ? gs.inbox[gs.inbox.Count - 1] : null;
+            Assert.IsNotNull(mail, "答复件没有进收件箱");
+            string body = mail.body ?? "";
+            // 正文里两端的写法可能是「PEK — SHA」也可能是城市名，故按三字码分别断言，
+            // 不钉分隔符（钉分隔符等于测排版，改一次排版就红）。
+            StringAssert.Contains(route.origin, body, "邮件正文里没有出发地三字码");
+            StringAssert.Contains(route.destination, body, "邮件正文里没有目的地三字码");
+
+            int flights = Math.Max(1, route.FlightCount);
+            // 单班日利 = 航线日利 ÷ 班次 —— 把航线级当单班级写进信里是反复出现过的错法
+            Assert.AreEqual(route.dailyProfit / flights, NumberAfter(body, "单班日利"), 0.006f,
+                "邮件「单班日利」必须等于航线日利 ÷ 班次");
+            Assert.AreEqual(route.dailyProfit * 7f, NumberAfter(body, "周利 ≈"), 0.06f,
+                "邮件「周利」必须等于日利 × 7（加密航线不得再乘一遍周班次）");
+
+            // ② 详情页（F2）
+            var detail = RouteDetailPanel.Build("单航线");
+            Own(detail.gameObject);
+            var line = LabelContaining(detail.gameObject, "日利", "周利");
+            Assert.IsNotNull(line, "单航线页没有同时写出日利与周利");
+            Assert.AreEqual(route.dailyProfit, NumberAfter(line.text, "日利"), 0.006f,
+                "详情页日利与邮件必须读同一个字段");
+
+            // ③ 列表卡（F1）
+            var holder = Own(new GameObject("T038MailCard", typeof(RectTransform)));
+            var card = RouteCard.BuildRuntime(holder.transform);
+            card.Bind(route);
+            var profit = Labels(card.gameObject).FirstOrDefault(t => t != null && t.name == "Profit");
+            Assert.IsNotNull(profit, "卡片缺少日利文本");
+            Assert.AreEqual(route.dailyProfit, NumberAfter(profit.text, "日利"), 0.051f,
+                "卡片日利（F1 一位小数）必须与详情页同源");
+        }
+
+        // —————————————————————————————————————————————————————————————
         // ⑦b 「执飞行」的串环一格：没飞机说没飞机，有飞机说利用率并给入口
         //
         // 2026-10-29 CEO 问「单航线的『未串环』是什么意思」，暴露旧文案只写「未串环（本线往返）」：

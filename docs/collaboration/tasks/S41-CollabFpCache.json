@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "把历史任务的 freshness 基线从项目全树收窄到各自交付的改动文件（16 个任务已 rescope）",
@@ -31,11 +31,11 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T04:45:41.751Z",
-  "updatedAt": "2026-10-31T05:22:07.716Z",
+  "updatedAt": "2026-10-31T06:19:29.605Z",
   "snapshotRoots": [
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Review REV-20261031050428-d5f159 still applies to delivery DEL-20261031044619-5563b7.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261031050428-d5f159 passed delivery DEL-20261031044619-5563b7; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261031050428-d5f159"
 }

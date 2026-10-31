@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031070505-049f8f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 809,
+  "at": "2026-10-31T07:05:05.052Z",
+  "actor": "cursor",
+  "action": "delivery-withdrawn",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "withdrawn: DEL-20261031070331-0772cb",
+  "data": {
+    "deliveryId": "DEL-20261031070331-0772cb",
+    "taskId": "S42-Docs",
+    "reason": "对比基准选了 git porcelain，而代码已先提交，交付只扫到 sync 生成的协作文件，未覆盖真实交付（测试、balance csproj、任务书）。改为回退提交后按工作树重新收口。"
+  }
+}

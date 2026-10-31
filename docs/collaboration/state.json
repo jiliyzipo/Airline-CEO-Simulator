@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 804,
-  "updatedAt": "2026-10-31T05:22:07.987Z",
+  "revision": 815,
+  "updatedAt": "2026-10-31T07:20:35.776Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -126,7 +126,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:24.740Z"
     },
@@ -135,7 +135,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.212Z"
     },
@@ -144,7 +144,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.671Z"
     },
@@ -342,7 +342,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:25.777Z"
     },
@@ -369,7 +369,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:05.364Z"
     },
@@ -378,7 +378,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:07.495Z"
     },
@@ -405,7 +405,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:11.117Z"
     },
@@ -414,7 +414,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T02:18:44.439Z"
     },
@@ -423,12 +423,39 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T04:45:41.751Z"
+    },
+    "S42-Docs": {
+      "title": "阶段 S42-Docs：Docs",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T07:03:22.132Z"
+    },
+    "S43-TaskBookClose": {
+      "title": "阶段 S43：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T07:07:22.921Z"
+    },
+    "S44-TaskBookClose": {
+      "title": "阶段 S44：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T07:19:53.632Z"
     }
   },
-  "lastDeliveryId": "DEL-20261031045140-2cd3d8",
+  "lastDeliveryId": "DEL-20261031072012-3ed2fd",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -711,6 +738,14 @@
       "actor": "cursor",
       "note": "S41 指纹缓存改动后重新交付 S40；Unity 侧代码未变",
       "at": "2026-10-31T04:52:05.291Z"
+    },
+    "DEL-20261031070331-0772cb": {
+      "status": "withdrawn",
+      "supersededBy": null,
+      "taskId": "S42-Docs",
+      "actor": "cursor",
+      "note": "对比基准选了 git porcelain，而代码已先提交，交付只扫到 sync 生成的协作文件，未覆盖真实交付（测试、balance csproj、任务书）。改为回退提交后按工作树重新收口。",
+      "at": "2026-10-31T07:05:05.018Z"
     }
   }
 }

@@ -88,6 +88,7 @@ namespace AirlineCEO.EditorTools
                 { "schedule-page", SchedulePageRegression.Run },
                 { "short-haul", ShortHaulRegression.Run },
                 { "slot-cash-hint", SlotCashHintRegression.Run },
+                { "slot-candidate", SlotCandidateRegression.Run },
                 { "status-bar-reconcile", StatusBarReconcileRegression.Run },
                 { "takeover-cost-ledger", TakeoverCostLedgerRegression.Run },
                 { "tutorial-copy", TutorialCopyRegression.Run },

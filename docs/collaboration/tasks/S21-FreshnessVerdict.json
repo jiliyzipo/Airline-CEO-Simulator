@@ -31,12 +31,12 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T04:12:24.365Z",
-  "updatedAt": "2026-10-31T05:22:04.960Z",
+  "updatedAt": "2026-10-31T06:19:19.158Z",
   "snapshotRoots": [
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261027041517-4580f4 covered 42 changed files; 5 taken over by later passed deliveries, 3 still uncovered (tools/collab/cli.mjs, tools/collab/lib/stage.mjs, tools/collab/tests/stage.test.mjs).",
+  "freshnessNote": "Historic verdict REV-20261027041517-4580f4 covered 42 changed files; 4 taken over by later passed deliveries, 4 still uncovered (docs/handoff/Baseline_2026-10-17.json, tools/collab/cli.mjs, tools/collab/lib/stage.mjs …).",
   "staleForReviewId": "REV-20261027041517-4580f4",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -72,12 +72,13 @@
   "scopeDrift": {
     "basis": 42,
     "intact": 33,
-    "covered": 5,
+    "covered": 4,
     "uncovered": [
+      "docs/handoff/Baseline_2026-10-17.json",
       "tools/collab/cli.mjs",
       "tools/collab/lib/stage.mjs",
       "tools/collab/tests/stage.test.mjs"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 4
   }
 }

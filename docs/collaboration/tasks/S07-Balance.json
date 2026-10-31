@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Balance、Editor、Systems、Logic、Assets-Tests、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T13:18:57.941Z",
-  "updatedAt": "2026-10-28T00:31:03.960Z",
+  "updatedAt": "2026-10-31T06:57:51.476Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 18 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261028002145-55518e.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 17 taken over by later passed deliveries, 1 still uncovered (tools/balance/AirlineCEO.Balance.csproj).",
+  "staleForReviewId": "REV-20261023015616-582178",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:24.739Z",
@@ -78,8 +78,10 @@
   "scopeDrift": {
     "basis": 33,
     "intact": 15,
-    "covered": 18,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 17,
+    "uncovered": [
+      "tools/balance/AirlineCEO.Balance.csproj"
+    ],
+    "uncoveredCount": 1
   }
 }

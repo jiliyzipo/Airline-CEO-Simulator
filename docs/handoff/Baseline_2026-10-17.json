@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceHead": "385a5e2b02734ab147dcb94dcaed573a71f9c53c",
+  "sourceHead": "ead40d02dafec00b566948bfc86318f0d2d20e1a",
   "sourceIncludesUncommittedFiles": true,
   "cleanGitCheckoutVerified": false,
   "nodeVersion": "v24.18.0",
   "dotnetVersion": "8.0.423",
   "fingerprintScope": "Unity assets/packages/settings and tools; documentation is hashed individually but excluded from the runtime fingerprint.",
-  "sourceFingerprint": "73d5dc57e9bb44f1846b03fe431ea9beeb9f57d570edfe7b1658d6f205cefcc8",
+  "sourceFingerprint": "af6abbf51c3a49c9003664d7caab830e86b762e69305911c85f37fe1e5bf4af7",
   "overlay": "Only exported ProjectSettings companyName/productName changed to isolate player data.",
   "entries": [
     {
@@ -2657,8 +2657,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
-      "bytes": 22422,
-      "sha256": "8fb75c34f5c9b4e3d764414ae1ea169df61784e67477b5b279c690346ff73d11",
+      "bytes": 22489,
+      "sha256": "04fde0044cae71763429c047cc5a7ab5cb404678b05d754b9287de50bafe11f4",
       "tracked": true
     },
     {
@@ -2774,6 +2774,12 @@
       "bytes": 60,
       "sha256": "9ec497fa66fe0dbe1e1bb86cb7ffac5737a445a18edaa19e3a413e656b7ddc6f",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Editor/SlotCandidateRegression.cs",
+      "bytes": 19784,
+      "sha256": "45be374b91bb002d12d7517a8c11c89265f2b019c160f5d6d6ba436260a3b551",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs",
@@ -3457,25 +3463,25 @@
       "path": "Unity Project/Assets/Scripts/Logic/MapFlightState.cs",
       "bytes": 10105,
       "sha256": "82d31be2de23a602599c7c42bc88445e372c3d3d7f244594b8ffbae14df3b440",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/MapFlightState.cs.meta",
       "bytes": 60,
       "sha256": "3a3c595b6e806367ca101128f5df974c57909d2edbac75cd586acde5b1af9467",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/MapSelection.cs",
       "bytes": 2696,
       "sha256": "83a727841053c29e3484bad47f1662c441cb77a2285a7b6069c578c0e5ac6f0d",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/MapSelection.cs.meta",
       "bytes": 60,
       "sha256": "e599e2b95762f4ce3fb1ffd857d2513b7834607613f22032fdc39228580ea38b",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/MessageCenter.cs",
@@ -3625,13 +3631,13 @@
       "path": "Unity Project/Assets/Scripts/Logic/OpsRotationBuilder.cs",
       "bytes": 41482,
       "sha256": "d569eb629dbd12537bf68b548de399ed6c27664e7ae34f2b56c9a9bf60e7cd9b",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OpsRotationBuilder.cs.meta",
       "bytes": 60,
       "sha256": "7194d0966f03c5af01c12b0681afef0eea8bb448d8418da950d973607dc9b11b",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OpsRotationLogic.cs",
@@ -5293,13 +5299,13 @@
       "path": "Unity Project/Assets/Scripts/UI/MapFlightCard.cs",
       "bytes": 11946,
       "sha256": "e6f66e39ee065115e31e7e079a970b3fbea0bced38fb5d2c6df8a70d00edd1f6",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapFlightCard.cs.meta",
       "bytes": 60,
       "sha256": "4a46ad2f10e36dc434a42b070112c915755683b235ac972791f6836522269b5e",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapPlaceNameLayer.cs",
@@ -5317,13 +5323,13 @@
       "path": "Unity Project/Assets/Scripts/UI/MapPlaneClick.cs",
       "bytes": 1364,
       "sha256": "4fef5efbfde1f5cf9643cd24bc71bbeca0b13f87478f8e7d4cd0948beac7b00c",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapPlaneClick.cs.meta",
       "bytes": 60,
       "sha256": "7cbce2372076ce3d66ab4d53f3c271c65484c00599de4e0ef2f4f57ad3800951",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapTerminatorLayer.cs",
@@ -5695,7 +5701,13 @@
       "path": "Unity Project/Assets/Scripts/UI/OpsRotationBoardUI.cs",
       "bytes": 19485,
       "sha256": "2ca9a9f35782529052a95b87de71725f985199377a9e11a8b01ba42d6d4449c7",
-      "tracked": false
+      "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/OpsRotationBoardUI.cs.meta",
+      "bytes": 60,
+      "sha256": "b26e3069e42af1a41e31cdc8a5dcd18532852a725fdfced1948cd66b9dec1003",
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/OpsRouteRingSelectorUI.cs",
@@ -6604,6 +6616,12 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Tests/EditMode/SlotCandidateTests.cs",
+      "bytes": 1101,
+      "sha256": "b383910bf204d0cf10607cef7a15ff542f8b13dd2c02615ac4c8e588658136d5",
+      "tracked": false
+    },
+    {
       "path": "Unity Project/Assets/Tests/EditMode/SlotCashHintEditModeTests.cs",
       "bytes": 1049,
       "sha256": "cb039a7eb7ecfccea6f869c3ba686b15b1695ad592ea3b55692ffa54da56c90c",
@@ -6683,8 +6701,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/PlayMode/DevelopmentAccountingScenarioTests.cs",
-      "bytes": 25081,
-      "sha256": "530e3027386e020e40937dabd4e28dc02bc7f90cc65b3336d43f08642c720a62",
+      "bytes": 36223,
+      "sha256": "a1afa39f7d4a659ee8d06753102a43419cd401f67faa5f50f4af5eeaf2cef95d",
       "tracked": true
     },
     {
@@ -6911,8 +6929,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
-      "bytes": 77751,
-      "sha256": "01d11a0d7132e118d98af9e2e1d265d432a6d0c733878dd162cb1c338a730db5",
+      "bytes": 81561,
+      "sha256": "d07e7fc041c45a79c7834dea2c3868c41f1c3ac77acde06d77ed298c342dd4d3",
       "tracked": true
     },
     {

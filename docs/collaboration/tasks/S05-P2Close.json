@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T01:03:04.056Z",
-  "updatedAt": "2026-10-31T05:22:02.794Z",
+  "updatedAt": "2026-10-31T06:57:50.285Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 51 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs, Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
+  "freshnessNote": "Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 50 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs, Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs, tools/balance/AirlineCEO.Balance.csproj …).",
   "staleForReviewId": "REV-20261022011140-9e5b0b",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -95,12 +95,13 @@
   "scopeDrift": {
     "basis": 105,
     "intact": 51,
-    "covered": 51,
+    "covered": 50,
     "uncovered": [
       "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs",
       "Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs",
+      "tools/balance/AirlineCEO.Balance.csproj",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 4
   }
 }
