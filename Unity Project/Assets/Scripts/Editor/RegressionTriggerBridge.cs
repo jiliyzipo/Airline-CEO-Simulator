@@ -121,6 +121,14 @@ namespace AirlineCEO.EditorTools
         static double _nextPoll;        static bool _running;
         static readonly List<string> Buffer = new List<string>();
 
+        /// <summary>回归诊断文本共用的单行截断；保持原有 UTF-16 Substring 行为。</summary>
+        internal static string Trim(string s, int max)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            s = s.Replace("\r", " ").Replace("\n", " ").Trim();
+            return s.Length <= max ? s : s.Substring(0, max) + "…";
+        }
+
         static RegressionTriggerBridge()
         {
             EditorApplication.update -= Tick;

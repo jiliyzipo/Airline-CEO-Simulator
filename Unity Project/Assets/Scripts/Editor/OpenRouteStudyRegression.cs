@@ -110,9 +110,7 @@ namespace AirlineCEO.EditorTools
 
         static string Trim(string s, int max)
         {
-            if (string.IsNullOrEmpty(s)) return "";
-            s = s.Replace("\r", " ").Replace("\n", " ").Trim();
-            return s.Length <= max ? s : s.Substring(0, max) + "…";
+            return RegressionTriggerBridge.Trim(s, max);
         }
     }
 }

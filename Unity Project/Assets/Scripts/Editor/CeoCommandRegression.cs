@@ -667,9 +667,7 @@ namespace AirlineCEO.EditorTools
 
         /// <summary>失败诊断用：把长文案截短并压成一行，别让一封公函把日志撑爆。</summary>
         static string Trim(string s, int max)        {
-            if (string.IsNullOrEmpty(s)) return "";
-            s = s.Replace("\r", " ").Replace("\n", " ").Trim();
-            return s.Length <= max ? s : s.Substring(0, max) + "…";
+            return RegressionTriggerBridge.Trim(s, max);
         }
 
         /// <summary>取「标签 + 填充 + 值」这一行的值（<see cref="InboxLetter.Row"/> 用全角空格对齐）。</summary>

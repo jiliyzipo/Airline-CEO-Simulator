@@ -805,12 +805,6 @@ namespace AirlineCEO.UI.Setup
 
         // legacy AddField removed — use SetupFormWidgets
 
-        static string ReadField(TMP_InputField field, string fallback)
-        {
-            if (field == null || string.IsNullOrWhiteSpace(field.text)) return fallback;
-            return field.text.Trim();
-        }
-
         void EnterGameplay(bool fromContinue, bool skipAoIntro)
         {
             // skipAoIntro 保留兼容旧调用；顾问弹窗改为玩家手动打开
