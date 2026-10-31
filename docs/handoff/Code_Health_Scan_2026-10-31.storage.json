@@ -1,0 +1,2878 @@
+{
+  "deliveries": [
+    {
+      "n": "DEL-20261017065745-c9b348.json",
+      "bytes": 24482,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 73,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 16547,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 142,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261017095048-cfd9dd.json",
+      "bytes": 20389,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 10,
+        "summary": 576,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 9495,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 4028,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261017122743-589b23.json",
+      "bytes": 14582,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 610,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 5618,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 4025,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261017150657-dd9483.json",
+      "bytes": 19218,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 5038,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 126,
+        "knownGaps": 137,
+        "git": 135,
+        "fingerprints": 5618,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 4025,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018021952-ba9a3f.json",
+      "bytes": 23181,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 7505,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 135,
+        "knownGaps": 137,
+        "git": 135,
+        "fingerprints": 6261,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 4473,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018022444-a55ae4.json",
+      "bytes": 22715,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 7024,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 150,
+        "knownGaps": 137,
+        "git": 135,
+        "fingerprints": 6261,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 4473,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018032237-012f93.json",
+      "bytes": 860502,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 7,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 21,
+        "summary": 541,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 382016,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 271378,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018033132-39a1e3.json",
+      "bytes": 852383,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 13,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 110,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 378769,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 269034,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018033139-af5cca.json",
+      "bytes": 833775,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 67,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 370455,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 263281,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018033145-e77a66.json",
+      "bytes": 836606,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 88,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 371651,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 264136,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018034551-e2de28.json",
+      "bytes": 18442,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 447,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 7277,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 5327,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018034913-0a6e9f.json",
+      "bytes": 18897,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 902,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 7277,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 5327,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018035450-a94911.json",
+      "bytes": 18674,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 679,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 7277,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 5327,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018035835-766dc7.json",
+      "bytes": 19584,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 861,
+        "files": 73,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 135,
+        "fingerprints": 7593,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 5553,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018050538-fe84c9.json",
+      "bytes": 553486,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 16,
+        "taskRevision": 1,
+        "actor": 7,
+        "tool": 7,
+        "authorization": 792,
+        "developmentException": 4,
+        "model": 5,
+        "summary": 261,
+        "files": 2026,
+        "businessRisk": 13,
+        "selfTest": 159,
+        "knownGaps": 180,
+        "git": 182860,
+        "fingerprints": 192743,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 7517,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018051637-e21eae.json",
+      "bytes": 569690,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 16,
+        "taskRevision": 1,
+        "actor": 7,
+        "tool": 7,
+        "authorization": 792,
+        "developmentException": 4,
+        "model": 5,
+        "summary": 248,
+        "files": 2026,
+        "businessRisk": 13,
+        "selfTest": 160,
+        "knownGaps": 172,
+        "git": 189110,
+        "fingerprints": 198993,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 7517,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018071756-010504.json",
+      "bytes": 595729,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 16,
+        "taskRevision": 1,
+        "actor": 7,
+        "tool": 7,
+        "authorization": 792,
+        "developmentException": 4,
+        "model": 7,
+        "summary": 233,
+        "files": 2094,
+        "businessRisk": 13,
+        "selfTest": 174,
+        "knownGaps": 138,
+        "git": 198915,
+        "fingerprints": 208960,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7746,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018093142-e163dc.json",
+      "bytes": 627264,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1270,
+        "files": 1994,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 211679,
+        "fingerprints": 220771,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7328,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018093335-80f2f4.json",
+      "bytes": 627467,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 265,
+        "files": 1994,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 212093,
+        "fingerprints": 221185,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7328,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018102037-2afe59.json",
+      "bytes": 635593,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 568,
+        "files": 1994,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 123,
+        "git": 214800,
+        "fingerprints": 223892,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7328,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018102500-1304ad.json",
+      "bytes": 638444,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 543,
+        "files": 1994,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 117,
+        "git": 215785,
+        "fingerprints": 224877,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7328,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018130325-dd2da0.json",
+      "bytes": 645636,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 690,
+        "files": 534,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 1476,
+        "fingerprints": 211274,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018132401-c5d111.json",
+      "bytes": 642425,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 10,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 770,
+        "files": 95,
+        "businessRisk": 13,
+        "selfTest": 57,
+        "knownGaps": 2,
+        "git": 697,
+        "fingerprints": 210470,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018133503-848c0c.json",
+      "bytes": 642163,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 721,
+        "files": 95,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 615,
+        "fingerprints": 210411,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261018134113-f7d6ec.json",
+      "bytes": 642280,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 557,
+        "files": 95,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 729,
+        "fingerprints": 210502,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261019091504-e23a3e.json",
+      "bytes": 648290,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 10,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1221,
+        "files": 798,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 2166,
+        "fingerprints": 211939,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261019092547-d6429c.json",
+      "bytes": 653994,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2100,
+        "files": 798,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 608,
+        "git": 3588,
+        "fingerprints": 213362,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 284499,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022010306-fcd5d6.json",
+      "bytes": 979259,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 13,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2257,
+        "files": 8501,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 10581,
+        "fingerprints": 423305,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 295594,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022013005-4fc829.json",
+      "bytes": 983246,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2346,
+        "files": 8501,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 75,
+        "git": 11882,
+        "fingerprints": 424606,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 295594,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022013542-6c62e3.json",
+      "bytes": 985388,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 990,
+        "files": 8783,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 75,
+        "git": 12578,
+        "fingerprints": 425671,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 296099,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022020026-d99bbb.json",
+      "bytes": 987025,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 665,
+        "files": 8783,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 109,
+        "git": 13238,
+        "fingerprints": 426331,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 296099,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022023213-67df8c.json",
+      "bytes": 995875,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 12,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1457,
+        "files": 9225,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 76,
+        "git": 14873,
+        "fingerprints": 429048,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 297094,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022092843-6e9303.json",
+      "bytes": 1008579,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2843,
+        "files": 9585,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 17687,
+        "fingerprints": 432944,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 298089,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022131900-282815.json",
+      "bytes": 964248,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 13,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2381,
+        "files": 2253,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 162,
+        "git": 3315,
+        "fingerprints": 422128,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 301018,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261022133019-2ea740.json",
+      "bytes": 968778,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 13,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1263,
+        "files": 2630,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 69,
+        "git": 4106,
+        "fingerprints": 424198,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 302023,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261023012853-918599.json",
+      "bytes": 971472,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 13,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 879,
+        "files": 2692,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 18,
+        "git": 4886,
+        "fingerprints": 425284,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 302244,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261023024646-8c0b59.json",
+      "bytes": 963657,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1339,
+        "files": 935,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 126,
+        "git": 1997,
+        "fingerprints": 423432,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 303229,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261023032726-42cba0.json",
+      "bytes": 975270,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1761,
+        "files": 1979,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 148,
+        "git": 3865,
+        "fingerprints": 427119,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 304735,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261023075811-29dbd2.json",
+      "bytes": 984113,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 14,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2570,
+        "files": 2579,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 152,
+        "git": 5957,
+        "fingerprints": 429576,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 305234,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261024020055-18c33e.json",
+      "bytes": 983970,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 14,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 798,
+        "files": 2579,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 98,
+        "git": 6535,
+        "fingerprints": 430154,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 305234,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261024020739-7b9e30.json",
+      "bytes": 985093,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 14,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 713,
+        "files": 2579,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 98,
+        "git": 6949,
+        "fingerprints": 430568,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 305234,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261024124546-40a7ec.json",
+      "bytes": 1010919,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2339,
+        "files": 4715,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 116,
+        "git": 10914,
+        "fingerprints": 438414,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 308652,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261025094638-6f76b0.json",
+      "bytes": 1022808,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 17,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2693,
+        "files": 5484,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 193,
+        "git": 13660,
+        "fingerprints": 441920,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 309683,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261025125421-e0fbe0.json",
+      "bytes": 724750,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 10,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2469,
+        "files": 2920,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 4058,
+        "fingerprints": 236149,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 314059,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261025130530-eb6e48.json",
+      "bytes": 1536334,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 20,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 3571,
+        "files": 3336,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 257,
+        "git": 4833,
+        "fingerprints": 690987,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 481222,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261025140410-e7b753.json",
+      "bytes": 1542333,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 20,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1335,
+        "files": 3782,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 6352,
+        "fingerprints": 693947,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 482459,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026022132-804f18.json",
+      "bytes": 49019,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 771,
+        "files": 303,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 8135,
+        "fingerprints": 17578,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7775,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026031355-16ec52.json",
+      "bytes": 54541,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1100,
+        "files": 545,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 9506,
+        "fingerprints": 19250,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7993,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026063907-c4218e.json",
+      "bytes": 58133,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1231,
+        "files": 660,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 10612,
+        "fingerprints": 20357,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7994,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026092125-d3b2a1.json",
+      "bytes": 60687,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 895,
+        "files": 660,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 11601,
+        "fingerprints": 21346,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7994,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026120855-4108a5.json",
+      "bytes": 66075,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 922,
+        "files": 719,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 13400,
+        "fingerprints": 23145,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 7994,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261026134228-f7662c.json",
+      "bytes": 77555,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 20,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1071,
+        "files": 918,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 86,
+        "git": 16448,
+        "fingerprints": 26978,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 8670,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027010737-388256.json",
+      "bytes": 88510,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 20,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1090,
+        "files": 972,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 43,
+        "git": 19953,
+        "fingerprints": 30773,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 8883,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027014232-7be62b.json",
+      "bytes": 99780,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1111,
+        "files": 1078,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 23464,
+        "fingerprints": 34570,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 9094,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027015213-2f7a9f.json",
+      "bytes": 104133,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1132,
+        "files": 1078,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 24945,
+        "fingerprints": 36051,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 9094,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027024555-4ff815.json",
+      "bytes": 203300,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2347,
+        "files": 2953,
+        "businessRisk": 13,
+        "selfTest": 59,
+        "knownGaps": 2,
+        "git": 26869,
+        "fingerprints": 76976,
+        "recommendedProfiles": 11,
+        "snapshotPath": 38,
+        "snapshotManifest": 39492,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027024816-5a1cf9.json",
+      "bytes": 730742,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2194,
+        "files": 4424,
+        "businessRisk": 13,
+        "selfTest": 59,
+        "knownGaps": 2,
+        "git": 27283,
+        "fingerprints": 307694,
+        "recommendedProfiles": 11,
+        "snapshotPath": 38,
+        "snapshotManifest": 206886,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027031726-30842b.json",
+      "bytes": 658019,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2333,
+        "files": 3042,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 28573,
+        "fingerprints": 297196,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 179222,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027034213-898afe.json",
+      "bytes": 661429,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 21,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1171,
+        "files": 3042,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 30137,
+        "fingerprints": 298760,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 179222,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027041226-5c9d55.json",
+      "bytes": 668043,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 22,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2655,
+        "files": 3158,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 31810,
+        "fingerprints": 300435,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 179223,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027043524-cb5539.json",
+      "bytes": 1109767,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1722,
+        "files": 6135,
+        "businessRisk": 13,
+        "selfTest": 59,
+        "knownGaps": 2,
+        "git": 34100,
+        "fingerprints": 473337,
+        "recommendedProfiles": 11,
+        "snapshotPath": 38,
+        "snapshotManifest": 318988,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027044854-190346.json",
+      "bytes": 1114773,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1868,
+        "files": 6198,
+        "businessRisk": 13,
+        "selfTest": 59,
+        "knownGaps": 2,
+        "git": 35476,
+        "fingerprints": 475023,
+        "recommendedProfiles": 11,
+        "snapshotPath": 38,
+        "snapshotManifest": 319211,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027065059-f2c0ac.json",
+      "bytes": 1120105,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 22,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2022,
+        "files": 6264,
+        "businessRisk": 13,
+        "selfTest": 59,
+        "knownGaps": 2,
+        "git": 36965,
+        "fingerprints": 476829,
+        "recommendedProfiles": 11,
+        "snapshotPath": 38,
+        "snapshotManifest": 319437,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027112157-ebff23.json",
+      "bytes": 1137692,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2009,
+        "files": 8370,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 112,
+        "git": 40789,
+        "fingerprints": 482149,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 320458,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027115400-6ee0b2.json",
+      "bytes": 1142371,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1915,
+        "files": 8534,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 101,
+        "git": 42343,
+        "fingerprints": 483703,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 320458,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261027123307-f320b4.json",
+      "bytes": 1144847,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 23,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1965,
+        "files": 8534,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 125,
+        "git": 43162,
+        "fingerprints": 484522,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 320458,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028000358-732bdf.json",
+      "bytes": 1151802,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1671,
+        "files": 8936,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 45466,
+        "fingerprints": 486826,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 320458,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028001602-440143.json",
+      "bytes": 1157136,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 804,
+        "files": 9308,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 46498,
+        "fingerprints": 488960,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 321461,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028002145-55518e.json",
+      "bytes": 1158270,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 487,
+        "files": 9308,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 46994,
+        "fingerprints": 489458,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 321462,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028005552-275e82.json",
+      "bytes": 1052359,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 25,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2240,
+        "files": 40663,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 49,
+        "git": 48964,
+        "fingerprints": 448025,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 267551,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028010243-671d55.json",
+      "bytes": 1053336,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 25,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 713,
+        "files": 41241,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 49,
+        "git": 49542,
+        "fingerprints": 448603,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 267551,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028021245-f4c95c.json",
+      "bytes": 1018021,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 20,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1128,
+        "files": 818,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 2330,
+        "fingerprints": 445813,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 322450,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028092502-0f6037.json",
+      "bytes": 1023047,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 23,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1747,
+        "files": 1006,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 195,
+        "git": 2759,
+        "fingerprints": 447337,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 323452,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261028105347-defc40.json",
+      "bytes": 741783,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 10,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2082,
+        "files": 1006,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 230,
+        "git": 3401,
+        "fingerprints": 242805,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 323452,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261029101047-774313.json",
+      "bytes": 1023040,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 18,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1002,
+        "files": 443,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 180,
+        "git": 1623,
+        "fingerprints": 448002,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 325454,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261029121039-25aaa7.json",
+      "bytes": 1025730,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 11,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1107,
+        "files": 735,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 2038,
+        "fingerprints": 448760,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 325935,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261029141334-977163.json",
+      "bytes": 1024266,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 15,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 655,
+        "files": 391,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 1847,
+        "fingerprints": 448567,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 325935,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261030000612-d2695d.json",
+      "bytes": 1029830,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 971,
+        "files": 791,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 2382,
+        "fingerprints": 450480,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 326896,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261030123553-bd1241.json",
+      "bytes": 1045639,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2191,
+        "files": 2393,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 4477,
+        "fingerprints": 455261,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 328787,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261030125441-cd53f4.json",
+      "bytes": 1048291,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2235,
+        "files": 2393,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 5363,
+        "fingerprints": 456147,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 328787,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261030131243-e1a262.json",
+      "bytes": 1051230,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2356,
+        "files": 2447,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 6272,
+        "fingerprints": 457056,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 328787,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031021915-9c7714.json",
+      "bytes": 1065790,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 2401,
+        "files": 3924,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 9456,
+        "fingerprints": 461625,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 329752,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031044619-5563b7.json",
+      "bytes": 616598,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 726,
+        "files": 559,
+        "businessRisk": 13,
+        "selfTest": 58,
+        "knownGaps": 2,
+        "git": 14087,
+        "fingerprints": 285254,
+        "recommendedProfiles": 10,
+        "snapshotPath": 38,
+        "snapshotManifest": 181135,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031045140-2cd3d8.json",
+      "bytes": 1081710,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 8,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 9,
+        "summary": 1527,
+        "files": 4272,
+        "businessRisk": 13,
+        "selfTest": 76,
+        "knownGaps": 2,
+        "git": 14501,
+        "fingerprints": 467126,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 330197,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031070331-0772cb.json",
+      "bytes": 1047696,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 10,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 660,
+        "files": 491,
+        "businessRisk": 13,
+        "selfTest": 57,
+        "knownGaps": 2,
+        "git": 616,
+        "fingerprints": 459217,
+        "recommendedProfiles": 9,
+        "snapshotPath": 38,
+        "snapshotManifest": 334506,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031070740-7a8a8f.json",
+      "bytes": 1046607,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 925,
+        "files": 611,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 4222,
+        "fingerprints": 457351,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 330687,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031072012-3ed2fd.json",
+      "bytes": 1050554,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 19,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 1097,
+        "files": 792,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 4972,
+        "fingerprints": 458642,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 331182,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    },
+    {
+      "n": "DEL-20261031081842-1227f3.json",
+      "bytes": 1038650,
+      "parts": {
+        "schemaVersion": 1,
+        "deliveryId": 27,
+        "taskId": 14,
+        "taskRevision": 1,
+        "actor": 8,
+        "tool": 8,
+        "model": 14,
+        "summary": 545,
+        "files": 271,
+        "businessRisk": 13,
+        "selfTest": 66,
+        "knownGaps": 2,
+        "git": 1067,
+        "fingerprints": 455068,
+        "recommendedProfiles": 18,
+        "snapshotPath": 38,
+        "snapshotManifest": 331675,
+        "independentReviewPassed": 5,
+        "createdAt": 26
+      }
+    }
+  ],
+  "projs": [
+    {
+      "f": "tools/semcheck/semcheck.csproj",
+      "bytes": 85802,
+      "refs": 352,
+      "compile": 1
+    },
+    {
+      "f": "tools/semcheck/semcheck_tests.csproj",
+      "bytes": 85655,
+      "refs": 351,
+      "compile": 1
+    },
+    {
+      "f": "tools/balance/AirlineCEO.Balance.csproj",
+      "bytes": 9735,
+      "refs": 0,
+      "compile": 69
+    }
+  ],
+  "png": {
+    "count": 96,
+    "bytes": 592841527
+  },
+  "outDirs": [
+    {
+      "n": "ai-result",
+      "library": false
+    },
+    {
+      "n": "ai-trigger",
+      "library": false
+    },
+    {
+      "n": "b17",
+      "library": true
+    },
+    {
+      "n": "b17-accept-1024",
+      "library": true
+    },
+    {
+      "n": "b17-acct-1025",
+      "library": false
+    },
+    {
+      "n": "b17-acct-1025b",
+      "library": true
+    },
+    {
+      "n": "b17-acct-1025c",
+      "library": false
+    },
+    {
+      "n": "b17-acct-1025d",
+      "library": true
+    },
+    {
+      "n": "b17-c1",
+      "library": true
+    },
+    {
+      "n": "b17-c2",
+      "library": true
+    },
+    {
+      "n": "b17-capdel-1029",
+      "library": true
+    },
+    {
+      "n": "b17-capdel2-1029",
+      "library": true
+    },
+    {
+      "n": "b17-capdel3-1029",
+      "library": true
+    },
+    {
+      "n": "b17-capdel4-1029",
+      "library": true
+    },
+    {
+      "n": "b17-capdel5-1029",
+      "library": true
+    },
+    {
+      "n": "b17-cmdlog-1025",
+      "library": true
+    },
+    {
+      "n": "b17-copy-1025",
+      "library": true
+    },
+    {
+      "n": "b17-d1",
+      "library": true
+    },
+    {
+      "n": "b17-dash",
+      "library": true
+    },
+    {
+      "n": "b17-dash2",
+      "library": true
+    },
+    {
+      "n": "b17-dash3",
+      "library": true
+    },
+    {
+      "n": "b17-dash4",
+      "library": true
+    },
+    {
+      "n": "b17-dash5",
+      "library": true
+    },
+    {
+      "n": "b17-dash6",
+      "library": true
+    },
+    {
+      "n": "b17-e1",
+      "library": true
+    },
+    {
+      "n": "b17-e2",
+      "library": true
+    },
+    {
+      "n": "b17-e3",
+      "library": true
+    },
+    {
+      "n": "b17-f1",
+      "library": true
+    },
+    {
+      "n": "b17-final",
+      "library": true
+    },
+    {
+      "n": "b17-neg-planeicons",
+      "library": true
+    },
+    {
+      "n": "b17-neg1-1029",
+      "library": true
+    },
+    {
+      "n": "b17-pass",
+      "library": true
+    },
+    {
+      "n": "b17-planeicons",
+      "library": true
+    },
+    {
+      "n": "b17-planeui",
+      "library": true
+    },
+    {
+      "n": "b17-planeui2",
+      "library": true
+    },
+    {
+      "n": "b17-planeui3",
+      "library": true
+    },
+    {
+      "n": "b17-playmode",
+      "library": false
+    },
+    {
+      "n": "b17-residual",
+      "library": false
+    },
+    {
+      "n": "b17-rot",
+      "library": true
+    },
+    {
+      "n": "b17-rot2",
+      "library": true
+    },
+    {
+      "n": "b17-rot3",
+      "library": true
+    },
+    {
+      "n": "b17-rot4",
+      "library": true
+    },
+    {
+      "n": "b17-rulings-1025",
+      "library": true
+    },
+    {
+      "n": "b17-rulings2-1025",
+      "library": true
+    },
+    {
+      "n": "b17-rulings3-1025",
+      "library": true
+    },
+    {
+      "n": "b17-s12b-1025",
+      "library": true
+    },
+    {
+      "n": "b17-s12c-1025",
+      "library": true
+    },
+    {
+      "n": "b17-s12d-1025",
+      "library": true
+    },
+    {
+      "n": "b17-s42",
+      "library": true
+    },
+    {
+      "n": "b17-t038",
+      "library": false
+    },
+    {
+      "n": "b17-verified",
+      "library": true
+    },
+    {
+      "n": "b17-writecmd-1025",
+      "library": true
+    },
+    {
+      "n": "b17-zoom1",
+      "library": true
+    },
+    {
+      "n": "b17-zoom2",
+      "library": true
+    },
+    {
+      "n": "baseline_old",
+      "library": false
+    },
+    {
+      "n": "baseline_prev",
+      "library": false
+    },
+    {
+      "n": "collab",
+      "library": false
+    },
+    {
+      "n": "crop",
+      "library": false
+    },
+    {
+      "n": "icon-preview",
+      "library": false
+    },
+    {
+      "n": "iconpreview",
+      "library": false
+    },
+    {
+      "n": "onmap",
+      "library": false
+    },
+    {
+      "n": "scene_backup_20261013_153154",
+      "library": false
+    },
+    {
+      "n": "scene_backup_20261013_171228",
+      "library": false
+    },
+    {
+      "n": "screens",
+      "library": false
+    },
+    {
+      "n": "shot_crops",
+      "library": false
+    },
+    {
+      "n": "t03ui",
+      "library": false
+    },
+    {
+      "n": "unity",
+      "library": false
+    },
+    {
+      "n": "unity_scene_backup_20261010_164552",
+      "library": false
+    },
+    {
+      "n": "unity_scene_backup_20261010_202109",
+      "library": false
+    },
+    {
+      "n": "unity_scene_backup_20261011_192139",
+      "library": false
+    },
+    {
+      "n": "unity_scene_backup_20261013_105622",
+      "library": false
+    },
+    {
+      "n": "unity_scene_backup_20261014_202436",
+      "library": false
+    }
+  ],
+  "snapshots": [
+    {
+      "n": "DEL-20261017065745-c9b348",
+      "library": false
+    },
+    {
+      "n": "DEL-20261017095048-cfd9dd",
+      "library": false
+    },
+    {
+      "n": "DEL-20261017122743-589b23",
+      "library": false
+    },
+    {
+      "n": "DEL-20261017150657-dd9483",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018021952-ba9a3f",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018022444-a55ae4",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018032237-012f93",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018033132-39a1e3",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018033139-af5cca",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018033145-e77a66",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018034551-e2de28",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018034913-0a6e9f",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018035450-a94911",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018035835-766dc7",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018050538-fe84c9",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018051637-e21eae",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018071756-010504",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018093142-e163dc",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018093335-80f2f4",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018102037-2afe59",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018102500-1304ad",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018130325-dd2da0",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018132401-c5d111",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018133503-848c0c",
+      "library": false
+    },
+    {
+      "n": "DEL-20261018134113-f7d6ec",
+      "library": false
+    },
+    {
+      "n": "DEL-20261019091504-e23a3e",
+      "library": false
+    },
+    {
+      "n": "DEL-20261019092547-d6429c",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022010306-fcd5d6",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022013005-4fc829",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022013542-6c62e3",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022020026-d99bbb",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022023213-67df8c",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022092843-6e9303",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022131900-282815",
+      "library": false
+    },
+    {
+      "n": "DEL-20261022133019-2ea740",
+      "library": false
+    },
+    {
+      "n": "DEL-20261023012853-918599",
+      "library": false
+    },
+    {
+      "n": "DEL-20261023024646-8c0b59",
+      "library": false
+    },
+    {
+      "n": "DEL-20261023032726-42cba0",
+      "library": false
+    },
+    {
+      "n": "DEL-20261023075811-29dbd2",
+      "library": false
+    },
+    {
+      "n": "DEL-20261024020055-18c33e",
+      "library": false
+    },
+    {
+      "n": "DEL-20261024020739-7b9e30",
+      "library": false
+    },
+    {
+      "n": "DEL-20261024124546-40a7ec",
+      "library": false
+    },
+    {
+      "n": "DEL-20261025094638-6f76b0",
+      "library": false
+    },
+    {
+      "n": "DEL-20261025125421-e0fbe0",
+      "library": false
+    },
+    {
+      "n": "DEL-20261025130530-eb6e48",
+      "library": false
+    },
+    {
+      "n": "DEL-20261025140410-e7b753",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026022132-804f18",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026031355-16ec52",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026063907-c4218e",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026092125-d3b2a1",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026120855-4108a5",
+      "library": false
+    },
+    {
+      "n": "DEL-20261026134228-f7662c",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027010737-388256",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027014232-7be62b",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027015213-2f7a9f",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027024555-4ff815",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027024816-5a1cf9",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027031726-30842b",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027034213-898afe",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027041226-5c9d55",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027043524-cb5539",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027044854-190346",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027065059-f2c0ac",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027112157-ebff23",
+      "library": true
+    },
+    {
+      "n": "DEL-20261027115400-6ee0b2",
+      "library": false
+    },
+    {
+      "n": "DEL-20261027123307-f320b4",
+      "library": true
+    },
+    {
+      "n": "DEL-20261028000358-732bdf",
+      "library": false
+    },
+    {
+      "n": "DEL-20261028001602-440143",
+      "library": false
+    },
+    {
+      "n": "DEL-20261028002145-55518e",
+      "library": true
+    },
+    {
+      "n": "DEL-20261028005552-275e82",
+      "library": false
+    },
+    {
+      "n": "DEL-20261028010243-671d55",
+      "library": false
+    },
+    {
+      "n": "DEL-20261028021245-f4c95c",
+      "library": true
+    },
+    {
+      "n": "DEL-20261028092502-0f6037",
+      "library": true
+    },
+    {
+      "n": "DEL-20261028105347-defc40",
+      "library": false
+    },
+    {
+      "n": "DEL-20261029101047-774313",
+      "library": true
+    },
+    {
+      "n": "DEL-20261029121039-25aaa7",
+      "library": true
+    },
+    {
+      "n": "DEL-20261029141334-977163",
+      "library": true
+    },
+    {
+      "n": "DEL-20261030000612-d2695d",
+      "library": true
+    },
+    {
+      "n": "DEL-20261030123553-bd1241",
+      "library": false
+    },
+    {
+      "n": "DEL-20261030125441-cd53f4",
+      "library": false
+    },
+    {
+      "n": "DEL-20261030131243-e1a262",
+      "library": true
+    },
+    {
+      "n": "DEL-20261031021915-9c7714",
+      "library": true
+    },
+    {
+      "n": "DEL-20261031044619-5563b7",
+      "library": false
+    },
+    {
+      "n": "DEL-20261031045140-2cd3d8",
+      "library": true
+    },
+    {
+      "n": "DEL-20261031070331-0772cb",
+      "library": false
+    },
+    {
+      "n": "DEL-20261031070740-7a8a8f",
+      "library": false
+    },
+    {
+      "n": "DEL-20261031072012-3ed2fd",
+      "library": true
+    },
+    {
+      "n": "DEL-20261031081842-1227f3",
+      "library": true
+    }
+  ]
+}
