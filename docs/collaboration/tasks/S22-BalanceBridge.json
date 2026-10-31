@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T04:34:40.494Z",
-  "updatedAt": "2026-10-31T08:45:22.258Z",
+  "updatedAt": "2026-10-31T13:43:21.763Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 20 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/collab/cli.mjs, tools/collab/lib/stage.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 21 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/collab/cli.mjs, tools/collab/lib/stage.mjs …).",
   "staleForReviewId": "REV-20261027043857-e4c054",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -98,8 +98,8 @@
   },
   "scopeDrift": {
     "basis": 80,
-    "intact": 55,
-    "covered": 20,
+    "intact": 54,
+    "covered": 21,
     "uncovered": [
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "tools/collab/cli.mjs",

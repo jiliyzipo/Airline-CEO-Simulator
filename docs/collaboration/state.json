@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 833,
-  "updatedAt": "2026-10-31T08:55:49.219Z",
+  "revision": 840,
+  "updatedAt": "2026-10-31T13:43:22.478Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -459,12 +459,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T08:18:27.532Z"
+    },
+    "S46-CodeHealthShakedown": {
+      "title": "Phase 1 首批流程演练：目标为零、仅验证流程",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T12:56:32.064Z"
     }
   },
-  "lastDeliveryId": "DEL-20261031081842-1227f3",
+  "lastDeliveryId": "DEL-20261031130233-d734b9",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

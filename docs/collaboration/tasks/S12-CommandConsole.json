@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-10-31T08:45:20.117Z",
+  "updatedAt": "2026-10-31T13:43:21.565Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 11 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, docs/handoff/Baseline_2026-10-17.json).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 12 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, docs/handoff/Baseline_2026-10-17.json).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,8 +73,8 @@
   },
   "scopeDrift": {
     "basis": 44,
-    "intact": 31,
-    "covered": 11,
+    "intact": 30,
+    "covered": 12,
     "uncovered": [
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "docs/handoff/Baseline_2026-10-17.json"

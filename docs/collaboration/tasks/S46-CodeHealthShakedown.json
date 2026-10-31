@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S46-CodeHealthShakedown",
+  "title": "Phase 1 首批流程演练：目标为零、仅验证流程",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "用户明确授权的4个源码文件；ReadField删除和Editor诊断Trim转发；人工源码4+报告1，任务记录1，总计6；不新增cs/meta",
+    "目标为零、仅验证流程；不计入Phase 1指标进度；千行文件25→25；行数目标已关闭；不触及导入/sync"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S46-CodeHealthShakedown）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S46-CodeHealthShakedown）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S46-CodeHealthShakedown）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "user-approved-codehealth-shakedown-2026-10-31",
+  "createdAt": "2026-10-31T12:56:32.064Z",
+  "updatedAt": "2026-10-31T13:43:22.453Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab"
+  ],
+  "freshnessNote": "Review REV-20261031133752-c22bc2 still applies to delivery DEL-20261031130233-d734b9.",
+  "staleForReviewId": null
+}

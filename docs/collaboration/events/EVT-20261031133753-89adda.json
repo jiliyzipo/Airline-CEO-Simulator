@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031133753-89adda",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 836,
+  "at": "2026-10-31T13:37:53.003Z",
+  "actor": "cursor",
+  "action": "review-start",
+  "taskId": "S46-CodeHealthShakedown",
+  "deliveryId": "DEL-20261031130233-d734b9",
+  "reviewId": "REV-20261031133752-c22bc2",
+  "parentEventId": null,
+  "summary": "review-start REV-20261031133752-c22bc2 profile=unity-editmode",
+  "data": {
+    "reviewException": true,
+    "authorization": {
+      "schemaVersion": 1,
+      "grantedBy": "user",
+      "actor": "cursor",
+      "developerActor": "codex",
+      "projectId": "Airline-CEO-Simulator",
+      "taskId": "S46-CodeHealthShakedown",
+      "deliveryId": "DEL-20261031130233-d734b9",
+      "statement": "用户授权 Cursor 以 actor=cursor 对 DEL-20261031130233-d734b9 执行反向复验（review-start/run/evidence/finish），仅限 unity-editmode profile 与下列三类指纹。",
+      "actions": [
+        "review-start",
+        "review-run",
+        "review-evidence",
+        "review-finish"
+      ],
+      "profiles": [
+        "unity-editmode"
+      ],
+      "subjectFingerprints": {
+        "implementation": "493ee3d9baee5a027b853d8452cf14fe743e35302aaa5f3796a787cf90467adf",
+        "verification": "baf2ac00d3999ca7f5c37949cf61cf32287a417cbca2b7d25b01a6b28cb33f2f",
+        "contract": "50ac389a7c206ac48298d525ea4ffed886dbed49ddf957584e83ecd85ccef80b"
+      },
+      "sha256": "1ba9e4b62e8c4145fb6e24a54fb6287ae1fc319b4fc7c21e6086c9a61f181d90"
+    }
+  }
+}

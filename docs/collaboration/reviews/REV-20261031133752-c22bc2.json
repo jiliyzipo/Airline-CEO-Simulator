@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261031133752-c22bc2",
+  "deliveryId": "DEL-20261031130233-d734b9",
+  "taskId": "S46-CodeHealthShakedown",
+  "taskRevision": 1,
+  "actor": "cursor",
+  "status": "passed",
+  "profile": "unity-editmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "EditMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity EditMode tests in the isolated snapshot; refuses to run unless companyName=AirlineCEORegression; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "reviewException": true,
+  "authorization": {
+    "schemaVersion": 1,
+    "grantedBy": "user",
+    "actor": "cursor",
+    "developerActor": "codex",
+    "projectId": "Airline-CEO-Simulator",
+    "taskId": "S46-CodeHealthShakedown",
+    "deliveryId": "DEL-20261031130233-d734b9",
+    "statement": "用户授权 Cursor 以 actor=cursor 对 DEL-20261031130233-d734b9 执行反向复验（review-start/run/evidence/finish），仅限 unity-editmode profile 与下列三类指纹。",
+    "actions": [
+      "review-start",
+      "review-run",
+      "review-evidence",
+      "review-finish"
+    ],
+    "profiles": [
+      "unity-editmode"
+    ],
+    "subjectFingerprints": {
+      "implementation": "493ee3d9baee5a027b853d8452cf14fe743e35302aaa5f3796a787cf90467adf",
+      "verification": "baf2ac00d3999ca7f5c37949cf61cf32287a417cbca2b7d25b01a6b28cb33f2f",
+      "contract": "50ac389a7c206ac48298d525ea4ffed886dbed49ddf957584e83ecd85ccef80b"
+    },
+    "sha256": "1ba9e4b62e8c4145fb6e24a54fb6287ae1fc319b4fc7c21e6086c9a61f181d90"
+  },
+  "subjectFingerprints": {
+    "implementation": "493ee3d9baee5a027b853d8452cf14fe743e35302aaa5f3796a787cf90467adf",
+    "verification": "baf2ac00d3999ca7f5c37949cf61cf32287a417cbca2b7d25b01a6b28cb33f2f",
+    "contract": "50ac389a7c206ac48298d525ea4ffed886dbed49ddf957584e83ecd85ccef80b"
+  },
+  "snapshotPath": "out/collab/DEL-20261031130233-d734b9",
+  "createdAt": "2026-10-31T13:37:52.985Z",
+  "updatedAt": "2026-10-31T13:43:10.396Z",
+  "runs": [
+    {
+      "at": "2026-10-31T13:38:03.396Z",
+      "finishedAt": "2026-10-31T13:40:39.983Z",
+      "runToken": "52b15510d42cf1dc",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261031130233-d734b9",
+      "subjectImplementationFingerprint": "493ee3d9baee5a027b853d8452cf14fe743e35302aaa5f3796a787cf90467adf",
+      "subjectFingerprints": {
+        "implementation": "493ee3d9baee5a027b853d8452cf14fe743e35302aaa5f3796a787cf90467adf",
+        "verification": "baf2ac00d3999ca7f5c37949cf61cf32287a417cbca2b7d25b01a6b28cb33f2f",
+        "contract": "50ac389a7c206ac48298d525ea4ffed886dbed49ddf957584e83ecd85ccef80b"
+      },
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "52b15510d42cf1dc"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261031130233-d734b9",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261031133752-c22bc2/run-52b15510d42cf1dc/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261031133752-c22bc2/run-52b15510d42cf1dc/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261031133752-c22bc2/run-52b15510d42cf1dc/stdout.txt",
+        "sha256": "504b87fb8e3f694b2ce220f4fdf65e6bca9a93033235acd5be038a5b9a109180",
+        "bytes": 64,
+        "runToken": "52b15510d42cf1dc"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261031133752-c22bc2/run-52b15510d42cf1dc/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "52b15510d42cf1dc"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_52b15510d42cf1dc.xml",
+        "runToken": "52b15510d42cf1dc",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261031130233-d734b9",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b",
+          "bytes": 66827,
+          "mtimeMs": 1793454036908.4697
+        },
+        "producedByRun": true,
+        "sha256": "16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=52b15510d42cf1dc | review-run 在交付快照 out/collab/DEL-20261031130233-d734b9 内执行，外部退出码 0；工具已将 CWD 绑定到快照目录"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=52b15510d42cf1dc | Unity Project/Logs/Tasks20261017_52b15510d42cf1dc.xml 由本 run 生成，sha256=16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=52b15510d42cf1dc counters={\"total\":59,\"passed\":59,\"failed\":0,\"skipped\":0,\"inconclusive\":0} result=Passed"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-31T13:38:03.380Z",
+  "assertions": {
+    "total": 59,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_52b15510d42cf1dc.xml",
+      "sha256": "16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b",
+      "total": 59,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 59
+    },
+    "counters": {
+      "total": 59,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 59
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/authorizations/S46-review-evidence.json",
+  "finishedAt": "2026-10-31T13:43:10.396Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "52b15510d42cf1dc",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_52b15510d42cf1dc.xml",
+      "runToken": "52b15510d42cf1dc",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261031130233-d734b9",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b",
+        "bytes": 66827,
+        "mtimeMs": 1793454036908.4697
+      },
+      "producedByRun": true,
+      "sha256": "16bafe3ebc2b7f0800ed3290c6825f93ab4164e443028433d9a58738a89f5b8b"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261031130233-d734b9"
+  }
+}

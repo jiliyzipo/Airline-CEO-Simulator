@@ -54,14 +54,14 @@
   "blockers": [],
   "sourceTaskBook": null,
   "createdAt": "2026-10-27T02:20:19.490Z",
-  "updatedAt": "2026-10-31T08:45:21.085Z",
+  "updatedAt": "2026-10-31T13:43:21.683Z",
   "snapshotRoots": [
     "Unity Project/Assets/Scripts",
     "Unity Project/Assets/Tests",
     "tools/semcheck",
     "tools/regression"
   ],
-  "freshnessNote": "Historic verdict REV-20261027033436-155e44 covered 51 changed files; 12 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/regression/ai-run.mjs).",
+  "freshnessNote": "Historic verdict REV-20261027033436-155e44 covered 51 changed files; 13 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/regression/ai-run.mjs).",
   "staleForReviewId": "REV-20261027033436-155e44",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -98,8 +98,8 @@
   },
   "scopeDrift": {
     "basis": 51,
-    "intact": 37,
-    "covered": 12,
+    "intact": 36,
+    "covered": 13,
     "uncovered": [
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "tools/regression/ai-run.mjs"

@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T07:19:53.632Z",
-  "updatedAt": "2026-10-31T08:45:37.819Z",
+  "updatedAt": "2026-10-31T13:43:22.442Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261031083615-e0bc7e passed delivery DEL-20261031072012-3ed2fd; verification baseline changed — re-review required.",
+  "freshnessNote": "Historical review REV-20261031083615-e0bc7e passed delivery DEL-20261031072012-3ed2fd; current workspace needs re-review.",
   "staleForReviewId": "REV-20261031083615-e0bc7e"
 }
