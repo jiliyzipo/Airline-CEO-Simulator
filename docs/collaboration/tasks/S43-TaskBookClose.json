@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "queued",
-  "freshness": "stale",
+  "freshness": "unknown",
   "holder": null,
   "scope": [
     "本阶段改动范围：Assets-Tests、Editor、Balance",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T07:07:22.921Z",
-  "updatedAt": "2026-10-31T07:19:37.231Z",
+  "updatedAt": "2026-10-31T07:36:15.898Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,13 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Delivery snapshot differs from current workspace.",
-  "staleForReviewId": null
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261031072012-3ed2fd",
+    "taskId": "S44-TaskBookClose",
+    "actor": "cursor",
+    "note": "预检失败（快照多出未列入清单的 .meta），补 .meta 后由 S44 重新交付",
+    "at": "2026-10-31T07:36:05.416Z"
+  }
 }

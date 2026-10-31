@@ -38,5 +38,4 @@
 - S40-UI: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S41-CollabFpCache: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S42-Docs: 已交付，等待 Codex；不要自行勾选独立验收通过。
-- S43-TaskBookClose: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S44-TaskBookClose: 已交付，等待 Codex；不要自行勾选独立验收通过。

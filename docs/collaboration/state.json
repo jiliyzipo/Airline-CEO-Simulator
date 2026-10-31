@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 815,
-  "updatedAt": "2026-10-31T07:20:35.776Z",
+  "revision": 819,
+  "updatedAt": "2026-10-31T07:36:16.061Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -441,9 +441,9 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "queued",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "unknown",
       "taskBookStatus": null,
-      "updatedAt": "2026-10-31T07:07:22.921Z"
+      "updatedAt": "2026-10-31T07:36:05.416Z"
     },
     "S44-TaskBookClose": {
       "title": "阶段 S44：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填）",
@@ -746,6 +746,14 @@
       "actor": "cursor",
       "note": "对比基准选了 git porcelain，而代码已先提交，交付只扫到 sync 生成的协作文件，未覆盖真实交付（测试、balance csproj、任务书）。改为回退提交后按工作树重新收口。",
       "at": "2026-10-31T07:05:05.018Z"
+    },
+    "DEL-20261031070740-7a8a8f": {
+      "status": "superseded",
+      "supersededBy": "DEL-20261031072012-3ed2fd",
+      "taskId": "S43-TaskBookClose",
+      "actor": "cursor",
+      "note": "预检失败（快照多出未列入清单的 .meta），补 .meta 后由 S44 重新交付",
+      "at": "2026-10-31T07:36:05.340Z"
     }
   }
 }

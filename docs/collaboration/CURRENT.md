@@ -1,10 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-31T07:30:48.158Z
-状态 revision：815
-Cursor 最近确认读取：revision 813 @ 2026-10-31T07:19:39.762Z
+生成时间：2026-10-31T07:36:50.253Z
+状态 revision：819
+Cursor 最近确认读取：revision 819 @ 2026-10-31T07:36:47.404Z
 Codex 最近确认读取：revision 795 @ 2026-10-31T05:04:10.666Z
-> 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
@@ -100,9 +99,9 @@ Codex 最近确认读取：revision 795 @ 2026-10-31T05:04:10.666Z
   - Historical review REV-20261031050428-d5f159 passed delivery DEL-20261031044619-5563b7; current workspace needs re-review.
 - **S42-Docs** 阶段 S42-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
-- **S43-TaskBookClose** 阶段 S43：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填） · 开发=ready_for_review · 检测=queued · freshness=stale · holder=-
-  - Delivery snapshot differs from current workspace.
+- **S43-TaskBookClose** 阶段 S43：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填） · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261031072012-3ed2fd（S44-TaskBookClose）取代
 - **S44-TaskBookClose** 阶段 S44：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填） · 开发=ready_for_review · 检测=queued · freshness=current · holder=-
+  - Delivery matches current fingerprints; awaiting review.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用

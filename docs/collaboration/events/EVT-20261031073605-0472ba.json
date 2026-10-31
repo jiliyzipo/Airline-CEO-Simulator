@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031073605-0472ba",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 817,
+  "at": "2026-10-31T07:36:05.361Z",
+  "actor": "cursor",
+  "action": "delivery-superseded",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "superseded: DEL-20261031070740-7a8a8f",
+  "data": {
+    "marked": [
+      "DEL-20261031070740-7a8a8f"
+    ],
+    "note": "预检失败（快照多出未列入清单的 .meta），补 .meta 后由 S44 重新交付"
+  }
+}

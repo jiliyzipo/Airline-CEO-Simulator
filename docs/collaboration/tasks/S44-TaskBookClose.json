@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T07:19:53.632Z",
-  "updatedAt": "2026-10-31T07:20:35.749Z",
+  "updatedAt": "2026-10-31T07:35:03.806Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -44,5 +44,7 @@
     "Unity Project/Assets/Tests",
     "tools/collab/tests",
     "tools/collab/config.example.json"
-  ]
+  ],
+  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "staleForReviewId": null
 }
