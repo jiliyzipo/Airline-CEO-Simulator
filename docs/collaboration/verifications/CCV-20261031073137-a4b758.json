@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ccvId": "CCV-20261031073137-a4b758",
+  "kind": "clean-checkout-byte-reproduction",
+  "actor": "cursor",
+  "createdAt": "2026-10-31T07:32:45.127Z",
+  "gitHead": "f5b0d218c742dd1a8e953941d7a11cfc62a7a828",
+  "gitBranch": "cursor/phase10-fleet-management",
+  "treeFingerprint": "a468fed104f02c39c6e2b5dedf64443da1bef3f7543e93c636dc75e3b636d552",
+  "worktreeClean": true,
+  "ignoredForDirtyCheck": [
+    "docs/collaboration",
+    "out/collab",
+    ".collab-local"
+  ],
+  "fileCount": 3821,
+  "baselineFileCount": 2404,
+  "recordFileCount": 1417,
+  "byteIdentical": 2404,
+  "different": [],
+  "differentCount": 0,
+  "missing": [],
+  "missingCount": 0,
+  "ok": true,
+  "claims": "Every baseline file tracked at gitHead is reproduced byte-for-byte by \"git clone\" of this repository into an empty directory. Collaboration records are excluded: they are notes about the baseline, and writing one changes it.",
+  "doesNotClaim": "Unity editor import, compilation or gameplay launch from the clone. Those need their own recorded run and evidence.",
+  "evidence": [
+    {
+      "path": "out/b17-s42/Unity Project/Logs/Tasks20261017_b17s42e3.xml",
+      "sha256": "7c2f5c3502121c31b80dc5d5bd3a381d6dd1147f57e148a0157dff3bb10d02a8",
+      "bytes": 66750
+    },
+    {
+      "path": "out/b17-s42/Unity Project/Logs/Tasks20261017_b17s42p4.xml",
+      "sha256": "5eb7daa68d2c6a06487acd69e96962dad092980470b269c9c68a92d985615d62",
+      "bytes": 223507
+    }
+  ],
+  "statement": "T02 干净检出复验（提交后重跑）：git clone HEAD f5b0d21 逐文件 SHA256 比对工作树",
+  "clonePath": null
+}
