@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S40-UI",
+  "title": "阶段 S40-UI：UI/Logic/Systems",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：UI、Logic、Systems、Assets-Tests、Assets-Resources、Collab",
+    "改动文件数 48，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S40-UI）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S40-UI）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S40-UI）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-31T02:18:44.439Z",
+  "updatedAt": "2026-10-31T05:22:07.492Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Review REV-20261031050706-9fdd8a still applies to delivery DEL-20261031045140-2cd3d8.",
+  "staleForReviewId": null
+}

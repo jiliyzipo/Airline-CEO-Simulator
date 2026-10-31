@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031511-e3a1c1",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 769,
+  "at": "2026-10-31T03:15:11.220Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S39-UI",
+  "deliveryId": "DEL-20261030131243-e1a262",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=30 drifted=2",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/slotcheck/Program.cs"
+    ]
+  }
+}

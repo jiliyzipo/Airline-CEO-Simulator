@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S39-UI",
+  "title": "阶段 S39-UI：UI/Logic/Systems",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "archived",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：UI、Logic、Systems、Assets-Tests、Collab、Slotcheck",
+    "改动文件数 30，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S39-UI）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity PlayMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S39-UI）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S39-UI）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-30T13:12:12.693Z",
+  "updatedAt": "2026-10-31T05:22:07.281Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 2 were edited later and are now owned by passed deliveries DEL-20261031045140-2cd3d8.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:15:11.096Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261030131243-e1a262",
+    "basisCount": 30,
+    "drifted": [
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/slotcheck/Program.cs"
+    ],
+    "coveredBy": [
+      "DEL-20261031021915-9c7714"
+    ],
+    "uncovered": [],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 30,
+    "intact": 28,
+    "covered": 2,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
+}

@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-10-30T00:03:42.785Z",
+  "updatedAt": "2026-10-31T05:22:04.096Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 6 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, docs/handoff/Baseline_2026-10-17.json).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 11 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,13 +73,11 @@
   },
   "scopeDrift": {
     "basis": 44,
-    "intact": 35,
-    "covered": 6,
+    "intact": 32,
+    "covered": 11,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
-      "docs/handoff/Baseline_2026-10-17.json"
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 1
   }
 }

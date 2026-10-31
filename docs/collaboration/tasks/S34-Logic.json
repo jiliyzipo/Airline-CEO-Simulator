@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Logic、Assets-Tests、Data、Editor、Systems",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-29T12:10:35.407Z",
-  "updatedAt": "2026-10-29T14:12:15.731Z",
+  "updatedAt": "2026-10-31T05:22:06.960Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,30 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261029121552-3283e3 passed delivery DEL-20261029121039-25aaa7; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261029121552-3283e3"
+  "freshnessNote": "Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 2 were edited later and are now owned by passed deliveries DEL-20261031045140-2cd3d8.",
+  "staleForReviewId": null,
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:15:17.690Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261029121039-25aaa7",
+    "basisCount": 8,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
+    ],
+    "coveredBy": [
+      "DEL-20261031021915-9c7714"
+    ],
+    "uncovered": [],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 8,
+    "intact": 6,
+    "covered": 2,
+    "uncovered": [],
+    "uncoveredCount": 0
+  }
 }

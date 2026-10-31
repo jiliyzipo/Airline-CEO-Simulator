@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031627-808358",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 777,
+  "at": "2026-10-31T03:16:27.223Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S27-MapBandLegibility",
+  "deliveryId": "DEL-20261027123307-f320b4",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=110 drifted=22",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/TermNavMap.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
+      "Unity Project/Assets/Scripts/UI/OpsPanelUI.cs",
+      "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/semcheck/enc_baseline.json",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs"
+    ]
+  }
+}

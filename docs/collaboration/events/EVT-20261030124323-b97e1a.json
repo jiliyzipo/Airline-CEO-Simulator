@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261030124323-b97e1a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 741,
+  "at": "2026-10-30T12:43:23.237Z",
+  "actor": "cursor",
+  "action": "ack",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "ack revision 741",
+  "data": {
+    "revision": 741
+  }
+}

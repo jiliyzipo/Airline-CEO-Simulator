@@ -35,7 +35,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-19T09:24:45.912Z",
-  "updatedAt": "2026-10-29T23:26:32.875Z",
+  "updatedAt": "2026-10-31T05:22:02.396Z",
   "freshnessNote": "Historic verdict REV-20261019094559-31090f covered 9 changed files; 8 were edited later and are now owned by passed deliveries DEL-20261028002145-55518e, DEL-20261029121039-25aaa7, DEL-20261029141334-977163 等 5 个.",
   "staleForReviewId": null,
   "scopePolicy": "changed-files",

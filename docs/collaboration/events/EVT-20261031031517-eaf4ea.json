@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031517-eaf4ea",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 770,
+  "at": "2026-10-31T03:15:17.805Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S34-Logic",
+  "deliveryId": "DEL-20261029121039-25aaa7",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=8 drifted=2",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
+    ]
+  }
+}

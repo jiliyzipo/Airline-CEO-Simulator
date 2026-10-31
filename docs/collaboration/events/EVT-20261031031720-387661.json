@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031720-387661",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 782,
+  "at": "2026-10-31T03:17:20.583Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S21-FreshnessVerdict",
+  "deliveryId": "DEL-20261027041226-5c9d55",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=42 drifted=7",
+  "data": {
+    "drifted": [
+      "docs/handoff/Baseline_2026-10-17.json",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/collab/lib/clauses.mjs"
+    ]
+  }
+}

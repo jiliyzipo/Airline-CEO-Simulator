@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031710-e50320",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 781,
+  "at": "2026-10-31T03:17:10.093Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S19-ScenarioFixture",
+  "deliveryId": "DEL-20261027024816-5a1cf9",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=51 drifted=13",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/semcheck/enc_baseline.json",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ]
+  }
+}

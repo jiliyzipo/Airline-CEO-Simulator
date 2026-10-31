@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceHead": "2a5b84a855c18bb3235b3705e2fa1259a8dbeb2e",
+  "sourceHead": "385a5e2b02734ab147dcb94dcaed573a71f9c53c",
   "sourceIncludesUncommittedFiles": true,
   "cleanGitCheckoutVerified": false,
   "nodeVersion": "v24.18.0",
   "dotnetVersion": "8.0.423",
   "fingerprintScope": "Unity assets/packages/settings and tools; documentation is hashed individually but excluded from the runtime fingerprint.",
-  "sourceFingerprint": "ad6fc90cfbc7fa3a951fc6f1685cc928467c18fc04393d66696a327290a6bb2e",
+  "sourceFingerprint": "73d5dc57e9bb44f1846b03fe431ea9beeb9f57d570edfe7b1658d6f205cefcc8",
   "overlay": "Only exported ProjectSettings companyName/productName changed to isolate player data.",
   "entries": [
     {
@@ -869,8 +869,8 @@
     },
     {
       "path": "Unity Project/Assets/Resources/UIConfig/n36_航班环构建器.asset",
-      "bytes": 771,
-      "sha256": "8f6bf045e91e0242ff57d97a4c496389b13ee43887bebb2f938c5ad8a5e87329",
+      "bytes": 797,
+      "sha256": "7d6a89c160ea470a37d9f4d25aa8f086a961cfd6e4380f44cc82f4c90b725621",
       "tracked": true
     },
     {
@@ -941,8 +941,8 @@
     },
     {
       "path": "Unity Project/Assets/Resources/UIConfig/n98_航线航班环选择器.asset",
-      "bytes": 856,
-      "sha256": "7632922a15fcebcff5be6c2b80823c355601ca8f38aec7789fe97f52aa500074",
+      "bytes": 831,
+      "sha256": "e3055a700b7f6405fc3876b14bf776c6ac0378b48853d2afec7595d962759f01",
       "tracked": true
     },
     {
@@ -1979,8 +1979,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Data/PresetAirlines.cs",
-      "bytes": 18105,
-      "sha256": "d4cde175150bfc73280a95b06eff57c38a46dd877fae475a12549ef1b0d0024b",
+      "bytes": 17796,
+      "sha256": "701c2ddf3b3aad573911850f93b206331c5bb3d8bfa84550093ee53c052149a8",
       "tracked": true
     },
     {
@@ -2262,7 +2262,7 @@
     {
       "path": "Unity Project/Assets/Scripts/Editor/CreateOpsPrefabs.cs",
       "bytes": 5719,
-      "sha256": "dc47772d1ee66443e8c712be4f79804ba2a0b6d5b155a2801143764b85576f3c",
+      "sha256": "ae468c59d8d7b058b6b8866f1fd031fe5743c9a05794cde4dda690d0399db96c",
       "tracked": true
     },
     {
@@ -2893,13 +2893,13 @@
       "path": "Unity Project/Assets/Scripts/Logic/AircraftSilhouette.cs",
       "bytes": 20884,
       "sha256": "87eb12cb420fab5e101e6f83bdec841106665c4f334b60a1fb68899c6b8e7091",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/AircraftSilhouette.cs.meta",
       "bytes": 63,
       "sha256": "ae611b19916f1ab60edc62765241733da9ef1fa4a2d7bf3f5e675afa2f567a30",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/AirportCommerceEconomics.cs",
@@ -3023,8 +3023,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "bytes": 55303,
-      "sha256": "d90d82f176dd7e104159197038843899121c7d6b15929dc55b65f501ddcb84b9",
+      "bytes": 58436,
+      "sha256": "b68f4cee09beab9bd81a8a3871b6e1462989f46a418c3ebf49b0857f935e7e88",
       "tracked": true
     },
     {
@@ -3119,8 +3119,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
-      "bytes": 88721,
-      "sha256": "60ac542e02dff3f4fee0333e914cd08a3a24dc9d4b1024ea9a8b4beba6795296",
+      "bytes": 90610,
+      "sha256": "c35004ed08db89db4eece82ea5419a767cb5de2fc3ff6b0e23ed6fa7590c8478",
       "tracked": true
     },
     {
@@ -3191,8 +3191,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/ExternalTimeMapper.cs",
-      "bytes": 18391,
-      "sha256": "2d67e2740eea97ebbdf637d8d781ecbb3501aed528bc8b06fb1d6ace05c8f16c",
+      "bytes": 17993,
+      "sha256": "3febaa07ec7035a61715ef26d56eeaf85b2a591536d7b867c95e053dce7a84ec",
       "tracked": true
     },
     {
@@ -3287,8 +3287,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/FxEconomics.cs",
-      "bytes": 12184,
-      "sha256": "eced2621dff695806fd6b9d281ff1768298269c10d9ec094e9a1c31703d97964",
+      "bytes": 11948,
+      "sha256": "ec7ee8fb061478c7bf7ac5fa383552e5d1d847760622aadb627107f5fa4d87b6",
       "tracked": true
     },
     {
@@ -3431,8 +3431,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
-      "bytes": 9816,
-      "sha256": "e143afca276ac2ff9530f675be67ed062cef0e2034b7c9fbe847cedf7acca491",
+      "bytes": 8958,
+      "sha256": "376e873b261c616119a6577613a031cbdae72bcf914afc0f7e4a0bc525d48f10",
       "tracked": true
     },
     {
@@ -3452,6 +3452,30 @@
       "bytes": 60,
       "sha256": "9698b33393e663d6ba48c9f763c52198f0996c8e3cc81617a042f76cd3dc1d74",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/MapFlightState.cs",
+      "bytes": 10105,
+      "sha256": "82d31be2de23a602599c7c42bc88445e372c3d3d7f244594b8ffbae14df3b440",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/MapFlightState.cs.meta",
+      "bytes": 60,
+      "sha256": "3a3c595b6e806367ca101128f5df974c57909d2edbac75cd586acde5b1af9467",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/MapSelection.cs",
+      "bytes": 2696,
+      "sha256": "83a727841053c29e3484bad47f1662c441cb77a2285a7b6069c578c0e5ac6f0d",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/MapSelection.cs.meta",
+      "bytes": 60,
+      "sha256": "e599e2b95762f4ce3fb1ffd857d2513b7834607613f22032fdc39228580ea38b",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/MessageCenter.cs",
@@ -3596,6 +3620,18 @@
       "bytes": 59,
       "sha256": "086d78b17251f674b502d5ec4065bade1de354471f5204b8c1431b00b3143eaa",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/OpsRotationBuilder.cs",
+      "bytes": 41482,
+      "sha256": "d569eb629dbd12537bf68b548de399ed6c27664e7ae34f2b56c9a9bf60e7cd9b",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/Logic/OpsRotationBuilder.cs.meta",
+      "bytes": 60,
+      "sha256": "7194d0966f03c5af01c12b0681afef0eea8bb448d8418da950d973607dc9b11b",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/OpsRotationLogic.cs",
@@ -3755,8 +3791,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/RouteGeography.cs",
-      "bytes": 10900,
-      "sha256": "f1e881b4bc3e2e0b990dd4f616c4b34a785b24d0f40d63b54e525fe2660e7541",
+      "bytes": 10721,
+      "sha256": "7380037383f1ad31ea6714e0c1e17a9d59b6a7ca4e4acb8e5980d4afb55f1316",
       "tracked": true
     },
     {
@@ -3779,8 +3815,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs",
-      "bytes": 89131,
-      "sha256": "2bc8de95b9642ec685e0aa2f01fd83cae22fb2943d4bb2fba1f003681a09cb04",
+      "bytes": 87512,
+      "sha256": "6fc3db426a541773b29a83b010450da0eb5534309c56575176c8b08d6c8f2400",
       "tracked": true
     },
     {
@@ -4031,8 +4067,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
-      "bytes": 91076,
-      "sha256": "fba78b96183c126d61ec8f20a828e0d7347a3246e9084b4bcfa8262cc33cbc67",
+      "bytes": 89196,
+      "sha256": "22460671e76fec3b4f37a057a295d069eb7e19ff2c2f7d32529cc5c284ac730a",
       "tracked": true
     },
     {
@@ -4205,8 +4241,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/DecisionMeetingManager.cs",
-      "bytes": 13621,
-      "sha256": "b47bc28e111c1b7630b544111ece1e8d238099c0f81decdda3a5fe2d4f829cc0",
+      "bytes": 13743,
+      "sha256": "e8a2833f356789dc577acbbd1cb1125c5aa7566fd70b2a68c4be70612e18adc4",
       "tracked": true
     },
     {
@@ -4349,8 +4385,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
-      "bytes": 339694,
-      "sha256": "b6cf9d974a91c025ba6b8724f08c506828cc19df899bc93745392bde37c1fee8",
+      "bytes": 347533,
+      "sha256": "31a1de4311010c594124ae606e6955e5e03d8f7155c180ac5724f49260287b43",
       "tracked": true
     },
     {
@@ -4385,8 +4421,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
-      "bytes": 15260,
-      "sha256": "6002e665f4fd3a398cbd7af335ba3563dd6f66f7b5e78d19277681a09f1a49be",
+      "bytes": 14956,
+      "sha256": "fe85d0de832cb94f73f43576a18242e8b43ff713089089810978d524bfa868e6",
       "tracked": true
     },
     {
@@ -4397,8 +4433,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/Systems/LoanManager.cs",
-      "bytes": 15834,
-      "sha256": "e1becab08fd175bcad765656f0cd04162c1f3ca9b37f6e3b35cd2c201ea4b1c3",
+      "bytes": 15440,
+      "sha256": "528c37b83d439ca89a26b0217358b1f4816561d99399b96fbcf2843c5ef2c79f",
       "tracked": true
     },
     {
@@ -5063,8 +5099,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/GameOverOverlay.cs",
-      "bytes": 3734,
-      "sha256": "3f658e4f2ea90e6a696ab42b8fd480d18eb981075f2c2864d8e010345f7cf1e3",
+      "bytes": 3652,
+      "sha256": "25b40a10bd5a394a968d99304310f908423309aefe5394993a55df53e1de194f",
       "tracked": true
     },
     {
@@ -5233,13 +5269,13 @@
       "path": "Unity Project/Assets/Scripts/UI/MapAircraftIcons.cs",
       "bytes": 2903,
       "sha256": "01dcc6aef5df4e9b10ad96d7f033d90c8fa70ecf765dbdeb4b22d920ffb10362",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapAircraftIcons.cs.meta",
       "bytes": 63,
       "sha256": "45674ff07179418e05b131e8b65d96c555b5aad5ef1dc958cbd6525c5b0ea364",
-      "tracked": false
+      "tracked": true
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapCityPopup.cs",
@@ -5254,6 +5290,18 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/UI/MapFlightCard.cs",
+      "bytes": 11946,
+      "sha256": "e6f66e39ee065115e31e7e079a970b3fbea0bced38fb5d2c6df8a70d00edd1f6",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/MapFlightCard.cs.meta",
+      "bytes": 60,
+      "sha256": "4a46ad2f10e36dc434a42b070112c915755683b235ac972791f6836522269b5e",
+      "tracked": false
+    },
+    {
       "path": "Unity Project/Assets/Scripts/UI/MapPlaceNameLayer.cs",
       "bytes": 505,
       "sha256": "d92d731b266493b33622dc4278bb61944ce7037f6a4fe53968b0c714a3a55142",
@@ -5264,6 +5312,18 @@
       "bytes": 254,
       "sha256": "935cb11f685229e382a04378343fbb6657da0196696b813931e3e2bc6e2cf198",
       "tracked": true
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/MapPlaneClick.cs",
+      "bytes": 1364,
+      "sha256": "4fef5efbfde1f5cf9643cd24bc71bbeca0b13f87478f8e7d4cd0948beac7b00c",
+      "tracked": false
+    },
+    {
+      "path": "Unity Project/Assets/Scripts/UI/MapPlaneClick.cs.meta",
+      "bytes": 60,
+      "sha256": "7cbce2372076ce3d66ab4d53f3c271c65484c00599de4e0ef2f4f57ad3800951",
+      "tracked": false
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapTerminatorLayer.cs",
@@ -5315,8 +5375,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/MapWidget.cs",
-      "bytes": 81101,
-      "sha256": "4dee052448e698896785b234ab184e3330e231a2cd4bb8346b2cc69ea554c90a",
+      "bytes": 100417,
+      "sha256": "6a9b21823bd5550709762cf013a78bd61b23fe92c7db8a46ff41781d23d20135",
       "tracked": true
     },
     {
@@ -5459,8 +5519,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Navigation/NavHistory.cs",
-      "bytes": 1465,
-      "sha256": "00b0c5526c6c19d863a208f13ed6f1cb7614dfb211c2f8891dea0f33778a0df3",
+      "bytes": 1418,
+      "sha256": "bb92c265986f10630bc058a63f76c025597d3714ed0fdb6919571fc9ceb28b83",
       "tracked": true
     },
     {
@@ -5483,8 +5543,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Navigation/OpsRuntimeFactory.cs",
-      "bytes": 2527,
-      "sha256": "88e4e9935457bf415a3dc362ca1eedfb359699b64f6308c9fa77ce7dc632ab81",
+      "bytes": 2766,
+      "sha256": "e2173e6b6611bdf66249bf1ce2f7737346aef1254ef098ffffc5d48fe7a4433f",
       "tracked": true
     },
     {
@@ -5610,7 +5670,7 @@
     {
       "path": "Unity Project/Assets/Scripts/UI/OpsPanelUI.cs",
       "bytes": 18350,
-      "sha256": "12fb48146d7a6e9fd3f661dc82b1d03370feeb0e9970899a823c35c70ccc9942",
+      "sha256": "926501f9149f6ff29fb172b393cb421796f0ec2833cc6a53119fff59b84b7688",
       "tracked": true
     },
     {
@@ -5621,8 +5681,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/OpsRingBuilderUI.cs",
-      "bytes": 14402,
-      "sha256": "5ee181b06aa945d9343942008de079ac1d8e836eb543643ffafe2eebcb180503",
+      "bytes": 980,
+      "sha256": "5f7514aa21d97573504a03e13dbc71792dbcb2896632bac9870300cf34936170",
       "tracked": true
     },
     {
@@ -5632,9 +5692,15 @@
       "tracked": true
     },
     {
+      "path": "Unity Project/Assets/Scripts/UI/OpsRotationBoardUI.cs",
+      "bytes": 19485,
+      "sha256": "2ca9a9f35782529052a95b87de71725f985199377a9e11a8b01ba42d6d4449c7",
+      "tracked": false
+    },
+    {
       "path": "Unity Project/Assets/Scripts/UI/OpsRouteRingSelectorUI.cs",
-      "bytes": 29164,
-      "sha256": "edde089c25973daa60bb7c4aa8daf2bebea2ea5f178ae89880d46b5fe413cbe0",
+      "bytes": 26389,
+      "sha256": "af03399cd84f4f27573a96b835ea23a71e92e8f0fa31659b89306b932a5e0e54",
       "tracked": true
     },
     {
@@ -5645,8 +5711,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/OpsSubpagePanel.cs",
-      "bytes": 24653,
-      "sha256": "550ddcdcb369284d49bc0182f01408977a81a8e531d13d3aece24128482122d2",
+      "bytes": 25373,
+      "sha256": "79eaac41e36b390b51111e819e7d27291f29f109e45959d7efc9b3720acac18e",
       "tracked": true
     },
     {
@@ -5789,8 +5855,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Setup/AirlineSelectionUI.cs",
-      "bytes": 9566,
-      "sha256": "83c5fc75824529bd15f0117a03dfd546805cc0b0be2a5566aef445e8aaaae13c",
+      "bytes": 9384,
+      "sha256": "783145ef6a947ec68517c705162147f379f799a8fdf651f424e4affb9d2a6719",
       "tracked": true
     },
     {
@@ -5939,8 +6005,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/DashboardPanelUI.cs",
-      "bytes": 17858,
-      "sha256": "afb4466853f6936f0dbf0c68054177c7d31bf69f940fa829f41cda22c1f3cc5e",
+      "bytes": 21868,
+      "sha256": "ff04c7e7f9bc59f1d5e57399f7e57b17af1c24c95fa2df7e24ee8c3ff19e807e",
       "tracked": true
     },
     {
@@ -5963,8 +6029,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/ExternalSourcePanelUI.cs",
-      "bytes": 21664,
-      "sha256": "4540c285e38088fbe9450cc8011f8935b28f844c7d24ee1a4f3a05d0fe8029e8",
+      "bytes": 21221,
+      "sha256": "cb5d502a50fd1d99da53f60dca4a69089342b708ac98c6622237618a4bf7e338",
       "tracked": true
     },
     {
@@ -5987,8 +6053,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "bytes": 103741,
-      "sha256": "6fbccf332a036d6dd09d6507f66dbb03c905ed0fdec0001710ed5159a478ef90",
+      "bytes": 103953,
+      "sha256": "242822c207bfed4df107824a099ed235287789705659c3001a87e91b0a9fd659",
       "tracked": true
     },
     {
@@ -6011,8 +6077,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/Shell/QuoteSourcePanelUI.cs",
-      "bytes": 17034,
-      "sha256": "88bdcf87b46f4c593d7ea79ead6583c11cb19012c95a3ed3b770fd8e31af3c47",
+      "bytes": 16685,
+      "sha256": "1d8ee31d72d16336cf924261bee2ab4236eadff63da943dde29d6c410d8b2dc2",
       "tracked": true
     },
     {
@@ -6125,8 +6191,8 @@
     },
     {
       "path": "Unity Project/Assets/Scripts/UI/UIFactory.cs",
-      "bytes": 37136,
-      "sha256": "c660422d1290484a6e2bd6738a8cd1daef63c062bf6993da1b39baa044850124",
+      "bytes": 37651,
+      "sha256": "1eaa2a2e2ab3006a1ba3584952c4ddb5f8d4a5bf09da0930c497d74d0ccaf016",
       "tracked": true
     },
     {
@@ -6299,8 +6365,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/EditMode/AirlineCEO.EditModeTests.asmdef",
-      "bytes": 622,
-      "sha256": "a55b7126807260aebf0f9a8834ae81c97b4d9c3eac1d8c4f0229b433be3818c8",
+      "bytes": 597,
+      "sha256": "f77c413ef904c65c1586e68e5390a742eaa7891ed7a9f71fc4dd7c73dc106ada",
       "tracked": true
     },
     {
@@ -6809,8 +6875,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/PlayMode/OpsNavigationPlayModeTests.cs",
-      "bytes": 9747,
-      "sha256": "12818fbee939f7ece9962c512295982100e13e6f411981126b7c733d1d99ff05",
+      "bytes": 12924,
+      "sha256": "dd03bb3e6a4a96ce010a7de81414f7e169457fddb848bc5de3bf13d91bd41cee",
       "tracked": true
     },
     {
@@ -6845,8 +6911,8 @@
     },
     {
       "path": "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
-      "bytes": 45199,
-      "sha256": "61f35a658d0a7c93880b5a835c16fdd6206d75baa1a2504fe81b5a3abc5625c0",
+      "bytes": 77751,
+      "sha256": "01d11a0d7132e118d98af9e2e1d265d432a6d0c733878dd162cb1c338a730db5",
       "tracked": true
     },
     {
@@ -7793,8 +7859,8 @@
     },
     {
       "path": "tools/semcheck/enc_baseline.json",
-      "bytes": 25748,
-      "sha256": "be520865cfd6a9684bc0c08bf438e3da94fedec3661f8f9d286a5efbd55438af",
+      "bytes": 25812,
+      "sha256": "5401bbd2c865249a4f0d102e1a28536bcfd2e40dbf15db1583206a925d441299",
       "tracked": true
     },
     {
@@ -7847,8 +7913,8 @@
     },
     {
       "path": "tools/slotcheck/Program.cs",
-      "bytes": 190981,
-      "sha256": "5efa178b730f3a89433405252f9f726dff6af2a500b4b0a6f8fe90b1af6f2bd3",
+      "bytes": 210336,
+      "sha256": "9cb22a667e7a30654ebaebb0529b50cdf6aca7f7273fdf0e629468a69b8f7bff",
       "tracked": true
     },
     {

@@ -6,7 +6,7 @@
   "revision": 2,
   "devStatus": "ready_for_review",
   "reviewStatus": "queued",
-  "freshness": "stale",
+  "freshness": "unknown",
   "holder": null,
   "scope": [
     "本阶段改动范围：Docs",
@@ -31,8 +31,8 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-18T13:23:57.199Z",
-  "updatedAt": "2026-10-28T12:55:31.906Z",
-  "freshnessNote": "Delivery snapshot differs from current workspace.",
+  "updatedAt": "2026-10-31T03:18:38.335Z",
+  "freshnessNote": "scopePolicy=changed-files but the latest delivery has no passed review",
   "staleForReviewId": null,
   "supersededBy": {
     "deliveryId": "DEL-20261019092547-d6429c",
@@ -40,5 +40,26 @@
     "actor": "codex",
     "note": "最终退役裁定：追溯发现S04为S03合同/归属修正版，9个业务改动文件一致且REV-20261019094559-31090f独立通过。以此真实后继接替原S03交付并退役任务，保留failed历史。误打包DEL-20261028105347-defc40仍withdrawn，无supersededBy，不予检测。依据docs/handoff/S03_退役裁定与stage-retract独立复验_2026-10-28.md；本事件取代先前无继任者的暂定裁定。",
     "at": "2026-10-28T12:55:31.906Z"
+  },
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:15:46.375Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261028105347-defc40",
+    "basisCount": 11,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Logic/CapacityDirectiveLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs"
+    ],
+    "coveredBy": [
+      "DEL-20261029121039-25aaa7",
+      "DEL-20261031021915-9c7714",
+      "DEL-20261029141334-977163"
+    ],
+    "uncovered": [],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
   }
 }

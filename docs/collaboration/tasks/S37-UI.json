@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S37-UI",
+  "title": "阶段 S37-UI：UI/Logic/Systems",
+  "revision": 2,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "queued",
+  "freshness": "unknown",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：UI、Logic、Systems、Assets-Tests、Slotcheck、Data",
+    "改动文件数 29，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S37-UI）"
+    },
+    {
+      "id": "AC2",
+      "text": "冒烟 profile 输出可解析的机器结果 JSON 且断言计数合法（S37-UI）"
+    },
+    {
+      "id": "AC3",
+      "text": "文档与索引引用在本快照内可解析（无断链路径）（S37-UI）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-30T12:32:10.977Z",
+  "updatedAt": "2026-10-30T13:34:26.030Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ],
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261030131243-e1a262",
+    "taskId": "S39-UI",
+    "actor": "cursor",
+    "note": "declared superseded at DEL-20261030131243-e1a262 close",
+    "at": "2026-10-30T13:23:22.526Z"
+  }
+}

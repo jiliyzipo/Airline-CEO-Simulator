@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031525-ae9b3a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 771,
+  "at": "2026-10-31T03:15:25.904Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S31-RouteConsoleMerge",
+  "deliveryId": "DEL-20261028092502-0f6037",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=11 drifted=4",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Logic/CapacityDirectiveLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/UI/RouteDetailPanel.cs"
+    ]
+  }
+}

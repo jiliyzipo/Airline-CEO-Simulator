@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261030133510-4850f0",
+  "deliveryId": "DEL-20261030131243-e1a262",
+  "taskId": "S39-UI",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "unity-playmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "PlayMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity PlayMode tests in the isolated snapshot; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "3721180d5429404ff5eaa842ceaf4aebff100ce2faa55c34fbf2da16ae768a0c",
+    "verification": "ad063e22118b377f3ab2d3c052c8f1a6edcdf271aa66450cc70721cb4a5b56bf",
+    "contract": "8a0646e3ae4df6e2ebe3d5492b85f6aaa358a8eb904469033a60a3f91523e7c1"
+  },
+  "snapshotPath": "out/collab/DEL-20261030131243-e1a262",
+  "createdAt": "2026-10-30T13:35:11.641Z",
+  "updatedAt": "2026-10-30T13:42:31.975Z",
+  "runs": [
+    {
+      "at": "2026-10-30T13:35:15.653Z",
+      "finishedAt": "2026-10-30T13:42:16.520Z",
+      "runToken": "41960e796d9e4af5",
+      "profile": "unity-playmode",
+      "deliveryId": "DEL-20261030131243-e1a262",
+      "subjectImplementationFingerprint": "3721180d5429404ff5eaa842ceaf4aebff100ce2faa55c34fbf2da16ae768a0c",
+      "subjectFingerprints": {
+        "implementation": "3721180d5429404ff5eaa842ceaf4aebff100ce2faa55c34fbf2da16ae768a0c",
+        "verification": "ad063e22118b377f3ab2d3c052c8f1a6edcdf271aa66450cc70721cb4a5b56bf",
+        "contract": "8a0646e3ae4df6e2ebe3d5492b85f6aaa358a8eb904469033a60a3f91523e7c1"
+      },
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "PlayMode",
+        "-RunName",
+        "41960e796d9e4af5"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261030131243-e1a262",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261030133510-4850f0/run-41960e796d9e4af5/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261030133510-4850f0/run-41960e796d9e4af5/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261030133510-4850f0/run-41960e796d9e4af5/stdout.txt",
+        "sha256": "a2616b2fa1e32abfa3bbfc0e6211478df7d6ed15a0597eb7a3b169a69f17ebf0",
+        "bytes": 65,
+        "runToken": "41960e796d9e4af5"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261030133510-4850f0/run-41960e796d9e4af5/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "41960e796d9e4af5"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_41960e796d9e4af5.xml",
+        "runToken": "41960e796d9e4af5",
+        "profile": "unity-playmode",
+        "deliveryId": "DEL-20261030131243-e1a262",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "0b81d9adbb0bcce86b6190c066a2e3415c654e9c336f7ed791b6fc843c1d4912",
+          "bytes": 219231,
+          "mtimeMs": 1793367730637.3074
+        },
+        "producedByRun": true,
+        "sha256": "0b81d9adbb0bcce86b6190c066a2e3415c654e9c336f7ed791b6fc843c1d4912"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=41960e796d9e4af5 counters={\"total\":166,\"failed\":0,\"skipped\":0,\"passed\":166} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=41960e796d9e4af5 counters={\"total\":166,\"failed\":0,\"skipped\":0,\"passed\":166} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=unity-playmode runToken=41960e796d9e4af5 counters={\"total\":166,\"failed\":0,\"skipped\":0,\"passed\":166} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-30T13:35:15.611Z",
+  "assertions": {
+    "total": 166,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_41960e796d9e4af5.xml",
+      "sha256": "0b81d9adbb0bcce86b6190c066a2e3415c654e9c336f7ed791b6fc843c1d4912",
+      "total": 166,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 166
+    },
+    "counters": {
+      "total": 166,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 166
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261030133510-4850f0-1793367741096.json",
+  "finishedAt": "2026-10-30T13:42:31.975Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "41960e796d9e4af5",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_41960e796d9e4af5.xml",
+      "runToken": "41960e796d9e4af5",
+      "profile": "unity-playmode",
+      "deliveryId": "DEL-20261030131243-e1a262",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "0b81d9adbb0bcce86b6190c066a2e3415c654e9c336f7ed791b6fc843c1d4912",
+        "bytes": 219231,
+        "mtimeMs": 1793367730637.3074
+      },
+      "producedByRun": true,
+      "sha256": "0b81d9adbb0bcce86b6190c066a2e3415c654e9c336f7ed791b6fc843c1d4912"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261030131243-e1a262"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031507-b55683",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 768,
+  "at": "2026-10-31T03:15:07.558Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S36-UI",
+  "deliveryId": "DEL-20261030000612-d2695d",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=9 drifted=5",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/DashboardPanelUI.cs",
+      "Unity Project/Assets/Scripts/UI/UIFactory.cs",
+      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
+      "tools/slotcheck/Program.cs"
+    ]
+  }
+}

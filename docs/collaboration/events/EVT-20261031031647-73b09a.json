@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031647-73b09a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 779,
+  "at": "2026-10-31T03:16:47.967Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S24-UtilizationAudit",
+  "deliveryId": "DEL-20261027065059-f2c0ac",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=82 drifted=21",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/balance/README.md",
+      "tools/balance/baseline/BASELINE_SOURCE.json",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/semcheck/enc_baseline.json",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/collab/lib/clauses.mjs"
+    ]
+  }
+}

@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T04:34:40.494Z",
-  "updatedAt": "2026-10-27T04:48:03.588Z",
+  "updatedAt": "2026-10-31T05:22:05.183Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,69 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261027043857-e4c054 passed delivery DEL-20261027043524-cb5539; verification baseline changed — re-review required.",
-  "staleForReviewId": "REV-20261027043857-e4c054"
+  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 18 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/collab/cli.mjs, tools/collab/lib/stage.mjs …).",
+  "staleForReviewId": "REV-20261027043857-e4c054",
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:16:06.320Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261027043524-cb5539",
+    "basisCount": 80,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/balance/Program.cs",
+      "tools/balance/README.md",
+      "tools/balance/baseline/BASELINE_SOURCE.json",
+      "tools/collab/cli.mjs",
+      "tools/collab/config.example.json",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "tools/semcheck/enc_baseline.json",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/collab/lib/clauses.mjs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "coveredBy": [
+      "DEL-20261028002145-55518e",
+      "DEL-20261031021915-9c7714",
+      "DEL-20261028010243-671d55"
+    ],
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/lib/state.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 80,
+    "intact": 56,
+    "covered": 18,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "tools/collab/cli.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/tests/stage.test.mjs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "uncoveredCount": 6
+  }
 }

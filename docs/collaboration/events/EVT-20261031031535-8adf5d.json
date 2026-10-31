@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031535-8adf5d",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 772,
+  "at": "2026-10-31T03:15:35.317Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S33-Assets-Tests",
+  "deliveryId": "DEL-20261029101047-774313",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=4 drifted=1",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
+    ]
+  }
+}

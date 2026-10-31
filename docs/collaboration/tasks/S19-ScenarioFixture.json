@@ -54,13 +54,57 @@
   "blockers": [],
   "sourceTaskBook": null,
   "createdAt": "2026-10-27T02:20:19.490Z",
-  "updatedAt": "2026-10-27T07:42:17.136Z",
+  "updatedAt": "2026-10-31T05:22:04.720Z",
   "snapshotRoots": [
     "Unity Project/Assets/Scripts",
     "Unity Project/Assets/Tests",
     "tools/semcheck",
     "tools/regression"
   ],
-  "freshnessNote": "Historical review REV-20261027033436-155e44 passed delivery DEL-20261027024816-5a1cf9; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261027033436-155e44"
+  "freshnessNote": "Historic verdict REV-20261027033436-155e44 covered 51 changed files; 10 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, tools/regression/ai-run.mjs).",
+  "staleForReviewId": "REV-20261027033436-155e44",
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:17:09.929Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261027024816-5a1cf9",
+    "basisCount": 51,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/LiveClockLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/GameState.cs",
+      "Unity Project/Assets/Scripts/Systems/LiveClockSimulator.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "tools/semcheck/enc_baseline.json",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "coveredBy": [
+      "DEL-20261028002145-55518e",
+      "DEL-20261031021915-9c7714"
+    ],
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 51,
+    "intact": 38,
+    "covered": 10,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "uncoveredCount": 3
+  }
 }

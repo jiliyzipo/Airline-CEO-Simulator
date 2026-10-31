@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031031556-5a6ac3",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 774,
+  "at": "2026-10-31T03:15:56.244Z",
+  "actor": "cursor",
+  "action": "task-rescope",
+  "taskId": "S30-InboxRowLayout",
+  "deliveryId": "DEL-20261028021245-f4c95c",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "scopePolicy=changed-files basis=9 drifted=5",
+  "data": {
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "Unity Project/Assets/Scripts/UI/UIFactory.cs",
+      "tools/regression/ai-run.mjs"
+    ]
+  }
+}

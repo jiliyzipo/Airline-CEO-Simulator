@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T02:11:15.020Z",
-  "updatedAt": "2026-10-28T08:14:43.334Z",
+  "updatedAt": "2026-10-31T05:22:06.742Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,39 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261028022523-acfde4 passed delivery DEL-20261028021245-f4c95c; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261028022523-acfde4"
+  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 3 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, tools/regression/ai-run.mjs).",
+  "staleForReviewId": "REV-20261028022523-acfde4",
+  "scopePolicy": "changed-files",
+  "rescope": {
+    "at": "2026-10-31T03:15:56.109Z",
+    "actor": "cursor",
+    "deliveryId": "DEL-20261028021245-f4c95c",
+    "basisCount": 9,
+    "drifted": [
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "Unity Project/Assets/Scripts/UI/UIFactory.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "coveredBy": [
+      "DEL-20261031021915-9c7714"
+    ],
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "unverifiable": [],
+    "reason": "project-wide roots made a finished task stale forever; baseline narrowed to the delivery change set"
+  },
+  "scopeDrift": {
+    "basis": 9,
+    "intact": 4,
+    "covered": 3,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
+      "tools/regression/ai-run.mjs"
+    ],
+    "uncoveredCount": 2
+  }
 }
