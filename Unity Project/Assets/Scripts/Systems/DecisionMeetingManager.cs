@@ -160,6 +160,7 @@ namespace AirlineCEO.Systems
             if (a == "capacity_plan") { InboxManager.RejectCapacity(gs, mail, out message); return; }
             if (a == "ops_schedule") { InboxManager.RejectOpsSchedule(gs, mail, out message); return; }
             if (a == InboxManager.CapacityDirectiveAction) { InboxManager.RejectCapacityDirective(gs, mail, out message); return; }
+            if (a == InboxManager.RotationPlanAction) { InboxManager.RejectRotationPlan(gs, mail, out message); return; }
             if (a == InboxManager.SeasonReviewAction) { InboxManager.RejectSeasonReview(gs, mail, out message); return; }
             if (a == TransitionBusinessLogic.InquiryAction) { TransitionBusinessLogic.DeclineInquiry(gs, mail, out message); return; }
             InboxManager.Mark(gs, mail.id, "rejected");

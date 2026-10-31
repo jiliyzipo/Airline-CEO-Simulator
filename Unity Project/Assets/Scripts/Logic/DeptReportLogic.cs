@@ -79,6 +79,7 @@ namespace AirlineCEO.Logic
 
             if (ask.topic == CeoCommandRouter.TopicCloseRoute) return CloseRouteReview(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicCapacity) return CapacityDirective(gs, ask, raw);
+            if (ask.topic == CeoCommandRouter.TopicRotation) return RotationDirective(gs, ask, raw);
             if (ask.topic == CeoCommandRouter.TopicOpenRoute) return OpenRouteDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicFleetBuy) return FleetBuyDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicHrRecruit) return HrRecruitDirective(ask);
@@ -866,6 +867,48 @@ namespace AirlineCEO.Logic
         /// <see cref="RunCapacityDirective"/>。两者分开的理由与关线一致：
         /// 认线（可能认错）与办线（不可逆）是两件事，混在一起就没法单独测认线。
         /// </summary>
+        /// <summary>
+        /// 航班环调令（2026-10-30）：CEO 一句话 → 运营部六步后台编成 → 方案/缺口报告进收件箱。
+        ///
+        /// 命令台只回一句结论（「编成 N 个环，已呈报」），全文在邮件里 ——
+        /// 这正是 CEO 视角重构要的形态：他不看拼图过程，只批方案。
+        /// </summary>
+        static DeptAnswer RotationDirective(GameState gs, CeoCommandRouter.CeoAsk ask, string raw)
+        {
+            var opt = new OpsRotationBuilder.Options();
+            if (!string.IsNullOrEmpty(ask.originText)) opt.PreferredBase = ask.originText;
+            var plan = OpsRotationBuilder.BuildFromGameState(gs, opt);
+
+            if (plan.TotalLegs == 0)
+            {
+                return new DeptAnswer
+                {
+                    ok = true,
+                    deptCode = "OPS",
+                    sender = "运营部",
+                    role = "排班答复",
+                    glyph = "运",
+                    subject = "航班环",
+                    body = OpsRotationBuilder.FormatBody(plan, raw),
+                    oneLine = "全网航班都已排定，暂无待编航段。"
+                };
+            }
+
+            InboxManager.QueueRotationPlan(gs, plan, raw);
+            string head = OpsRotationBuilder.Headline(plan);
+            return new DeptAnswer
+            {
+                ok = true,
+                deptCode = "OPS",
+                sender = "运营部",
+                role = "航班环方案",
+                glyph = "运",
+                subject = "航班环方案",
+                body = OpsRotationBuilder.FormatBody(plan, raw),
+                oneLine = head + " 已呈报收件箱，待您批复。"
+            };
+        }
+
         static DeptAnswer CapacityDirective(GameState gs, CeoCommandRouter.CeoAsk ask, string raw)
         {
             if (string.IsNullOrEmpty(raw))

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "n98_\u822A\u7EBF\u822A\u73ED\u73AF\u9009\u62E9\u5668"
   m_EditorClassIdentifier: AirlineCEO.Runtime::AirlineCEO.Data.UIConfig
   pageId: "n98_\u822A\u7EBF\u822A\u73ED\u73AF\u9009\u62E9\u5668"
-  title: "\u822A\u7EBF/\u822A\u73ED\u73AF\u9009\u62E9\u5668"
+  title: "\u822A\u7EBF\u5206\u914D"
   level: L3
   parentId: "n10_\u98DE\u673A\u8BE6\u60C5_\u5C65\u5386"
   tabGroup: ops

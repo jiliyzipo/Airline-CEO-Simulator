@@ -40,6 +40,7 @@ namespace AirlineCEO.Tests.PlayMode
                 if (_owned[i] != null) UnityEngine.Object.DestroyImmediate(_owned[i]);
             _owned.Clear();
             MapWidget.SetRoutesVisible(false);   // 图层开关是 static，别把状态泄给下一条用例
+            MapSelection.Reset();                // 选中状态同理
         }
 
         void RequireBaseline()
@@ -667,6 +668,569 @@ namespace AirlineCEO.Tests.PlayMode
             finally
             {
                 MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapRouteLayer_DrawsTheSelectedRouteEvenWhenTheLayerIsOff()
+        {
+            var gs = NewState("T038SelectedRoute");
+            var a = MakeRoute("T038-SR1", "B-3911");
+            var b = MakeRoute("T038-SR2", "B-3912");
+            b.destination = "PVG";
+            b.SyncFlightsFromPrimary();
+            gs.activeRoutes.Add(a);
+            gs.activeRoutes.Add(b);
+            var map = Own(MapCanvas("T038SelectedRouteRoot"));
+
+            try
+            {
+                MapWidget.SetRoutesVisible(false);
+                MapSelection.Select("T038-SR1", 0);
+
+                int drawn = MapWidget.DrawRouteLayer(map.transform);
+                Assert.Greater(drawn, 0, "选中飞机后必须画出它的航线 —— 哪怕航线图层是关的");
+                Assert.IsNull(map.transform.Find("Route_1_0"),
+                    "未选中的另一条航线不得跟着出现（否则等于把图层打开了）");
+
+                // ★2026-10-30 CEO：「点的航班的航线线条的粗细度要和航线网络的线条一样」。
+                // 09:00 时这班在空 —— 已飞段是实线、待飞段是虚线；两种线都必须与航线网络同色同宽。
+                var segs = map.GetComponentsInChildren<Image>(true)
+                    .Where(i => i != null && i.name != null && i.name.StartsWith("Route_0", StringComparison.Ordinal))
+                    .ToList();
+                Assert.IsNotEmpty(segs, "选中的航线必须至少画出一段");
+
+                float expectedT = MapWidget.RouteThickness(a);
+                foreach (var seg in segs)
+                {
+                    Assert.AreEqual(expectedT, seg.rectTransform.sizeDelta.y, 1e-3f,
+                        $"选中航线的线宽（{seg.name}）必须等于档位值 {expectedT}，不得加粗");
+                    Assert.Less(Mathf.Abs(seg.color.r - seg.color.g), 0.35f,
+                        $"选中航线不该是黄色/橙色（实测 {seg.color}）");
+                    Assert.Greater(seg.color.b, seg.color.r,
+                        $"选中航线应保持普通航线的紫蓝色（实测 {seg.color}）");
+                }
+            }
+            finally
+            {
+                MapSelection.Reset();
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapSelectedRoute_KeepsScreenWideThicknessAtAnyZoom()
+        {
+            // ★2026-10-30 CEO 截图：点开飞机后航线粗成一条宽带，而航线网络上的同一条线是细线；
+            // 「不论地图放大缩小，线条的粗细始终不变」。
+            //
+            // 根因：`DrawSelectedRouteOnly` 没有先 Clear()，`MapTrackZoom.Reapply()` 又因
+            // `_last` 已等于当前缩放而提前返回 —— 新画的线以「世界单位 = 屏幕像素」的数值留在场上，
+            // 市区级放大（viewScale≈10）时就是十几像素的宽带。这里用真实视口缩放把它钉死。
+            var gs = NewState("T038ZoomWidth");
+            gs.fleet.Add(MakeAircraft("B-3951"));
+            var r = MakeRoute("T038-ZOOM", "B-3951");
+            gs.activeRoutes.Add(r);
+
+            var vpGo = Own(new GameObject("T038ZoomViewport", typeof(RectTransform)));
+            var vp = vpGo.AddComponent<MapViewport>();
+            var world = new GameObject("World", typeof(RectTransform)).GetComponent<RectTransform>();
+            world.SetParent(vpGo.transform, false);
+            vp.world = world;
+            var map = Own(new GameObject("T038ZoomContent", typeof(RectTransform)));
+            map.transform.SetParent(world, false);
+
+            void Wipe()
+            {
+                while (map.transform.childCount > 0)
+                    UnityEngine.Object.DestroyImmediate(map.transform.GetChild(0).gameObject);
+                // ★每轮都要连 MapTrackZoom 一起重建：真实流程里每次重建动态层都会新建一个 Content，
+                //   新组件的 OnEnable 会把「当前缩放」记进 `_last`，于是随后 Reapply() 因「缩放未变」
+                //   提前返回 —— 这正是那条宽带事故的发生条件。复用同一个组件的话，每轮缩放都在变，
+                //   Reapply 反而会补偿，测试就永远绿（本用例的第一版就是这样漏掉的）。
+                var z = map.GetComponent<MapTrackZoom>();
+                if (z != null) UnityEngine.Object.DestroyImmediate(z);
+            }
+
+            List<Image> RouteSegs() => map.GetComponentsInChildren<Image>(true)
+                .Where(i => i != null && i.name != null && i.name.StartsWith("Route_0", StringComparison.Ordinal))
+                .ToList();
+
+            try
+            {
+                float screenT = MapWidget.RouteThickness(r);   // 档位值 = 屏幕像素
+
+                // ① 选中态在真实缩放下：世界厚度必须等于 屏幕值 ÷ 缩放
+                MapWidget.SetRoutesVisible(false);
+                MapSelection.Select("T038-ZOOM", 0);
+                foreach (float k in new[] { 1f, 4f, 12f })
+                {
+                    world.localScale = new Vector3(k, k, 1f);
+                    Wipe();
+                    Assert.Greater(MapWidget.DrawRouteLayer(map.transform), 0, $"{k}× 时选中航线必须有线");
+                    var segs = RouteSegs();
+                    Assert.IsNotEmpty(segs, $"{k}× 时选中航线必须有线段");
+                    foreach (var seg in segs)
+                        Assert.AreEqual(screenT / k, seg.rectTransform.sizeDelta.y, 1e-2f,
+                            $"{k}× 时「{seg.name}」的世界厚度必须是屏幕值 {screenT} ÷ {k}；" +
+                            $"实测 {seg.rectTransform.sizeDelta.y:F3}（偏大 = 没做缩放补偿，就是那条宽带）");
+                }
+
+                // ② 同一缩放下，「点开的航线」与「网络里的同一条航线」厚度必须一模一样
+                world.localScale = new Vector3(4f, 4f, 1f);
+                float selectedThick;
+                Wipe();
+                MapWidget.SetRoutesVisible(false);
+                MapSelection.Select("T038-ZOOM", 0);
+                MapWidget.DrawRouteLayer(map.transform);
+                selectedThick = RouteSegs()[0].rectTransform.sizeDelta.y;
+
+                Wipe();
+                MapWidget.SetRoutesVisible(true);
+                MapWidget.DrawRoutes(map.transform);
+                float networkThick = RouteSegs()[0].rectTransform.sizeDelta.y;
+
+                Assert.AreEqual(networkThick, selectedThick, 1e-3f,
+                    $"选中航线的厚度（{selectedThick:F3}）必须与航线网络的同一条线（{networkThick:F3}）相同");
+                Assert.AreEqual(screenT / 4f, networkThick, 1e-2f, "航线网络的线宽也必须是屏幕恒定值");
+            }
+            finally
+            {
+                MapSelection.Reset();
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapRouteDashes_AreFineDots_LikeTheTerminator()
+        {
+            // ★2026-10-30 CEO：「图一中的虚线中的点太宽了，参照地图昼夜变更线的虚线修改」。
+            // 晨昏线在 shader 里是「每 8px 一个点、点径约 3.4px」（_DashPx=8、_EdgePx=1.7）。
+            // 这里断言选中的待飞段也是同一量级：单段 ≤ 6px（旧版是 7px 起、长航线上更长），
+            // 且段数足够密 —— 段数太少说明它还在按「长杠」画，而不是「一串点」。
+            var gs = NewState("T038DashMetrics");
+            gs.fleet.Add(MakeAircraft("B-3961"));
+            var r = MakeRoute("T038-DASH", "B-3961", "08:00", "16:30");
+            r.destination = "LHR";
+            r.distanceKm = 8140f;
+            r.SyncFlightsFromPrimary();
+            gs.activeRoutes.Add(r);
+
+            var map = Own(MapCanvas("T038DashMetricsRoot"));
+            try
+            {
+                MapWidget.SetRoutesVisible(false);
+                MapSelection.Select("T038-DASH", 0);
+                gs.SetSimUtc(new DateTime(2026, 1, 5, 9, 0, 0) - GameState.LocalUtcOffset);
+                MapWidget.DrawRouteLayer(map.transform);
+
+                var dashes = map.GetComponentsInChildren<Image>(true)
+                    .Where(i => i != null && i.name != null
+                                && i.name.StartsWith("Route_0_dash_", StringComparison.Ordinal))
+                    .ToList();
+                Assert.Greater(dashes.Count, 20,
+                    $"待飞段必须是一串细密的点，实际只有 {dashes.Count} 段 —— 段太长就会变成「一条长杠」");
+
+                float maxLen = dashes.Max(d => d.rectTransform.sizeDelta.x);
+                float avgLen = dashes.Average(d => d.rectTransform.sizeDelta.x);
+                Assert.Less(maxLen, 6.5f, $"单段虚线（屏幕 px）必须 ≤ 6.5px 才对得上晨昏线，实测最长 {maxLen:F2}px");
+                Assert.Greater(avgLen, 1.5f, $"段长不能退化成几乎为零，实测平均 {avgLen:F2}px");
+
+                // ★2026-10-30 CEO 第三次反馈：「虚线不连贯」。
+                // 根因是旧实现会把跨过折线拐点的一段虚线拆成两个各自旋转的 Image，接缝处错位。
+                // 现在一段虚线只生成一个 Image，段长与间隔必须**按构造相等**。这里逐段量：
+                // ① 段长偏差；② 相邻段之间的空隙偏差（末段可能被航线终点截短，排除）。
+
+                // 与晨昏线同周期（8px）：段长 + 间距应落在 6~10px，且实/空大致 1:1
+                float thickness = MapWidget.RouteThickness(r);
+                Assert.AreEqual(thickness, dashes[0].rectTransform.sizeDelta.y, 1e-3f,
+                    "虚线的粗细仍必须与航线网络的档位一致");
+
+                var ordered = dashes
+                    .OrderBy(d => int.Parse(d.name.Substring("Route_0_dash_".Length)))
+                    .ToList();
+
+                Vector2 End(Image d)
+                {
+                    var rt = d.rectTransform;
+                    float rad = rt.localRotation.eulerAngles.z * Mathf.Deg2Rad;
+                    return rt.anchoredPosition + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * rt.sizeDelta.x;
+                }
+
+                // 段长：除末段外必须一致（±0.6 世界 px）。旧实现会在这里出现「半截段」。
+                var lens = ordered.Take(ordered.Count - 1).Select(d => d.rectTransform.sizeDelta.x).ToList();
+                Assert.Greater(lens.Count, 5, "段数太少，量不出均匀性");
+                float nominalDash = lens.Average();
+                for (int i = 0; i < lens.Count; i++)
+                    Assert.AreEqual(nominalDash, lens[i], 0.6f,
+                        $"第 {i} 段虚线长 {lens[i]:F2}，与基准 {nominalDash:F2} 偏差过大 —— " +
+                        "说明它又被折线拐点切成了半截（这就是「不连贯」）");
+
+                // 空隙：相邻两段首尾之间的距离必须一致（±0.6 世界 px）。
+                var gaps = new List<float>();
+                for (int i = 0; i + 1 < ordered.Count - 1; i++)
+                    gaps.Add(Vector2.Distance(End(ordered[i]), ordered[i + 1].rectTransform.anchoredPosition));
+                Assert.Greater(gaps.Count, 4, "空隙数太少，量不出均匀性");
+                float nominalGap = gaps.Average();
+                for (int i = 0; i < gaps.Count; i++)
+                    Assert.AreEqual(nominalGap, gaps[i], 0.6f,
+                        $"第 {i} 个空隙 {gaps[i]:F2}，与基准 {nominalGap:F2} 偏差过大 —— 线上会出现「大洞」");
+
+                // 实/空 1:1（对齐晨昏线）：空隙和段长应是同一个量级
+                Assert.AreEqual(nominalDash, nominalGap, nominalDash * 0.45f,
+                    $"实{nominalDash:F2}/空{nominalGap:F2} 应大致 1:1，与晨昏线同观感");
+            }
+            finally
+            {
+                MapSelection.Reset();
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapRouteSplit_UsesSolidForFlown_AndDashedForAhead()
+        {
+            // ★2026-10-30 CEO：「参照 AS 的航线，点击飞机后，飞机已经行驶的线路用实线，
+            // 前方待飞行的线路用虚线」。
+            var gs = NewState("T038Split");
+            gs.fleet.Add(MakeAircraft("B-3941"));
+            var r = MakeRoute("T038-SPLIT", "B-3941", "08:00", "10:30");
+            // 长航线：24 段与 40 段采样的偏差在这里才够大（短航线两种采样几乎重合，
+            // 断言会「看不出」机头与分界点错位 —— 那等于这条断言白写）。
+            r.destination = "LHR";
+            r.distanceKm = 8140f;
+            r.SyncFlightsFromPrimary();
+            gs.activeRoutes.Add(r);
+            var map = Own(MapCanvas("T038SplitRoot"));
+
+            int CountByPrefix(string prefix) => map.GetComponentsInChildren<Image>(true)
+                .Count(i => i != null && i.name != null && i.name.StartsWith(prefix, StringComparison.Ordinal));
+
+            void Redraw(DateTime utc)
+            {
+                gs.SetSimUtc(utc - GameState.LocalUtcOffset);
+                MapSelection.Select("T038-SPLIT", 0);
+                // 注意：不能在 foreach 里 DestroyImmediate —— 边遍历边销毁会跳过节点，
+                // 上一轮的 PlaneMark 会留在场上，断言就可能读到"上一秒的飞机"。
+                while (map.transform.childCount > 0)
+                    UnityEngine.Object.DestroyImmediate(map.transform.GetChild(0).gameObject);
+                MapWidget.DrawRouteLayer(map.transform);
+                MapWidget.DrawPlaneMarks(map.transform);
+            }
+
+            try
+            {
+                MapWidget.SetRoutesVisible(false);
+
+                // ① 起飞前：整条都是虚线（一段都没飞）
+                Redraw(new DateTime(2026, 1, 5, 6, 0, 0));
+                Assert.AreEqual(0, CountByPrefix("Route_0_") - CountByPrefix("Route_0_dash_"),
+                    "起飞前不该有实线段");
+                Assert.Greater(CountByPrefix("Route_0_dash_"), 0, "起飞前整条航线都应是虚线");
+
+                // ② 去程在空：既有实线（已飞）也有虚线（待飞）
+                Redraw(new DateTime(2026, 1, 5, 9, 0, 0));
+                int solid = CountByPrefix("Route_0_") - CountByPrefix("Route_0_dash_");
+                int dash = CountByPrefix("Route_0_dash_");
+                Assert.Greater(solid, 0, "去程在空时，已飞部分必须画成实线");
+                Assert.Greater(dash, 0, "去程在空时，前方待飞部分必须画成虚线");
+
+                // ③ 分界点必须压中机头：实线最后一段的终点 = 飞机图钉的位置。
+                //    两边都按 ArcSegments 采样、都用同一个 frac，差几像素就说明口径又分叉了。
+                var plane = map.transform.Find("PlaneMark") as RectTransform;
+                Assert.IsNotNull(plane, "地图上必须有飞机图钉");
+                var solidSegs = map.GetComponentsInChildren<Image>(true)
+                    .Where(i => i.name != null && i.name.StartsWith("Route_0_", StringComparison.Ordinal)
+                                && !i.name.StartsWith("Route_0_dash_", StringComparison.Ordinal))
+                    .OrderBy(i => int.Parse(i.name.Substring("Route_0_".Length)))
+                    .ToList();
+                var lastSolid = solidSegs[solidSegs.Count - 1];
+                var rt = lastSolid.rectTransform;
+                float rad = rt.localRotation.eulerAngles.z * Mathf.Deg2Rad;
+                Vector2 end = rt.anchoredPosition + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * rt.sizeDelta.x;
+                var snap = MapFlightState.Snapshot(new DateTime(2026, 1, 5, 9, 0, 0), r.daysOfWeek,
+                    r.weeklyFlights, r.depTime, r.arrTime, r.distanceKm, r.aircraftType, r.groundStaffAssigned);
+                var planes = map.GetComponentsInChildren<RectTransform>(true).Count(t => t.name == "PlaneMark");
+                float near = float.MaxValue;
+                foreach (var s in solidSegs)
+                {
+                    var r2 = s.rectTransform;
+                    float a2 = r2.localRotation.eulerAngles.z * Mathf.Deg2Rad;
+                    var e2 = r2.anchoredPosition + new Vector2(Mathf.Cos(a2), Mathf.Sin(a2)) * r2.sizeDelta.x;
+                    near = Mathf.Min(near, Vector2.Distance(e2, plane.anchoredPosition));
+                    near = Mathf.Min(near, Vector2.Distance(r2.anchoredPosition, plane.anchoredPosition));
+                }
+                float gap = Vector2.Distance(end, plane.anchoredPosition);
+                Assert.Less(gap, 2f,
+                    $"实线/虚线分界点（{end}）必须落在飞机位置（{plane.anchoredPosition}），实测偏差 {gap:F2}px；" +
+                    $"solidSeg={solidSegs.Count} last={lastSolid.name} planes={planes} nearest={near:F2} " +
+                    $"phase={snap.phase} frac={snap.mapFrac:F3} dash={dash}");
+            }
+            finally
+            {
+                MapSelection.Reset();
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void MapPlaneMarks_HaveNoGlowHalo()
+        {
+            var gs = NewState("T038NoGlow");
+            gs.fleet.Add(MakeAircraft("B-3925"));
+            gs.activeRoutes.Add(MakeRoute("T038-NG", "B-3925"));
+            var map = Own(MapCanvas("T038NoGlowRoot"));
+
+            MapWidget.DrawPlaneMarks(map.transform);
+
+            // ★2026-10-30 CEO：「飞机图标周围是不是有光晕？？？有的话删除这个光晕」。
+            // 光晕是 PlaneMark 下的 PlaneGlow 节点（径向渐变软圆斑）。它必须彻底不存在 ——
+            // 不是调小、不是调透明，而是不建。
+            Assert.IsNull(map.transform.Find("PlaneMark/PlaneGlow"), "飞机不得再带光晕节点");
+            Assert.AreEqual(0, map.GetComponentsInChildren<Transform>(true)
+                    .Count(t => t != null && t.name == "PlaneGlow"),
+                "整张地图上不得存在任何 PlaneGlow 节点");
+        }
+
+        [Test]
+        public void MapPlaneMarks_MarkTheSelection_AndMakeItLarger()
+        {
+            var gs = NewState("T038PlaneSelect");
+            gs.fleet.Add(MakeAircraft("B-3921"));
+            var r = MakeRoute("T038-SEL", "B-3921");
+            gs.activeRoutes.Add(r);
+            var map = Own(MapCanvas("T038PlaneSelectRoot"));
+
+            MapWidget.DrawPlaneMarks(map.transform);
+            var before = map.GetComponentsInChildren<Image>(true).FirstOrDefault(i => i.name == "Plane");
+            Assert.IsNotNull(before, "有执飞机的航线必须画出飞机");
+            float sizeBefore = before.rectTransform.sizeDelta.x;
+            Assert.AreNotEqual(MapWidget.PlaneSelectedCol, before.color, "未选中时不该已经是选中色");
+
+            MapSelection.Select("T038-SEL", 0);
+            foreach (Transform child in map.transform) UnityEngine.Object.DestroyImmediate(child.gameObject);
+            MapWidget.DrawPlaneMarks(map.transform);
+
+            var after = map.GetComponentsInChildren<Image>(true).FirstOrDefault(i => i.name == "Plane");
+            Assert.IsNotNull(after);
+            Assert.AreEqual(MapWidget.PlaneSelectedCol, after.color, "选中的飞机必须换成选中色（橙色）");
+            Assert.Greater(after.rectTransform.sizeDelta.x, sizeBefore, "选中的飞机必须比常态更大，否则看不出选了谁");
+            // ★2026-10-30 CEO：「点击飞机图片后，不应该变成白色，应该是橙色」——白机身会从浅底图上消失。
+            Assert.Less(after.color.b, 0.25f, $"选中态必须是橙色（蓝通道要低），实测 {after.color}");
+            Assert.Greater(after.color.r - after.color.g, 0.3f, $"选中态必须偏橙（红明显高于绿），实测 {after.color}");
+            // 选中态也要有暗边
+            Assert.IsNotNull(map.transform.Find("PlaneMark/PlaneEdge"), "选中态同样必须有深色描边");
+        }
+
+        [Test]
+        public void MapPlaneColors_UnselectedIsMediumYellow_SelectedIsOrange()
+        {
+            // 常态 = 中黄（色相偏黄，绿通道高）；选中 = 橙（色相偏红，红明显高于绿）。
+            Color air = MapWidget.PlaneAirborneCol;
+            Color sel = MapWidget.PlaneSelectedCol;
+
+            Assert.Greater(air.g, 0.70f, $"常态必须是中黄（绿通道要高），实测 {air}");
+            Assert.Greater(air.g - air.b, 0.60f, $"常态中黄不能发白，实测 {air}");
+            Assert.Less(sel.g, 0.62f, $"选中态必须是橙，不是黄，实测 {sel}");
+            Assert.Less(sel.b, 0.25f, $"选中态必须是橙，实测 {sel}");
+            Assert.Greater(sel.r - sel.g, 0.3f, $"选中态红明显高于绿，实测 {sel}");
+
+            // 两者必须能同时出现在一屏里而不混淆：色相差 ≥ 10°，且「中黄更亮、橙更沉」。
+            // 明度（HSV 的 V）在两者上几乎相同（1.00 / 0.96），真正拉开的是**亮度**（加权 luma）——
+            // 所以这里比 luma，不比 V。
+            Color.RGBToHSV(air, out float ha, out _, out _);
+            Color.RGBToHSV(sel, out float hs, out _, out _);
+            float hueGap = Mathf.Abs(ha - hs) * 360f;
+            Assert.Greater(hueGap, 10f, $"常态中黄与选中橙的色相差只有 {hueGap:F1}°，太接近");
+
+            float lumaAir = 0.299f * air.r + 0.587f * air.g + 0.114f * air.b;
+            float lumaSel = 0.299f * sel.r + 0.587f * sel.g + 0.114f * sel.b;
+            Assert.Greater(lumaAir - lumaSel, 0.10f,
+                $"中黄（luma {lumaAir:F2}）必须明显亮于橙（luma {lumaSel:F2}），否则小图标上看不出选中");
+        }
+
+        [Test]
+        public void MapPlaneIcons_UseConspicuousColors_NotWhiteOnWhite()
+        {
+            // 白机身压在浅色矢量底图上等于隐形（2026-10-30 之前的实情）。
+            // 在空=深琥珀、停场=青蓝，两者都必须有足够饱和度，且不能是近白色。
+            Color air = MapWidget.PlaneAirborneCol;
+            Color park = MapWidget.PlaneParkedCol;
+            foreach (var c in new[] { air, park })
+            {
+                float max = Mathf.Max(c.r, Mathf.Max(c.g, c.b));
+                float min = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+                Assert.Greater(max - min, 0.45f, $"飞机色 {c} 太灰，在底图上不够醒目");
+                Assert.Less(min, 0.35f, $"飞机色 {c} 太接近白色，浅色底图上会糊掉");
+            }
+            Assert.AreNotEqual(air, park, "在空与停场必须是两个颜色，否则看不出飞机在不在飞");
+
+            // ★2026-10-30 CEO 第三次定稿：「未点击的飞机图标颜色应该是中黄色」——
+            // 上一版按「再深一点」做成了深橙（0.95,0.50,0），这次明确要回中黄。
+            // 所以这条断言的**方向反过来了**：要黄、要够饱和，但不能发白。
+            float airLuma = 0.299f * air.r + 0.587f * air.g + 0.114f * air.b;
+            Assert.Greater(air.g, 0.70f, $"在空色 {air} 的绿分量 {air.g:F2} 偏低 → 不是中黄");
+            Assert.Greater(air.g - air.b, 0.60f, $"在空色的黄蓝差 {air.g - air.b:F2} 太小，黄色不纯");
+            Assert.Less(air.b, 0.30f, $"在空色 {air} 的蓝分量 {air.b:F2} 偏高，中黄会发白");
+            Assert.Greater(airLuma, 0.60f, $"在空色 {air} 明度 {airLuma:F2} 偏低 → 那是橙不是中黄");
+        }
+
+        [Test]
+        public void HomeLayerBar_RoutesButton_MatchesNeighbourBrightness()
+        {
+            RequireBaseline();
+            var dash = Own(DashboardPanelUI.Build().gameObject);
+            var buttons = dash.GetComponentsInChildren<Button>(true);
+            var btn = buttons.FirstOrDefault(b => b != null && b.name == "Routes");
+            var globe = buttons.FirstOrDefault(b => b != null && b.name == "Globe");
+            Assert.IsNotNull(btn, "主页图层栏必须有「航线」按钮");
+            Assert.IsNotNull(globe, "主页图层栏必须有地球按钮（同栏基准）");
+
+            var icon = btn.transform.Find("Icon")?.GetComponent<Image>();
+            var bg = btn.GetComponent<Image>();
+            Assert.IsNotNull(icon, "航线按钮必须有一个 Icon 子节点（图标在这里上色）");
+
+            try
+            {
+                // ★2026-10-30 CEO：「整块亮度不够，要和旁边的地图按钮一样的亮度」。
+                // 实测亮度差来自「底色被刷成青蓝 + 图标是细淡线」。判据：
+                // ① 底色必须与邻居完全相同（同一栏不能有两种底）；② 开态图标必须接近亮白。
+                Assert.AreEqual(globe.GetComponent<Image>().color, bg.color,
+                    "航线按钮底色必须与旁边的地图按钮一致 —— 同栏两种底色看着就是一块更暗");
+
+                MapWidget.SetRoutesVisible(false);
+                btn.onClick.Invoke();              // 关 → 开
+                Assert.IsTrue(MapWidget.RoutesVisible);
+                Color onIcon = icon.color;
+
+                btn.onClick.Invoke();              // 开 → 关
+                Assert.IsFalse(MapWidget.RoutesVisible);
+                Color offIcon = icon.color;
+
+                Assert.Greater(onIcon.r + onIcon.g + onIcon.b, offIcon.r + offIcon.g + offIcon.b,
+                    "打开时图标必须更亮");
+                Assert.Greater(onIcon.r, 0.85f, $"打开时图标必须接近亮白（实测 {onIcon}）");
+                Assert.Greater(onIcon.a, 0.99f, "打开时图标必须完全不透明（关闭态是半透明灰）");
+            }
+            finally
+            {
+                MapWidget.SetRoutesVisible(false);
+            }
+        }
+
+        [Test]
+        public void InboxHeader_HasNoCountOrInflightCaption()
+        {
+            // ★2026-10-30 CEO：「删除红框中的『邮件列表多少封，在途多少封』，不需要这样的提示，多此一举」。
+            //
+            // 这一行原来在抬头第二行，且因为塞在 162×34 的窄盒里会折行压住「收件箱」。
+            // 现在整行删除：抬头只有「收件箱」+ 两个筛选筹码，任何「统计说明」文字都不该出现。
+            // 本用例锁两件事：① 那个节点不存在；② 抬头里没有任何含「邮件列表 / 在途」的文本。
+            var gs = NewState("T038InboxHeader");
+
+            // 造一封在途邮件：以前正是它让「在途 4 封（…）」这句出现
+            gs.pendingInbox.Add(new PendingInboxMail
+            {
+                mail = new InboxMail { id = "T038-PENDING", subject = "在途件", body = "x" },
+                deliverUtcTicks = gs.SimUtc.AddHours(6).Ticks,
+            });
+
+            var canvasGo = Own(new GameObject("T038InboxCanvas", typeof(RectTransform), typeof(Canvas)));
+            var canvasRt = canvasGo.GetComponent<RectTransform>();
+            canvasRt.sizeDelta = new Vector2(1920f, 1080f);
+
+            var panel = Own(InboxPanelUI.Build().gameObject);
+            var prt = panel.GetComponent<RectTransform>();
+            prt.SetParent(canvasRt, false);
+            prt.anchorMin = Vector2.zero;
+            prt.anchorMax = Vector2.one;
+            prt.offsetMin = prt.offsetMax = Vector2.zero;
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(canvasRt);
+
+            Assert.IsNotNull(prt.Find("Title"), "抬头必须有「收件箱」标题");
+            Assert.IsNull(prt.Find("Count"), "抬头不得再有统计行（节点已删除）");
+
+            // 抬头区里不得出现任何统计文案。只查**抬头自己这一层的直接文本子节点**
+            // （Title / ChipOpen / ChipUnread 的文字）：列表里的日期分组行本来就写着
+            // 「2026年11月01日 星期日 (3封)」，那是列表内容，不该被这条断言误伤。
+            var captions = prt.Cast<Transform>()
+                .Where(t => t != null)
+                .SelectMany(t => t.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                .Where(t => t != null && !string.IsNullOrEmpty(t.text))
+                .Select(t => t.text)
+                .ToList();
+            Assert.IsNotEmpty(captions, "抬头本身必须有文字（标题/筹码）");
+            foreach (var txt in captions)
+            {
+                Assert.IsFalse(txt.Contains("邮件列表"),
+                    $"抬头不得出现「邮件列表（N）」这类统计提示，实测：{txt}");
+                Assert.IsFalse(txt.Contains("在途"),
+                    $"抬头不得出现「在途 N 封…」这类送达提示，实测：{txt}");
+                Assert.IsFalse(txt.Contains("筛选："),
+                    $"抬头也不该再用文字说明当前筛选（筹码高亮已表达），实测：{txt}");
+            }
+        }
+
+        [Test]
+        public void MapFlightCard_ShowsSelectedFlight_AndHidesWhenDeselected()
+        {
+            var gs = NewState("T038FlightCard");
+            gs.fleet.Add(MakeAircraft("B-3931"));
+            var r = MakeRoute("T038-CARD", "B-3931", "08:00", "10:30");
+            r.flightNumber = "TQ3931";
+            gs.activeRoutes.Add(r);
+            gs.SetSimUtc(new DateTime(2026, 1, 5, 9, 0, 0) - GameState.LocalUtcOffset);
+
+            var host = Own(MapCanvas("T038FlightCardRoot"));
+            var card = MapFlightCard.Build(host.transform);
+
+            card.Refresh();
+            Assert.IsFalse(card.gameObject.activeSelf, "没选中任何飞机时，航班卡必须隐藏");
+
+            MapSelection.Select("T038-CARD", 0);
+            card.Refresh();
+            Assert.IsTrue(card.gameObject.activeSelf, "选中后航班卡必须出现");
+
+            var texts = card.GetComponentsInChildren<TextMeshProUGUI>(true)
+                .Where(t => t != null && !string.IsNullOrEmpty(t.text)).Select(t => t.text).ToList();
+            Assert.IsTrue(texts.Any(t => t.Contains("TQ3931")), $"卡片必须显示航班号，实际：{string.Join(" | ", texts)}");
+            Assert.IsTrue(texts.Any(t => t.Contains("PEK")), $"卡片必须显示出发机场三字码，实际：{string.Join(" | ", texts)}");
+            Assert.IsTrue(texts.Any(t => t.Contains("SHA")), $"卡片必须显示到达机场三字码，实际：{string.Join(" | ", texts)}");
+            Assert.IsTrue(texts.Any(t => t.Contains("B-3931")), $"卡片必须显示机号，实际：{string.Join(" | ", texts)}");
+
+            MapSelection.Clear();
+            card.Refresh();
+            Assert.IsFalse(card.gameObject.activeSelf, "取消选中后航班卡必须收起");
+        }
+
+        [Test]
+        public void MapSelection_IgnoresRepeatClicks_ButNotifiesOnChange()
+        {
+            MapSelection.Reset();
+            int fired = 0;
+            Action onChanged = () => fired++;
+            MapSelection.Changed += onChanged;
+            try
+            {
+                MapSelection.Select("R-A", 0);
+                Assert.AreEqual(1, fired, "第一次选中必须通知（地图要重绘高亮）");
+                MapSelection.Select("R-A", 0);
+                Assert.AreEqual(1, fired, "重复点同一架不得重复通知 —— 每通知一次整张地图重建一次");
+
+                MapSelection.Select("R-B", 2);
+                Assert.AreEqual(2, fired, "换一架必须通知");
+                Assert.AreEqual("R-B", MapSelection.RouteId);
+                Assert.AreEqual(2, MapSelection.FlightIndex);
+
+                MapSelection.Clear();
+                Assert.AreEqual(3, fired, "取消选中必须通知（卡片要收起）");
+                Assert.IsFalse(MapSelection.Has);
+            }
+            finally
+            {
+                MapSelection.Changed -= onChanged;
+                MapSelection.Reset();
             }
         }
 

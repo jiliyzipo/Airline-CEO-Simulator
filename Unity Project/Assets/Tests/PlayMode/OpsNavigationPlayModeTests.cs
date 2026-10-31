@@ -203,6 +203,66 @@ namespace AirlineCEO.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// n36 = **只读**的「运营部编成」看板（2026-10-30 重构）。
+        ///
+        /// 旧页让 CEO 一段段点航段拼环 —— 玩家报障「既看不懂也无从下手」。
+        /// 本用例钉住三件事：① 页面上有六步留痕与甘特时间轴；② 旧的手工拼环层不再启用；
+        /// ③ 「请求运营部重编」不会就地改账，而是变成收件箱里的待批方案（批准才落账）。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator N36_RotationBoard_ReadOnly_RequestsRebuildViaInbox()
+        {
+            var gsGo = new GameObject("GsN36");
+            var gs = gsGo.AddComponent<GameState>();
+            gs.fleet = new List<Aircraft>
+            {
+                new Aircraft { registration = "B-7101", type = "A320neo", source = "自有", status = AircraftStatuses.Airworthy },
+                new Aircraft { registration = "B-7102", type = "737-800", source = "自有", status = AircraftStatuses.Airworthy },
+            };
+            gs.activeRoutes = new List<RouteData>();
+            gs.inbox = new List<InboxMail>();
+            yield return null;
+
+            var host = new GameObject("OpsN36Host", typeof(RectTransform));
+            try
+            {
+                var panel = OpsRuntimeFactory.TryCreate("n36_航班环构建器", host.transform);
+                Assert.IsNotNull(panel);
+
+                var board = panel.GetComponentInChildren<OpsRotationBoardUI>(true);
+                Assert.IsNotNull(board, "n36 必须构建运营部编成看板");
+
+                var legacy = panel.GetComponentInChildren<OpsRingBuilderUI>(true);
+                if (legacy != null)
+                    Assert.IsFalse(legacy.gameObject.activeInHierarchy, "旧的手工拼环层必须收起");
+
+                var steps = FindChild(board.transform, "Steps");
+                Assert.IsNotNull(steps, "六步留痕是玩家看懂「卡在哪一步」的唯一入口");
+                Assert.AreEqual(6, steps.childCount, "六步各一格");
+                Assert.IsNotNull(FindChild(steps, "Step_5"), "第六步也要有格子");
+
+                Assert.IsNotNull(FindChild(board.transform, "TimelineList"), "甘特时间轴区域必须存在");
+                Assert.IsNotNull(FindChild(board.transform, "Axis"), "时间轴要有小时刻度，否则读不出空档");
+                Assert.IsNull(FindChild(board.transform, "BtnAuto"), "手工「自动串联」入口必须彻底消失");
+
+                var btn = FindChild(board.transform, "BtnReplan");
+                Assert.IsNotNull(btn, "重编请求按钮是 CEO 这一侧唯一的动作");
+                btn.GetComponent<Button>().onClick.Invoke();
+                yield return null;
+
+                Assert.IsNotNull(InboxManager.FindOpenRotationPlan(gs),
+                    "点「请求重编」必须变成收件箱里的待批方案（CEO 批准才落账，页面不得就地改排班）");
+
+                Object.Destroy(host);
+            }
+            finally
+            {
+                Object.Destroy(gsGo);
+            }
+            yield return null;
+        }
+
         /// <summary>按名字找后代（含未激活）；找不到返回 null。</summary>
         static Transform FindChild(Transform root, string name)
         {

@@ -655,7 +655,14 @@ namespace AirlineCEO.UI
                 return Mathf.Max(ring, handle);
             });
 
-        /// <summary>航线图层图标：一条大圆弧（两端机场点）—— 与地图上的大圆航带同义。</summary>
+        /// <summary>
+        /// 航线图层图标：一条大圆弧（两端机场点）—— 与地图上的大圆航带同义。
+        ///
+        /// 线宽 0.062 / 端点半径 0.105（首版 0.040 / 0.085）：60 px 按钮上细线再亮也只是一道浅痕。
+        /// 2026-10-30 CEO 报「航线按钮整块亮度不够，要和旁边的地图按钮一样」——
+        /// 实测下来亮度差全在图标上：地球图标是一圈粗描边（亮白 189,221,252），
+        /// 而这个圆弧细到只覆盖几个像素，看着就是暗的。加粗到同一视觉重量后再上亮色才有效。
+        /// </summary>
         static Sprite BuildRouteSprite(int size)
             => Rasterize(size, (px, py) =>
             {
@@ -669,11 +676,11 @@ namespace AirlineCEO.UI
                     float u = 1f - t;
                     float x = u * u * ax + 2f * u * t * qx + t * t * bx;
                     float y = u * u * ay + 2f * u * t * qy + t * t * by;
-                    acc = Mathf.Max(acc, Stroke(px, py, prevX, prevY, x, y, 0.040f));
+                    acc = Mathf.Max(acc, Stroke(px, py, prevX, prevY, x, y, 0.062f));
                     prevX = x; prevY = y;
                 }
-                acc = Mathf.Max(acc, Disc(px, py, ax, ay, 0.085f));
-                acc = Mathf.Max(acc, Disc(px, py, bx, by, 0.085f));
+                acc = Mathf.Max(acc, Disc(px, py, ax, ay, 0.105f));
+                acc = Mathf.Max(acc, Disc(px, py, bx, by, 0.105f));
                 return acc;
             });
 

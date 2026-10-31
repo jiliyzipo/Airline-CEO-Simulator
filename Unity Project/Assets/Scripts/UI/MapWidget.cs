@@ -21,6 +21,24 @@ namespace AirlineCEO.UI
         public const float MapW = 2048f;
         public const float MapH = 2048f;
 
+        /// <summary>
+        /// 航线/飞机共用的弧线采样段数。**必须共用**：飞机按 frac 在折线上插值定位，
+        /// 实线/虚线分界点也按同一个 frac 切；两边段数不同 = 两条不同的折线 = 分界点压不中机头。
+        /// </summary>
+        const int ArcSegments = 40;
+
+        /// <summary>
+        /// 选中航线「待飞段」的虚线段长与间隔（**屏幕像素**，与晨昏线同一量级）。
+        ///
+        /// ★2026-10-30 CEO：「图一中的虚线中的点太宽了，参照地图昼夜变更线的虚线修改」。
+        /// 晨昏线在 shader 里是「每 8px 一个点、点径约 3.4px」（_DashPx=8、_EdgePx=1.7），
+        /// 观感是一串细点；首版航线用 13px 周期 + 55% 实占，段长 7px 左右，
+        /// 在长航线上连起来就像「一条碎成长条的线」，比晨昏线重得多。
+        /// 这里改成 4px 实 + 4px 空（周期 8px，与晨昏线同周期），观感才对得上。
+        /// </summary>
+        const float RouteDashScreen = 4f;
+        const float RouteGapScreen = 4f;
+
         // ── 调色 ──
         static readonly Color RouteLineCol = new Color(0.38f, 0.10f, 0.52f, 1f);     // 深紫色细航线
         /// <summary>屏幕像素，不随缩放变粗（基准线宽，密集航线在此基础上加粗）。</summary>
@@ -50,7 +68,25 @@ namespace AirlineCEO.UI
             return 4.0f;
         }
         static readonly Color HubCoreCol = new Color(0.10f, 0.42f, 1f, 1f);          // 主基地
-        static readonly Color PlaneCol = new Color(1f, 1f, 1f, 0.98f);
+
+        /// <summary>
+        /// 飞机图标配色。
+        ///
+        /// ★2026-10-30 CEO 定稿（三张截图）：
+        /// · 常态（未点选）= **中黄**，就是 AS 那种亮黄，不是深橙；
+        /// · 点选后 = **橙色**，比常态更「实」一档，靠色相 + 1.15 倍尺寸双重区分；
+        /// · 停场 = 青蓝（与在空区分，表示「在地面」）。
+        ///
+        /// 历史：首版是亮黄 (1,0.78,0.16) → 被指「不够醒目」而改成深橙 (0.95,0.50,0) →
+        /// 现在常态回到中黄、把深橙让给选中态。于是「醒目」由选中态承担，
+        /// 常态则回到 CEO 认可的中黄；两者色相差足够，同一屏里不会看混。
+        ///
+        /// 中黄取 (1.00, 0.80, 0.10)：色相 ~46°，饱和度 0.90 —— 比纯黄多一点橙，浅色底图上不发白。
+        /// 橙色取 (0.96, 0.52, 0.04)：色相 ~31°，明显偏红，跟中黄并排一眼能分出。
+        /// </summary>
+        public static readonly Color PlaneAirborneCol = new Color(1.00f, 0.80f, 0.10f, 1f);   // 中黄
+        public static readonly Color PlaneParkedCol = new Color(0.10f, 0.62f, 0.92f, 1f);
+        public static readonly Color PlaneSelectedCol = new Color(0.96f, 0.52f, 0.04f, 1f);   // 橙
 
         // 机场经纬度表（IATA → lon/lat，WGS-84，4~5 位小数）。
         // 旧版 0.1° 精度（约 10km）在矢量底图上会导致机场圆点/标注明显偏离跑道，
@@ -216,9 +252,21 @@ namespace AirlineCEO.UI
             root.AddComponent<MapDragEvents>();
             root.GetComponent<MapViewport>().ForceApply();
 
+            // 选中状态只在一个地方变（MapSelection），地图只在收到通知时重绘 ——
+            // 挂在每架飞机上各存一份「我是不是被选中」会在重建后全部丢失。
+            if (!_selectionHooked)
+            {
+                _selectionHooked = true;
+                MapSelection.Changed += OnSelectionChanged;
+            }
+
             _roots.Add(root);
             return root;
         }
+
+        static bool _selectionHooked;
+
+        static void OnSelectionChanged() => RebuildDynamicLayers();
 
         /// <summary>刷新地图：三份 Dynamic 叠加层全部重建（签名未变则跳过）。</summary>
         public static void Refresh()
@@ -295,9 +343,209 @@ namespace AirlineCEO.UI
         /// <summary>
         /// 只画「可见图层」的那部分航线。RebuildDynamic 走这里，测试也走这里 ——
         /// 直接调 <see cref="DrawRoutes"/> 仍然无条件绘制（那是绘制原语，宽度/几何的自检要用它）。
+        ///
+        /// ★2026-10-30：航线图层关着时，**选中的那一条仍然要画**。
+        /// CEO 的要求是「点飞机 → 显示它的航线」——那是点选的结果，不是一个图层开关，
+        /// 要是因为图层关着就不显示，玩家点了飞机只会觉得「没反应」。
+        /// 但「显示」就是正常显示：同色、同宽、同一个线宽档位，不做任何强调（CEO 2026-10-30 明确要求）。
         /// </summary>
         public static int DrawRouteLayer(Transform map)
-            => RoutesVisible ? DrawRoutes(map) : 0;
+            => RoutesVisible ? DrawRoutes(map) : DrawSelectedRouteOnly(map);
+
+        static int DrawSelectedRouteOnly(Transform map)
+        {
+            if (!MapSelection.Has) return 0;
+            var gs = GameState.Instance;
+            if (gs == null || gs.activeRoutes == null || map == null) return 0;
+
+            int drawn = 0;
+            var zoom = map.GetComponent<MapTrackZoom>();
+            if (zoom == null) zoom = map.gameObject.AddComponent<MapTrackZoom>();
+            // 这一层是重建出来的空层：先 Clear() 把上一次的登记清掉并重置缩放缓存，
+            // 否则新线拿不到 1/缩放 的补偿（2026-10-30 选中航线粗成宽带的那次事故）。
+            zoom.Clear();
+            DateTime localNow = gs.SimUtc + GameState.LocalUtcOffset;
+
+            for (int i = 0; i < gs.activeRoutes.Count; i++)
+            {
+                var r = gs.activeRoutes[i];
+                if (r == null || !MapSelection.IsSelected(r.routeId)) continue;
+                if (!TryPoint(r.origin, out var a) || !TryPoint(r.destination, out var b)) continue;
+                if ((a - b).sqrMagnitude < 4f) continue;
+
+                var arc = GreatCirclePoints(r.origin, r.destination, ArcSegments);
+                if (arc == null || arc.Count < 2) continue;
+                drawn += DrawRouteArc(map, "Route_" + i, r, arc, zoom, localNow);
+            }
+            zoom.Reapply();
+            return drawn;
+        }
+
+        /// <summary>
+        /// 画一条航线：**选中的那条**按「已飞实线 / 待飞虚线」拆开（对齐 Airline Sim），
+        /// 其余按普通整段实线。线宽一律取 <see cref="RouteThickness"/>，不做任何强调。
+        ///
+        /// ★2026-10-30 CEO：「点的航班的航线线条的粗细度要和航线网络的线条一样」
+        /// +「点击飞机后，已行驶的线路用实线，前方待飞行的线路用虚线」。
+        /// </summary>
+        static int DrawRouteArc(Transform map, string prefix, RouteData r, List<Vector2> arc,
+            MapTrackZoom zoom, DateTime localNow)
+        {
+            float thickness = RouteThickness(r);
+            int drawn = 0;
+
+            if (!TrySelectedSplit(r, localNow, out var split))
+            {
+                dashedOrSolid(false, 0f, 1f);
+                return drawn;
+            }
+
+            if (split.hasSolid) dashedOrSolid(false, split.solidFrom, split.solidTo);
+            if (split.hasDashed) dashedOrSolid(true, split.dashedFrom, split.dashedTo);
+            return drawn;
+
+            void dashedOrSolid(bool dashed, float t0, float t1)
+            {
+                if (t1 - t0 <= 1e-4f) return;
+                drawn += dashed
+                    ? DrawDashedSpan(map, prefix + "_dash", arc, t0, t1, RouteLineCol, thickness, zoom)
+                    : DrawSolidSpan(map, prefix, arc, t0, t1, RouteLineCol, thickness, zoom);
+            }
+        }
+
+        /// <summary>
+        /// 这条航线若是当前选中的，给出实/虚划分。返回 false 表示「按普通航线整段画」。
+        /// 用的是与信息卡、飞机图钉**同一个** <see cref="MapFlightState.Snapshot"/>，
+        /// 所以地图上的实线端点必然落在飞机图标上 —— 三处不会互相错位。
+        /// </summary>
+        static bool TrySelectedSplit(RouteData r, DateTime localNow, out RouteSpanSplit split)
+        {
+            split = default;
+            if (r == null || !MapSelection.IsSelected(r.routeId)) return false;
+
+            r.EnsureFlights();
+            int idx = MapSelection.FlightIndex;
+            var fl = (idx >= 0 && idx < r.flights.Count) ? r.flights[idx]
+                     : (r.flights.Count > 0 ? r.flights[0] : null);
+
+            var snap = MapFlightState.Snapshot(localNow,
+                fl != null ? fl.daysOfWeek : r.daysOfWeek,
+                fl != null ? fl.weeklyFlights : r.weeklyFlights,
+                fl != null ? fl.depTime : r.depTime,
+                fl != null ? fl.arrTime : r.arrTime,
+                r.distanceKm, r.aircraftType, r.groundStaffAssigned);
+            split = MapFlightState.Split(snap.phase, snap.mapFrac);
+            return true;
+        }
+
+        /// <summary>弧长比例 t（0..1）处的世界坐标点。</summary>
+        static Vector2 ArcPoint(List<Vector2> arc, float t)
+        {
+            float pos = Mathf.Clamp01(t) * (arc.Count - 1);
+            int i = Mathf.Clamp(Mathf.FloorToInt(pos), 0, arc.Count - 2);
+            return Vector2.Lerp(arc[i], arc[i + 1], pos - i);
+        }
+
+        /// <summary>取 [t0,t1] 这一截折线（两端按比例插值，保证端点精确）。</summary>
+        static List<Vector2> ArcSlice(List<Vector2> arc, float t0, float t1)
+        {
+            if (arc == null || arc.Count < 2) return null;
+            if (t1 <= t0) return null;
+            var pts = new List<Vector2> { ArcPoint(arc, t0) };
+            float p0 = Mathf.Clamp01(t0) * (arc.Count - 1);
+            float p1 = Mathf.Clamp01(t1) * (arc.Count - 1);
+            for (int i = Mathf.FloorToInt(p0) + 1; i <= Mathf.FloorToInt(p1); i++)
+                if (i >= 1 && i <= arc.Count - 1) pts.Add(arc[i]);
+            pts.Add(ArcPoint(arc, t1));
+            return pts;
+        }
+
+        /// <summary>实线段：与普通航线**完全相同**的绘制原语（DrawLine + MapTrackZoom 登记），
+        /// 因此粗细一定等于航线网络的线宽 —— 这是 CEO 第 1 条要求的机器可验证形式。</summary>
+        static int DrawSolidSpan(Transform map, string name, List<Vector2> arc, float t0, float t1,
+            Color col, float thickness, MapTrackZoom zoom)
+        {
+            var pts = ArcSlice(arc, t0, t1);
+            if (pts == null || pts.Count < 2) return 0;
+            int drawn = 0;
+            for (int i = 0; i < pts.Count - 1; i++)
+            {
+                var line = DrawLine(map, name + "_" + i, pts[i], pts[i + 1], col, thickness);
+                if (line != null) { zoom.RegisterLine(line, thickness); drawn++; }
+            }
+            return drawn;
+        }
+
+        /// <summary>
+        /// 待飞段的虚线。两段式保证「连贯」：
+        ///
+        /// 1. **一段虚线只生成一个 Image**，两端点都按弧长在路径上取点。
+        ///    旧实现是「沿着折线走，走到弦的末尾就把当前这段截断」，于是一段虚线跨过
+        ///    折线拐点时会被拆成两个各自旋转的 Image —— 接缝处必然错位/露白，
+        ///    视觉上就是「虚线不连贯」（CEO 2026-10-30 第三次反馈，箭头指的全是这种缝）。
+        /// 2. **周期按屏幕像素定**（4px 实 + 4px 空，与晨昏线同周期），
+        ///    `屏幕 px ÷ 视口缩放 = 世界长度`。固定世界长度会让放大后一段虚线变成几百像素的长杠。
+        ///
+        /// 段长与间隔因此是**按构造相等**的，不是「尽量相等」—— 这也是回归用例能断言的部分。
+        /// </summary>
+        static int DrawDashedSpan(Transform map, string name, List<Vector2> arc, float t0, float t1,
+            Color col, float thickness, MapTrackZoom zoom)
+        {
+            var pts = ArcSlice(arc, t0, t1);
+            if (pts == null || pts.Count < 2) return 0;
+
+            // 累计弧长表：让「第 k 段虚线的起止点」能按长度精确取出来。
+            int n = pts.Count;
+            var cum = new float[n];
+            for (int i = 1; i < n; i++)
+                cum[i] = cum[i - 1] + Vector2.Distance(pts[i - 1], pts[i]);
+            float len = cum[n - 1];
+            if (len < 1e-4f) return 0;
+
+            float viewScale = zoom != null ? Mathf.Max(0.05f, zoom.ViewScale) : 1f;
+            float nominal = (RouteDashScreen + RouteGapScreen) / viewScale;   // 屏幕恒定周期
+            if (nominal < 1e-4f) return 0;
+
+            // 段数上限只防「为一条航线生成上千个 Image」；超限时拉长周期而不是丢段 ——
+            // 丢段会在线上留下一个比别处都大的空洞，正是玩家说的「断了一截」。
+            const int MaxDashes = 600;
+            int periods = Mathf.Max(1, Mathf.FloorToInt(len / nominal));
+            float period = nominal;
+            if (periods > MaxDashes)
+            {
+                periods = MaxDashes;
+                period = len / periods;
+            }
+            float dashLen = period * (RouteDashScreen / (RouteDashScreen + RouteGapScreen));
+
+            int drawn = 0;
+            for (int k = 0; k * period < len - 1e-4f && drawn < MaxDashes; k++)
+            {
+                float s = k * period;
+                float e = Mathf.Min(s + dashLen, len);
+                if (e - s < 1e-4f) continue;
+
+                var p0 = PointAtLength(pts, cum, s);
+                var p1 = PointAtLength(pts, cum, e);
+                var line = DrawLine(map, name + "_" + drawn, p0, p1, col, thickness);
+                if (line != null) { zoom.RegisterLine(line, thickness); drawn++; }
+            }
+            return drawn;
+        }
+
+        /// <summary>按累计长度在折线上取点（线性插值）。</summary>
+        static Vector2 PointAtLength(List<Vector2> pts, float[] cum, float dist)
+        {
+            int n = cum.Length;
+            if (dist <= 0f) return pts[0];
+            if (dist >= cum[n - 1]) return pts[n - 1];
+            int i = 1;
+            while (i < n - 1 && cum[i] < dist) i++;
+            float segStart = cum[i - 1];
+            float segLen = cum[i] - segStart;
+            float f = segLen > 1e-6f ? (dist - segStart) / segLen : 0f;
+            return Vector2.Lerp(pts[i - 1], pts[i], f);
+        }
 
         /// <summary>
         /// 开/关航线图层并重绘。切换要立刻可见，所以直接重建 Dynamic，不等下一次 Refresh 的签名变化。
@@ -473,6 +721,7 @@ namespace AirlineCEO.UI
             var zoom = map.GetComponent<MapTrackZoom>();
             if (zoom == null) zoom = map.gameObject.AddComponent<MapTrackZoom>();
             zoom.Clear();
+            DateTime localNow = gs.SimUtc + GameState.LocalUtcOffset;
 
             for (int i = 0; i < gs.activeRoutes.Count; i++)
             {
@@ -481,15 +730,13 @@ namespace AirlineCEO.UI
                 if (!TryPoint(r.origin, out var a) || !TryPoint(r.destination, out var b)) continue;
                 if ((a - b).sqrMagnitude < 4f) continue;
 
-                var arc = GreatCirclePoints(r.origin, r.destination, 40);
+                var arc = GreatCirclePoints(r.origin, r.destination, ArcSegments);
                 if (arc == null || arc.Count < 2) continue;
-                // ★T03.8：线宽随班次密度（周离港班次）分档，干线更粗、支线更细
-                float thickness = RouteThickness(r);
-                for (int s = 0; s < arc.Count - 1; s++)
-                {
-                    var line = DrawLine(map, "Route_" + i + "_" + s, arc[s], arc[s + 1], RouteLineCol, thickness);
-                    if (line != null) { zoom.RegisterLine(line, thickness); drawn++; }
-                }
+                // ★T03.8：线宽随班次密度（周离港班次）分档，干线更粗、支线更细。
+                // ★2026-10-30 CEO：「点的航班的航线线条的粗细度要和航线网络的线条一样」
+                //   —— 选中的航线走同一个 DrawRouteArc、同一个 RouteThickness，绝不加粗。
+                //   区别只在**分段**：点开的那条按「已飞实线 / 待飞虚线」画（对齐 Airline Sim）。
+                drawn += DrawRouteArc(map, "Route_" + i, r, arc, zoom, localNow);
             }
 
             zoom.Reapply();
@@ -775,6 +1022,19 @@ namespace AirlineCEO.UI
             Debug.Log($"[MapWidget] 机场标签已建：{drawn}（主城市 {primary}）");
         }
 
+        /// <summary>
+        /// IATA → 城市短名（信息卡用）。查不到时退回机场中文名，再退回三字码本身 ——
+        /// 宁可印「未知城市」也不印空白格：空白会让玩家以为这一格坏了。
+        /// </summary>
+        public static string AirportCityLabel(string iata)
+        {
+            if (string.IsNullOrEmpty(iata)) return "—";
+            var info = AirportCatalog.FindByCode(iata);
+            if (string.IsNullOrEmpty(info.code)) return iata.ToUpperInvariant();
+            string city = CityOf(iata, info.nameZh, null);
+            return string.IsNullOrEmpty(city) ? (string.IsNullOrEmpty(info.nameZh) ? iata.ToUpperInvariant() : info.nameZh) : city;
+        }
+
         /// <summary>城市短名：优先取城市经济目录（PEK/PKX 自动合并为一个「北京」），否则从机场名提炼。</summary>
         static string CityOf(string code, string nameZh, string nameEn)
         {
@@ -817,7 +1077,6 @@ namespace AirlineCEO.UI
             if (gs == null || gs.activeRoutes == null) return;
 
             DateTime localNow = gs.SimUtc + GameState.LocalUtcOffset;
-            var glowMat = GlowMat();
             for (int i = 0; i < gs.activeRoutes.Count; i++)
             {
                 var r = gs.activeRoutes[i];
@@ -826,13 +1085,16 @@ namespace AirlineCEO.UI
                 if (!TryPoint(r.origin, out var a) || !TryPoint(r.destination, out var b)) continue;
                 if ((a - b).sqrMagnitude < 4f) continue;
 
-                var arc = GreatCirclePoints(r.origin, r.destination, 24);
+                // ★采样段数与航线完全一致（40）：飞机必须**落在画出来的那条线上**。
+                //   之前飞机用 24 段、航线用 40 段，两条折线是同一个大圆的不同近似，
+                //   在长航线上会差出几像素 —— 实线/虚线分界点于是压不中机头。
+                var arc = GreatCirclePoints(r.origin, r.destination, ArcSegments);
                 // 无机可派：不画「幽灵航班」——飞机停在出发场，不做空中动画
                 // （判据与 LiveClockSimulator 同一处，见 FlightGroundLogic）。
                 bool grounded = FlightGroundLogic.IsPersistent(FlightGroundLogic.RouteOf(gs, r));
                 if (grounded)
                 {
-                    PlacePlaneOnArc(map, arc, 0f, false, glowMat, TypeOf(gs, r, null));
+                    PlacePlaneOnArc(map, arc, 0f, false, TypeOf(gs, r, null), r.routeId, -1);
                     continue;
                 }
 
@@ -843,11 +1105,11 @@ namespace AirlineCEO.UI
                     if (fl == null) continue;
                     float frac = LiveClockLogic.MapRouteFrac(localNow, fl.daysOfWeek, fl.weeklyFlights,
                         fl.depTime, fl.arrTime, r.distanceKm, r.aircraftType, r.groundStaffAssigned, out bool inAir);
-                    PlacePlaneOnArc(map, arc, frac, inAir, glowMat, TypeOf(gs, r, fl));
+                    PlacePlaneOnArc(map, arc, frac, inAir, TypeOf(gs, r, fl), r.routeId, f);
                     drawn++;
                 }
                 if (drawn == 0)
-                    PlacePlaneOnArc(map, arc, 0.12f, false, glowMat, TypeOf(gs, r, null));
+                    PlacePlaneOnArc(map, arc, 0.12f, false, TypeOf(gs, r, null), r.routeId, -1);
             }
         }
 
@@ -857,7 +1119,10 @@ namespace AirlineCEO.UI
         /// 机队里的 type 才是机号的真身。两者都没有时才退回航线值（不返回空 —— 空会让图标变成默认窄体，
         /// 而「看起来像窄体」比「不画」更难发现）。
         /// </summary>
-        static string TypeOf(GameState gs, RouteData r, RouteFlight fl)
+        /// <summary>
+        /// 某条航线所在的「这一班到底用什么机型飞」——供信息卡与自检共用。
+        /// </summary>
+        public static string TypeOf(GameState gs, RouteData r, RouteFlight fl)
         {
             string reg = fl != null && !string.IsNullOrEmpty(fl.registration) ? fl.registration : (r != null ? r.registration : null);
             if (gs != null && gs.fleet != null && !string.IsNullOrEmpty(reg))
@@ -872,7 +1137,8 @@ namespace AirlineCEO.UI
             return r != null ? r.aircraftType : null;
         }
 
-        static void PlacePlaneOnArc(Transform map, List<Vector2> arc, float frac, bool inAir, Material glowMat, string aircraftType)
+        static void PlacePlaneOnArc(Transform map, List<Vector2> arc, float frac, bool inAir,
+            string aircraftType, string routeId, int flightIndex)
         {
             if (arc == null || arc.Count < 2) return;
             frac = Mathf.Clamp01(frac);
@@ -880,6 +1146,7 @@ namespace AirlineCEO.UI
             int idx = Mathf.Clamp(Mathf.FloorToInt(pos), 0, arc.Count - 2);
             Vector2 p = Vector2.Lerp(arc[idx], arc[idx + 1], pos - idx);
             float ang = Mathf.Atan2(arc[idx + 1].y - arc[idx].y, arc[idx + 1].x - arc[idx].x) * Mathf.Rad2Deg;
+
             var planeRoot = new GameObject("PlaneMark", typeof(RectTransform));
             planeRoot.transform.SetParent(map, false);
             var prt = planeRoot.GetComponent<RectTransform>();
@@ -887,10 +1154,25 @@ namespace AirlineCEO.UI
             prt.sizeDelta = Vector2.zero;
             prt.anchoredPosition = p;
             planeRoot.AddComponent<MapScreenConstant>();
+
             float size = MapAircraftIcons.SizeFor(aircraftType);
-            var glow = inAir ? new Color(0.45f, 0.95f, 1f, 0.85f) : new Color(1f, 0.92f, 0.45f, 0.7f);
-            DrawGlowDot(planeRoot.transform, "PlaneGlow", Vector2.zero, size * (inAir ? 1.55f : 1.2f), glow, 0.55f, glowMat);
-            DrawPlane(planeRoot.transform, "Plane", Vector2.zero, ang, aircraftType, size);
+            Color body = inAir ? PlaneAirborneCol : PlaneParkedCol;
+            bool selected = MapSelection.IsSelected(routeId)
+                            && (MapSelection.FlightIndex < 0 || flightIndex < 0 || MapSelection.FlightIndex == flightIndex);
+
+            // ★2026-10-30 CEO：「飞机图标周围是不是有光晕？？？有的话删除这个光晕」——
+            // 旧的 soft glow 是一团径向渐变，在浅色底图上会糊成一圈脏黄，也让小图标看起来发虚。
+            // 现在只有「机身 + 一圈深色描边」，不放任何光晕。
+            // ★2026-10-30 CEO 第三次定稿：「点选后不应该变成白色，应该是橙色」——
+            // 选中态改成放大 1.15 倍 + 橙色，不再是纯白（白机身在浅底图上还更容易糊掉）。
+            // 因此 PlaneMark 下只应存在 Edge 与 Plane 两个节点。
+            DrawPlane(planeRoot.transform, "Plane", Vector2.zero, ang, aircraftType,
+                selected ? size * 1.15f : size, selected ? PlaneSelectedCol : body);
+
+            // 点击受体挂在 PlaneMark 上：描边/图标任一层被点中都算点中这架（见 MapPlaneClick）。
+            var click = planeRoot.AddComponent<MapPlaneClick>();
+            click.routeId = routeId;
+            click.flightIndex = flightIndex;
         }
 
         // ── 绘制原语 ──
@@ -973,28 +1255,38 @@ namespace AirlineCEO.UI
         /// <summary>
         /// 画一架飞机：**机型剪影**（机头朝上）+ 一圈深色描边垫底。
         ///
-        /// 描边不是装饰：地图有卫星（深色）与矢量（浅色）两套底图，纯白剪影在浅色底图上翼尖会糊掉。
-        /// 深色描边用「同一张图放大 1.18 倍、垫在下面、染深色」实现 —— 比 Unity 的 <c>Outline</c>
-        /// 效果好得多：Outline 只沿四个方向复制顶点，斜边会出现明显锯齿。
+        /// 描边不是装饰：地图有卫星（深色）与矢量（浅色）两套底图，深琥珀压在深绿地形上也需要
+        /// 一圈暗边才立得住；选中态是纯白，没有暗边在浅色底图上会直接消失。
+        /// 描边用「同一张图放大 edgeScale 倍、垫在下面、染深色」实现 —— 比 Unity 的 <c>Outline</c>
+        /// 效果好得多：后者只沿四个方向复制顶点，斜边会出现明显锯齿。
         /// </summary>
-        static void DrawPlane(Transform map, string name, Vector2 p, float angleDeg, string aircraftType, float size)
+        static void DrawPlane(Transform map, string name, Vector2 p, float angleDeg, string aircraftType,
+            float size, Color body)
         {
             var sprite = MapAircraftIcons.SpriteFor(aircraftType);
             float rot = angleDeg - 90f;
 
-            var edge = NewChild(map, name + "Edge", size * 1.18f, size * 1.18f, p);
-            edge.localRotation = Quaternion.Euler(0f, 0f, rot);
-            var edgeImg = edge.GetComponent<Image>();
-            edgeImg.sprite = sprite;
-            edgeImg.type = Image.Type.Simple;
-            edgeImg.color = new Color(0.02f, 0.05f, 0.10f, 0.92f);
+            // 描边常开（含选中态）：选中的白色机身必须有暗边，否则浅色底图上等于隐形。
+            // 1.22（首版 1.18）：浅色底图上亮色机身的可辨识度主要靠这圈暗边撑住（暗边与浅底的亮度比 ~14.8），
+            // 加厚一点点比继续压深机身颜色更有效，也不会把橙色压成红褐。
+            const float edgeScale = 1.22f;
+            {
+                var edge = NewChild(map, name + "Edge", size * edgeScale, size * edgeScale, p);
+                edge.localRotation = Quaternion.Euler(0f, 0f, rot);
+                var edgeImg = edge.GetComponent<Image>();
+                edgeImg.sprite = sprite;
+                edgeImg.type = Image.Type.Simple;
+                edgeImg.color = new Color(0.02f, 0.05f, 0.10f, 0.95f);
+            }
 
             var rt = NewChild(map, name, size, size, p);
             rt.localRotation = Quaternion.Euler(0f, 0f, rot);
             var img = rt.GetComponent<Image>();
             img.sprite = sprite;
             img.type = Image.Type.Simple;
-            img.color = PlaneCol;
+            img.color = body;
+            // 只有图标本身接收射线：光晕是软边渐隐的，让它可点会让「空处」也能点中飞机。
+            img.raycastTarget = true;
         }
 
         static RectTransform NewChild(Transform map, string name, float w, float h, Vector2 pos)
@@ -1162,6 +1454,33 @@ namespace AirlineCEO.UI
             if (rt == null) return;
             _lines.Add(rt);
             _lineW.Add(screenThickness);
+            // ★立即按当前缩放应用一次。只登记不应用的话，新画的线会以**世界单位**保留
+            // 「屏幕像素」里的数值（2.8 / 4.0 世界单位），放大到市区级就是一条十几像素的宽带 ——
+            // 2026-10-30 CEO 截图里那条粗航线就是这么来的：`DrawSelectedRouteOnly` 没有先 Clear()，
+            // `Reapply()` 又因 `_last` 已等于当前缩放而提前返回，于是整条选中航线从未被补偿过。
+            Apply(_last, rt, screenThickness);
+        }
+
+        /// <summary>把「屏幕厚度」换算成世界厚度写进去。viewScale ≤ 0 表示尚不知道缩放，保持原值。</summary>
+        static void Apply(float viewScale, RectTransform rt, float screenThickness)
+        {
+            if (rt == null) return;
+            var sd = rt.sizeDelta;
+            sd.y = viewScale > 0.0001f ? Mathf.Max(1.2f, screenThickness) / viewScale
+                                       : Mathf.Max(1.2f, screenThickness);
+            rt.sizeDelta = sd;
+        }
+
+        /// <summary>当前视口缩放（1 = cover 铺满）。绘制期算「屏幕长度」的东西要用它。</summary>
+        public float ViewScale
+        {
+            get
+            {
+                var vp = GetComponentInParent<MapViewport>();
+                if (vp != null && vp.world != null && vp.world.localScale.x > 0.0001f)
+                    return vp.world.localScale.x;
+                return 1f;
+            }
         }
 
         /// <summary>已注册线段数（T03.8 渲染链路回归：确认 `DrawRoutes` 真的把线挂上来了）。</summary>
@@ -1198,6 +1517,9 @@ namespace AirlineCEO.UI
         /// <summary>路径重建后立即按当前视口缩放应用一次，保证初始线宽正确。</summary>
         public void Reapply()
         {
+            // 必须先把缓存标记清掉：`SetViewScale` 在缩放未变时提前返回，
+            // 而「刚画完、还没应用过」的线正是这种情况（新层没有 Clear() 的时候尤其致命）。
+            _last = -1f;
             var vp = GetComponentInParent<MapViewport>();
             if (vp != null && vp.world != null)
             {
@@ -1813,7 +2135,17 @@ namespace AirlineCEO.UI
                 _vp?.ZoomAt(e.position, dy > 0f ? MapViewport.ZoomStep : 1f / MapViewport.ZoomStep);
         }
 
-        public void OnPointerClick(UnityEngine.EventSystems.PointerEventData e) { }
+        /// <summary>
+        /// 点地图空白处取消选中。
+        ///
+        /// 只有「点中空白」才走到这里：点飞机时 <see cref="MapPlaneClick"/> 在这一层之前处理并
+        /// <c>Use()</c> 了事件，不会冒泡上来。这样「点飞机=选中」「点别处=取消」两个手势互不打架。
+        /// </summary>
+        public void OnPointerClick(UnityEngine.EventSystems.PointerEventData e)
+        {
+            if (!MapSelection.Has) return;
+            MapSelection.Clear();
+        }
     }
 
     /// <summary>桥接：让外部 UI（Dashboard 缩放按钮）能找到当前地图的 MapViewport。</summary>

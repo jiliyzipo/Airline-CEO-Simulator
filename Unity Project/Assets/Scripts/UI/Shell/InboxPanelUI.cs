@@ -37,7 +37,6 @@ namespace AirlineCEO.UI.Shell
         /// </summary>
         string _bodyScrollMailId;
 
-        TextMeshProUGUI _listCount;
         Button _chipOpen;
         Button _chipUnread;
         int _filter;   // 0 = 全部 · 1 = 仅待处理 · 2 = 仅未读
@@ -71,7 +70,7 @@ namespace AirlineCEO.UI.Shell
             var title = UIFactory.Label(root.transform, "Title", "收件箱", 18,
                 TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(16f, -40f), new Vector2(160f, -6f)),
+                    new Vector2(16f, -28f), new Vector2(160f, -4f)),
                 UITheme.TextPrimary, FontStyles.Bold);
             var close = UIFactory.Button(root.transform, "Close", "×",
                 new UIFactory.Anchor(new Vector2(1f, 1f), new Vector2(1f, 1f),
@@ -94,24 +93,24 @@ namespace AirlineCEO.UI.Shell
 
         void BuildLayout(Transform root)
         {
+            // 抬头只有一行：「收件箱」+ 右侧两个筛选筹码。
+            // ★2026-10-30 CEO：「删除『邮件列表多少封，在途多少封』，不需要这样的提示，多此一举」。
+            // 这一行原来放过「邮件列表（20）· 在途 4 封（最近一封约 6 小时后送达）」，
+            // 数据在列表里本来就看得见（未读/待处理也已由筹码与底栏红点表达），
+            // 所以整行删除，不再保留任何「统计说明」文字。
             const float titleH = 40f;
             const float split = 0.30f;
 
-            _listCount = UIFactory.Label(root, "Count", "", 13,
-                TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(168f, -40f), new Vector2(330f, -6f)),
-                UITheme.TextMuted);
-
             // 「待处理 / 未读」筛选筹码：点击切换列表过滤（再点或点另一个切换，点回即恢复全部）。
+            // 挂在左栏右缘（split）而不是写死像素：栏宽随窗口变，写死会把筹码推到分割线外面。
             _chipOpen = UIFactory.Button(root, "ChipOpen", "待处理 0",
-                new UIFactory.Anchor(new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(336f, -36f), new Vector2(424f, -8f)),
+                new UIFactory.Anchor(new Vector2(split, 1f), new Vector2(split, 1f),
+                    new Vector2(-184f, -32f), new Vector2(-96f, -6f)),
                 UITheme.PanelDeep, () => SetFilter(1), 12);
             _chipOpen.transition = Selectable.Transition.None;
             _chipUnread = UIFactory.Button(root, "ChipUnread", "未读 0",
-                new UIFactory.Anchor(new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(432f, -36f), new Vector2(508f, -8f)),
+                new UIFactory.Anchor(new Vector2(split, 1f), new Vector2(split, 1f),
+                    new Vector2(-88f, -32f), new Vector2(-8f, -6f)),
                 UITheme.PanelDeep, () => SetFilter(2), 12);
             _chipUnread.transition = Selectable.Transition.None;
 
@@ -456,19 +455,10 @@ namespace AirlineCEO.UI.Shell
             _rows.Clear();
 
             var mailsAll = Mails;
-            int countAll = mailsAll != null ? mailsAll.Count : 0;
             int unread = InboxManager.UnreadCount(GameState.Instance);
             int open = InboxManager.OpenCount(GameState.Instance);
             bool unreadGrew = _lastUnread >= 0 && unread > _lastUnread;
             _lastUnread = unread;
-            if (_listCount != null)
-            {
-                string suffix = _filter == 1 ? " · 筛选：待处理" : _filter == 2 ? " · 筛选：未读" : "";
-                // T05.2：在途送达提示（`pendingInbox` 以前没有任何 UI 读取）
-                string inflight = InboxManager.InflightLine(GameState.Instance);
-                _listCount.text = $"邮件列表（{countAll}）{suffix}"
-                                  + (string.IsNullOrEmpty(inflight) ? "" : "　·　" + inflight);
-            }
             PaintChips(open, unread);
 
             var gs = GameState.Instance;
@@ -1838,6 +1828,15 @@ namespace AirlineCEO.UI.Shell
                 }
                 InboxManager.RejectCapacityDirective(GameState.Instance, _selected, out string cmsg);
                 if (_hint != null) _hint.text = cmsg ?? "";
+                RebuildList();
+                RefreshDecisionButtons();
+                return;
+            }
+            if (_selected.action == InboxManager.RotationPlanAction)
+            {
+                // 航班环方案没有「暂缓」的中间态：要么按现状执行，要么退回重编。
+                InboxManager.RejectRotationPlan(GameState.Instance, _selected, out string rpmsg);
+                if (_hint != null) _hint.text = rpmsg ?? "";
                 RebuildList();
                 RefreshDecisionButtons();
                 return;

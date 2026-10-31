@@ -452,6 +452,9 @@ namespace AirlineCEO.Systems
             if (mail.action == CapacityDirectiveAction)
                 return ApproveCapacityDirective(gs, mail, out message);
 
+            if (mail.action == RotationPlanAction)
+                return ApproveRotationPlan(gs, mail, out message);
+
             if (mail.action == TransitionBusinessLogic.InquiryAction)
                 return TransitionBusinessLogic.SignAllIdleFromInbox(gs, mail, out message);
 
@@ -4209,6 +4212,169 @@ namespace AirlineCEO.Systems
                 time = gs.DateLabel,
                 deadlineQuarters = 1
             }, InboxCadence.ReplyReady(gs.SimUtc));
+            gs.NotifyChanged();
+            return true;
+        }
+
+        // ———— 航班环方案呈报（2026-10-30：构建完全后台化，CEO 只批方案 / 只读结果）————
+        //
+        // 报障原文：「这个航班环系统设计的极其糟糕，玩家既看不懂也无从下手……航班环的构建完全在
+        // 后台进行，CEO 只在命令台下达指定，由运营部负责跟进和反馈结果。」
+        // 于是 n36 的手动拼环、n98 的「绑定环」一并撤掉，改由 OpsRotationBuilder 六步后台编成，
+        // 结果只出现在这里：算得出 = 方案待批；算不全 = 运力缺口报告（逐段归因）。
+        /// <summary>运营部编成航班环后的呈报 / 运力缺口报告（批准才落账）。</summary>
+        public const string RotationPlanAction = "rotation_plan";
+
+        /// <summary>当前是否已有一封待批的航班环方案（同一时刻只留一封，避免两封方案互相阻断）。</summary>
+        public static InboxMail FindOpenRotationPlan(GameState gs)
+        {
+            if (gs?.inbox == null) return null;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m != null && m.action == RotationPlanAction && IsOpen(m)) return m;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 呈报六步构建结果。同一时刻只留**一封**待批方案函：新方案覆盖旧的待批稿，
+        /// 已结案的历史函一律不动（覆盖历史就说不清「当初批的是什么」）。
+        /// </summary>
+        /// <param name="delayHours">投递延迟（游戏小时）。&lt;0 = 从指令到呈报留一段「研究期」。</param>
+        public static bool QueueRotationPlan(GameState gs, OpsRotationBuilder.Plan plan, string reason,
+                                             int delayHours = -1)
+        {
+            if (gs == null || plan == null) return false;
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+
+            string subject = plan.HasGap
+                ? $"运力缺口报告：{plan.gaps.Count} 段排不进（请批复）"
+                : plan.rings.Count == 0
+                    ? "航班环：本轮没有可编的航段"
+                    : $"航班环方案：{plan.rings.Count} 个环已编成（请批复）";
+            string body = OpsRotationBuilder.FormatBody(plan, reason);
+
+            var open = FindOpenRotationPlan(gs);
+            if (open != null)
+            {
+                open.subject = subject;
+                open.body = body;
+                open.payloadCsv = plan.Signature;
+                open.capEngineRev = OpsRotationBuilder.EngineRev;
+                open.tag = plan.HasGap ? "缺口" : "呈报";
+                open.time = gs.DateLabel;
+                open.read = false;
+                Changed?.Invoke();
+                gs.NotifyChanged();
+                return true;
+            }
+
+            var mail = new InboxMail
+            {
+                id = $"m_rotation_{gs.year}Q{gs.quarter}_{gs.inbox.Count}",
+                sender = "运营部",
+                role = "运营部负责人",
+                glyph = "运",
+                kind = "report",
+                action = RotationPlanAction,
+                subject = subject,
+                body = body,
+                tag = plan.HasGap ? "缺口" : "呈报",
+                payloadCsv = plan.Signature,
+                directiveNote = reason ?? "",
+                capEngineRev = OpsRotationBuilder.EngineRev,
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            };
+
+            if (delayHours < 0)
+                Schedule(gs, mail, InboxCadence.StudyReady(gs.SimUtc));
+            else if (delayHours > 0)
+                Enqueue(gs, mail, delayHours);
+            else
+                Add(gs, mail);
+
+            gs.AddDecisionLog($"运营：{subject}（{OpsRotationBuilder.Headline(plan)}）");
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>
+        /// 批准航班环方案 = **此刻才排班**。若等待期间条件变了（新机/缺机/改时刻/维护），
+        /// 按最新状态重编一次再落账，并在回执里说明 —— 批准旧稿却按旧稿执行，才是真的出错。
+        /// </summary>
+        public static bool ApproveRotationPlan(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            var plan = OpsRotationBuilder.BuildFromGameState(gs);
+            bool changed = !string.IsNullOrEmpty(mail.payloadCsv) && mail.payloadCsv != plan.Signature;
+            int applied = OpsRotationBuilder.Apply(gs, plan);
+
+            Mark(gs, mail.id, "approved");
+            mail.payloadCsv = plan.Signature;
+            mail.capEngineRev = OpsRotationBuilder.EngineRev;
+
+            message = applied > 0
+                ? $"已批准航班环：{plan.rings.Count} 个环、{applied} 段航次即刻落地。"
+                  + (changed ? "（等待期间条件有变，已按最新机队/时刻重编后再落账。）" : "")
+                : "方案里没有可落账的合格环：一条也没动。";
+
+            var receipt = new InboxMail
+            {
+                id = "m_rotation_receipt_" + mail.id,
+                sender = "运营部",
+                role = "运营部负责人",
+                glyph = "运",
+                kind = "report",
+                action = "",
+                subject = applied > 0
+                    ? $"航班环回执：{plan.rings.Count} 个环已生效"
+                    : "航班环回执：本次没有落账",
+                body = OpsRotationBuilder.FormatBody(plan, "批复回执")
+                       + $"\n裁定：{message}\n",
+                status = "approved",
+                tag = "回执",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            };
+            Schedule(gs, receipt, InboxCadence.ReplyReady(gs.SimUtc));
+            gs.AddDecisionLog("运营：" + message);
+            Changed?.Invoke();
+            gs.NotifyChanged();
+            return applied > 0;
+        }
+
+        /// <summary>退回航班环方案：一条都不动（呈报阶段本来就没落账）。</summary>
+        public static bool RejectRotationPlan(GameState gs, InboxMail mail, out string message)
+        {
+            Mark(gs, mail.id, "rejected");
+            message = "已退回航班环方案：账面一条未动，运营部按新指示重编。";
+            gs.AddDecisionLog("运营：" + message);
+
+            var receipt = new InboxMail
+            {
+                id = "m_rotation_reject_" + mail.id,
+                sender = "运营部",
+                role = "运营部负责人",
+                glyph = "运",
+                kind = "report",
+                action = "",
+                subject = "航班环回执：方案已退回",
+                body = message + "\n\n本函无需批复。若要重编，在命令台说一句即可（例如「把深圳基地的飞机编满」）。\n",
+                status = "rejected",
+                tag = "回执",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = 1
+            };
+            Schedule(gs, receipt, InboxCadence.ReplyReady(gs.SimUtc));
+            Changed?.Invoke();
             gs.NotifyChanged();
             return true;
         }

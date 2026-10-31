@@ -25,8 +25,8 @@ namespace AirlineCEO.EditorTools
             SaveOpsPage("n42_航班周总计划", "n42", "航班周总计划");
             SaveOpsPage("n43_航班详细计划", "n43", "航班飞行计划");
             SaveOpsPage("n66_航季总纲", "n66", "航季总纲");
-            SaveOpsPage("n36_航班环构建器", "n36", "构建航班环");
-            SaveOpsPage("n98_航线航班环选择器", "n98", "航线/航班环选择器");
+            SaveOpsPage("n36_航班环构建器", "n36", "航班环 · 运营部编成");
+            SaveOpsPage("n98_航线航班环选择器", "n98", "航线分配");
             SaveIrrops();
 
             BindConfigs();
@@ -64,8 +64,8 @@ namespace AirlineCEO.EditorTools
             BindOne("n42_航班周总计划", "航班周总计划", "L2", "n13_运营部", "n42", false);
             BindOne("n43_航班详细计划", "航班飞行计划", "L2", "n42_航班周总计划", "n43", false);
             BindOne("n66_航季总纲", "航季总纲", "L2", "n13_运营部", "n66", false);
-            BindOne("n36_航班环构建器", "构建航班环", "L3", "n13_运营部", "n36", false);
-            BindOne("n98_航线航班环选择器", "航线/航班环选择器", "L3", "n10_飞机详情_履历", "n98", false);
+            BindOne("n36_航班环构建器", "航班环 · 运营部编成", "L3", "n13_运营部", "n36", false);
+            BindOne("n98_航线航班环选择器", "航线分配", "L3", "n10_飞机详情_履历", "n98", false);
             BindIrrops();
         }
 

@@ -69,7 +69,7 @@ namespace AirlineCEO.UI
             UIFactory.Button(root, "BtnWeek", "航班周计划",
                 new UIFactory.Anchor(new Vector2(0.24f, 0.64f), new Vector2(0.45f, 0.71f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => OpenOpsPage("n42_航班周总计划"), 13);
-            UIFactory.Button(root, "BtnRing", "构建航班环",
+            UIFactory.Button(root, "BtnRing", "航班环编成",
                 new UIFactory.Anchor(new Vector2(0.47f, 0.64f), new Vector2(0.68f, 0.71f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => OpenOpsPage("n36_航班环构建器"), 13);
             UIFactory.Button(root, "BtnRecalc", "重算调度",

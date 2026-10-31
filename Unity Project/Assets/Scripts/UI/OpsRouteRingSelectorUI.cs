@@ -10,8 +10,11 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// n98 航线/航班环选择器：给选定飞机分配航线（可在一条航线上加多班、选时段），
-    /// 或查看已校验航班环并跳转构建器。
+    /// n98 航线分配：给选定飞机分配航线（可在一条航线上加多班、选时段）。
+    ///
+    /// ★2026-10-30：原先还有「按航班环分配」页签，让 CEO 把已校验的环手工绑到机号。
+    /// 航班环改为运营部后台编成（<see cref="OpsRotationBoardUI"/>），这一侧不再保留任何拼环/绑环入口：
+    /// 「哪些飞机跑哪些环」由运营部按条件算，CEO 只批收件箱里的方案。
     /// </summary>
     public class OpsRouteRingSelectorUI : MonoBehaviour
     {
@@ -19,7 +22,6 @@ namespace AirlineCEO.UI
         Transform _aircraftStrip;
         TextMeshProUGUI _header;
         TextMeshProUGUI _hint;
-        bool _ringMode;
         string _selectedReg;
         readonly List<GameObject> _rows = new List<GameObject>();
         readonly List<GameObject> _chips = new List<GameObject>();
@@ -77,13 +79,11 @@ namespace AirlineCEO.UI
             var stripImg = _aircraftStrip.GetComponent<Image>();
             if (stripImg != null) stripImg.raycastTarget = false;
 
-            UIFactory.Button(root, "TabRoute", "按航线分配",
-                new UIFactory.Anchor(new Vector2(0f, 0.77f), new Vector2(0.32f, 0.85f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, () => { _ringMode = false; Refresh(); }, 13);
-            UIFactory.Button(root, "TabRing", "按航班环分配",
-                new UIFactory.Anchor(new Vector2(0.34f, 0.77f), new Vector2(0.68f, 0.85f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => { _ringMode = true; Refresh(); }, 13);
-            UIFactory.Button(root, "OpenBuilder", "打开航班环构建器",
+            UIFactory.Label(root, "TabRoute", "按航线分配 · 选机号后为它加航班（呈报 CEO 批准后落班）", 12,
+                TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0f, 0.77f), new Vector2(0.66f, 0.85f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted);
+            UIFactory.Button(root, "OpenBuilder", "查看航班环编成",
                 new UIFactory.Anchor(new Vector2(0.7f, 0.77f), new Vector2(1f, 0.85f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => OpsPanelUI.OpenOpsPage("n36_航班环构建器"), 12);
 
@@ -256,17 +256,15 @@ namespace AirlineCEO.UI
 
             string blocked = TransitionBusinessLogic.ScheduleBlockReason(gs, _selectedReg);
             if (_header != null)
-                _header.text = $"航线/航班环选择器 · 机号 {_selectedReg}";
+                _header.text = $"航线分配 · 机号 {_selectedReg}";
             if (_hint != null)
             {
                 // 顺序：一次性操作结果（呈报成功 / 已在待批 / 缺槽被拦）> 不可排班原因 > 常驻说明。
                 // 不可排班原因必须优先于常驻说明，否则「为什么点不动」会被下方那句通用文案盖掉。
                 _hint.text = !string.IsNullOrEmpty(_notice) ? _notice
                     : !string.IsNullOrEmpty(blocked) ? blocked + "　下方为该机占用详情；要给定期航班排班，请另选一架在册飞机。"
-                    : _ringMode
-                        ? "选择已校验的航班环，将两段航线绑定到该机；也可打开构建器新建环。"
-                        : "点飞机切换执飞飞机；点航线「＋加航班」**选具体时刻**（如 06:30 / 07:00，各占一条槽），"
-                          + "由运营部呈报 CEO，批准后在收件箱落班。";
+                    : "点飞机切换执飞飞机；点航线「＋加航班」**选具体时刻**（如 06:30 / 07:00，各占一条槽），"
+                      + "由运营部呈报 CEO，批准后在收件箱落班。整机成环由运营部在后台编成，本页不管拼环。";
                 _notice = null;
             }
 
@@ -286,8 +284,7 @@ namespace AirlineCEO.UI
                 return;
             }
 
-            if (_ringMode) FillRings(gs, _selectedReg);
-            else FillRoutes(gs, _selectedReg);
+            FillRoutes(gs, _selectedReg);
         }
 
         void RebuildAircraftStrip(GameState gs)
@@ -402,29 +399,6 @@ namespace AirlineCEO.UI
             return string.Join(" · ", set);
         }
 
-        void FillRings(GameState gs, string reg)
-        {
-            int n = gs?.flightRings?.Count ?? 0;
-            if (n == 0)
-            {
-                AddNote("尚无已保存的航班环。请先打开「构建航班环」校验并保存。");
-                return;
-            }
-
-            for (int i = 0; i < gs.flightRings.Count; i++)
-            {
-                var ring = gs.flightRings[i];
-                if (ring == null) continue;
-                string ringId = ring.ringId;
-                string note = ring.valid ? "合格" : "未通过";
-                string label =
-                    $"{ring.ringId}\n" +
-                    $"{ring.legARouteId} ↔ {ring.legBRouteId} · 过站 {ring.turnMinutes} 分 · {note}\n" +
-                    $"原机号 {ring.registration ?? "—"}";
-                AddRow(label, "绑定", () => AssignRing(gs, ringId, reg));
-            }
-        }
-
         void OpenSlotPicker(string routeId)
         {
             _slotRouteId = routeId;
@@ -476,42 +450,6 @@ namespace AirlineCEO.UI
             InboxManager.QueueAssignFlight(gs, r, _selectedReg, clock, out string msg);
             _notice = msg;
             Refresh();
-        }
-
-        void AssignRing(GameState gs, string ringId, string reg)
-        {
-            if (gs?.flightRings == null) return;
-            FlightRing ring = null;
-            for (int i = 0; i < gs.flightRings.Count; i++)
-                if (gs.flightRings[i] != null && gs.flightRings[i].ringId == ringId)
-                    ring = gs.flightRings[i];
-            if (ring == null) return;
-
-            ring.registration = reg;
-            BindRegistrationToRoute(gs, ring.legARouteId, reg);
-            BindRegistrationToRoute(gs, ring.legBRouteId, reg);
-            gs.AddDecisionLog($"机号 {reg} 绑定航班环 {ring.ringId}。");
-            _notice = $"已绑定航班环 {ring.ringId} 到 {reg}";
-            Refresh();
-        }
-
-        /// <summary>航班环绑定：把该机写入目标航线首班（若无则新增一班）。</summary>
-        void BindRegistrationToRoute(GameState gs, string routeId, string reg)
-        {
-            if (gs?.activeRoutes == null || string.IsNullOrEmpty(routeId) || string.IsNullOrEmpty(reg)) return;
-            RouteData target = null;
-            for (int i = 0; i < gs.activeRoutes.Count; i++)
-            {
-                var r = gs.activeRoutes[i];
-                if (r != null && r.routeId == routeId) target = r;
-            }
-            if (target == null) return;
-            target.EnsureFlights();
-            if (target.flights.Count > 0)
-                target.flights[0].registration = reg;
-            else
-                target.flights.Add(new RouteFlight { registration = reg, depTime = target.depTime, arrTime = target.arrTime, slotLabel = ScheduleSlots.LabelForDep(target.depTime), dailyProfit = target.dailyProfit });
-            target.SyncPrimaryFromFlights();
         }
 
         void AddNote(string text)

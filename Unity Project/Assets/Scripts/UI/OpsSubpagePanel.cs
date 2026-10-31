@@ -92,11 +92,11 @@ namespace AirlineCEO.UI
         {
             string kind = NormalizeKind(pageId);
             if (kind == "n36" && string.IsNullOrEmpty(title))
-                title = "构建航班环";
+                title = "航班环 · 运营部编成";
             if (kind == "n43" && string.IsNullOrEmpty(title))
                 title = "航班飞行计划";
             if (kind == "n98" && string.IsNullOrEmpty(title))
-                title = "航线/航班环选择器";
+                title = "航线分配";
             base.BindPage(pageId, title);
             _pageKind = kind;
             pageKind = _pageKind;
@@ -188,10 +188,10 @@ namespace AirlineCEO.UI
             switch (_pageKind)
             {
                 case "n36":
-                    titleLabel.text = "构建航班环";
+                    titleLabel.text = "航班环 · 运营部编成";
                     break;
                 case "n98":
-                    titleLabel.text = "航线/航班环选择器";
+                    titleLabel.text = "航线分配";
                     break;
                 case "n42":
                     titleLabel.text = "航班周总计划";
@@ -222,12 +222,15 @@ namespace AirlineCEO.UI
             var gs = GameState.Instance;
             var card = transform.Find("Card");
 
+            // n36：航班环**只读**看板。CEO 不再点航段拼环（2026-10-30 重构），
+            // 编成由运营部在后台按六步流水线跑，批准也只发生在收件箱；本页只呈现结果。
             if (_pageKind == "n36")
             {
                 SetBodyVisible(false);
                 SetTableVisible(false);
                 HideSelector();
-                if (card != null) OpsRingBuilderUI.Ensure(card);
+                HideLegacyRingBuilder();
+                if (card != null) OpsRotationBoardUI.Ensure(card);
                 ApplyPanelTitle(null, null, -1);
                 return;
             }
@@ -236,15 +239,15 @@ namespace AirlineCEO.UI
             {
                 SetBodyVisible(false);
                 SetTableVisible(false);
-                var ring = GetComponentInChildren<OpsRingBuilderUI>(true);
-                if (ring != null) ring.gameObject.SetActive(false);
+                HideBoard();
+                HideLegacyRingBuilder();
                 if (card != null) OpsRouteRingSelectorUI.Ensure(card);
                 ApplyPanelTitle(null, null, -1);
                 return;
             }
 
-            var ringUi = GetComponentInChildren<OpsRingBuilderUI>(true);
-            if (ringUi != null) ringUi.gameObject.SetActive(false);
+            HideBoard();
+            HideLegacyRingBuilder();
             HideSelector();
 
             if (_pageKind == "n42" || _pageKind == "n43" || _pageKind == "n66")
@@ -524,6 +527,20 @@ namespace AirlineCEO.UI
         {
             var sel = GetComponentInChildren<OpsRouteRingSelectorUI>(true);
             if (sel != null) sel.gameObject.SetActive(false);
+        }
+
+        /// <summary>离开 n36 时把看板收起，免得它压在周计划表上。</summary>
+        void HideBoard()
+        {
+            var board = GetComponentInChildren<OpsRotationBoardUI>(true);
+            if (board != null) board.gameObject.SetActive(false);
+        }
+
+        /// <summary>旧版手工拼环层（预置体烘焙的 RingBuilder）：任何页面都不再启用。</summary>
+        void HideLegacyRingBuilder()
+        {
+            var legacy = GetComponentInChildren<OpsRingBuilderUI>(true);
+            if (legacy != null) legacy.gameObject.SetActive(false);
         }
 
         static string NormalizeKind(string id)

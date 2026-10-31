@@ -102,6 +102,12 @@ namespace AirlineCEO.Logic
         public const string TopicFinance = "finance_request";
         /// <summary>运力调令（加减班 / 改班期 / 换机号）：不自己改账，交给既有运力管线。</summary>
         public const string TopicCapacity = "capacity";
+        /// <summary>
+        /// 航班环调令（2026-10-30）：一句话让运营部把网编成环。
+        /// 与 <see cref="TopicCapacity"/> 的分工：调令说的是**一条线的运力**（加密/削减/改班期/换机），
+        /// 本话题说的是**整个网怎么排**（「把深圳基地的飞机编满」「全网重新编环」）。
+        /// </summary>
+        public const string TopicRotation = "rotation_plan";
         /// <summary>问某一条**具体航线**的现状（班期/为什么没排/几班/谁飞）：交运营部按本线台账答复。</summary>
         public const string TopicRouteQuery = "route_query";
         /// <summary>公司整体经营（跨部门判断）：由航空顾问答，不归任何单一部门。</summary>
@@ -114,6 +120,16 @@ namespace AirlineCEO.Logic
         //   漏掉这两个词的结果是句子落进「运营部汇报航线」，航线一条没动、却像是受理了。
         static readonly string[] CloseWords =
             { "取消", "关停", "撤销", "撤掉", "停掉", "砍掉", "关闭", "停飞", "停航" };
+
+        /// <summary>
+        /// 航班环调令的触发词（2026-10-30）。刻意不收裸「排班」：它会把「招聘排班员」
+        /// 从人力资源部抢过来 —— 这类一句话里含别的部门对象的，必须留给它自己的词表。
+        /// </summary>
+        static readonly string[] RotationWords =
+        {
+            "航班环", "编环", "组环", "串环", "连班", "编满", "排满", "编成环",
+            "日循环", "日利用率", "重新排班", "重排班", "机队排班", "全网排班", "把飞机排"
+        };
         static readonly string[] HrWords =
         {
             "乘务", "空乘", "乘务员", "飞行员", "机长", "机务工程师", "编制", "缺口", "招聘",
@@ -382,6 +398,25 @@ namespace AirlineCEO.Logic
                 ask.topic = TopicCapacity;
                 ask.ok = true;
                 ask.contextRouteKey = contextRouteKey;
+                return ask;
+            }
+
+            // ①b″ 航班环调令（2026-10-30）：CEO 一句话让运营部把网编成环，不再自己点航段。
+            //
+            //    ★背景：n36 手动拼环与 n98 绑定环都已撤掉 —— 那套界面「玩家既看不懂也无从下手」。
+            //    现口径与现实一致：CEO 下的是一张**网**的指令（「把深圳基地的飞机编满」），
+            //    运营部按六步后台编成、把方案或缺口报告发进收件箱。
+            //
+            //    判据只要「环/排班」这类词 + 不是问句；带城对的句子若命中 ①b 的调令信号已在上面返回，
+            //    那时说的是**某条线的运力**，比「编环」更具体，不该被这里抢走。
+            if (!capIsQuestion && HasAny(text, RotationWords))
+            {
+                ask.deptCode = "OPS";
+                ask.kind = CeoAskKind.Act;
+                ask.topic = TopicRotation;
+                ask.ok = true;
+                string baseHint = ReadBaseHint(text);
+                ask.originText = baseHint;
                 return ask;
             }
 
@@ -933,6 +968,27 @@ namespace AirlineCEO.Logic
                 if (!string.IsNullOrEmpty(code)) return code;
             }
             return null;
+        }
+
+        /// <summary>
+        /// 从「深圳基地」「SZX 基地」这类说法里读出基地机场。读不出就返回空串 ——
+        /// 空串表示「按公司枢纽编」，绝不猜成别的城市（猜错整张网都排在别人家门口）。
+        /// </summary>
+        static string ReadBaseHint(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            int at = text.IndexOf("基地", StringComparison.Ordinal);
+            if (at <= 0) return "";
+            for (int len = 4; len >= 2; len--)
+            {
+                int start = at - len;
+                if (start < 0) continue;
+                string cand = text.Substring(start, len).Trim('，', '、', '把', '给', '对', '将', '的', '在');
+                if (cand.Length < 2) continue;
+                string code = ResolvePiece(cand);
+                if (!string.IsNullOrEmpty(code)) return code;
+            }
+            return "";
         }
 
         static string ResolvePiece(string piece)

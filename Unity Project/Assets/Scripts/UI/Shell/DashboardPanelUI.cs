@@ -1,3 +1,4 @@
+using AirlineCEO.Logic;
 using AirlineCEO.Systems;
 using AirlineCEO.UI.Framework;
 using TMPro;
@@ -15,7 +16,11 @@ namespace AirlineCEO.UI.Shell
     {
         Image _weatherIconImg;                 // 云图标着色（开=亮蓝 / 关=灰）
         GameObject _weatherBtnGo;
-        Image _routeIconImg;                   // 航线图标着色（开=亮蓝 / 关=灰）
+        Image _routeIconImg;                   // 航线图标着色（开=亮青 / 关=灰暗）
+        Image _routeBtnImg;                    // 航线按钮底色（开=青蓝底，整块亮起来）
+        Outline _routeBorder;                  // 航线按钮描边（开=亮边）
+        bool _routeIconOn;                     // 上一帧的图层状态，用于检测外部改动
+        MapFlightCard _flightCard;             // 选中飞机后的航班卡
         GameObject _stylePopup;                // 地球按钮弹出的样式选择面板
         Image _globeIconImg;                   // 地球图标着色（弹窗开着=高亮）
         readonly Outline[] _thumbBorders = new Outline[2];  // 缩略图选中描边
@@ -107,8 +112,9 @@ namespace AirlineCEO.UI.Shell
             // 航线按钮：最左。★2026-10-30 CEO 要求——地图默认只有飞机在动，点了才显示航线
             var routeBtn = UIFactory.IconButton(layerBar.transform, "Routes", UIFactory.RouteSprite,
                 PixelSlot(0, IconPx, IconGap),
-                new Color(0.03f, 0.08f, 0.15f, 0.88f), ToggleRoutes, new Color(0.75f, 0.88f, 1f, 1f));
-            UIFactory.AddBorder(routeBtn.gameObject, UITheme.Border, new Vector2(1f, -1f));
+                RouteBtnBg, ToggleRoutes, RouteBtnOffIcon);
+            _routeBorder = UIFactory.AddBorder(routeBtn.gameObject, UITheme.Border, new Vector2(1f, -1f));
+            _routeBtnImg = routeBtn.GetComponent<Image>();
             _routeIconImg = routeBtn.transform.Find("Icon").GetComponent<Image>();
 
             // 地球按钮：中，点击弹出样式选择面板（默认/卫星缩略图）
@@ -133,6 +139,10 @@ namespace AirlineCEO.UI.Shell
             RefreshRouteIcon();
 
             BuildHomeTabs(overlay.transform);
+
+            // 航班卡：选中地图上的飞机后弹出（对齐 Airline Sim 的底部航班条）。
+            // 挂在 overlay 最后，压在地图与按钮之上。
+            _flightCard = MapFlightCard.Build(overlay.transform);
 
             // 右下角顾问气泡已并入画布级 AdvisorModalUI（收起=图标，展开=同一矩形伸展成弹窗）。
         }
@@ -284,6 +294,23 @@ namespace AirlineCEO.UI.Shell
             RefreshWeatherIcon();
         }
 
+        /// <summary>
+        /// 航线按钮的两套配色。★2026-10-30 CEO（第二次）：「整块亮度不够，要和旁边的地图按钮一样的亮度」。
+        ///
+        /// 上一版「开」态把底色刷成青蓝 (0.06,0.30,0.46)、图标刷成淡青 —— 实测采样（截图像素）：
+        /// 底色 (33,85,104)、图标最亮处只有 (52,99,116)，而旁边的地球按钮是深藏青 (18,33,53)
+        /// 配亮白图标 (189,221,252)。**亮度差全在图标上**：青蓝底把淡青图标吃掉了，
+        /// 整块看着比邻居更暗更浑。
+        ///
+        /// 现在与邻居完全一致：底色固定为同一个深藏青（不开/关两套底色），
+        /// 状态只由**图标亮度**表达 —— 关=中灰、开=接近纯白。另外图标线稿加粗过
+        /// （见 <see cref="UIFactory.RouteSprite"/>），否则 60 px 上细线再亮也只是一道浅痕。
+        /// </summary>
+        static readonly Color RouteBtnBg = new Color(0.03f, 0.08f, 0.15f, 0.88f);      // 与地球/云按钮同一色
+        static readonly Color RouteBtnOnIcon = new Color(0.92f, 0.97f, 1f, 1f);
+        static readonly Color RouteBtnOffIcon = new Color(0.55f, 0.63f, 0.71f, 0.9f);
+        static readonly Color RouteBtnOnBorder = new Color(0.42f, 0.86f, 1f, 1f);
+
         /// <summary>航线图层开关：地图默认不画航线，点一下才显示（对齐 Airline Sim 的地图图层）。</summary>
         void ToggleRoutes()
         {
@@ -291,16 +318,28 @@ namespace AirlineCEO.UI.Shell
             RefreshRouteIcon();
         }
 
-        /// <summary>
-        /// 航线按钮的着色：开=亮蓝（与地图上的弧线呼应），关=灰暗。
-        /// 与云按钮同一口径 —— 图层按钮不靠 Tooltip 表达状态，玩家瞄一眼颜色就知道开没开。
-        /// </summary>
+        /// <summary>把按钮外观同步成 <see cref="MapWidget.RoutesVisible"/> 的当前值。</summary>
         void RefreshRouteIcon()
         {
-            if (_routeIconImg == null) return;
-            _routeIconImg.color = MapWidget.RoutesVisible
-                ? new Color(0.45f, 0.85f, 1f, 1f)
-                : new Color(0.5f, 0.58f, 0.66f, 0.75f);
+            bool on = MapWidget.RoutesVisible;
+            if (_routeIconImg != null) _routeIconImg.color = on ? RouteBtnOnIcon : RouteBtnOffIcon;
+            if (_routeBtnImg != null) _routeBtnImg.color = RouteBtnBg;   // 底色恒定，与邻居一致
+            if (_routeBorder != null) _routeBorder.effectColor = on ? RouteBtnOnBorder : UITheme.Border;
+        }
+
+        /// <summary>
+        /// 每帧对一次按钮外观。**这不是防御性代码，是在修一个真实的失同步**：
+        /// <see cref="MapWidget.RoutesVisible"/> 是静态的，可能被别处（快捷键、地图内部）改动；
+        /// 只在点击回调里刷新，就会出现「图层其实开着、按钮还是灭的」。
+        /// 每帧比较一次布尔值，代价可以忽略，状态却永远不会骗人。
+        /// </summary>
+        void Update()
+        {
+            if (MapWidget.RoutesVisible != _routeIconOn)
+            {
+                _routeIconOn = MapWidget.RoutesVisible;
+                RefreshRouteIcon();
+            }
         }
 
         void RefreshWeatherIcon()
@@ -320,13 +359,17 @@ namespace AirlineCEO.UI.Shell
             MapWidget.Refresh();
             MapWidget.RefreshTerminator();
             RefreshWeatherIcon();  // 重建层级后图标颜色可能未同步开关状态
+            _routeIconOn = MapWidget.RoutesVisible;
             RefreshRouteIcon();
+            MapSelection.Changed -= RefreshFlightCard;
+            MapSelection.Changed += RefreshFlightCard;
+            RefreshFlightCard();
             var gs = GameState.Instance;
             if (gs != null) gs.OnStateChanged += OnStateChanged;
             if (TimeManager.Instance != null)
             {
-                TimeManager.Instance.OnClockTick -= RefreshTicker;
-                TimeManager.Instance.OnClockTick += RefreshTicker;
+                TimeManager.Instance.OnClockTick -= OnClockTick;
+                TimeManager.Instance.OnClockTick += OnClockTick;
             }
             ExternalEventManager.Changed -= RefreshTicker;
             ExternalEventManager.Changed += RefreshTicker;
@@ -338,14 +381,42 @@ namespace AirlineCEO.UI.Shell
             var gs = GameState.Instance;
             if (gs != null) gs.OnStateChanged -= OnStateChanged;
             if (TimeManager.Instance != null)
-                TimeManager.Instance.OnClockTick -= RefreshTicker;
+                TimeManager.Instance.OnClockTick -= OnClockTick;
             ExternalEventManager.Changed -= RefreshTicker;
+            MapSelection.Changed -= RefreshFlightCard;
+            if (_flightCard != null) _flightCard.Hide();
+        }
+
+        /// <summary>
+        /// 时钟每走一格：刷新滚动条 + 卡片的进度。
+        ///
+        /// 卡片必须挂在这里，而不是只在 <see cref="OnStateChanged"/> 里：时钟前进不一定会触发存档变更
+        /// （没有新邮件、没有现金落账），只靠状态变更刷新，卡片上的进度条会停在点击那一刻不动 ——
+        /// 那正好是玩家最会盯着它看的场景（「这一班还有多久落地」）。
+        /// </summary>
+        void OnClockTick()
+        {
+            RefreshTicker();
+            if (MapSelection.Has) RefreshFlightCard();
+        }
+
+        /// <summary>
+        /// 选中变化 → 开关航班卡。订阅放在 OnEnable/OnDisable 成对出现：
+        /// 静态事件不做对称退订，切页几次之后每帧会同时刷新好几张已销毁的卡（MissingReference）。
+        /// </summary>
+        void RefreshFlightCard()
+        {
+            if (_flightCard == null) return;
+            if (MapSelection.Has) _flightCard.Refresh();
+            else _flightCard.Hide();
         }
 
         void OnStateChanged()
         {
             MapWidget.Refresh();
             RefreshTicker();
+            // 卡片上的进度条/时刻要跟着时钟走：只在选中变化时刷新，会让卡片停在点击那一刻的数据。
+            if (MapSelection.Has) RefreshFlightCard();
             if (_dossierOverlay != null && _dossierOverlay.activeSelf && _dossierBody != null)
                 CeoDossierPanel.Fill(_dossierBody, _homeTab == 2);
         }

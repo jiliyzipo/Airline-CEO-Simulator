@@ -139,41 +139,20 @@ namespace AirlineCEO.Logic
 
         /// <summary>
         /// 地图进度：0 在出发机场，1 在到达机场。去程 0→1，过站停 1，回程 1→0。
+        ///
+        /// ★2026-10-30：实现搬到 <see cref="MapFlightState.Snapshot"/>，这里只做投影。
+        /// 理由是信息卡需要「当前航段的进度 + 所处阶段」，而地图位置是折返值 ——
+        /// 两套循环各写一遍必然分叉（改了其中一处的跨夜判定，另一处不会跟着改）。
         /// </summary>
         public static float MapRouteFrac(DateTime localNow, string daysOfWeek, int weeklyFlights,
             string depHhmm, string arrHhmm, float distanceKm, string aircraftType, int groundStaff, out bool inAir)
         {
-            inAir = false;
-            DateTime today = localNow.Date;
-            float parked = 0f;
-            for (int back = 1; back >= 0; back--)
-            {
-                DateTime day = today.AddDays(-back);
-                if (!OperatesOn(daysOfWeek, day, weeklyFlights)) continue;
-                RoundTripWindow(day, depHhmm, arrHhmm, distanceKm, aircraftType, groundStaff,
-                    out DateTime outDep, out DateTime outArr, out DateTime retDep, out DateTime retArr);
-
-                float pOut = AirborneProgress01(localNow, outDep, outArr);
-                if (pOut >= 0f)
-                {
-                    inAir = true;
-                    return pOut;
-                }
-                float pRet = AirborneProgress01(localNow, retDep, retArr);
-                if (pRet >= 0f)
-                {
-                    inAir = true;
-                    return 1f - pRet;
-                }
-                if (localNow >= outArr && localNow < retDep)
-                    parked = 1f;
-                else if (localNow >= retArr)
-                    parked = 0f;
-                else if (localNow < outDep)
-                    parked = 0f;
-            }
-            return parked;
+            var s = MapFlightState.Snapshot(localNow, daysOfWeek, weeklyFlights,
+                depHhmm, arrHhmm, distanceKm, aircraftType, groundStaff);
+            inAir = s.inAir;
+            return s.mapFrac;
         }
+
 
         public static string OpKey(DateTime localDepart)
         {

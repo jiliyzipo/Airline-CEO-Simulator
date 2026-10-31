@@ -395,6 +395,9 @@ namespace SlotCheck
             R25NoDeadBand(ref fail);
             R28StatedTarget(ref fail);
             R40PlaneSilhouettes(ref fail);
+            R41FlightPhases(ref fail);
+            R42RouteSplit(ref fail);
+            R43RotationBuilder(ref fail);
 
             Console.WriteLine(fail == 0 ? "SLOTCHECK OK" : $"SLOTCHECK FAIL {fail}");
             return fail == 0 ? 0 : 1;
@@ -2433,6 +2436,132 @@ namespace SlotCheck
                 }
         }
 
+        // ———————————————————— R41 地图航班阶段（2026-10-30：点飞机看航班卡） ————————————————————
+        //
+        // 报障原文：「点击某个飞机图标后……弹窗显示该航班的信息」。
+        // 卡片上印的是**阶段**（待起飞/去程在空/过站/回程在空/已落地）与**当前航段进度**，
+        // 而地图上的位置沿「去→回」折返 —— 两者不能混用，否则回程上进度条会倒着走。
+        // 这里逐时刻断言阶段与两个进度，把这条口径钉死。
+        static void R41FlightPhases(ref int fail)
+        {
+            Console.WriteLine("\nR41 地图航班阶段（地图位置 vs 航段进度，去程/过站/回程/落地）：");
+
+            // PEK–SHA 1100 km、08:00–10:30、每日；A320 过站按逻辑估算
+            const float km = 1100f;
+            const string dep = "08:00", arr = "10:30";
+            int turn = LiveClockLogic.TurnMinutes("A320neo", 3);
+            var day = new DateTime(2026, 1, 5);   // 周一
+            LiveClockLogic.RoundTripWindow(day, dep, arr, km, "A320neo", 3,
+                out var outDep, out var outArr, out var retDep, out var retArr);
+
+            MapFlightSnapshot At(DateTime t) => MapFlightState.Snapshot(t, "每日", 7, dep, arr, km, "A320neo", 3);
+
+            var sBefore = At(outDep.AddMinutes(-30));
+            Check($"起飞前 → 待起飞，地图位置 0（实得 {sBefore.phase}/{sBefore.mapFrac:F2}）",
+                sBefore.phase == MapFlightPhase.Scheduled && !sBefore.inAir && Near(sBefore.mapFrac, 0f), ref fail);
+
+            var sMid = At(outDep.AddMinutes((int)((outArr - outDep).TotalMinutes / 2)));
+            Check($"去程半途 → 去程在空，位置≈0.5、航段进度≈0.5（实得 {sMid.mapFrac:F2}/{sMid.legProgress01:F2}）",
+                sMid.phase == MapFlightPhase.Outbound && sMid.inAir
+                && sMid.mapFrac > 0.3f && sMid.mapFrac < 0.7f
+                && sMid.legProgress01 > 0.3f && sMid.legProgress01 < 0.7f, ref fail);
+
+            var sTurn = At(outArr.AddMinutes(turn / 2));
+            Check($"去程落地待回程 → 过站，位置 1、航段进度 0（实得 {sTurn.phase}/{sTurn.mapFrac:F2}/{sTurn.legProgress01:F2}）",
+                sTurn.phase == MapFlightPhase.Turnaround && !sTurn.inAir
+                && Near(sTurn.mapFrac, 1f) && Near(sTurn.legProgress01, 0f), ref fail);
+
+            var sRet = At(retDep.AddMinutes((int)((retArr - retDep).TotalMinutes / 2)));
+            Check($"回程半途 → 回程在空，地图位置从 1 折回（{sRet.mapFrac:F2}）、"
+                  + $"航段进度从小往大（{sRet.legProgress01:F2}）",
+                sRet.phase == MapFlightPhase.Inbound && sRet.inAir
+                && sRet.mapFrac > 0.3f && sRet.mapFrac < 0.7f
+                && sRet.legProgress01 > 0.3f && sRet.legProgress01 < 0.7f
+                && Near(sRet.mapFrac, sRet.legProgress01), ref fail);
+
+            var sDone = At(retArr.AddMinutes(30));
+            Check($"两段飞完 → 已落地，位置回到 0（实得 {sDone.phase}/{sDone.mapFrac:F2}）",
+                sDone.phase == MapFlightPhase.Landed && !sDone.inAir && Near(sDone.mapFrac, 0f), ref fail);
+
+            // 口径唯一性：地图位置必须与老的 MapRouteFrac 逐点一致（后者已改为投影，这里防的是有人再各写一套）
+            bool same = true;
+            for (int m = -120; m <= 900; m += 15)
+            {
+                var t = outDep.AddMinutes(m);
+                float oldFrac = LiveClockLogic.MapRouteFrac(t, "每日", 7, dep, arr, km, "A320neo", 3, out bool oldAir);
+                var s = At(t);
+                if (!Near(oldFrac, s.mapFrac) || oldAir != s.inAir) { same = false; break; }
+            }
+            Check("MapRouteFrac 与 MapFlightState 逐点一致（15 分钟步长、起飞前 2h 到落地后 6h）", same, ref fail);
+
+            // 班期不含当天：不得印出 0 分钟航段
+            var off = MapFlightState.Snapshot(outDep, "周一", 1, dep, arr, km, "A320neo", 3);
+            Check($"班期不飞的当天仍有可读航段时长（实得 {off.legMinutes} 分）", off.legMinutes > 0, ref fail);
+
+            // 航段时长与班期表一致（1100 km 的 08:00–10:30 应落在 2~3 小时内）
+            Check($"航段时长落在合理区间（{outArr - outDep}）",
+                (outArr - outDep).TotalMinutes >= 90 && (outArr - outDep).TotalMinutes <= 240, ref fail);
+        }
+
+        // ———————————————————— R42 航线实线/虚线划分（2026-10-30 CEO：已飞实线、待飞虚线） ————————————————————
+        //
+        // 报障原文：「参照 AS 的航线，点击飞机后，飞机已经行驶的线路用实线，前方待飞行的线路用虚线」。
+        // 这里只验划分（纯逻辑），不验画法：画法由 PlayMode 的 T038 用例断言节点存在与线宽一致。
+        static void R42RouteSplit(ref int fail)
+        {
+            Console.WriteLine("\nR42 航线实线/虚线划分（已飞 / 待飞）：");
+
+            var s0 = MapFlightState.Split(MapFlightPhase.Scheduled, 0f);
+            Check("待起飞 → 整条虚线（一段都没飞）",
+                !s0.hasSolid && s0.hasDashed && Near(s0.dashedFrom, 0f) && Near(s0.dashedTo, 1f), ref fail);
+
+            var so = MapFlightState.Split(MapFlightPhase.Outbound, 0.4f);
+            Check("去程在空(40%) → 实线 0→0.4、虚线 0.4→1",
+                so.hasSolid && Near(so.solidFrom, 0f) && Near(so.solidTo, 0.4f)
+                && so.hasDashed && Near(so.dashedFrom, 0.4f) && Near(so.dashedTo, 1f), ref fail);
+
+            // ★方向：回程是「从到达场往回飞」，已飞段在地图上是 frac→1（靠近到达场那半截）
+            var si = MapFlightState.Split(MapFlightPhase.Inbound, 0.4f);
+            Check("回程在空(40%) → 实线 0.4→1、虚线 0→0.4（方向与去程相反）",
+                si.hasSolid && Near(si.solidFrom, 0.4f) && Near(si.solidTo, 1f)
+                && si.hasDashed && Near(si.dashedFrom, 0f) && Near(si.dashedTo, 0.4f), ref fail);
+
+            var st = MapFlightState.Split(MapFlightPhase.Turnaround, 1f);
+            Check("过站 → 整条实线（去程已飞完）",
+                st.hasSolid && Near(st.solidFrom, 0f) && Near(st.solidTo, 1f) && !st.hasDashed, ref fail);
+
+            var sl = MapFlightState.Split(MapFlightPhase.Landed, 0f);
+            Check("已落地 → 整条实线",
+                sl.hasSolid && Near(sl.solidFrom, 0f) && Near(sl.solidTo, 1f) && !sl.hasDashed, ref fail);
+
+            // 端点必须闭合：实线终点 + 虚线起点 = 整条线，不留缝也不重叠
+            bool closed = true;
+            foreach (var f in new[] { 0.05f, 0.25f, 0.5f, 0.75f, 0.95f })
+            {
+                var o = MapFlightState.Split(MapFlightPhase.Outbound, f);
+                if (!Near(o.solidTo, o.dashedFrom)) closed = false;
+                var i2 = MapFlightState.Split(MapFlightPhase.Inbound, f);
+                if (!Near(i2.dashedTo, i2.solidFrom)) closed = false;
+            }
+            Check("实线段终点与虚线段起点严格相接（不留缝、不重叠）", closed, ref fail);
+
+            // 与地图位置同源：划分的「已飞终点」必须正好落在飞机所在位置（去程 = frac）
+            bool onPlane = true;
+            var mid = MapFlightState.Split(MapFlightPhase.Outbound, 0.37f);
+            if (!Near(mid.solidTo, 0.37f)) onPlane = false;
+            var ret = MapFlightState.Split(MapFlightPhase.Inbound, 0.37f);
+            if (!Near(ret.solidFrom, 0.37f)) onPlane = false;
+            Check("实线端点落在飞机当前位置（去程 0.37 / 回程 0.37）", onPlane, ref fail);
+
+            // 越界输入不得产生反向区间（否则 DrawLine 会画出负长度段）
+            var lo = MapFlightState.Split(MapFlightPhase.Outbound, -0.5f);
+            var hi = MapFlightState.Split(MapFlightPhase.Inbound, 1.5f);
+            Check("越界 frac 被夹到 0..1（不产生反向区间）",
+                Near(lo.solidTo, 0f) && Near(hi.solidFrom, 1f), ref fail);
+        }
+
+        static bool Near(float a, float b) => Math.Abs(a - b) < 1e-4f;
+
         /// <summary>R19 诊断行：打印一条 CEO 指令的实际解析结果（walk the parse）。</summary>
         static void ShowCmd(string text)
         {            var d = CapacityDirectiveLogic.Parse(text);
@@ -2494,6 +2623,154 @@ namespace SlotCheck
             for (int i = 0; i < needs.Count; i++)
                 if (string.Equals(needs[i].airport, airport, StringComparison.OrdinalIgnoreCase)) n++;
             return n;
+        }
+
+        // ———————————————————— R43 航班环六步构建（2026-10-30 CEO：构建完全后台化） ————————————————————
+        //
+        // 报障原文：「这个航班环系统设计的极其糟糕，玩家既看不懂也无从下手……CEO 只在命令台
+        // 下达指定，由运营部负责跟进和反馈结果」。于是 n36 的手动拼环被删掉，改由
+        // OpsRotationBuilder 按六步在后台算；这里逐条钉住六步的判据，避免「看着像排班、
+        // 实际排不进去」的手感回归。
+        static void R43RotationBuilder(ref int fail)
+        {
+            Console.WriteLine("\nR43 航班环六步构建（运营部后台：资源/过站/骨架/插段/校验/核算）：");
+
+            OpsRotationBuilder.Leg Leg(string routeId, int idx, int depMin, int blockMin, int turnMin,
+                float profit = 10f, string type = "A320neo", bool slotOk = true, string origin = "SZX",
+                string dest = "PEK")
+                => new OpsRotationBuilder.Leg
+                {
+                    routeId = routeId, index = idx, flightNumber = routeId,
+                    origin = origin, destination = dest, aircraftType = type,
+                    depMin = depMin, blockMin = blockMin, turnMin = turnMin,
+                    profitWan = profit, slotOk = slotOk,
+                    slotNote = slotOk ? "" : $"{origin}/{dest} 缺槽"
+                };
+
+            OpsRotationBuilder.Craft Craft(string reg, string type = "A320neo", bool usable = true, string why = "")
+                => new OpsRotationBuilder.Craft
+                {
+                    registration = reg, type = type, baseIata = "SZX",
+                    usable = usable, blockedReason = why
+                };
+
+            // ① 基本成环：两段可串（08:00 出发 10:00 落地、过站 60、12:00 归场；下一段 13:00 起）
+            var legs1 = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS100", 0, 8 * 60, 120, 60, 10f),
+                Leg("NS102", 1, 14 * 60, 120, 60, 12f)
+            };
+            var plan1 = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2001") }, legs1);
+            Check($"两段串成一个环（环数 {plan1.rings.Count}、入环 {plan1.AssignedLegs} 段）",
+                plan1.rings.Count == 1 && plan1.AssignedLegs == 2, ref fail);
+            var ring1 = plan1.rings.Count > 0 ? plan1.rings[0] : null;
+            Check($"环的机型/机号写入（{ring1?.registration}/{ring1?.type}）",
+                ring1 != null && ring1.registration == "B-2001" && ring1.type == "A320neo", ref fail);
+            Check($"值勤窗口覆盖首末班（{OpsRotationBuilder.MinutesText(ring1?.DutyMinutes ?? 0)}）",
+                ring1 != null && ring1.DutyStart <= 8 * 60 && ring1.DutyEnd >= 14 * 60 - 60, ref fail);
+            Check($"轮挡按「一圈=两段」计（{ring1?.BlockMinutes} 分 = 4 段 × 120）",
+                ring1 != null && ring1.BlockMinutes == 4 * 120, ref fail);
+            Check($"日贡献合计透传（{ring1?.ProfitWan:F0} 万）", ring1 != null && Near(ring1.ProfitWan, 22f), ref fail);
+            Check($"六步留痕齐全（实得 {plan1.steps.Count} 步）", plan1.steps.Count == 6, ref fail);
+            Check("六步名称与顺序固定（UI 与邮件按此对照）",
+                plan1.steps.Count == 6
+                && plan1.steps[0].name == "资源盘点" && plan1.steps[5].name == "成本收益核算", ref fail);
+
+            // ② 过站不足：15 分 < 底线 35 分 → 剔除并归因「过站不足」，不是悄悄跳过
+            var legs2 = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS200", 0, 8 * 60, 120, 15),
+                Leg("NS202", 1, 13 * 60, 120, 60)
+            };
+            var plan2 = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2002") }, legs2);
+            Check($"过站 15 分被判死（入环 {plan2.AssignedLegs} 段、缺口 {plan2.gaps.Count} 条）",
+                plan2.AssignedLegs == 1 && plan2.gaps.Count == 1, ref fail);
+            Check($"缺口归因＝过站不足（实得 {plan2.gaps[0].kind}）",
+                plan2.gaps.Count == 1 && plan2.gaps[0].kind == OpsRotationBuilder.GapTurn, ref fail);
+
+            // ③ 缺槽：时刻槽没握在手里 → 不排，归因「缺槽」
+            var legs3 = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS300", 0, 8 * 60, 120, 60, slotOk: false)
+            };
+            var plan3 = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2003") }, legs3);
+            Check($"缺槽的航段不进环（入环 {plan3.AssignedLegs} 段）", plan3.AssignedLegs == 0, ref fail);
+            Check($"缺口归因＝缺槽（实得 {plan3.gaps[0].kind}）",
+                plan3.gaps.Count == 1 && plan3.gaps[0].kind == OpsRotationBuilder.GapNoSlot, ref fail);
+
+            // ④ 缺机：机队没有这个机型 → 归因「缺机」（不能写成「值勤已满」）
+            var legs4 = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS400", 0, 8 * 60, 120, 60, type: "B787-9")
+            };
+            var plan4 = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2004") }, legs4);
+            Check($"机型不符不进环（入环 {plan4.AssignedLegs} 段）", plan4.AssignedLegs == 0, ref fail);
+            Check($"缺口归因＝缺机（实得 {plan4.gaps[0].kind}）",
+                plan4.gaps.Count == 1 && plan4.gaps[0].kind == OpsRotationBuilder.GapNoAircraft, ref fail);
+
+            // ⑤ 值勤超限：早 05:00 报到 + 四圈 → 上限内只能吃下三圈，第四段留缺口「缺时间」
+            var legs5 = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS500", 0, 6 * 60, 90, 45),
+                Leg("NS502", 1, 10 * 60 + 30, 90, 45),
+                Leg("NS504", 2, 19 * 60, 90, 45)
+            };
+            var plan5 = OpsRotationBuilder.Build(
+                new List<OpsRotationBuilder.Craft> { Craft("B-2005") }, legs5);
+            var ring5 = plan5.rings.Count > 0 ? plan5.rings[0] : null;
+            Check($"值勤上限拦住第 3 圈（入环 {plan5.AssignedLegs} 段、值勤 {OpsRotationBuilder.MinutesText(ring5?.DutyMinutes ?? 0)}"
+                  + $" ≤ 上限 {OpsRotationBuilder.MinutesText(ring5?.DutyLimit ?? 0)}）",
+                ring5 != null && ring5.DutyMinutes <= ring5.DutyLimit
+                && plan5.AssignedLegs == ring5.legs.Count && plan5.AssignedLegs < legs5.Count, ref fail);
+            Check($"被拦下的段归因＝缺时间（实得 {plan5.gaps[0].kind}）",
+                plan5.gaps.Count > 0 && plan5.gaps[0].kind == OpsRotationBuilder.GapNoTime, ref fail);
+
+            // ⑥ 最晚归场：末班 23:00 起飞 120 分钟 + 过站 60 + 回程 120 → 归场已过 23:30，排不进
+            var legs6 = new List<OpsRotationBuilder.Leg> { Leg("NS600", 0, 23 * 60, 120, 60) };
+            var plan6 = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2006") }, legs6);
+            Check($"超过末班归场时限的航段不进环（入环 {plan6.AssignedLegs} 段）", plan6.AssignedLegs == 0, ref fail);
+
+            // ⑦ 不可用飞机（在修/过渡业务）不参与编环，且不计入「可用」
+            var plan7 = OpsRotationBuilder.Build(
+                new List<OpsRotationBuilder.Craft> { Craft("B-2007", usable: false, why: "停场检修") },
+                new List<OpsRotationBuilder.Leg> { Leg("NS700", 0, 8 * 60, 120, 60) });
+            Check($"在修飞机不编环（可用 {plan7.UsableCraft} 架、入环 {plan7.AssignedLegs} 段）",
+                plan7.UsableCraft == 0 && plan7.AssignedLegs == 0, ref fail);
+            Check($"在修飞机的航段归因＝缺机（实得 {plan7.gaps[0].kind}）",
+                plan7.gaps.Count == 1 && plan7.gaps[0].kind == OpsRotationBuilder.GapNoAircraft, ref fail);
+
+            // ⑧ 一架机不够分：两架机才排得下的表，一架机时第二段必须如实报缺口
+            var twoLegs = new List<OpsRotationBuilder.Leg>
+            {
+                Leg("NS800", 0, 8 * 60, 120, 60),
+                Leg("NS802", 1, 8 * 60 + 90, 120, 60)   // 与第一段同时段：同机串不上
+            };
+            var oneCraft = OpsRotationBuilder.Build(
+                new List<OpsRotationBuilder.Craft> { Craft("B-2008") }, twoLegs);
+            var twoCrafts = OpsRotationBuilder.Build(
+                new List<OpsRotationBuilder.Craft> { Craft("B-2008"), Craft("B-2009") }, twoLegs);
+            Check($"同段并飞的表：一架机只吃 1 段（{oneCraft.AssignedLegs}）、两架机吃 2 段（{twoCrafts.AssignedLegs}）",
+                oneCraft.AssignedLegs == 1 && twoCrafts.AssignedLegs == 2, ref fail);
+            Check($"两架机时每个环都是合格环（{twoCrafts.rings.Count} 个）",
+                twoCrafts.rings.Count == 2 && twoCrafts.rings.TrueForAll(r => r.Valid), ref fail);
+
+            // ⑨ 指纹：条件不变 → 指纹不变（「仅条件变化时自动重编」的前提）
+            var sigA = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2010") },
+                new List<OpsRotationBuilder.Leg> { Leg("NS900", 0, 8 * 60, 120, 60) }).Signature;
+            var sigB = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2010") },
+                new List<OpsRotationBuilder.Leg> { Leg("NS900", 0, 8 * 60, 120, 60) }).Signature;
+            var sigC = OpsRotationBuilder.Build(new List<OpsRotationBuilder.Craft> { Craft("B-2010") },
+                new List<OpsRotationBuilder.Leg> { Leg("NS900", 0, 9 * 60, 120, 60) }).Signature;
+            Check("条件不变 → 指纹相同（不会重复呈报）", sigA == sigB && sigA.Length > 0, ref fail);
+            Check("条件变化 → 指纹变化（会重编并呈报）", sigA != sigC, ref fail);
+
+            // ⑩ 正文必须能自查：六步 + 环 + 缺口，且不出现「运力不足」这种不落地的空话
+            var body = OpsRotationBuilder.FormatBody(oneCraft);
+            Check("呈报正文含六步标题", body.Contains("【六步】"), ref fail);
+            Check("有缺口时正文写出归因段（缺时间/缺机/缺槽/过站不足）",
+                body.Contains("【排不进的航段 · 运力缺口】")
+                && (body.Contains("缺时间") || body.Contains("缺机") || body.Contains("缺槽")), ref fail);
+            Check("正文不出现空洞措辞「运力不足」", !body.Contains("运力不足"), ref fail);
         }
 
         static void Check(string name, bool ok, ref int fail)
