@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "queued",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Assets-Tests、Editor、Balance",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T07:19:53.632Z",
-  "updatedAt": "2026-10-31T07:35:03.806Z",
+  "updatedAt": "2026-10-31T08:17:16.404Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",

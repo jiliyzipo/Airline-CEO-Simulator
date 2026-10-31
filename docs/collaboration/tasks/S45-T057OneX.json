@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S45-T057OneX",
+  "title": "阶段 S45：T05.7 1× 真时钟取证（新建/接管开局 + 到期停表）",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "queued",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：Assets-Tests",
+    "改动文件数 2，基准 git",
+    "不含本阶段未改动的模块与未列入验收条件的重构"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S45-T057OneX）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S45-T057OneX）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S45-T057OneX）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-10-31T08:18:27.532Z",
+  "updatedAt": "2026-10-31T08:19:02.472Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab",
+    "Unity Project/Assets/Tests",
+    "tools/collab/tests",
+    "tools/collab/config.example.json"
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 819,
-  "updatedAt": "2026-10-31T07:36:16.061Z",
+  "revision": 822,
+  "updatedAt": "2026-10-31T08:19:02.502Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -450,12 +450,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "queued",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T07:19:53.632Z"
+    },
+    "S45-T057OneX": {
+      "title": "阶段 S45：T05.7 1× 真时钟取证（新建/接管开局 + 到期停表）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T08:18:27.532Z"
     }
   },
-  "lastDeliveryId": "DEL-20261031072012-3ed2fd",
+  "lastDeliveryId": "DEL-20261031081842-1227f3",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
