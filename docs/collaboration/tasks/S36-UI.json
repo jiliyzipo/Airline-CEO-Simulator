@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：UI、Logic、Slotcheck、Assets-Tests",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-30T00:06:00.292Z",
-  "updatedAt": "2026-10-31T06:19:26.582Z",
+  "updatedAt": "2026-10-31T08:45:26.601Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261030001502-59e457 covered 9 changed files; 4 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs).",
-  "staleForReviewId": "REV-20261030001502-59e457",
+  "freshnessNote": "Historic verdict REV-20261030001502-59e457 covered 9 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261031045140-2cd3d8, DEL-20261031072012-3ed2fd.",
+  "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:07.489Z",
@@ -70,10 +70,8 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 4,
-    "covered": 4,
-    "uncovered": [
-      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs"
-    ],
-    "uncoveredCount": 1
+    "covered": 5,
+    "uncovered": [],
+    "uncoveredCount": 0
   }
 }

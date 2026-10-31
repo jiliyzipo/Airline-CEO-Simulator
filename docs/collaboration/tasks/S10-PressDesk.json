@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-24T12:45:41.908Z",
-  "updatedAt": "2026-10-31T06:57:52.377Z",
+  "updatedAt": "2026-10-31T08:45:19.665Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 23 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/balance/AirlineCEO.Balance.csproj).",
+  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 24 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
   "staleForReviewId": "REV-20261024132317-f6bf86",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,11 +73,10 @@
   "scopeDrift": {
     "basis": 56,
     "intact": 31,
-    "covered": 23,
+    "covered": 24,
     "uncovered": [
-      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
-      "tools/balance/AirlineCEO.Balance.csproj"
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
     ],
-    "uncoveredCount": 2
+    "uncoveredCount": 1
   }
 }

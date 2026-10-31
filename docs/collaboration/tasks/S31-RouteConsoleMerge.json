@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Editor、Logic、UI、Assets-Tests、Regression",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T08:56:42.660Z",
-  "updatedAt": "2026-10-31T06:19:25.331Z",
+  "updatedAt": "2026-10-31T08:45:26.118Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 4 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs).",
-  "staleForReviewId": "REV-20261028110915-15a8d5",
+  "freshnessNote": "Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261031072012-3ed2fd, DEL-20261029121039-25aaa7, DEL-20261031045140-2cd3d8 等 4 个.",
+  "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:25.759Z",
@@ -71,10 +71,8 @@
   "scopeDrift": {
     "basis": 11,
     "intact": 6,
-    "covered": 4,
-    "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs"
-    ],
-    "uncoveredCount": 1
+    "covered": 5,
+    "uncovered": [],
+    "uncoveredCount": 0
   }
 }

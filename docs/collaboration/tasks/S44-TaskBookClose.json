@@ -5,7 +5,7 @@
   "title": "阶段 S44：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填）",
   "revision": 1,
   "devStatus": "ready_for_review",
-  "reviewStatus": "queued",
+  "reviewStatus": "passed",
   "freshness": "stale",
   "holder": null,
   "scope": [
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T07:19:53.632Z",
-  "updatedAt": "2026-10-31T08:17:16.404Z",
+  "updatedAt": "2026-10-31T08:45:37.819Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261031083615-e0bc7e passed delivery DEL-20261031072012-3ed2fd; verification baseline changed — re-review required.",
+  "staleForReviewId": "REV-20261031083615-e0bc7e"
 }

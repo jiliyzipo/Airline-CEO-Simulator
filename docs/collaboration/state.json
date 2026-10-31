@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 823,
-  "updatedAt": "2026-10-31T08:32:23.537Z",
+  "revision": 833,
+  "updatedAt": "2026-10-31T08:55:49.219Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -126,7 +126,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:24.740Z"
     },
@@ -135,7 +135,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.212Z"
     },
@@ -144,7 +144,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.671Z"
     },
@@ -342,7 +342,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:25.777Z"
     },
@@ -369,7 +369,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:05.364Z"
     },
@@ -378,7 +378,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:07.495Z"
     },
@@ -405,7 +405,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:11.117Z"
     },
@@ -448,7 +448,7 @@
     "S44-TaskBookClose": {
       "title": "阶段 S44：任务书 T03/T04/T05 收口（隔离回归补齐 + 证据回填）",
       "devStatus": "ready_for_review",
-      "reviewStatus": "queued",
+      "reviewStatus": "passed",
       "holder": null,
       "freshness": "stale",
       "taskBookStatus": null,
@@ -457,7 +457,7 @@
     "S45-T057OneX": {
       "title": "阶段 S45：T05.7 1× 真时钟取证（新建/接管开局 + 到期停表）",
       "devStatus": "ready_for_review",
-      "reviewStatus": "queued",
+      "reviewStatus": "passed",
       "holder": null,
       "freshness": "current",
       "taskBookStatus": null,

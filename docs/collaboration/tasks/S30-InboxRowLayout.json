@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T02:11:15.020Z",
-  "updatedAt": "2026-10-31T05:22:06.742Z",
+  "updatedAt": "2026-10-31T08:45:25.934Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 3 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, tools/regression/ai-run.mjs).",
+  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 4 taken over by later passed deliveries, 1 still uncovered (tools/regression/ai-run.mjs).",
   "staleForReviewId": "REV-20261028022523-acfde4",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,11 +73,10 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 4,
-    "covered": 3,
+    "covered": 4,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
       "tools/regression/ai-run.mjs"
     ],
-    "uncoveredCount": 2
+    "uncoveredCount": 1
   }
 }

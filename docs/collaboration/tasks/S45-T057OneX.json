@@ -5,7 +5,7 @@
   "title": "阶段 S45：T05.7 1× 真时钟取证（新建/接管开局 + 到期停表）",
   "revision": 1,
   "devStatus": "ready_for_review",
-  "reviewStatus": "queued",
+  "reviewStatus": "passed",
   "freshness": "current",
   "holder": null,
   "scope": [
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-31T08:18:27.532Z",
-  "updatedAt": "2026-10-31T08:32:23.383Z",
+  "updatedAt": "2026-10-31T08:55:49.100Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "freshnessNote": "Review REV-20261031084620-ec742c still applies to delivery DEL-20261031081842-1227f3.",
   "staleForReviewId": null
 }

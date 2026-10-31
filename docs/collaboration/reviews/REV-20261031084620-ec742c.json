@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261031084620-ec742c",
+  "deliveryId": "DEL-20261031081842-1227f3",
+  "taskId": "S45-T057OneX",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "unity-editmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "EditMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity EditMode tests in the isolated snapshot; refuses to run unless companyName=AirlineCEORegression; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "ae8eff7efdc09eeeab53b28dca6fdd96c1c3fbb0fa3fa1c3ae6ca5451764d15d",
+    "verification": "abfe6c7f92d1d3873873dd39d016e17030df84411f18b9bc8ac372c2e0f652c3",
+    "contract": "3e839ff78d98b8c0d97737eae427757f60ae6efa9c596e50cdbba8f0a18481e8"
+  },
+  "snapshotPath": "out/collab/DEL-20261031081842-1227f3",
+  "createdAt": "2026-10-31T08:46:21.298Z",
+  "updatedAt": "2026-10-31T08:54:12.934Z",
+  "runs": [
+    {
+      "at": "2026-10-31T08:46:25.737Z",
+      "finishedAt": "2026-10-31T08:53:55.424Z",
+      "runToken": "32c69b4789516068",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261031081842-1227f3",
+      "subjectImplementationFingerprint": "ae8eff7efdc09eeeab53b28dca6fdd96c1c3fbb0fa3fa1c3ae6ca5451764d15d",
+      "subjectFingerprints": {
+        "implementation": "ae8eff7efdc09eeeab53b28dca6fdd96c1c3fbb0fa3fa1c3ae6ca5451764d15d",
+        "verification": "abfe6c7f92d1d3873873dd39d016e17030df84411f18b9bc8ac372c2e0f652c3",
+        "contract": "3e839ff78d98b8c0d97737eae427757f60ae6efa9c596e50cdbba8f0a18481e8"
+      },
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "32c69b4789516068"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261031081842-1227f3",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261031084620-ec742c/run-32c69b4789516068/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261031084620-ec742c/run-32c69b4789516068/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261031084620-ec742c/run-32c69b4789516068/stdout.txt",
+        "sha256": "504b87fb8e3f694b2ce220f4fdf65e6bca9a93033235acd5be038a5b9a109180",
+        "bytes": 64,
+        "runToken": "32c69b4789516068"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261031084620-ec742c/run-32c69b4789516068/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "32c69b4789516068"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_32c69b4789516068.xml",
+        "runToken": "32c69b4789516068",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261031081842-1227f3",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "e80b2ef6bac802ed4a9e0f3da2fbd91aaa9e8a05c5a42aad29a67247efb03a85",
+          "bytes": 66832,
+          "mtimeMs": 1793436826168.0852
+        },
+        "producedByRun": true,
+        "sha256": "e80b2ef6bac802ed4a9e0f3da2fbd91aaa9e8a05c5a42aad29a67247efb03a85"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=32c69b4789516068 counters={\"total\":59,\"failed\":0,\"skipped\":0,\"passed\":59} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=32c69b4789516068 counters={\"total\":59,\"failed\":0,\"skipped\":0,\"passed\":59} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=32c69b4789516068 counters={\"total\":59,\"failed\":0,\"skipped\":0,\"passed\":59} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-10-31T08:46:25.688Z",
+  "assertions": {
+    "total": 59,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_32c69b4789516068.xml",
+      "sha256": "e80b2ef6bac802ed4a9e0f3da2fbd91aaa9e8a05c5a42aad29a67247efb03a85",
+      "total": 59,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 59
+    },
+    "counters": {
+      "total": 59,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 59
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261031084620-ec742c-1793436844895.json",
+  "finishedAt": "2026-10-31T08:54:12.934Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "32c69b4789516068",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_32c69b4789516068.xml",
+      "runToken": "32c69b4789516068",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261031081842-1227f3",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "e80b2ef6bac802ed4a9e0f3da2fbd91aaa9e8a05c5a42aad29a67247efb03a85",
+        "bytes": 66832,
+        "mtimeMs": 1793436826168.0852
+      },
+      "producedByRun": true,
+      "sha256": "e80b2ef6bac802ed4a9e0f3da2fbd91aaa9e8a05c5a42aad29a67247efb03a85"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261031081842-1227f3"
+  }
+}
