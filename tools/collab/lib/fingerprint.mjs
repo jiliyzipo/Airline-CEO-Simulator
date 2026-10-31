@@ -92,10 +92,21 @@ function sha256Bytes(buf) {
   return crypto.createHash('sha256').update(buf).digest('hex');
 }
 
-function walkFiles(repoRoot, relative, out) {
+/**
+ * `ctx.hashCache` — 内容哈希缓存（见 hashcache.mjs）。只替代「读文件 + sha256」，
+ * 目录遍历永远真走，因此增删文件不会被掩盖。
+ * `ctx.entriesCache` — 本次事务内的清单记忆（按根集键）。同一轮 sync 里多个任务
+ * 往往共用同一组根，没必要把同一棵树走六遍。
+ */
+function walkFiles(repoRoot, relative, out, ctx = {}) {
   const absolute = path.join(repoRoot, relative);
-  if (!fs.existsSync(absolute)) return;
-  const st = fs.lstatSync(absolute);
+  // lstat 自己会抛 ENOENT：再先 existsSync 一次等于把每个节点的系统调用翻倍。
+  let st;
+  try {
+    st = fs.lstatSync(absolute);
+  } catch {
+    return;
+  }
   if (st.isSymbolicLink()) throw new Error(`Refusing snapshot symlink/junction: ${relative}`);
   const name = path.basename(relative);
   if (st.isDirectory()) {
@@ -103,7 +114,7 @@ function walkFiles(repoRoot, relative, out) {
     const normDir = relative.replace(/\\/g, '/');
     if (isGeneratedCollabPath(`${normDir}/x`)) return;
     for (const child of fs.readdirSync(absolute).sort()) {
-      walkFiles(repoRoot, `${relative}/${child}`.replace(/\\/g, '/'), out);
+      walkFiles(repoRoot, `${relative}/${child}`.replace(/\\/g, '/'), out, ctx);
     }
     return;
   }
@@ -111,8 +122,15 @@ function walkFiles(repoRoot, relative, out) {
   const norm = relative.replace(/\\/g, '/');
   if (norm === 'tools/collab/config.json') return; // machine-local config is never shared
   if (isGeneratedCollabPath(norm)) return;
+  const needsScan = /\.(asset|json|txt|ya?ml)$/i.test(name);
+  const cached = ctx.hashCache ? ctx.hashCache.lookup(absolute, st) : null;
+  // 命中但上次没扫过凭据的文件必须重读：安全门禁不能因为缓存被跳过。
+  if (cached && (!needsScan || cached.scanned)) {
+    out.push({ path: norm, bytes: cached.bytes, sha256: cached.sha256 });
+    return;
+  }
   const bytes = fs.readFileSync(absolute);
-  if (/\.(asset|json|txt|ya?ml)$/i.test(name)) {
+  if (needsScan) {
     const text = bytes.toString('utf8');
     if (/^[ \t]*(?:apiKey|accessToken|secret)[ \t]*:[ \t]*[^\s"']+/mi.test(text)) {
       const err = new Error(`Refusing to fingerprint credential field in ${relative}`);
@@ -120,19 +138,25 @@ function walkFiles(repoRoot, relative, out) {
       throw err;
     }
   }
-  out.push({
-    path: relative.replace(/\\/g, '/'),
-    bytes: bytes.length,
-    sha256: sha256Bytes(bytes),
-  });
+  const sha256 = sha256Bytes(bytes);
+  if (ctx.hashCache) ctx.hashCache.record(absolute, st, sha256, needsScan);
+  out.push({ path: norm, bytes: bytes.length, sha256 });
 }
 
-export function collectEntries(repoRoot, roots) {
+export function collectEntries(repoRoot, roots, ctx = {}) {
+  const rootsKey = roots.map((r) => r.replace(/\\/g, '/')).join('|');
+  const memo = ctx.entriesCache;
+  if (memo && memo.has(rootsKey)) {
+    // 交给调用方的是副本：下游会给 entry 挂 tracked 等字段，绝不能回写记忆。
+    return memo.get(rootsKey).map((e) => ({ ...e }));
+  }
   const raw = [];
-  for (const root of roots) walkFiles(repoRoot, root, raw);
+  for (const root of roots) walkFiles(repoRoot, root, raw, ctx);
   const map = new Map();
   for (const e of raw) map.set(e.path, e);
-  return [...map.values()].sort((a, b) => a.path.localeCompare(b.path));
+  const sorted = [...map.values()].sort((a, b) => a.path.localeCompare(b.path));
+  if (memo) memo.set(rootsKey, sorted);
+  return memo ? sorted.map((e) => ({ ...e })) : sorted;
 }
 
 export function dedupeRoots(roots) {
@@ -204,12 +228,15 @@ export function computeFingerprints(
     implementationRoots = null,
     verificationRoots = null,
     includeGit = true,
+    hashCache = null,
+    entriesCache = null,
   } = {},
 ) {
+  const ctx = { hashCache, entriesCache };
   const implRoots = dedupeRoots(implementationRoots || IMPLEMENTATION_ROOTS);
   const verRoots = dedupeRoots(verificationRoots || VERIFICATION_ROOTS);
-  let implEntries = filterImplementationEntries(collectEntries(repoRoot, implRoots));
-  const verEntries = collectEntries(repoRoot, verRoots);
+  let implEntries = filterImplementationEntries(collectEntries(repoRoot, implRoots, ctx));
+  const verEntries = collectEntries(repoRoot, verRoots, ctx);
 
   let contractEntries = [];
   let contractFingerprint;
@@ -246,7 +273,7 @@ export function computeFingerprints(
           /* fall through to raw file hash */
         }
       }
-      walkFiles(repoRoot, rel, contractEntries);
+      walkFiles(repoRoot, rel, contractEntries, ctx);
     }
     contractEntries.sort((a, b) => a.path.localeCompare(b.path));
     // Prefer payload digest when only stable task contract(s) were hashed, matching contractPayload mode.

@@ -12,6 +12,16 @@ export const AC_TEMPLATES = {
     'Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过',
     '测试计数与机器结果一致：total>0、failed=0、skipped<total',
   ],
+  // PlayMode 是独立 profile（config.profiles['unity-playmode']），但一直没有
+  // 自己的条款模板，于是 `stage-close --profile unity-playmode` 会退回到 smoke
+  // 的「冒烟 profile 输出可解析的机器结果 JSON」——条款描述与真实证据（NUnit
+  // XML）不符。补一份与 EditMode 等价的模板，避免每次 PlayMode 收口都留下
+  // 一份字面失真的验收条件。
+  'unity-playmode': [
+    '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
+    'Unity PlayMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过',
+    '测试计数与机器结果一致：total>0、failed=0、skipped<total',
+  ],
   compile: [
     '本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致',
     '语义编译检查通过：缺失类型/重复定义/编码门禁均为 0 失败',

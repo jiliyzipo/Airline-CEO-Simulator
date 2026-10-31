@@ -50,6 +50,7 @@ import {
 import { hookStatus, runHook } from './hooks.mjs';
 import { clauseDriftWarning } from './clauses.mjs';
 import { rescopeVerdict, driftedSummary } from './basis.mjs';
+import { hashCacheFor } from './hashcache.mjs';
 import {
   generateSummaries,
   listDeliveries,
@@ -1693,8 +1694,11 @@ export function cmdDeliver(cfg, args) {
     contractPayload: stableContractPayload(task),
     implementationRoots: roots.implementationRoots,
     verificationRoots: roots.verificationRoots,
+    hashCache: hashCacheFor(cfg),
   });
-  const expectedSnapFp = hashManifest(collectEntries(cfg._repoRoot, snapRootList));
+  const expectedSnapFp = hashManifest(
+    collectEntries(cfg._repoRoot, snapRootList, { hashCache: hashCacheFor(cfg) }),
+  );
   const deliveryId = newId('DEL');
   const snapDir = path.join(snapshotRoot(cfg), deliveryId);
   const snap = exportStableSnapshot(cfg._repoRoot, snapDir, { roots: snapRootList });
@@ -2693,6 +2697,7 @@ export function cmdReviewFinish(cfg, args) {
       contractPayload: stableContractPayload(taskNow),
       implementationRoots: roots.implementationRoots,
       verificationRoots: roots.verificationRoots,
+      hashCache: hashCacheFor(cfg),
     });
     const change = classifyChange(delivery.fingerprints, currentFp);
     const profileChanged = !!review.profileDefinition && JSON.stringify(review.profileDefinition) !== JSON.stringify(cfg.profiles?.[review.profile]);

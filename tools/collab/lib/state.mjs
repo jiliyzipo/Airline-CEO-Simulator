@@ -19,6 +19,7 @@ import { computeFingerprints, classifyChange } from './fingerprint.mjs';
 import { resolveTaskRoots } from './roots.mjs';
 import { freshnessSettles } from './basis.mjs';
 import { rescopeVerdict } from './basis.mjs';
+import { hashCacheFor } from './hashcache.mjs';
 import { EXIT, fail } from './exit.mjs';
 
 export function emptyState(cfg) {
@@ -371,6 +372,10 @@ export function refreshFreshness(cfg, { write = true } = {}) {
     // task" for freshness purposes — see supersededDeliveryIds().
     const superseded = supersededDeliveryIds(loadState(cfg));
     const latestFinishedByDelivery = new Map();
+    // 同一轮 sync 里多个任务常共用同一组根：清单只走一次，内容哈希按 stat 复用。
+    // 两者都只是「同样的输入跳过重复劳动」，不改变任何判定输入。
+    const hashCache = hashCacheFor(cfg);
+    const entriesCache = new Map();
     const results = [];
     let anyChange = false;
     const revisionAtStart = loadState(cfg).revision;
@@ -428,7 +433,12 @@ export function refreshFreshness(cfg, { write = true } = {}) {
       // Reference-only tasks with no delivery have no implementation to compare.
       // Avoid re-reading the entire Unity asset tree six times on every watch tick.
       const fp = latestDelivery && !rescoped
-        ? computeFingerprints(cfg._repoRoot, { ...fingerprintOptsForTask(cfg, task), includeGit: false })
+        ? computeFingerprints(cfg._repoRoot, {
+            ...fingerprintOptsForTask(cfg, task),
+            includeGit: false,
+            hashCache,
+            entriesCache,
+          })
         : null;
       // Pair passed review strictly to the latest delivery id when present.
       const pairedReview = latestDelivery

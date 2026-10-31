@@ -97,7 +97,7 @@ const root = fs.mkdtempSync(path.join(tmpBase, 'collab-suite-'));
 const evidenceDir = resolveEvidenceDir(process.env, root);
 fs.mkdirSync(evidenceDir, { recursive: true });
 
-const SUITES = ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs', 'handoff-notify.test.mjs'];
+const SUITES = ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs', 'handoff-notify.test.mjs', 'fingerprint-cache.test.mjs'];
 // 120s was measured on an unrestricted shell. Inside the review sandbox every
 // fork is several times slower (one run got 18/24 through a suite at 120s), and a
 // wall-clock ceiling must not masquerade as a product regression. 8 minutes is
