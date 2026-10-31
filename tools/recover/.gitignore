@@ -4,6 +4,12 @@
 # 事故取证时敲出的一次性探测样本（_t1.._t22 / _probe* / _r / _view* / _holes_sample 等）
 _*
 
+# 脚本生成的一次性中间产物（2026-10-31 清理：曾误入库 68 047 行，
+# 其中 cp936_pairs*.txt / mangle_js.txt / replay_mangled.txt / unmatched.txt 等
+# 都是下面这些 js/ps1 跑一遍就能重新生成的输出，不是源数据）。
+# 需要复现时在本地重跑生成器即可；历史版本见 Git（commit e2bfeac 之前）。
+*.txt
+
 # 受损文件的取证副本：正文已在仓库中（Unity Project/Assets/Scripts/Systems/InboxManager.cs），
 # 此份是受损快照，保留在本地即可，不入库以免与真实源码混淆。
 *.corrupted.bak.cs
