@@ -161,4 +161,8 @@ const out = { at: new Date().toISOString(), subjectToolsPath: source, total: res
   passed: results.filter(r => r.passed).length, failed: results.filter(r => !r.passed).length, results };
 put(root, 'results.json', out);
 console.log(`SUMMARY ${out.passed}/${out.total} reverse-review checks passed; RESULT ${path.join(root, 'results.json')}`);
+// Keep the fixture tree only on failure — it holds results.json, i.e. the evidence.
+if (!out.failed) {
+  try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* best effort */ }
+}
 process.exitCode = out.failed ? 1 : 0;

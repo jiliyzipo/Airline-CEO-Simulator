@@ -19,6 +19,23 @@ const book = await import(pathToFileURL(path.join(source, 'lib/taskbook.mjs')));
 const io = await import(pathToFileURL(path.join(source, 'lib/io.mjs')));
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-stage-'));
+// Fixture trees used to be abandoned wholesale: 3,296 of them / 5.6 GB had piled up
+// in the system temp directory. Cleanup runs on 'exit', not at the end of the file —
+// SA04 forks workers that write into a fixture after the last test returns, so
+// deleting earlier just let a late child recreate the directory.
+process.on('exit', () => {
+  if (failed) {
+    console.error(`夹具保留（有失败）：${root}`);
+    return;
+  }
+  try {
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+  } catch (e) {
+    // A locked handle must not turn a green run red, but staying silent keeps the
+    // leak invisible.
+    console.error(`夹具未能清理（${e.code || 'ERR'}）：${root}`);
+  }
+});
 let serial = 0;
 let failed = 0;
 const results = [];

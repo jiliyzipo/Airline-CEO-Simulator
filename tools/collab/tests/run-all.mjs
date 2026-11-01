@@ -97,6 +97,40 @@ const root = fs.mkdtempSync(path.join(tmpBase, 'collab-suite-'));
 const evidenceDir = resolveEvidenceDir(process.env, root);
 fs.mkdirSync(evidenceDir, { recursive: true });
 
+/**
+ * Prune fixture trees left behind by earlier runs.
+ *
+ * Suites used to abandon their roots entirely (3,296 trees / 5.6 GB in the system
+ * temp directory). They now delete their own tree on a green run, but a late child
+ * can still recreate a small one just after the parent exits, so self-cleanup alone
+ * only bounds the growth. Age-bounding finishes the job: a tree untouched for hours
+ * cannot have a live child writing to it, so it is safe to delete.
+ */
+function pruneStaleFixtures(baseDir, maxAgeMs = 6 * 3600 * 1000) {
+  let entries = [];
+  try {
+    entries = fs.readdirSync(baseDir, { withFileTypes: true });
+  } catch {
+    return { removed: 0 };
+  }
+  const cutoff = Date.now() - maxAgeMs;
+  let removed = 0;
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    if (!/^collab-(stage|daily|reverse|suite|probe|devtest|ccv|nogit|ccv-gate|book|issue|hook|fresh|snap|prune|lock|atom|git-ceiling)/.test(e.name)) continue;
+    const abs = path.join(baseDir, e.name);
+    try {
+      if (fs.statSync(abs).mtimeMs > cutoff) continue;
+      fs.rmSync(abs, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
+      removed++;
+    } catch {
+      // Locked or already gone: leave it for the next run.
+    }
+  }
+  return { removed };
+}
+pruneStaleFixtures(tmpBase);
+
 const SUITES = ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs', 'handoff-notify.test.mjs', 'fingerprint-cache.test.mjs'];
 // 120s was measured on an unrestricted shell. Inside the review sandbox every
 // fork is several times slower (one run got 18/24 through a suite at 120s), and a
@@ -212,19 +246,23 @@ if (!ok) {
 }
 if (notes.length) console.error(notes.join('\n'));
 
-// Do not leave a full copy of the suite fixtures behind. Only the directory this
-// process created is removed, and only when it does not contain the evidence we
+// Do not leave a full copy of the suite fixtures behind. Only the directories this
+// process created are removed, and only when they do not contain the evidence we
 // were asked to produce (a standalone run keeps its evidence inside the temp root).
-if (workspaceBase) {
-  const containsEvidence = path.resolve(evidenceDir).startsWith(path.resolve(workspaceBase) + path.sep);
+//
+// `root` used to be cleaned only via `workspaceBase`, i.e. never when the suites
+// ran against the system temp directory — 3,296 abandoned `collab-*` trees /
+// 5.6 GB had accumulated there. Both owned roots get the same treatment now.
+for (const owned of [...new Set([root, workspaceBase].filter(Boolean))]) {
+  const containsEvidence = path.resolve(evidenceDir).startsWith(path.resolve(owned) + path.sep);
   if (containsEvidence) {
-    console.error(`kept ${workspaceBase}: it holds this run's evidence (${evidenceDir}); delete it after reading`);
-  } else {
-    try {
-      fs.rmSync(workspaceBase, { recursive: true, force: true });
-    } catch (e) {
-      console.error(`could not remove ${workspaceBase}: ${e.message}`);
-    }
+    console.error(`kept ${owned}: it holds this run's evidence (${evidenceDir}); delete it after reading`);
+    continue;
+  }
+  try {
+    fs.rmSync(owned, { recursive: true, force: true });
+  } catch (e) {
+    console.error(`could not remove ${owned}: ${e.message}`);
   }
 }
 

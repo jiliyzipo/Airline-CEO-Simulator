@@ -606,4 +606,10 @@ await test('D39', 'a passing review still reclaims the artifact trees', () => {
 });
 fs.writeFileSync(path.join(root, 'results.json'), JSON.stringify({ root, source, total: results.length, passed: results.length - failed, failed, results }, null, 2));
 console.log(`SUMMARY ${results.length - failed}/${results.length} daily checks; evidence=${root}`);
+// Drop the fixture tree when everything passed; keep it when something failed,
+// because the tree *is* the evidence. Nothing used to remove these, and 3,296
+// abandoned trees / 5.6 GB had piled up in the system temp directory.
+if (!failed) {
+  try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* best effort */ }
+}
 process.exitCode = failed ? 1 : 0;
