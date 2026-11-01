@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkTemp, finalizeFixtures, KEEP_MARKER } from './temp-fixtures.mjs';
-import { pruneStaleFixtures } from './fixture-prune.mjs';
+import { pruneStaleFixtures, releaseOwnedRoots, containsPath } from './fixture-prune.mjs';
 
 const base = mkTemp('collab-prune-');
 let failed = 0;
@@ -123,6 +123,61 @@ test('P08', 'an unreadable tree is kept rather than guessed at', () => {
   // sweep counts it as kept rather than throwing.
   const out = pruneStaleFixtures(path.join(base, 'does-not-exist'), 6 * HOURS);
   assert.deepEqual(out, { removed: 0, kept: 0, skipped: [] });
+});
+
+// ISSUE-20261101063120-97dd41: a standalone `run-all` keeps its summary and
+// per-suite logs at the temp root, so `evidenceDir === root`. `startsWith(root + sep)`
+// is false for equal paths, so the exit cleanup deleted the evidence it was
+// supposed to protect. Equality must count as containment.
+test('P09', 'evidence dir equal to the owned root is kept', () => {
+  const dir = tree('collab-suite-standalone', { ageHours: 0, files: {} });
+  fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify({ ok: false }));
+  fs.mkdirSync(path.join(dir, 'logs'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'logs', 'collab.test.mjs.stderr.txt'), 'the reason the run failed\n');
+
+  const out = releaseOwnedRoots([dir], dir, { failed: true });
+  assert(exists(dir), 'the root holding the run evidence must survive');
+  assert.equal(out[0].removed, false, JSON.stringify(out));
+  assert(exists(path.join(dir, 'summary.json')), 'summary must be readable after exit');
+  assert(exists(path.join(dir, 'logs', 'collab.test.mjs.stderr.txt')), 'failure log must survive');
+});
+
+test('P10', 'evidence nested below the owned root is kept', () => {
+  const dir = tree('collab-suite-nested', { ageHours: 0, files: {} });
+  const evidence = path.join(dir, 'logs');
+  fs.mkdirSync(evidence, { recursive: true });
+  fs.writeFileSync(path.join(evidence, 'summary.json'), '{}');
+  const out = releaseOwnedRoots([dir], evidence, { failed: true });
+  assert(exists(dir) && exists(path.join(evidence, 'summary.json')), JSON.stringify(out));
+});
+
+test('P11', 'an owned root without evidence is still removed', () => {
+  const dir = tree('collab-suite-plain', { ageHours: 0, files: { 'x.txt': 'x' } });
+  const evidence = path.join(base, 'elsewhere-evidence');
+  fs.mkdirSync(evidence, { recursive: true });
+  const out = releaseOwnedRoots([dir], evidence, { failed: false });
+  assert(!exists(dir), 'unrelated root must not be kept forever');
+  assert.equal(out[0].removed, true, JSON.stringify(out));
+  assert(exists(evidence), 'the evidence dir itself is never the target');
+});
+
+test('P12', 'a failed run marks its kept root so the next sweep leaves it alone', () => {
+  const dir = tree('collab-suite-failed-run', { ageHours: 0, files: {} });
+  fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify({ ok: false }));
+  releaseOwnedRoots([dir], dir, { failed: true });
+  assert(exists(path.join(dir, KEEP_MARKER)), 'kept evidence needs a marker or it expires');
+  // Age it past the sweep threshold: the marker, not the mtime, is what protects it.
+  const stamp = Date.now() - 9 * HOURS;
+  ageTree(dir, stamp);
+  pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir), 'a marked tree must outlive the sweep');
+});
+
+test('P13', 'containsPath counts equality and rejects siblings with a shared prefix', () => {
+  assert.equal(containsPath('/a/b', '/a/b'), true, 'equal paths are contained');
+  assert.equal(containsPath('/a/b', '/a/b/c'), true, 'descendants are contained');
+  assert.equal(containsPath('/a/b', '/a/bc'), false, 'shared prefix is not containment');
+  assert.equal(containsPath('/a/b', '/a'), false, 'ancestors are not contained');
 });
 
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));

@@ -16,12 +16,67 @@ import path from 'node:path';
  * entry anywhere in the tree, retained failures carry `KEEP-EVIDENCE.json`, and
  * ownership markers make a tree permanently ineligible. When in doubt, keep: a
  * leftover tree costs disk, a deleted one costs the failure.
+ *
+ * `releaseOwnedRoots` cleans the two roots this process created. Its containment
+ * test used to be `resolve(evidenceDir).startsWith(resolve(owned) + sep)`, which is
+ * false when the two paths are *equal* — and for a standalone `run-all` they are
+ * exactly equal, because the run puts its own logs and summary at the temp root.
+ * The whole evidence directory was therefore deleted on exit
+ * (ISSUE-20261101063120-97dd41). Equality has to count as containment.
  */
 export const KEEP_MARKER_FILE = 'KEEP-EVIDENCE.json';
 
 // A tree holding any of these may still have an owner that will come back to it
 // (a lease, a recorded PID, a worker's execution log). Age cannot disprove that.
 const LIVE_MARKER_RE = /(^owner\.json$|\.owner\.json$|^lease[^/]*\.json$|^\.lease$|^[^/]*\.pid$|^executions\.txt$)/;
+
+/**
+ * Is `child` the same directory as `parent`, or somewhere inside it?
+ *
+ * The name says "contains" and equality counts: a path trivially contains itself.
+ * `startsWith(parent + sep)` alone does not, which is how the evidence directory
+ * got deleted — see the module comment.
+ */
+export function containsPath(parent, child) {
+  const p = path.resolve(parent);
+  const c = path.resolve(child);
+  const norm = (s) => (process.platform === 'win32' ? s.toLowerCase() : s);
+  return norm(p) === norm(c) || norm(c).startsWith(norm(p) + path.sep);
+}
+
+/**
+ * Remove the roots this process created, unless one of them holds this run's
+ * evidence. A surviving root on a failed run gets `KEEP-EVIDENCE.json` so the
+ * sweep in a later run leaves it alone too — retaining the tree is pointless if
+ * the next run deletes it.
+ */
+export function releaseOwnedRoots(owned, evidenceDir, { failed = false } = {}) {
+  const outcomes = [];
+  for (const dir of [...new Set((owned || []).filter(Boolean))]) {
+    if (evidenceDir && containsPath(dir, evidenceDir)) {
+      if (failed) {
+        try {
+          fs.writeFileSync(
+            path.join(dir, KEEP_MARKER_FILE),
+            `${JSON.stringify({ keptAt: new Date().toISOString(), reason: 'failed run; evidence retained', evidenceDir }, null, 2)}\n`,
+            'utf8',
+          );
+        } catch {
+          // Losing the marker is bad; hiding the failed run behind a throw is worse.
+        }
+      }
+      outcomes.push({ dir, removed: false, reason: 'holds this run\'s evidence' });
+      continue;
+    }
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      outcomes.push({ dir, removed: true });
+    } catch (e) {
+      outcomes.push({ dir, removed: false, reason: e.message });
+    }
+  }
+  return outcomes;
+}
 
 const FIXTURE_PREFIX_RE =
   /^collab-(stage|daily|reverse|suite|probe|devtest|ccv|nogit|ccv-gate|book|issue|hook|fresh|snap|prune|lock|atom|git-ceiling)/;

@@ -28,7 +28,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { extractFailures, extractSkips, isFixtureBroken, resolveEvidenceDir, suiteVerdict } from '../lib/suite-report.mjs';
-import { pruneStaleFixtures } from './fixture-prune.mjs';
+import { pruneStaleFixtures, releaseOwnedRoots } from './fixture-prune.mjs';
 
 // stage-close may ring a local handoff chime; never do that inside the suite.
 process.env.COLLAB_HANDOFF_NOTIFY = process.env.COLLAB_HANDOFF_NOTIFY || '0';
@@ -219,22 +219,16 @@ if (!ok) {
 if (notes.length) console.error(notes.join('\n'));
 
 // Do not leave a full copy of the suite fixtures behind. Only the directories this
-// process created are removed, and only when they do not contain the evidence we
-// were asked to produce (a standalone run keeps its evidence inside the temp root).
-//
-// `root` used to be cleaned only via `workspaceBase`, i.e. never when the suites
-// ran against the system temp directory — 3,296 abandoned `collab-*` trees /
-// 5.6 GB had accumulated there. Both owned roots get the same treatment now.
-for (const owned of [...new Set([root, workspaceBase].filter(Boolean))]) {
-  const containsEvidence = path.resolve(evidenceDir).startsWith(path.resolve(owned) + path.sep);
-  if (containsEvidence) {
-    console.error(`kept ${owned}: it holds this run's evidence (${evidenceDir}); delete it after reading`);
-    continue;
-  }
-  try {
-    fs.rmSync(owned, { recursive: true, force: true });
-  } catch (e) {
-    console.error(`could not remove ${owned}: ${e.message}`);
+// process created are removed, and only when they do not hold this run's evidence.
+// A standalone run keeps its summary and per-suite logs *at the temp root*, so that
+// comparison must treat "evidence dir IS the root" as containment — `startsWith(root
+// + sep)` does not, and it deleted the evidence itself (ISSUE-20261101063120-97dd41).
+for (const outcome of releaseOwnedRoots([root, workspaceBase], evidenceDir, { failed: !ok })) {
+  if (outcome.removed) continue;
+  if (outcome.reason === "holds this run's evidence") {
+    console.error(`kept ${outcome.dir}: it holds this run's evidence (${evidenceDir}); delete it after reading`);
+  } else {
+    console.error(`could not remove ${outcome.dir}: ${outcome.reason}`);
   }
 }
 
