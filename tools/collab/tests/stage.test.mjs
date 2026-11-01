@@ -122,6 +122,38 @@ await test('T02b', 'stage-close does not run the profile unless --preflight is a
   assert(delivery.snapshotManifest.entries.length > 0);
 });
 
+// The flag was advertised in `stage-close`'s help and read by stage.mjs, but missing
+// from the COMMAND_FLAGS whitelist, so assertKnownFlags rejected it before the
+// command ever ran: "off by default" worked, "turn it back on" was dead. Every
+// existing test called cmdStageClose directly, so none of them touched the real CLI.
+// This one does, which is the only way to catch an advertised-but-unrouted option.
+await test('T02c', 'the real CLI accepts --preflight and the plan reports the decision', () => {
+  const f = fixture();
+  const seeded = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  // The seed consumed the fixture's only change; a second close would bail with
+  // "nothing to deliver" before reaching the plan.
+  fs.appendFileSync(path.join(f.dir, 'tools/collab/stage-input.txt'), `\npost-seed change ${Date.now()}`);
+  const cli = path.join(f.dir, 'tools/collab/cli.mjs');
+  const runCli = (args) => {
+    const r = spawnSync(process.execPath, [cli, ...args, '--json'], {
+      cwd: f.dir, encoding: 'utf8', windowsHide: true, timeout: 60000,
+    });
+    let json = null;
+    try { json = JSON.parse((r.stdout || '').trim()); } catch { /* non-JSON failure */ }
+    return { ...r, json };
+  };
+
+  const on = runCli(['stage-close', '--task', seeded.taskId, '--profile', 'smoke', '--preflight', '--dry-run']);
+  assert.equal(on.json?.preflight, true, `--preflight must reach stage-close; stdout=${on.stdout} stderr=${on.stderr}`);
+
+  const off = runCli(['stage-close', '--task', seeded.taskId, '--profile', 'smoke', '--dry-run']);
+  assert.equal(off.json?.preflight, false, `absent flag must stay off; stdout=${off.stdout}`);
+
+  // Widening the whitelist must not turn it into "accept anything".
+  const bogus = runCli(['stage-close', '--not-a-real-flag', '--dry-run']);
+  assert.match(`${bogus.stdout}${bogus.stderr}`, /unknown option/, 'undocumented flags are still rejected');
+});
+
 await test('T03', 'a failing preflight blocks handoff and stage-review refuses to pick it', () => {
   const f = fixture(BAD_COUNTERS);
   const out = stage.cmdStageClose(f.cfg, { profile: 'smoke', preflight: true });

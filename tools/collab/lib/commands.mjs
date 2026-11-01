@@ -145,6 +145,7 @@ export const COMMAND_FLAGS = {
     'note',
     'gaps',
     'supersedes',
+    'preflight',
     'no-preflight',
     'refresh-ac',
     'dry-run',

@@ -1258,7 +1258,11 @@ export function cmdStageClose(cfg, args = {}) {
       changed: diff.changed.length,
       areas: areas.slice(0, 10),
       acceptanceCriteria: task.acceptanceCriteria,
-      report: `[dry-run] 任务 ${task.taskId}，profile=${profile}（${pick.reason}），改动 ${diff.changed.length} 个文件`,
+      // Expose the decision, not just the effect: the flag was advertised in the
+      // CLI help while missing from stage-close's option whitelist, so the only
+      // way to catch that class of bug is to make the plan state it explicitly.
+      preflight: args.preflight === true,
+      report: `[dry-run] 任务 ${task.taskId}，profile=${profile}（${pick.reason}），改动 ${diff.changed.length} 个文件，preflight=${args.preflight === true ? 'on' : 'off'}`,
       exitCode: EXIT.OK,
     };
   }
