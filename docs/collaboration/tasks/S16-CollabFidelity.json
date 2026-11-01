@@ -47,11 +47,11 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T00:59:57.724Z",
-  "updatedAt": "2026-11-01T02:44:30.977Z",
+  "updatedAt": "2026-11-01T05:21:38.070Z",
   "snapshotRoots": [
     "tools/collab"
   ],
-  "freshnessNote": "Historic verdict REV-20261027011011-201cff covered 15 changed files; 7 taken over by later passed deliveries, 2 still uncovered (tools/collab/cli.mjs, tools/collab/tests/stage.test.mjs).",
+  "freshnessNote": "Historic verdict REV-20261027011011-201cff covered 15 changed files; 3 taken over by later passed deliveries, 7 still uncovered (tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs, tools/collab/tests/cleancheckout.test.mjs …).",
   "staleForReviewId": "REV-20261027011011-201cff",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -70,12 +70,17 @@
   },
   "scopeDrift": {
     "basis": 15,
-    "intact": 6,
-    "covered": 7,
+    "intact": 5,
+    "covered": 3,
     "uncovered": [
-      "tools/collab/cli.mjs",
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/lib/stage.mjs",
+      "tools/collab/tests/cleancheckout.test.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/run-all.mjs",
       "tools/collab/tests/stage.test.mjs"
     ],
-    "uncoveredCount": 2
+    "uncoveredCount": 7
   }
 }

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101042108-4ecf26",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 883,
+  "at": "2026-11-01T04:21:08.508Z",
+  "actor": "codex",
+  "action": "review-finding",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "reviewId": "REV-20261101041921-abd036",
+  "parentEventId": null,
+  "summary": "新增 --preflight 未加入 CLI 参数白名单，显式开启预检的命令不可用",
+  "data": {
+    "issueId": "ISSUE-20261101042108-3ef0c6",
+    "evidence": ".collab-local/audits/S49-cli-preflight-2026-11-01T04-21-08-435Z/results.json"
+  }
+}

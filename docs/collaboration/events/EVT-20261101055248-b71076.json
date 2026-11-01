@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101055248-b71076",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 888,
+  "at": "2026-11-01T05:52:48.999Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "reviewId": "REV-20261101041921-abd036",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101042108-3ef0c6: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261101042108-3ef0c6",
+    "from": "open",
+    "to": "fixed",
+    "note": "已修：stage-close 白名单补 preflight；dry-run 计划新增 preflight 字段使其可观测；新增 T02c 走真实 CLI。负面控制已验证。208/208 通过。提交 800d8b2。"
+  }
+}

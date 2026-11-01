@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "只改 tools/collab：commands.mjs 在 cmdReviewRun 内接入回收；snapshot-hygiene.mjs 新增 pruneSnapshotAfterRun 与诊断树保留策略；collab.test.mjs 补 3 条测试",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "user-approved-2026-11-01-prune-fix",
   "createdAt": "2026-11-01T01:36:44.234Z",
-  "updatedAt": "2026-11-01T02:44:33.659Z",
-  "freshnessNote": "Review REV-20261101024222-534744 still applies to delivery DEL-20261101022812-e55d71.",
-  "staleForReviewId": null
+  "updatedAt": "2026-11-01T04:12:49.108Z",
+  "freshnessNote": "Historical review REV-20261101024222-534744 passed delivery DEL-20261101022812-e55d71; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261101024222-534744"
 }

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261101041550-cc2d59",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "taskId": "S49-PreflightDefault",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "cancelled",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "fc525ebddd9c583bb4728a34a13f4817180804783f3ce991caa4ea6dc71e962c",
+    "verification": "3fae1f5995ac7bebdf77f4b4503025ee0bf6c51a0c7c5bb165f230ec453d0eb1",
+    "contract": "18ef4f4f37bb6bfd17ff01484c6128b12ed998f5624f0a37609fe6ab3c997d2d"
+  },
+  "snapshotPath": "out/collab/DEL-20261101041308-3ad702",
+  "createdAt": "2026-11-01T04:15:50.355Z",
+  "updatedAt": "2026-11-01T04:16:45.977Z",
+  "runs": [],
+  "coverage": [],
+  "issues": [],
+  "finishedAt": "2026-11-01T04:16:45.977Z",
+  "cancelReason": "检测启动时与stage-open生成摘要的短暂锁冲突；queued记录runs=0、无worker，保留该记录并取消，随后由新的stage-review执行同一DEL。",
+  "workerPid": null,
+  "activeRunToken": null
+}

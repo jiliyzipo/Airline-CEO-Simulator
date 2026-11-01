@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261101042108-3ef0c6",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "reviewId": "REV-20261101041921-abd036",
+  "title": "新增 --preflight 未加入 CLI 参数白名单，显式开启预检的命令不可用",
+  "repro": "执行 node out/collab/DEL-20261101041308-3ad702/tools/collab/cli.mjs stage-close --preflight --dry-run --json；CLI返回 exitCode=2 / stage-close: unknown option --preflight。",
+  "expected": "帮助中公布的 --preflight 应通过 assertKnownFlags 并进入 stage-close；dry-run 仅展示计划，真实执行能按显式开关运行预检。",
+  "actual": "cli.mjs:49 宣传 --preflight；stage.mjs:1276 仅在 args.preflight===true 时开启；但 commands.mjs:148 附近的 stage-close COMMAND_FLAGS 只保留 no-preflight，缺 preflight。cli.mjs 的 assertKnownFlags 在调用内部函数前拒绝新参数。现有 T02/T02b/T03 直接调用 cmdStageClose，未覆盖真实CLI。",
+  "evidence": ".collab-local/audits/S49-cli-preflight-2026-11-01T04-21-08-435Z/results.json",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-11-01T04:21:08.449Z"
+}

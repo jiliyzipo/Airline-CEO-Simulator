@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 875,
-  "updatedAt": "2026-11-01T02:44:43.344Z",
+  "revision": 889,
+  "updatedAt": "2026-11-01T06:01:16.212Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -486,12 +486,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-11-01T01:36:44.234Z"
+    },
+    "S49-PreflightDefault": {
+      "title": "阶段 S49-PreflightDefault：Collab",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-01T04:13:05.330Z"
     }
   },
-  "lastDeliveryId": "DEL-20261101022812-e55d71",
+  "lastDeliveryId": "DEL-20261101060113-0d23f4",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -625,6 +634,13 @@
       "actor": "codex",
       "note": "该记录由沙箱内Git/MSYS权限导致8项跳过而产生，未虚报coverage。保持同一DEL和三类指纹，在沙箱外创建新的独立REV-20261101024222-534744，完整collab206/206、0失败、0跳过，验收覆盖已补齐，关闭该环境补证缺口。原REV-20261101023345-0ea32d与ISSUE记录均保留。",
       "at": "2026-11-01T02:44:43.341Z"
+    },
+    "ISSUE-20261101042108-3ef0c6": {
+      "status": "fixed",
+      "previous": "open",
+      "actor": "cursor",
+      "note": "已修：stage-close 白名单补 preflight；dry-run 计划新增 preflight 字段使其可观测；新增 T02c 走真实 CLI。负面控制已验证。208/208 通过。提交 800d8b2。",
+      "at": "2026-11-01T05:52:48.994Z"
     }
   },
   "deliveryStatus": {

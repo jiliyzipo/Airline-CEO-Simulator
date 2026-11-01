@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": null,
   "createdAt": "2026-10-18T05:02:40.016Z",
-  "updatedAt": "2026-11-01T02:44:28.502Z",
+  "updatedAt": "2026-11-01T05:20:11.044Z",
   "snapshotRoots": [
     "tools/collab"
   ],
@@ -41,7 +41,7 @@
     "docs/collaboration/OPERATOR_MANUAL_ZH.md",
     "AGENTS.md"
   ],
-  "freshnessNote": "Historic verdict REV-20261018072743-74a233 covered 35 changed files; 12 taken over by later passed deliveries, 5 still uncovered (AGENTS.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
+  "freshnessNote": "Historic verdict REV-20261018072743-74a233 covered 35 changed files; 9 taken over by later passed deliveries, 9 still uncovered (AGENTS.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
   "staleForReviewId": "REV-20261018072743-74a233",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -70,15 +70,19 @@
   },
   "scopeDrift": {
     "basis": 35,
-    "intact": 18,
-    "covered": 12,
+    "intact": 17,
+    "covered": 9,
     "uncovered": [
       "AGENTS.md",
       "docs/collaboration/OPERATOR_MANUAL_ZH.md",
       "docs/collaboration/PROTOCOL.md",
       "docs/collaboration/README.md",
-      "tools/collab/cli.mjs"
+      "tools/collab/lib/commands.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/reverse-review.test.mjs",
+      "tools/collab/tests/run-all.mjs"
     ],
-    "uncoveredCount": 5
+    "uncoveredCount": 9
   }
 }
