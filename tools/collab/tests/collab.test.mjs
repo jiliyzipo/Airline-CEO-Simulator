@@ -30,9 +30,9 @@ import { listIssues, refreshFreshness } from '../lib/state.mjs';
 import { computeFingerprints } from '../lib/fingerprint.mjs';
 import { stableContractPayload } from '../lib/schemas.mjs';
 import { resolveTaskRoots } from '../lib/roots.mjs';
-import { isArtifactDirName, isGeneratedFileName } from '../lib/fingerprint.mjs';
+import { isArtifactDirName, isGeneratedFileName, gitMeta } from '../lib/fingerprint.mjs';
 import { extractFailures, extractSkips, isFixtureBroken, resolveEvidenceDir, suiteVerdict } from '../lib/suite-report.mjs';
-import { pruneSnapshotArtifacts } from '../lib/snapshot-hygiene.mjs';
+import { pruneSnapshotArtifacts, pruneSnapshotAfterRun } from '../lib/snapshot-hygiene.mjs';
 import * as stage from '../lib/stage.mjs';
 import { cloneCapability } from '../lib/cleancheckout.mjs';
 
@@ -1063,6 +1063,166 @@ test('pruning a snapshot that has no artifacts is a no-op', () => {
     assert.equal(fs.readFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'utf8'), before);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('a successful run prunes everything regenerable, including diagnostics', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-ok-'));
+  try {
+    const put = (rel, body) => {
+      fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
+      fs.writeFileSync(path.join(tmp, rel), body);
+    };
+    put('Unity Project/Assets/Scripts/Foo.cs', 'class Foo {}');
+    put('Unity Project/Library/ArtifactDB', 'x'.repeat(1024));
+    put('Unity Project/Logs/Editor.log', 'noise');
+    put('Unity Project/Logs/more/Player.log', 'noise');
+    put('Unity Project/Logs/Tasks20261017_abc.xml', '<test-run/>');
+
+    const kept = 'Unity Project/Assets/Scripts/Foo.cs';
+    const result = 'Unity Project/Logs/Tasks20261017_abc.xml';
+    const { stats, policy } = pruneSnapshotAfterRun(tmp, {
+      keep: [kept],
+      protect: [result],
+      ok: true,
+    });
+
+    const here = (rel) => fs.existsSync(path.join(tmp, rel));
+    assert.equal(policy, 'success');
+    assert.equal(here(kept), true, 'manifest source survives');
+    assert.equal(here(result), true, 'declared result file survives');
+    assert.equal(here('Unity Project/Logs/Editor.log'), false, 'on success logs are debris too');
+    assert.equal(here('Unity Project/Library'), false, 'Unity cache is gone');
+    assert.ok(stats.removedFiles >= 3);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('a failed run keeps the diagnostic trees so the failure stays explainable', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-fail-'));
+  try {
+    const put = (rel, body) => {
+      fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
+      fs.writeFileSync(path.join(tmp, rel), body);
+    };
+    put('Unity Project/Assets/Scripts/Foo.cs', 'class Foo {}');
+    put('Unity Project/Library/ArtifactDB', 'x'.repeat(1024));
+    put('Unity Project/Temp/scratch', 'z');
+    put('Unity Project/Logs/Editor.log', 'the reason it broke');
+    put('Unity Project/Logs/nested/Player.log', 'more context');
+    put('Unity Project/Logs/Tasks20261017_abc.xml', '<test-run/>');
+
+    const result = 'Unity Project/Logs/Tasks20261017_abc.xml';
+    const { stats, policy } = pruneSnapshotAfterRun(tmp, {
+      keep: ['Unity Project/Assets/Scripts/Foo.cs'],
+      protect: [result],
+      ok: false,
+    });
+
+    const here = (rel) => fs.existsSync(path.join(tmp, rel));
+    assert.equal(policy, 'failure-kept-diagnostics');
+    assert.equal(here('Unity Project/Logs/Editor.log'), true, 'failure logs must survive');
+    assert.equal(here('Unity Project/Logs/nested/Player.log'), true, 'nested failure logs survive');
+    assert.equal(here(result), true);
+    assert.equal(here('Unity Project/Library'), false, 'cache is still regenerable on failure');
+    assert.equal(here('Unity Project/Temp'), false);
+    assert.ok(stats.removedFiles >= 2);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('pruneSnapshotAfterRun tolerates a snapshot with no artifact trees at all', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-none-'));
+  try {
+    fs.mkdirSync(path.join(tmp, 'Unity Project/Assets'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'class A {}');
+    const okRun = pruneSnapshotAfterRun(tmp, { keep: [], protect: [], ok: true });
+    assert.equal(okRun.stats.removedFiles, 0);
+    const failRun = pruneSnapshotAfterRun(tmp, { keep: [], protect: [], ok: false });
+    assert.equal(failRun.stats.removedFiles, 0);
+    assert.equal(
+      fs.readFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'utf8'),
+      'class A {}',
+    );
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// S48/ISSUE-e2b4c2: "passed" used to mean "the process exited 0". A profile can
+// exit 0 and still fail — a text-kind profile prints a JSON verdict with failed
+// assertions while the process itself is happy, and a run can also mutate the
+// snapshot it executed in. Both failures keep their diagnostics.
+test('a run that exits 0 but fails its assertions still keeps the diagnostics', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-exit0-'));
+  try {
+    const put = (rel, body) => {
+      fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
+      fs.writeFileSync(path.join(tmp, rel), body);
+    };
+    put('Unity Project/Assets/Scripts/Foo.cs', 'class Foo {}');
+    put('Unity Project/Library/ArtifactDB', 'x'.repeat(512));
+    put('Unity Project/Logs/Editor.log', 'assertion failure context');
+    put('tools/probe/out/deep/failure.log', 'deep output');
+    put('Unity Project/Logs/Tasks20261017_abc.xml', '<test-run/>');
+
+    // exitCode is 0 — only the caller knows the verdict was a failure.
+    const { policy } = pruneSnapshotAfterRun(tmp, {
+      keep: ['Unity Project/Assets/Scripts/Foo.cs'],
+      protect: ['Unity Project/Logs/Tasks20261017_abc.xml'],
+      ok: false,
+    });
+
+    const here = (rel) => fs.existsSync(path.join(tmp, rel));
+    assert.equal(policy, 'failure-kept-diagnostics');
+    assert.equal(here('Unity Project/Logs/Editor.log'), true, 'logs survive an exit-0 failure');
+    assert.equal(here('tools/probe/out/deep/failure.log'), true, 'out/ diagnostics survive too');
+    assert.equal(here('Unity Project/Library'), false, 'cache is still debris');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// S48/ISSUE-acc1af: `gitMeta` ran `git status` without a repository boundary, so
+// a directory that is not a repo adopted the *ancestor* checkout's changes. A
+// fixture under the host project's temp dir therefore "recorded a change set" it
+// never made, and `task-rescope` stopped refusing it.
+test('gitMeta never adopts an ancestor repository outside the configured root', () => {
+  const outer = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-git-ceiling-'));
+  try {
+    const git = (cwd, argv) =>
+      spawnSync('git', argv, { cwd, encoding: 'utf8', windowsHide: true });
+    const init = git(outer, ['init']);
+    if (init.status !== 0) {
+      assert.ok(true, 'git unavailable here; the fixture suite covers this path');
+      return;
+    }
+    git(outer, ['config', 'user.email', 'fixture@example.invalid']);
+    git(outer, ['config', 'user.name', 'fixture']);
+    fs.writeFileSync(path.join(outer, 'tracked.txt'), 'v1\n');
+    git(outer, ['add', '.']);
+    git(outer, ['commit', '-m', 'init']);
+    // An uncommitted change in the OUTER repo, which the inner dir must not see.
+    fs.writeFileSync(path.join(outer, 'tracked.txt'), 'v2\n');
+
+    const inner = path.join(outer, 'not-a-repo');
+    fs.mkdirSync(inner, { recursive: true });
+    const meta = gitMeta(inner);
+
+    assert.equal(meta.head || null, null, "the outer commit is not this root's HEAD");
+    assert.deepEqual(meta.changes, [], "the outer change set is not this root's change set");
+    // `dirty: true` here is the honest "cannot tell" fallback, not the outer repo's
+    // state leaking in — the change set must stay empty either way.
+    assert.equal(meta.dirty, true, 'unknown repository state is reported as dirty');
+
+    // The root itself is still readable: the ceiling must not break real projects.
+    const own = gitMeta(outer);
+    assert.ok(own.head, 'a genuine repo root still yields its HEAD');
+    assert.equal(own.dirty, true, 'its own change set is still visible');
+  } finally {
+    fs.rmSync(outer, { recursive: true, force: true });
   }
 });
 

@@ -170,16 +170,25 @@ export function hashManifest(entries) {
 }
 
 export function gitMeta(repoRoot) {
+  // A configured project root defines which repository this tool may read. Git
+  // otherwise walks upward and silently adopts an ancestor repository, so a
+  // fixture living under the host checkout's .collab-local/tmp reported the
+  // host project's changes as its own (D35: an empty change set became non-empty
+  // and `task-rescope` stopped refusing). Ceiling at the parent keeps discovery
+  // at or below the declared root only.
+  const env = { ...process.env, GIT_CEILING_DIRECTORIES: path.dirname(path.resolve(repoRoot)) };
   try {
     const head = execFileSync('git', ['rev-parse', 'HEAD'], {
       cwd: repoRoot,
       encoding: 'utf8',
+      env,
     }).trim();
-    const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
+    const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: repoRoot, encoding: 'utf8', env }).trim();
     const status = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], {
       cwd: repoRoot,
       encoding: 'utf8',
       maxBuffer: 16 * 1024 * 1024,
+      env,
     });
     const parts = status.split('\0'), changes = [];
     for (let i = 0; i < parts.length; i++) {
@@ -190,7 +199,7 @@ export function gitMeta(repoRoot) {
       changes.push(row);
     }
     const tracked = new Set(
-      execFileSync('git', ['ls-files', '-z'], { cwd: repoRoot, encoding: 'utf8' })
+      execFileSync('git', ['ls-files', '-z'], { cwd: repoRoot, encoding: 'utf8', env })
         .split('\0')
         .filter(Boolean),
     );
@@ -208,6 +217,9 @@ export function gitMeta(repoRoot) {
       head: null,
       dirty: true,
       porcelain: '',
+      // Same shape as the success path: "we could not read a change set" is
+      // reported as an empty one, never as `undefined` that callers must guess at.
+      changes: [],
       tracked: new Set(),
       cleanGitCheckoutVerified: false,
     };

@@ -67,7 +67,7 @@ import {
 } from './state.mjs';
 import { acceptanceCriteriaFor, clauseDriftWarning } from './clauses.mjs';
 export { acceptanceCriteriaFor, clauseDrift, clauseDriftWarning } from './clauses.mjs';import { assertRoleAction, validateIssue } from './schemas.mjs';
-import { pruneSnapshotArtifacts } from './snapshot-hygiene.mjs';
+import { pruneSnapshotAfterRun } from './snapshot-hygiene.mjs';
 import {
   cmdAck,
   cmdDeliver,
@@ -557,15 +557,19 @@ export function runProfileInSnapshot(cfg, delivery, profileName, options = {}) {
     // A `unity-*` run leaves ~1.9 GB of `Library` behind, and nothing ever removed
     // it: 23 historical snapshots had quietly reached 42 GB. It is regenerable debris
     // (the manifest never lists it, and the integrity check above ignores it by
-    // design), so drop it as soon as the verdict is computed. Declared run outputs —
-    // including the NUnit XML that lives inside `Logs/` — are preserved.
-    const pruned = pruneSnapshotArtifacts(snapAbs, {
+    // design), so drop it once the verdict is known. Declared run outputs —
+    // including the NUnit XML that lives inside `Logs/` — are preserved, and the
+    // whole diagnostic tree survives when the run did not pass (see
+    // `pruneSnapshotAfterRun`: exit code alone is not a verdict).
+    const machine = parseRunResult(profile, run, cfg._repoRoot);
+    const ok = run.exitCode === 0 && machine.ok === true && !res.error && integrity.ok;
+    const pruned = pruneSnapshotAfterRun(snapAbs, {
       keep: (delivery.snapshotManifest?.entries || []).map((e) => e.path),
       protect: [resultRel, ...runOutputRels, 'collab-snapshot-manifest.json'],
+      ok,
     });
 
-    const machine = parseRunResult(profile, run, cfg._repoRoot);
-    const ok = run.exitCode === 0 && machine.ok === true && !res.error && integrity.ok;    const reason = ok
+    const reason = ok
       ? 'developer preflight passed in the delivery snapshot (not independent acceptance)'
       : !integrity.ok
         ? `snapshot integrity: ${integrity.reason}`

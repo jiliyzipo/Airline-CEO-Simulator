@@ -36,6 +36,7 @@ import {
   VERIFICATION_ROOTS,
 } from './fingerprint.mjs';
 import { exportStableSnapshot } from './snapshot.mjs';
+import { pruneSnapshotAfterRun } from './snapshot-hygiene.mjs';
 import { collectElements, parseXmlDocument } from './xml.mjs';
 import { resolveTaskRoots } from './roots.mjs';
 import {
@@ -2283,6 +2284,54 @@ export function cmdReviewRun(cfg, args) {
     }
     run.postSnapshot = postSnapshot;
     if (result.error) run.spawnError = String(result.error.message || result.error);
+
+    // A `unity-*` run leaves ~1.9 GB of `Library` inside the snapshot. Those are
+    // regenerable build artifacts that no evidence depends on: the manifest never
+    // lists them and `verifySnapshotIntegrity` ignores them by design. `stage-close`
+    // already reclaimed them, but `stage-review` did not, so every independent
+    // review silently added another ~1.9 GB. The shared helper applies the same
+    // narrow rule here, and keeps diagnostic trees when the run failed.
+    //
+    // "Failed" is not "exit code 0". A profile can exit 0 and still fail: the
+    // declared result file may report failed assertions (a text-kind profile pipes
+    // a JSON verdict to stdout while the process itself is happy), or the run may
+    // have mutated the snapshot it executed in (`postSnapshot.ok === false`). The
+    // evidence for both lives in `Logs/` and `out/`, so the prune decision uses the
+    // whole verdict rather than the process status alone.
+    const machineNow = (() => {
+      try {
+        return parseRunResult(profile, run, cfg._repoRoot);
+      } catch (e) {
+        return { ok: false, reason: String((e && e.message) || e) };
+      }
+    })();
+    const runAccepted =
+      run.exitCode === 0 && !run.spawnError && postSnapshot.ok === true && machineNow.ok === true;
+    let pruned = null;
+    try {
+      pruned = pruneSnapshotAfterRun(snapAbs, {
+        keep: (delivery.snapshotManifest?.entries || []).map((e) => e.path),
+        protect: [
+          resolvedResultRel,
+          ...runOutputRels,
+          'collab-snapshot-manifest.json',
+        ],
+        ok: runAccepted,
+      });
+      run.snapshotPruned = pruned.stats;
+      run.snapshotPrunePolicy = pruned.policy;
+      if (!runAccepted) {
+        run.snapshotPruneReason = [
+          run.exitCode !== 0 ? `exit=${run.exitCode}` : null,
+          run.spawnError ? 'spawnError' : null,
+          postSnapshot.ok !== true ? `postSnapshot: ${postSnapshot.reason || 'failed'}` : null,
+          machineNow.ok !== true ? `machine: ${machineNow.reason || 'failed'}` : null,
+        ].filter(Boolean).join('; ');
+      }
+    } catch (e) {
+      // Never let housekeeping invalidate a run whose evidence is already captured.
+      run.snapshotPruneError = String((e && e.message) || e);
+    }
 
     // Write back under the per-review lock; never overwrite a terminal state
     // (e.g. cancel committed while this worker was executing) or another token.

@@ -37,6 +37,15 @@ export const SNAPSHOT_ARTIFACT_DIRS = new Set([
   'node_modules',
 ]);
 
+/**
+ * Artifact trees that carry *diagnostics* rather than pure cache.
+ *
+ * When a profile run fails, `Logs/` (and anything the run dumped under `out/`) is
+ * the evidence a reviewer reads to understand the failure. Those trees are kept
+ * whole in that case; on success they are debris like everything else.
+ */
+export const DIAGNOSTIC_ARTIFACT_DIRS = new Set(['Logs', 'out']);
+
 const norm = (p) => String(p).replace(/\\/g, '/');
 
 /**
@@ -121,4 +130,88 @@ export function pruneSnapshotArtifacts(snapAbs, { keep = [], protect = [] } = {}
   if (!fs.existsSync(snapAbs)) return stats;
   walk('');
   return stats;
+}
+
+/**
+ * Prune a snapshot after a profile run has executed inside it.
+ *
+ * `stage-close` reclaimed these artifacts; `stage-review` used to leave them, so
+ * every independent review quietly added ~1.9 GB of `Library` to its delivery
+ * snapshot. This is the shared entry point for both.
+ *
+ * Policy:
+ *   - manifest-listed files always survive (they are the delivery's identity);
+ *   - the declared result file and declared run outputs survive (the review
+ *     record cites their hashes);
+ *   - when the run is *accepted* everything else regenerable goes;
+ *   - when it is not, the diagnostic trees (`DIAGNOSTIC_ARTIFACT_DIRS`) are kept
+ *     whole, because that is what a reviewer needs to see why the run failed.
+ *
+ * "Accepted" is deliberately not "exit code 0". A profile can exit 0 and still
+ * fail: NUnit reports assertion failures in its result file, and the snapshot can
+ * be mutated by the run itself (`postSnapshot.ok === false`). Both are failures
+ * whose evidence lives in `Logs/` and `out/`, so the caller must decide — this
+ * helper only enforces the policy once told.
+ *
+ * @param {string} snapAbs absolute snapshot directory
+ * @param {object} opts
+ * @param {string[]} [opts.keep] manifest-listed paths
+ * @param {string[]} [opts.protect] extra paths to keep (result file, run outputs)
+ * @param {boolean} [opts.ok] whether the run passed review (exit code, machine
+ *   results and snapshot integrity all together); false widens the keep set
+ * @returns {{stats:object, policy:string}}
+ */
+export function pruneSnapshotAfterRun(snapAbs, { keep = [], protect = [], ok = true } = {}) {
+  const accepted = ok === true;
+  const protectList = [...protect].filter(Boolean);
+  if (!accepted) {
+    const diagnostics = [];
+    collectDiagnosticFiles(snapAbs, '', diagnostics);
+    protectList.push(...diagnostics);
+  }
+  const stats = pruneSnapshotArtifacts(snapAbs, { keep, protect: protectList });
+  return { stats, policy: accepted ? 'success' : 'failure-kept-diagnostics' };
+}
+
+/** Recursively list every file under `snapAbs/<relDir>` as snapshot-relative posix paths. */
+function collectFilesUnder(snapAbs, relDir, out) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(snapAbs, relDir), { withFileTypes: true });
+  } catch {
+    return; // directory absent: nothing to protect
+  }
+  for (const e of entries) {
+    const rel = `${relDir}/${e.name}`;
+    if (e.isDirectory()) {
+      collectFilesUnder(snapAbs, rel, out);
+      continue;
+    }
+    out.push(norm(rel));
+  }
+}
+
+/**
+ * Collect every file inside any directory named like a diagnostic artifact.
+ *
+ * Artifact trees sit at arbitrary depth (`Unity Project/Logs`, `tools/semcheck/obj`),
+ * so matching on the directory *name* — the same rule `pruneSnapshotArtifacts` uses —
+ * is the only way to protect exactly the trees it would otherwise delete.
+ */
+function collectDiagnosticFiles(snapAbs, relDir, out) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(snapAbs, relDir), { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const rel = relDir ? `${relDir}/${e.name}` : e.name;
+    if (DIAGNOSTIC_ARTIFACT_DIRS.has(e.name)) {
+      collectFilesUnder(snapAbs, rel, out);
+      continue; // already collected the whole subtree
+    }
+    collectDiagnosticFiles(snapAbs, rel, out);
+  }
 }

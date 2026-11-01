@@ -563,6 +563,47 @@ await test('D37', 'the rescope preview and the persisted state tell the same sto
   assert.equal(task.freshness, dry.freshness, 'what the preview announced is what sync keeps');
   assert.deepEqual(task.scopeDrift.uncovered, [files[0]]);
 });
+// S48/ISSUE-e2b4c2 end-to-end: the review path decided "success" from the process
+// exit code alone, so a profile that printed failed counters (exit 0) had its
+// `Logs/` tree deleted — the very evidence the failure needed to be explained.
+await test('D38', 'a review run that exits 0 but fails its counters keeps the diagnostics', () => {
+  const f = fixture();
+  const litter = "const fs=require('fs');fs.mkdirSync('Logs/nested',{recursive:true});fs.writeFileSync('Logs/nested/Editor.log','assertion failure context');fs.mkdirSync('probe/out/deep',{recursive:true});fs.writeFileSync('probe/out/deep/failure.log','deep');";
+  f.cfg.profiles.exitone = {
+    kind: 'node',
+    command: ['node', '-e', `${litter}console.log(JSON.stringify({assertionsTotal:2,assertionsFailed:1,assertionsSkipped:0}))`],
+    resultKind: 'json',
+  };
+  const d = delivered(f);
+  const r = cmd.cmdReviewStart(f.cfg, { actor: 'codex', delivery: d.deliveryId, profile: 'exitone' });
+  const runOut = cmd.cmdReviewRun(f.cfg, { actor: 'codex', review: r.reviewId });
+  const run = runOut.run || io.readJson(path.join(f.dir, `docs/collaboration/reviews/${r.reviewId}.json`)).runs.at(-1);
+  assert.equal(run.exitCode, 0, 'the process itself succeeded — only the verdict failed');
+  assert.equal(run.snapshotPrunePolicy, 'failure-kept-diagnostics');
+  assert.match(String(run.snapshotPruneReason || ''), /machine/, 'the record says why it was treated as a failure');
+  const snap = path.join(f.dir, io.readJson(path.join(f.dir, `docs/collaboration/reviews/${r.reviewId}.json`)).snapshotPath);
+  assert.equal(fs.existsSync(path.join(snap, 'Logs/nested/Editor.log')), true, 'the log survives');
+  assert.equal(fs.existsSync(path.join(snap, 'probe/out/deep/failure.log')), true, 'nested run output survives');
+});
+await test('D39', 'a passing review still reclaims the artifact trees', () => {
+  const f = fixture();
+  const litter = "const fs=require('fs');fs.mkdirSync('Logs/nested',{recursive:true});fs.writeFileSync('Logs/nested/Editor.log','noise');fs.mkdirSync('Library',{recursive:true});fs.writeFileSync('Library/ArtifactDB','x');";
+  f.cfg.profiles.clean = {
+    kind: 'node',
+    command: ['node', '-e', `${litter}console.log(JSON.stringify({assertionsTotal:2,assertionsFailed:0,assertionsSkipped:0}))`],
+    resultKind: 'json',
+  };
+  const d = delivered(f);
+  const r = cmd.cmdReviewStart(f.cfg, { actor: 'codex', delivery: d.deliveryId, profile: 'clean' });
+  cmd.cmdReviewRun(f.cfg, { actor: 'codex', review: r.reviewId });
+  const rec = io.readJson(path.join(f.dir, `docs/collaboration/reviews/${r.reviewId}.json`));
+  const run = rec.runs.at(-1);
+  assert.equal(run.exitCode, 0);
+  assert.equal(run.snapshotPrunePolicy, 'success');
+  const snap = path.join(f.dir, rec.snapshotPath);
+  assert.equal(fs.existsSync(path.join(snap, 'Library')), false, 'cache is reclaimed');
+  assert.equal(fs.existsSync(path.join(snap, 'Logs')), false, 'logs are debris when the run passed');
+});
 fs.writeFileSync(path.join(root, 'results.json'), JSON.stringify({ root, source, total: results.length, passed: results.length - failed, failed, results }, null, 2));
 console.log(`SUMMARY ${results.length - failed}/${results.length} daily checks; evidence=${root}`);
 process.exitCode = failed ? 1 : 0;
