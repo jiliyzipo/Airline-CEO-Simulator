@@ -5,13 +5,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { mkTemp, finalizeFixtures } from './temp-fixtures.mjs';
 const source = path.resolve(process.env.COLLAB_AUDIT_TOOL_SOURCE || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const cmd = await import(pathToFileURL(path.join(source, 'lib/commands.mjs')));
 const state = await import(pathToFileURL(path.join(source, 'lib/state.mjs')));
 const io = await import(pathToFileURL(path.join(source, 'lib/io.mjs')));
 const schema = await import(pathToFileURL(path.join(source, 'lib/schemas.mjs')));
 const book = await import(pathToFileURL(path.join(source, 'lib/taskbook.mjs')));
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-reverse-'));
+const root = mkTemp('collab-reverse-');
 let serial = 0;
 const results = [];
 function put(dir, rel, body) {
@@ -161,8 +162,6 @@ const out = { at: new Date().toISOString(), subjectToolsPath: source, total: res
   passed: results.filter(r => r.passed).length, failed: results.filter(r => !r.passed).length, results };
 put(root, 'results.json', out);
 console.log(`SUMMARY ${out.passed}/${out.total} reverse-review checks passed; RESULT ${path.join(root, 'results.json')}`);
-// Keep the fixture tree only on failure — it holds results.json, i.e. the evidence.
-if (!out.failed) {
-  try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* best effort */ }
-}
+// Registered last, so it runs after hashcache's exit hook (see temp-fixtures.mjs).
+finalizeFixtures(out.failed);
 process.exitCode = out.failed ? 1 : 0;

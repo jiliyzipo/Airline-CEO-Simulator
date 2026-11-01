@@ -5,6 +5,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { mkTemp, finalizeFixtures } from './temp-fixtures.mjs';
 import { FileLock, writeJsonAtomic, ensureDir } from '../lib/io.mjs';
 import { validateDelivery, validateTask, assertRoleAction } from '../lib/schemas.mjs';
 import { EXIT } from '../lib/exit.mjs';
@@ -47,7 +48,7 @@ const toolRoot = path.resolve(__dirname, '..');
  * Set COLLAB_KEEP_DEV_FIXTURE=1 to keep it for inspection.
  */
 function buildScaffold() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-devtest-'));
+  const root = mkTemp('collab-devtest-');
   const put = (rel, body) => {
     const abs = path.join(root, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });
@@ -154,7 +155,7 @@ test('task requires acceptanceCriteria', () => {
 });
 
 test('file lock is exclusive', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-lock-'));
+  const dir = mkTemp('collab-lock-');
   const lockPath = path.join(dir, 't.lock');
   const a = new FileLock(lockPath, 'a');
   const b = new FileLock(lockPath, 'b');
@@ -169,7 +170,7 @@ test('file lock does not steal a lock whose payload is still being written', () 
   // Reproduces the TH-05 double-execution race: an empty lock file is "not yet
   // initialized", not "abandoned"; reclaiming it would hand the lease to two
   // processes at once.
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-lock-race-'));
+  const dir = mkTemp('collab-lock-race-');
   const lockPath = path.join(dir, 'r.lock');
   fs.writeFileSync(lockPath, '');
   const contender = new FileLock(lockPath, 'contender');
@@ -275,7 +276,7 @@ test('semcheck adapter requires all three gates', () => {
 });
 
 test('atomic write replaces file', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-atom-'));
+  const dir = mkTemp('collab-atom-');
   const file = path.join(dir, 's.json');
   writeJsonAtomic(file, { n: 1 });
   writeJsonAtomic(file, { n: 2 });
@@ -386,7 +387,7 @@ const BOOK = [
 ].join('\n');
 
 function bookFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-book-'));
+  const root = mkTemp('collab-book-');
   fs.mkdirSync(path.join(root, 'docs/collaboration/tasks'), { recursive: true });
   fs.writeFileSync(path.join(root, 'docs/book.md'), BOOK, 'utf8');
   const cfg = {
@@ -520,7 +521,7 @@ test('a baseline recorded under an older hash scheme is re-recorded, not reporte
 });
 
 test('defect status has one source: role-gated transitions recorded in shared state', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-issue-'));
+  const root = mkTemp('collab-issue-');
   fs.mkdirSync(path.join(root, 'docs/collaboration/issues'), { recursive: true });
   fs.writeFileSync(
     path.join(root, 'docs/collaboration/issues/ISSUE-1.json'),
@@ -596,7 +597,7 @@ test('clean checkout requirement blocks T02-style totals even when everything el
  * ------------------------------------------------------------------ */
 
 function hookFixture(hooks) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-hook-'));
+  const root = mkTemp('collab-hook-');
   fs.mkdirSync(path.join(root, 'docs/collaboration'), { recursive: true });
   const cfg = {
     _repoRoot: root,
@@ -703,7 +704,7 @@ test('hook payload tolerates a Windows BOM but still rejects garbage', () => {
 });
 
 test('freshness compares the task-declared roots and staleness keeps the passed verdict', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-fresh-'));
+  const root = mkTemp('collab-fresh-');
   const put = (rel, body) => {
     const abs = path.join(root, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });
@@ -828,7 +829,7 @@ test('profile run outputs normalize but may never declare source or traverse', (
 });
 
 test('declared run output is tolerated in a snapshot, every other stray file is not', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-snap-'));
+  const root = mkTemp('collab-snap-');
   const snapRel = 'out/collab/DEL-TEST';
   const snapAbs = path.join(root, snapRel);
   fs.mkdirSync(path.join(snapAbs, 'tools'), { recursive: true });
@@ -1006,7 +1007,7 @@ test('the clone probe reports a capability ceiling instead of throwing', () => {
  * ------------------------------------------------------------------ */
 
 test('pruning drops regenerable snapshot debris but never evidence', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-'));
+  const tmp = mkTemp('collab-prune-');
   try {
     const put = (rel, text) => {
       const abs = path.join(tmp, rel);
@@ -1052,7 +1053,7 @@ test('pruning drops regenerable snapshot debris but never evidence', () => {
 });
 
 test('pruning a snapshot that has no artifacts is a no-op', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-empty-'));
+  const tmp = mkTemp('collab-prune-empty-');
   try {
     fs.mkdirSync(path.join(tmp, 'Unity Project/Assets'), { recursive: true });
     fs.writeFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'class A {}');
@@ -1067,7 +1068,7 @@ test('pruning a snapshot that has no artifacts is a no-op', () => {
 });
 
 test('a successful run prunes everything regenerable, including diagnostics', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-ok-'));
+  const tmp = mkTemp('collab-prune-ok-');
   try {
     const put = (rel, body) => {
       fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
@@ -1100,7 +1101,7 @@ test('a successful run prunes everything regenerable, including diagnostics', ()
 });
 
 test('a failed run keeps the diagnostic trees so the failure stays explainable', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-fail-'));
+  const tmp = mkTemp('collab-prune-fail-');
   try {
     const put = (rel, body) => {
       fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
@@ -1134,7 +1135,7 @@ test('a failed run keeps the diagnostic trees so the failure stays explainable',
 });
 
 test('pruneSnapshotAfterRun tolerates a snapshot with no artifact trees at all', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-none-'));
+  const tmp = mkTemp('collab-prune-none-');
   try {
     fs.mkdirSync(path.join(tmp, 'Unity Project/Assets'), { recursive: true });
     fs.writeFileSync(path.join(tmp, 'Unity Project/Assets/a.cs'), 'class A {}');
@@ -1156,7 +1157,7 @@ test('pruneSnapshotAfterRun tolerates a snapshot with no artifact trees at all',
 // assertions while the process itself is happy, and a run can also mutate the
 // snapshot it executed in. Both failures keep their diagnostics.
 test('a run that exits 0 but fails its assertions still keeps the diagnostics', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-prune-exit0-'));
+  const tmp = mkTemp('collab-prune-exit0-');
   try {
     const put = (rel, body) => {
       fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
@@ -1190,7 +1191,7 @@ test('a run that exits 0 but fails its assertions still keeps the diagnostics', 
 // fixture under the host project's temp dir therefore "recorded a change set" it
 // never made, and `task-rescope` stopped refusing it.
 test('gitMeta never adopts an ancestor repository outside the configured root', () => {
-  const outer = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-git-ceiling-'));
+  const outer = mkTemp('collab-git-ceiling-');
   try {
     const git = (cwd, argv) =>
       spawnSync('git', argv, { cwd, encoding: 'utf8', windowsHide: true });
@@ -1226,5 +1227,7 @@ test('gitMeta never adopts an ancestor repository outside the configured root', 
   }
 });
 
+// Registered last, so it runs after hashcache's exit hook.
+finalizeFixtures(failed);
 console.log(failed ? `\n${failed} failed` : '\nall tests passed');
 process.exit(failed ? 1 : 0);

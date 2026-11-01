@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { mkTemp, finalizeFixtures } from './temp-fixtures.mjs';
 
 // Never ring the local handoff chime while exercising stage-close in fixtures.
 process.env.COLLAB_HANDOFF_NOTIFY = '0';
@@ -18,24 +19,12 @@ const state = await import(pathToFileURL(path.join(source, 'lib/state.mjs')));
 const book = await import(pathToFileURL(path.join(source, 'lib/taskbook.mjs')));
 const io = await import(pathToFileURL(path.join(source, 'lib/io.mjs')));
 
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-stage-'));
+const root = mkTemp('collab-stage-');
 // Fixture trees used to be abandoned wholesale: 3,296 of them / 5.6 GB had piled up
 // in the system temp directory. Cleanup runs on 'exit', not at the end of the file —
 // SA04 forks workers that write into a fixture after the last test returns, so
 // deleting earlier just let a late child recreate the directory.
-process.on('exit', () => {
-  if (failed) {
-    console.error(`夹具保留（有失败）：${root}`);
-    return;
-  }
-  try {
-    fs.rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
-  } catch (e) {
-    // A locked handle must not turn a green run red, but staying silent keeps the
-    // leak invisible.
-    console.error(`夹具未能清理（${e.code || 'ERR'}）：${root}`);
-  }
-});
+
 let serial = 0;
 let failed = 0;
 const results = [];
@@ -941,4 +930,6 @@ await test('R06', 'explicit stage-review on a superseded delivery is refused, an
 });
 
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
+// Registered last, so it runs after hashcache's exit hook (see temp-fixtures.mjs).
+finalizeFixtures(failed);
 process.exitCode = failed ? 1 : 0;

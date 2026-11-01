@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { mkTemp, finalizeFixtures } from './temp-fixtures.mjs';
 const source = path.resolve(process.env.COLLAB_AUDIT_TOOL_SOURCE || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const cmd = await import(pathToFileURL(path.join(source, 'lib/commands.mjs')));
 const state = await import(pathToFileURL(path.join(source, 'lib/state.mjs')));
@@ -12,7 +13,7 @@ const book = await import(pathToFileURL(path.join(source, 'lib/taskbook.mjs')));
 const io = await import(pathToFileURL(path.join(source, 'lib/io.mjs')));
 const hooks = await import(pathToFileURL(path.join(source, 'lib/hooks.mjs')));
 const stage = await import(pathToFileURL(path.join(source, 'lib/stage.mjs')));
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-daily-'));
+const root = mkTemp('collab-daily-');
 let serial = 0, failed = 0;
 const results = [];
 const put = (dir, file, value) => { const abs = path.join(dir, file); fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, typeof value === 'string' ? value : JSON.stringify(value, null, 2)); };
@@ -606,10 +607,6 @@ await test('D39', 'a passing review still reclaims the artifact trees', () => {
 });
 fs.writeFileSync(path.join(root, 'results.json'), JSON.stringify({ root, source, total: results.length, passed: results.length - failed, failed, results }, null, 2));
 console.log(`SUMMARY ${results.length - failed}/${results.length} daily checks; evidence=${root}`);
-// Drop the fixture tree when everything passed; keep it when something failed,
-// because the tree *is* the evidence. Nothing used to remove these, and 3,296
-// abandoned trees / 5.6 GB had piled up in the system temp directory.
-if (!failed) {
-  try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* best effort */ }
-}
+// Registered last, so it runs after hashcache's exit hook (see temp-fixtures.mjs).
+finalizeFixtures(failed);
 process.exitCode = failed ? 1 : 0;

@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { mkTemp, finalizeFixtures } from './temp-fixtures.mjs';
 
 const source = path.resolve(
   process.env.COLLAB_AUDIT_TOOL_SOURCE || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'),
@@ -71,7 +72,7 @@ function commit(root, message) {
 }
 
 function repoFixture(extra = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-ccv-'));
+  const root = mkTemp('collab-ccv-');
   fs.mkdirSync(path.join(root, 'docs/collaboration/tasks'), { recursive: true });
   fs.mkdirSync(path.join(root, 'src'), { recursive: true });
   // Same rule as the real repository: store bytes as-is, so a clone on a
@@ -172,7 +173,7 @@ await cloneTest('CCV05B', 'a tracked record rewritten by the tool is counted, no
 });
 
 await test('CCV06', 'a directory that is not a git repository fails closed', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-nogit-'));
+  const root = mkTemp('collab-nogit-');
   const cfg = {
     _repoRoot: root,
     projectId: 'fixture',
@@ -263,7 +264,7 @@ await cloneTest('CCV08', 'evidence files are bound by hash and require a stateme
 });
 
 await cloneTest('CCV09', 'the gate accepts a matching record for a task that cannot be delivered', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'collab-ccv-gate-'));
+  const root = mkTemp('collab-ccv-gate-');
   fs.mkdirSync(path.join(root, 'docs/collaboration/tasks'), { recursive: true });
   fs.writeFileSync(path.join(root, '.gitattributes'), '* -text\n');
   fs.writeFileSync(path.join(root, 'a.txt'), 'alpha\n');
@@ -335,5 +336,7 @@ await cloneTest('CCV09', 'the gate accepts a matching record for a task that can
   assert.equal(after.ok, true, JSON.stringify(after.blockers));
 });
 
+// Registered last, so it runs after hashcache's exit hook.
+finalizeFixtures(failed > 0);
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: skipped }));
 process.exitCode = failed > 0 ? 1 : 0;
