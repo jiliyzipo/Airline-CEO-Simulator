@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S48-PruneOnReviewFix",
+  "title": "S48 修复 stage-review 不回收快照工件：pruneSnapshotAfterRun 统一入口",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "只改 tools/collab：commands.mjs 在 cmdReviewRun 内接入回收；snapshot-hygiene.mjs 新增 pruneSnapshotAfterRun 与诊断树保留策略；collab.test.mjs 补 3 条测试",
+    "不动 Unity 源码、asmdef、meta、经济参数、测试断言与产品文案",
+    "缺陷已两次实测复现：2026-10-31 五次复验留下 9.16 GiB，2026-11-01 S47 复验又留下 1.83 GiB"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S48-PruneOnReviewFix）"
+    },
+    {
+      "id": "AC2",
+      "text": "协作工具回归套件全部通过（隔离夹具，不启动 Unity）（S48-PruneOnReviewFix）"
+    },
+    {
+      "id": "AC3",
+      "text": "各子套件退出码为 0 且断言计数与机器结果一致（S48-PruneOnReviewFix）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "user-approved-2026-11-01-prune-fix",
+  "createdAt": "2026-11-01T01:36:44.234Z",
+  "updatedAt": "2026-11-01T02:44:33.659Z",
+  "freshnessNote": "Review REV-20261101024222-534744 still applies to delivery DEL-20261101022812-e55d71.",
+  "staleForReviewId": null
+}

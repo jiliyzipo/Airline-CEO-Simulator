@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261101023630-32ca00",
+  "taskId": "S48-PruneOnReviewFix",
+  "deliveryId": "DEL-20261101022812-e55d71",
+  "reviewId": "REV-20261101023345-0ea32d",
+  "title": "验收条件缺少机器验证，且检测者未显式补证",
+  "repro": "任务 S48-PruneOnReviewFix 的验收条件与 profile collab 的机器契约不一致",
+  "expected": "机器可验证的条款由 profile 覆盖；其余条款必须由检测者用 --coverage 显式声明，或判定失败",
+  "actual": "AC1（本次运行有 8 项断言因环境不可执行而跳过，机器计数不能证明 AC1）；AC2（本次运行有 8 项断言因环境不可执行而跳过，机器计数不能证明 AC2）；AC3（本次运行有 8 项断言因环境不可执行而跳过，机器计数不能证明 AC3）",
+  "evidence": ".collab-local/logs/REV-20261101023345-0ea32d/run-a25c7711447f84b0/stdout.txt",
+  "severity": "blocker",
+  "suggestedOwner": "codex",
+  "status": "open",
+  "createdAt": "2026-11-01T02:36:30.702Z"
+}

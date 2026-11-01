@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101024434-62a753",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 874,
+  "at": "2026-11-01T02:44:34.873Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S48-PruneOnReviewFix",
+  "deliveryId": "DEL-20261101013704-042046",
+  "reviewId": "REV-20261101014206-b44d34",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101015053-e2b4c2: open -> closed",
+  "data": {
+    "issueId": "ISSUE-20261101015053-e2b4c2",
+    "from": "open",
+    "to": "closed",
+    "note": "DEL-20261101022812-e55d71 已独立通过 REV-20261101024222-534744（206/206、0失败、0跳过）。补验 .collab-local/audits/S48-reverify-2026-11-01T02-35-11-420Z/results.json 的六组场景全部符合预期：exit=0但机器失败、完整性失败均保留Logs/out；manifest、声明输出及结果SHA256不变，可再生缓存清除。6个交付文件与快照哈希一致，修复经独立验证，关闭。"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101013614-828f5c",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 850,
+  "at": "2026-11-01T01:36:14.836Z",
+  "actor": "cursor",
+  "action": "task-add-clause-drift",
+  "taskId": "S48-PruneOnReviewFix",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "clause text differs from profile template: ⚠ S48-PruneOnReviewFix：AC2 与 profile 模板文本不一致，已由「机器可判定」降级为「需检测者人工补证」（(any)(AC2)）。",
+  "data": {}
+}

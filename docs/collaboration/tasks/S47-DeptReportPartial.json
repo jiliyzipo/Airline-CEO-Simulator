@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "只修改DeptReportLogic.cs；新增Departments.cs/Actions.cs及配对meta，共4个新增源码/meta文件；不新增asmdef；1 DEL",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "user-approved-Phase2-S47-2026-10-31",
   "createdAt": "2026-10-31T14:06:22.246Z",
-  "updatedAt": "2026-11-01T01:22:59.786Z",
+  "updatedAt": "2026-11-01T01:35:47.945Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -42,6 +42,6 @@
     "tools/regression",
     "tools/collab"
   ],
-  "freshnessNote": "Review REV-20261101012027-d1a3c0 still applies to delivery DEL-20261031141433-af88d9.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261101012027-d1a3c0 passed delivery DEL-20261031141433-af88d9; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261101012027-d1a3c0"
 }

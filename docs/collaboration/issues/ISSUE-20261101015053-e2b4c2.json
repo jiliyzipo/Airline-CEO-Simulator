@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261101015053-e2b4c2",
+  "taskId": "S48-PruneOnReviewFix",
+  "deliveryId": "DEL-20261101013704-042046",
+  "reviewId": "REV-20261101014206-b44d34",
+  "title": "回收仅按进程退出码判断成功，断言或完整性失败时误删 Logs/out 诊断树",
+  "repro": "使用交付快照 tools/collab 的冻结实现，在独立夹具以 stage-close --no-preflight + stage-review 运行两场景：1) exit=0 且声明 resultFile 中 assertionsFailed=1；2) exit=0、断言全绿但运行时改写 manifest 源文件，使 postSnapshot.ok=false。均生成 Logs/nested/Editor.log 与 tools/probe/out/deep/failure.log。证据 .collab-local/audits/S48-targeted-2026-11-01T01-49-56-090Z/results.json",
+  "expected": "任何无法通过验收的运行（包括机器结果失败/无法解析、spawnError、postSnapshot 失败）保留完整 Logs/out 辅助诊断树；可再生缓存仍清理，manifest 与声明输出始终保留。",
+  "actual": "两个隔离 stage-review 均 status=failed、exitCode=0、snapshotPrunePolicy=success；Editor.log 和 out/deep/failure.log 被删除。声明 resultFile 存在且 SHA256 与 run.resultFile.sha256 相同。非零退出码对照可完整保留诊断。根因 commands.mjs:2303 仅向 pruneSnapshotAfterRun 传入 run.exitCode，忽略 postSnapshot 和机器结果。",
+  "evidence": ".collab-local/audits/S48-targeted-2026-11-01T01-49-56-090Z/results.json",
+  "evidenceSha256": "b265ac204cf3eae5d1ed5c11b192a36df51b08d565894f69880fac409f4d0649",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-11-01T01:50:53.250Z"
+}
