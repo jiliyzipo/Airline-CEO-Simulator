@@ -28,6 +28,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { extractFailures, extractSkips, isFixtureBroken, resolveEvidenceDir, suiteVerdict } from '../lib/suite-report.mjs';
+import { pruneStaleFixtures } from './fixture-prune.mjs';
 
 // stage-close may ring a local handoff chime; never do that inside the suite.
 process.env.COLLAB_HANDOFF_NOTIFY = process.env.COLLAB_HANDOFF_NOTIFY || '0';
@@ -97,41 +98,12 @@ const root = fs.mkdtempSync(path.join(tmpBase, 'collab-suite-'));
 const evidenceDir = resolveEvidenceDir(process.env, root);
 fs.mkdirSync(evidenceDir, { recursive: true });
 
-/**
- * Prune fixture trees left behind by earlier runs.
- *
- * Suites used to abandon their roots entirely (3,296 trees / 5.6 GB in the system
- * temp directory). They now delete their own tree on a green run, but a late child
- * can still recreate a small one just after the parent exits, so self-cleanup alone
- * only bounds the growth. Age-bounding finishes the job: a tree untouched for hours
- * cannot have a live child writing to it, so it is safe to delete.
- */
-function pruneStaleFixtures(baseDir, maxAgeMs = 6 * 3600 * 1000) {
-  let entries = [];
-  try {
-    entries = fs.readdirSync(baseDir, { withFileTypes: true });
-  } catch {
-    return { removed: 0 };
-  }
-  const cutoff = Date.now() - maxAgeMs;
-  let removed = 0;
-  for (const e of entries) {
-    if (!e.isDirectory()) continue;
-    if (!/^collab-(stage|daily|reverse|suite|probe|devtest|ccv|nogit|ccv-gate|book|issue|hook|fresh|snap|prune|lock|atom|git-ceiling)/.test(e.name)) continue;
-    const abs = path.join(baseDir, e.name);
-    try {
-      if (fs.statSync(abs).mtimeMs > cutoff) continue;
-      fs.rmSync(abs, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
-      removed++;
-    } catch {
-      // Locked or already gone: leave it for the next run.
-    }
-  }
-  return { removed };
+const prune = pruneStaleFixtures(tmpBase);
+if (prune.skipped.length) {
+  console.error(`kept ${prune.kept} fixture tree(s) with active writes or retained evidence`);
 }
-pruneStaleFixtures(tmpBase);
 
-const SUITES = ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs', 'handoff-notify.test.mjs', 'fingerprint-cache.test.mjs'];
+const SUITES = ['collab.test.mjs', 'xml.test.mjs', 'closure.test.mjs', 'daily.test.mjs', 'reverse-review.test.mjs', 'stage.test.mjs', 'cleancheckout.test.mjs', 'handoff-notify.test.mjs', 'fingerprint-cache.test.mjs', 'fixture-prune.test.mjs'];
 // 120s was measured on an unrestricted shell. Inside the review sandbox every
 // fork is several times slower (one run got 18/24 through a suite at 120s), and a
 // wall-clock ceiling must not masquerade as a product regression. 8 minutes is

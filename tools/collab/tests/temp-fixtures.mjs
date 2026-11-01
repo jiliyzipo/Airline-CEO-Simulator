@@ -18,9 +18,16 @@ import path from 'node:path';
  * `finalizeFixtures()` must be called at the *end* of a suite: its listener is
  * registered last, so it runs last.
  *
- * A failing run keeps everything, because the tree *is* the evidence.
+ * A failing run keeps everything, because the tree *is* the evidence. Keeping it
+ * is only half the story — a kept tree must also survive the sweep that
+ * `run-all.mjs` performs on later runs, so every kept root gets a marker file.
+ * Without that marker a sweep cannot tell abandoned garbage from a retained
+ * failure, and "keep the evidence" would quietly expire after six hours.
  */
 const created = [];
+
+/** Present in a fixture root that must never be swept. */
+export const KEEP_MARKER = 'KEEP-EVIDENCE.json';
 
 export function mkTemp(prefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -40,19 +47,30 @@ function sweep() {
   }
 }
 
-/** Register `fn` to run on exit, after any hook registered earlier. */
-export function deferCleanup(fn) {
-  process.on('exit', fn);
+function markKept(detail) {
+  for (const dir of created) {
+    try {
+      fs.writeFileSync(
+        path.join(dir, KEEP_MARKER),
+        `${JSON.stringify({ keptAt: new Date().toISOString(), ...detail }, null, 2)}\n`,
+        'utf8',
+      );
+    } catch {
+      // A marker that cannot be written must not hide the failure itself.
+    }
+  }
 }
 
 /**
  * Call once, at the end of a suite, with the verdict.
- * Green → every fixture this process created is removed. Failed → all kept.
+ * Green → every fixture this process created is removed. Failed → all kept,
+ * each carrying KEEP_MARKER so a later sweep leaves it alone.
  */
 export function finalizeFixtures(failed) {
   process.on('exit', () => {
     if (failed) {
       if (created.length) {
+        markKept({ reason: 'suite reported failures; tree retained as evidence' });
         console.error(`夹具保留（有失败），共 ${created.length} 个：\n  ${created.join('\n  ')}`);
       }
       return;

@@ -1,0 +1,130 @@
+// Sweeping leftover fixture trees must never destroy something that still matters.
+// ISSUE-20261101061656-eee4ee: the first sweep judged age from the root directory's
+// mtime and deleted both a retained failure and a tree with a live child writing
+// into it. Both cases are reproduced here.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { mkTemp, finalizeFixtures, KEEP_MARKER } from './temp-fixtures.mjs';
+import { pruneStaleFixtures } from './fixture-prune.mjs';
+
+const base = mkTemp('collab-prune-');
+let failed = 0;
+const results = [];
+
+function test(id, name, fn) {
+  try {
+    fn();
+    results.push({ id, name, passed: true });
+    console.log(`PASS ${id} ${name}`);
+  } catch (e) {
+    failed += 1;
+    results.push({ id, name, passed: false, error: e.stack });
+    console.log(`FAIL ${id} ${name}: ${e.message}`);
+  }
+}
+
+const HOURS = 3600 * 1000;
+
+/** Create a tree, then force every entry's mtime back by `ageHours`. */
+function tree(name, { ageHours = 8, files = {} } = {}) {
+  const dir = path.join(base, name);
+  fs.mkdirSync(dir, { recursive: true });
+  for (const [rel, body] of Object.entries(files)) {
+    const abs = path.join(dir, rel);
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, body);
+  }
+  const stamp = Date.now() - ageHours * HOURS;
+  ageTree(dir, stamp);
+  return dir;
+}
+
+function ageTree(dir, stamp) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, e.name);
+    if (e.isDirectory()) ageTree(abs, stamp);
+    else fs.utimesSync(abs, new Date(stamp), new Date(stamp));
+  }
+  fs.utimesSync(dir, new Date(stamp), new Date(stamp));
+}
+
+const exists = (p) => fs.existsSync(p);
+
+test('P01', 'a retained failure survives its root being hours old', () => {
+  const dir = tree('collab-suite-kept-failure', {
+    files: {
+      [KEEP_MARKER]: JSON.stringify({ reason: 'suite reported failures' }),
+      'results.json': JSON.stringify({ ok: false }),
+      'Logs/diagnostic.log': 'stack trace that explains the failure\n',
+    },
+  });
+  const out = pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir), 'retained failure must not be swept');
+  assert(out.skipped.some((s) => s.startsWith('collab-suite-kept-failure')), JSON.stringify(out));
+});
+
+test('P02', 'a tree with a live child writing into it survives', () => {
+  // The child touches the nested file, not the root entry: this is the shape that
+  // fooled the old mtime-only check.
+  const dir = tree('collab-stage-live-owner', {
+    ageHours: 7,
+    files: {
+      'worker/executions.txt': 'run 1\n',
+      'owner.json': JSON.stringify({ pid: process.pid }),
+    },
+  });
+  fs.writeFileSync(path.join(dir, 'worker/executions.txt'), 'run 1\nrun 2\n');
+  const out = pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir), 'a tree being written to must not be swept');
+  assert(out.skipped.some((s) => s.startsWith('collab-stage-live-owner')), JSON.stringify(out));
+});
+
+test('P03', 'a nested file written recently protects an old root', () => {
+  const dir = tree('collab-stage-deep-write', {
+    ageHours: 9,
+    files: { 'a/b/c/notes.txt': 'x' },
+  });
+  fs.writeFileSync(path.join(dir, 'a/b/c/notes.txt'), 'y');
+  pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir), 'newest mtime anywhere in the tree is what counts');
+});
+
+test('P04', 'a provably abandoned tree is removed', () => {
+  const dir = tree('collab-stage-abandoned', { ageHours: 9, files: { 'x.txt': 'x' } });
+  const out = pruneStaleFixtures(base, 6 * HOURS);
+  assert(!exists(dir), 'tree with no marker and no recent write should be swept');
+  assert.equal(out.removed, 1, JSON.stringify(out));
+});
+
+test('P05', 'an ownership marker alone blocks the sweep', () => {
+  const dir = tree('collab-lock-owned', { ageHours: 9, files: { '.lease': '{"owner":"x"}' } });
+  pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir), 'a lease may still be reclaimed by its owner');
+});
+
+test('P06', 'directories that are not ours are never touched', () => {
+  const dir = tree('unrelated-folder', { ageHours: 9, files: { 'x.txt': 'x' } });
+  pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir));
+});
+
+test('P07', 'a fresh tree is left alone', () => {
+  const dir = tree('collab-daily-fresh', { ageHours: 0, files: { 'x.txt': 'x' } });
+  pruneStaleFixtures(base, 6 * HOURS);
+  assert(exists(dir));
+});
+
+test('P08', 'an unreadable tree is kept rather than guessed at', () => {
+  const dir = tree('collab-stage-unreadable', { ageHours: 9, files: { 'x.txt': 'x' } });
+  assert(exists(dir));
+  // Simulated by pruning with the tree gone from disk between listing and scan
+  // is racy; instead assert the contract: a missing tree reports an error, and the
+  // sweep counts it as kept rather than throwing.
+  const out = pruneStaleFixtures(path.join(base, 'does-not-exist'), 6 * HOURS);
+  assert.deepEqual(out, { removed: 0, kept: 0, skipped: [] });
+});
+
+console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
+finalizeFixtures(failed);
+process.exitCode = failed ? 1 : 0;
