@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101064349-c102aa",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 921,
+  "at": "2026-11-01T06:43:49.355Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "reviewId": "REV-20261101062914-dd2071",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101063120-97dd41: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261101063120-97dd41",
+    "from": "verified",
+    "to": "closed",
+    "note": "e47797独立复验确认修复，关闭目录相等边界误删证据缺陷；旧交付与历史检测记录保留。"
+  }
+}

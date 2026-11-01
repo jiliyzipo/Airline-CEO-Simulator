@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101064343-ee74af",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 919,
+  "at": "2026-11-01T06:43:43.548Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "reviewId": "REV-20261101062914-dd2071",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101063120-97dd41: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261101063120-97dd41",
+    "from": "fixed",
+    "to": "verified",
+    "note": "仅针对DEL-20261101063922-e47797复验：REV-20261101064127-18ff17 collab221/221、0失败、0跳过。独立导入本快照helper并执行本快照run-all收尾块，证据目录等于root和嵌套目录均保留；失败标记阻止后续过期清理，无关自有目录正常回收，共享前缀兄弟路径不算包含。证据.collab-local/audits/S49-e47797-reverify-2026-11-01T06-42-10-837Z/results.json。源码与快照、stdout/stderr哈希及manifest完整性均核对通过。"
+  }
+}

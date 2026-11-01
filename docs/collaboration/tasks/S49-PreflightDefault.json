@@ -5,7 +5,7 @@
   "title": "阶段 S49-PreflightDefault：Collab",
   "revision": 1,
   "devStatus": "ready_for_review",
-  "reviewStatus": "queued",
+  "reviewStatus": "passed",
   "freshness": "current",
   "holder": null,
   "scope": [
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-01T04:13:05.330Z",
-  "updatedAt": "2026-11-01T06:39:42.559Z",
+  "updatedAt": "2026-11-01T06:43:48.295Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "freshnessNote": "Review REV-20261101064127-18ff17 still applies to delivery DEL-20261101063922-e47797.",
   "staleForReviewId": null
 }
