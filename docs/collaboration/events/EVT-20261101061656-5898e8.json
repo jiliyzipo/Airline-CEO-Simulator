@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101061656-5898e8",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 895,
+  "at": "2026-11-01T06:16:56.157Z",
+  "actor": "codex",
+  "action": "review-finding",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101060113-0d23f4",
+  "reviewId": "REV-20261101061442-42594f",
+  "parentEventId": null,
+  "summary": "历史夹具回收仅按父目录mtime，删除失败证据及仍有新写入的夹具",
+  "data": {
+    "issueId": "ISSUE-20261101061656-eee4ee",
+    "evidence": ".collab-local/audits/S49-stale-fixture-2026-11-01T06-16-00-395Z/results.json"
+  }
+}

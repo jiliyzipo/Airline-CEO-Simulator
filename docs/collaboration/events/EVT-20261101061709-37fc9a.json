@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101061709-37fc9a",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 896,
+  "at": "2026-11-01T06:17:09.967Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "reviewId": "REV-20261101041921-abd036",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101042108-3ef0c6: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261101042108-3ef0c6",
+    "from": "fixed",
+    "to": "verified",
+    "note": "独立复验REV-20261101061442-42594f：DEL-20261101060113-0d23f4的collab208/208、0失败、0跳过。真实CLI回归T02c验证preflight显式开启、默认关闭及未知参数拒绝；原白名单缺陷已修复。"
+  }
+}

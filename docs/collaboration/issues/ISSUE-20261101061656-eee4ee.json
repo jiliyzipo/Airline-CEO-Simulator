@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261101061656-eee4ee",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101060113-0d23f4",
+  "reviewId": "REV-20261101061442-42594f",
+  "title": "历史夹具回收仅按父目录mtime，删除失败证据及仍有新写入的夹具",
+  "repro": "从交付快照tests/run-all.mjs提取原样pruneStaleFixtures函数，仅在.collab-local/audits下隔离运行：建立collab-suite-kept-failure（summary.json含ok=false、Logs诊断）与collab-stage-live-owner（owner.json含当前存活PID、Logs子文件刚写入）；仅将两根目录mtime设为7小时前，调用pruneStaleFixtures。详见.collab-local/audits/S49-stale-fixture-2026-11-01T06-16-00-395Z/results.json",
+  "expected": "跨运行清理不应仅凭父目录mtime推断夹具无人使用或证据已不需要；失败诊断和活跃夹具应保留。仅清理由成功完成标记及可靠所有权/租约确定可回收的夹具，失败证据的保留与清理应另有明确策略。",
+  "actual": "run-all.mjs:123只看根目录mtime，L124递归删除且不检查失败结果、证据标记、子文件更新时间或活动owner。原样函数返回removed=2；两套诊断、失败summary与存活PID标记均被删除。父目录mtime旧并不代表其后代近期无活动。另temp-fixtures.mjs注释与失败分支声明失败夹具保留，但后续run-all会在6小时后无区别回收。",
+  "evidence": ".collab-local/audits/S49-stale-fixture-2026-11-01T06-16-00-395Z/results.json",
+  "evidenceSha256": "59208ae3a9f1a7b7f788b129d366b808b6d493b6a18913e70cf79fcf06c6800f",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-11-01T06:16:56.136Z"
+}

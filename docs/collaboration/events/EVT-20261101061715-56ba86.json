@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101061715-56ba86",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 898,
+  "at": "2026-11-01T06:17:15.982Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101041308-3ad702",
+  "reviewId": "REV-20261101041921-abd036",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101042108-3ef0c6: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261101042108-3ef0c6",
+    "from": "verified",
+    "to": "closed",
+    "note": "已独立验证原preflight入口修复，关闭本条；新增ISSUE-20261101061656-eee4ee仍开放，S49暂不能收口。"
+  }
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 890,
-  "updatedAt": "2026-11-01T06:08:33.076Z",
+  "revision": 902,
+  "updatedAt": "2026-11-01T06:27:31.173Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -500,7 +500,7 @@
       "updatedAt": "2026-11-01T04:13:05.330Z"
     }
   },
-  "lastDeliveryId": "DEL-20261101060113-0d23f4",
+  "lastDeliveryId": "DEL-20261101062707-544c8d",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -636,11 +636,18 @@
       "at": "2026-11-01T02:44:43.341Z"
     },
     "ISSUE-20261101042108-3ef0c6": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "已独立验证原preflight入口修复，关闭本条；新增ISSUE-20261101061656-eee4ee仍开放，S49暂不能收口。",
+      "at": "2026-11-01T06:17:15.974Z"
+    },
+    "ISSUE-20261101061656-eee4ee": {
       "status": "fixed",
       "previous": "open",
       "actor": "cursor",
-      "note": "已修：stage-close 白名单补 preflight；dry-run 计划新增 preflight 字段使其可观测；新增 T02c 走真实 CLI。负面控制已验证。208/208 通过。提交 800d8b2。",
-      "at": "2026-11-01T05:52:48.994Z"
+      "note": "已修：判龄改为扫描整棵树取最新 mtime；失败夹具写 KEEP-EVIDENCE.json 永久跳过回收；所有权标记同样跳过；不可读的树保留。抽出 fixture-prune.mjs 便于单测，新增 fixture-prune.test.mjs 8 断言复刻本 issue 的隔离复现。负面控制：退回旧判据后 P01/P02/P03/P05 如期失败。run-all 216/216。新交付 DEL-20261101062707-544c8d。",
+      "at": "2026-11-01T06:27:29.229Z"
     }
   },
   "deliveryStatus": {
