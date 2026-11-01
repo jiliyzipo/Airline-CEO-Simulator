@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101063940-8c36d4",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 913,
+  "at": "2026-11-01T06:39:40.506Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "reviewId": "REV-20261101062914-dd2071",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101063120-97dd41: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261101063120-97dd41",
+    "from": "open",
+    "to": "fixed",
+    "note": "已修：新增 containsPath，相等即包含（win32 大小写不敏感），拒绝 /a/bc 共享前缀；收尾逻辑抽为 releaseOwnedRoots 便于单测；保留证据且本次失败时写 KEEP-EVIDENCE.json 防下一轮按龄回收。新增 P09-P13。负面控制：退回纯 startsWith 后 P09/P12/P13 如期失败。快照内按原复现步骤验证：evidenceDir===root 时 removed=false，summary 与失败日志存活。run-all 221/221。新交付 DEL-20261101063922-e47797。"
+  }
+}

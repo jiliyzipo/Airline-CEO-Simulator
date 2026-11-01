@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101063134-7cef5f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 908,
+  "at": "2026-11-01T06:31:34.627Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101060113-0d23f4",
+  "reviewId": "REV-20261101061442-42594f",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101061656-eee4ee: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261101061656-eee4ee",
+    "from": "fixed",
+    "to": "verified",
+    "note": "复验明确针对DEL-20261101062707-544c8d：REV-20261101062914-dd2071 collab216/216、0失败、0跳过。隔离导入本DEL的fixture-prune.mjs，保留标记、owner、近期子文件均阻止清理，过期无标记废弃目录可回收，原缺陷已验证修复；证据.collab-local/audits/S49-544c8d-reverify-2026-11-01T06-30-42-715Z/results.json。"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101063120-2bdc8c",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 907,
+  "at": "2026-11-01T06:31:20.780Z",
+  "actor": "codex",
+  "action": "review-finding",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "reviewId": "REV-20261101062914-dd2071",
+  "parentEventId": null,
+  "summary": "独立运行run-all时证据目录等于临时根目录，收尾清理误删结果与失败日志",
+  "data": {
+    "issueId": "ISSUE-20261101063120-97dd41",
+    "evidence": ".collab-local/audits/S49-544c8d-reverify-2026-11-01T06-30-42-715Z/results.json"
+  }
+}

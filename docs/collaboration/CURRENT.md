@@ -1,9 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-11-01T06:27:29.611Z
-状态 revision：901
-Cursor 最近确认读取：revision 899 @ 2026-11-01T06:27:05.468Z
-Codex 最近确认读取：revision 890 @ 2026-11-01T06:14:00.452Z
+生成时间：2026-11-01T06:39:40.914Z
+状态 revision：913
+Cursor 最近确认读取：revision 911 @ 2026-11-01T06:39:20.852Z
+Codex 最近确认读取：revision 902 @ 2026-11-01T06:29:03.323Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
@@ -112,7 +112,7 @@ Codex 最近确认读取：revision 890 @ 2026-11-01T06:14:00.452Z
 - **S48-PruneOnReviewFix** S48 修复 stage-review 不回收快照工件：pruneSnapshotAfterRun 统一入口 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261101024222-534744 passed delivery DEL-20261101022812-e55d71; current workspace needs re-review.
 - **S49-PreflightDefault** 阶段 S49-PreflightDefault：Collab · 开发=ready_for_review · 检测=queued · freshness=current · holder=-
-  - Historical review REV-20261101061442-42594f passed delivery DEL-20261101060113-0d23f4; verification baseline changed — re-review required.
+  - Historical review REV-20261101062914-dd2071 passed delivery DEL-20261101062707-544c8d; verification baseline changed — re-review required.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
@@ -128,18 +128,18 @@ Codex 最近确认读取：revision 890 @ 2026-11-01T06:14:00.452Z
 
 ## 最新交付
 
-- DEL-20261101062707-544c8d → S49-PreflightDefault @ 2026-11-01T06:27:10.125Z
+- DEL-20261101063922-e47797 → S49-PreflightDefault @ 2026-11-01T06:39:25.207Z
 
 ## 最新检测
 
-- REV-20261101061442-42594f → delivery DEL-20261101060113-0d23f4 status=passed · 独立检测角色 @ 2026-11-01T06:16:17.671Z
+- REV-20261101062914-dd2071 → delivery DEL-20261101062707-544c8d status=passed · 独立检测角色 @ 2026-11-01T06:30:51.401Z
 
 ## 开放缺陷
 
 - ISSUE-20261025133539-5d00c2 [blocker] 验收条件缺少机器验证，且检测者未显式补证 · task=S12-CommandConsole
 - ISSUE-20261026023527-01bb24 [blocker] profile collab 未通过（DEL-20261026022132-804f18） · task=S13-CollabSupersede
 - ISSUE-20261026061059-747c95 [blocker] profile collab 未通过（DEL-20261026031355-16ec52） · task=S13-CollabSupersede
-- ISSUE-20261101061656-eee4ee [major] 历史夹具回收仅按父目录mtime，删除失败证据及仍有新写入的夹具 · task=S49-PreflightDefault
+- ISSUE-20261101063120-97dd41 [major] 独立运行run-all时证据目录等于临时根目录，收尾清理误删结果与失败日志 · task=S49-PreflightDefault
 
 本文件由 `node tools/collab/cli.mjs sync` 生成，请勿手工维护第二套状态。
 T01/T06 等只读引用的任务书状态见 taskBookStatus；不以本工具覆盖游戏任务书勾选。

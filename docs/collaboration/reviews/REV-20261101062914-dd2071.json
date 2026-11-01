@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261101062914-dd2071",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "taskId": "S49-PreflightDefault",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "passed",
+  "profile": "collab",
+  "profileDefinition": {
+    "kind": "node",
+    "command": [
+      "node",
+      "tools/collab/tests/run-all.mjs"
+    ],
+    "resultKind": "json",
+    "description": "Collaboration tool regression, isolated fixtures only; never starts Unity"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "23a0203163ca8a9f62c2b0a410fc102a385b78f3c96d8adb0972f35541eaf8c6",
+    "verification": "8017d5e6f21a575b2064b4c7bb396eec0e5b34f568c7f091aff5577f1dd04c9b",
+    "contract": "18ef4f4f37bb6bfd17ff01484c6128b12ed998f5624f0a37609fe6ab3c997d2d"
+  },
+  "snapshotPath": "out/collab/DEL-20261101062707-544c8d",
+  "createdAt": "2026-11-01T06:29:14.488Z",
+  "updatedAt": "2026-11-01T06:30:51.401Z",
+  "runs": [
+    {
+      "at": "2026-11-01T06:29:15.284Z",
+      "finishedAt": "2026-11-01T06:30:49.849Z",
+      "runToken": "a4389a3567977783",
+      "profile": "collab",
+      "deliveryId": "DEL-20261101062707-544c8d",
+      "subjectImplementationFingerprint": "23a0203163ca8a9f62c2b0a410fc102a385b78f3c96d8adb0972f35541eaf8c6",
+      "subjectFingerprints": {
+        "implementation": "23a0203163ca8a9f62c2b0a410fc102a385b78f3c96d8adb0972f35541eaf8c6",
+        "verification": "8017d5e6f21a575b2064b4c7bb396eec0e5b34f568c7f091aff5577f1dd04c9b",
+        "contract": "18ef4f4f37bb6bfd17ff01484c6128b12ed998f5624f0a37609fe6ab3c997d2d"
+      },
+      "command": [
+        "node",
+        "tools/collab/tests/run-all.mjs"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261101062707-544c8d",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261101062914-dd2071/run-a4389a3567977783/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261101062914-dd2071/run-a4389a3567977783/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261101062914-dd2071/run-a4389a3567977783/stdout.txt",
+        "sha256": "9a58dfdf1bb69828eaf9ff294b4786f77dec1268424671994a76eb754a155566",
+        "bytes": 4331,
+        "runToken": "a4389a3567977783"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261101062914-dd2071/run-a4389a3567977783/stderr.txt",
+        "sha256": "04ad28277f7ef7119515f32f938394636ba82c2cf3a25f6ba803135ec2db1e0d",
+        "bytes": 63,
+        "runToken": "a4389a3567977783"
+      },
+      "signal": null,
+      "resultFile": null,
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      },
+      "snapshotPruned": {
+        "freedBytes": 0,
+        "removedFiles": 0,
+        "keptFiles": 0,
+        "removedDirs": 0
+      },
+      "snapshotPrunePolicy": "success"
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=collab runToken=a4389a3567977783 counters={\"total\":216,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=collab runToken=a4389a3567977783 counters={\"total\":216,\"failed\":0,\"skipped\":0} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=collab runToken=a4389a3567977783 counters={\"total\":216,\"failed\":0,\"skipped\":0} | machine-mapped"
+    }
+  ],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-11-01T06:29:15.271Z",
+  "assertions": {
+    "total": 216,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "adapter": "stdout-json",
+      "total": 216,
+      "failed": 0,
+      "skipped": 0
+    },
+    "counters": {
+      "total": 216,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261101062914-dd2071-1793514650649.json",
+  "finishedAt": "2026-11-01T06:30:51.401Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "a4389a3567977783",
+    "resultFile": null,
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261101062707-544c8d"
+  }
+}

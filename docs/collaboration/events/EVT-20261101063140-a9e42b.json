@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101063140-a9e42b",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 910,
+  "at": "2026-11-01T06:31:40.675Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101060113-0d23f4",
+  "reviewId": "REV-20261101061442-42594f",
+  "parentEventId": null,
+  "summary": "ISSUE-20261101061656-eee4ee: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261101061656-eee4ee",
+    "from": "verified",
+    "to": "closed",
+    "note": "关闭已在544c8d验证修复的历史夹具年龄判据缺陷。独立run-all收尾目录相等边界属于另一条路径，已登记ISSUE-20261101063120-97dd41，保持开放，不据机器通过宣称S49整体可收口。"
+  }
+}

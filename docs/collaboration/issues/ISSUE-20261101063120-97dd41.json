@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "issueId": "ISSUE-20261101063120-97dd41",
+  "taskId": "S49-PreflightDefault",
+  "deliveryId": "DEL-20261101062707-544c8d",
+  "reviewId": "REV-20261101062914-dd2071",
+  "title": "独立运行run-all时证据目录等于临时根目录，收尾清理误删结果与失败日志",
+  "repro": "仅使用DEL-20261101062707-544c8d冻结代码：调用suite-report.resolveEvidenceDir({},root)获得evidenceDir=root，在隔离root放入ok=false的summary.json与stderr诊断，执行该快照run-all.mjs原样owned-root清理块。无需运行全套或触碰实际TEMP。证据：.collab-local/audits/S49-544c8d-reverify-2026-11-01T06-30-42-715Z/results.json",
+  "expected": "当evidenceDir等于owned或位于owned之下时，收尾应保留证据目录；独立执行run-all且未设置COLLAB_RUN_DIR时，summary和每套件日志必须可在退出后读取。失败证据应有保留标记防止后续清理。",
+  "actual": "run-all.mjs:229使用path.resolve(evidenceDir).startsWith(path.resolve(owned)+path.sep)，未覆盖evidenceDir===owned。独立运行时resolveEvidenceDir({},root)直接返回root，containsEvidence=false，L235递归删除root，隔离复现中summary.json和失败stderr均消失。collab profile设置COLLAB_RUN_DIR为外部路径，故216项机器套件未覆盖该路径。",
+  "evidence": ".collab-local/audits/S49-544c8d-reverify-2026-11-01T06-30-42-715Z/results.json",
+  "evidenceSha256": "f1dcaf216fb81a82197efb06a0a63dc8a5b7c0268eaec26a40cdf62500149ce2",
+  "severity": "major",
+  "suggestedOwner": "cursor",
+  "status": "open",
+  "createdAt": "2026-11-01T06:31:20.758Z"
+}
