@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-01T04:13:05.330Z",
-  "updatedAt": "2026-11-01T06:01:16.208Z",
+  "updatedAt": "2026-11-01T06:08:33.055Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historical review REV-20261101041921-abd036 passed delivery DEL-20261101041308-3ad702; current workspace needs re-review.",
-  "staleForReviewId": "REV-20261101041921-abd036"
+  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "staleForReviewId": null
 }
