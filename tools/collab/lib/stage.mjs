@@ -1068,7 +1068,7 @@ function buildSummary({ task, profile, diff, preflight, preflightPlanned, note, 
     preflight
       ? `预检（${profile}）：${preflight.ok ? '通过' : '未通过'} · exit=${preflight.exitCode} · ${preflight.reason}`
       : preflightPlanned === false
-        ? '预检：未执行（--no-preflight）'
+        ? '预检：未执行（默认关闭；需要时加 --preflight）'
         : '预检：交付后自动在快照内执行，结果见交接单',
   ];
   if (note) lines.push('', `说明：${note}`);
@@ -1264,7 +1264,16 @@ export function cmdStageClose(cfg, args = {}) {
   }
 
   // Auto summary file: operators never hand-write one.
-  const preflightPlanned = args['no-preflight'] !== true;
+  //
+  // Preflight is OFF by default. It re-ran the same profile the independent
+  // review was about to run, which cost 130 s on `collab` and a full Unity cold
+  // import (100–450 s) on `unity-*` — and the snapshot carries no `Library`, so
+  // the review had to import from scratch regardless. Measured over 73 handoffs
+  // it caught 7 (9.6%), and on DEL-20261101013704-042046 it passed while the
+  // review then rejected the same bytes, because the two environments differ.
+  // Duplicated work with weaker signal; keep the switch for when someone
+  // actually wants it, but do not pay for it by default.
+  const preflightPlanned = args.preflight === true;
   const summaryText = buildSummary({
     task,
     profile,
@@ -1288,7 +1297,7 @@ export function cmdStageClose(cfg, args = {}) {
     gaps: args.gaps || '',
     'self-test-notes': preflightPlanned
       ? `stage-close preflight: ${profile}`
-      : 'stage-close without preflight (developer self-check only)',
+      : 'stage-close without preflight (developer self-test ran outside the snapshot)',
     risk: args.risk || 'none stated',
   });
 

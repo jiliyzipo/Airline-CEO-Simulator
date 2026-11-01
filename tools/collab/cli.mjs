@@ -46,10 +46,13 @@ Commands:
 Stage automation (one command per side):
   stage-open   [--actor cursor]                       sync + ack + status board
   stage-close  [--task <id>] [--profile <p>] [--roots <a,b>] [--note <text>] [--gaps <text>]
-               [--supersedes <DEL,...>] [--no-preflight] [--refresh-ac] [--dry-run] [--force]
-                                                      auto task + summary + DEL + preflight + handoff
-                                                      (--refresh-ac re-derives AC when the task was
-                                                       created for a different profile)
+               [--supersedes <DEL,...>] [--preflight] [--refresh-ac] [--dry-run] [--force]
+                                                     auto task + summary + DEL + handoff
+                                                     (preflight is OFF by default: it re-ran what
+                                                      the review runs, at 130s / a Unity cold import,
+                                                      and caught 7 of 73. Add --preflight to opt in.)
+                                                     (--refresh-ac re-derives AC when the task was
+                                                      created for a different profile)
   stage-review [--delivery <id>] [--profile <p>] [--coverage AC1=passed,...] [--actor codex] [--dry-run]
                                                       start + run + evidence + finish + ISSUEs
   stage-fix                                           actionable defect list for the developer

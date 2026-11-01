@@ -80,7 +80,7 @@ await test('T01', 'stage-open syncs, acks and returns the board', () => {
 
 await test('T02', 'stage-close creates a stage task, delivers, preflights and writes a handoff', () => {
   const f = fixture();
-  const out = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  const out = stage.cmdStageClose(f.cfg, { profile: 'smoke', preflight: true });
   assert.equal(out.exitCode, 0);
   assert.equal(out.ok, true);
   assert.match(out.deliveryId, /^DEL-/);
@@ -98,9 +98,27 @@ await test('T02', 'stage-close creates a stage task, delivers, preflights and wr
   assert.equal(out.preflight.ok, true);
 });
 
+// S49: preflight is off by default. It re-ran the profile the review was about to
+// run — 130 s on `collab`, a full Unity cold import on `unity-*` — and caught 7 of
+// 73 handoffs, while DEL-20261101013704-042046 showed it can pass where the review
+// fails. Locking the default in so nobody silently re-adds the doubled cost.
+await test('T02b', 'stage-close does not run the profile unless --preflight is asked for', () => {
+  const f = fixture();
+  const out = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  assert.equal(out.exitCode, 0);
+  assert.equal(out.preflight, null, 'no preflight by default');
+  const entry = io.readJson(path.join(f.dir, 'out/collab/handoff/index.json')).entries.at(-1);
+  assert.equal(entry.preflight, null);
+  assert.equal(entry.status, 'ready', 'a handoff without preflight is still ready');
+  const delivery = io.readJson(path.join(f.dir, `docs/collaboration/deliveries/${out.deliveryId}.json`));
+  assert.match(delivery.selfTest.notes, /without preflight/);
+  // The delivery still carries its snapshot: skipping preflight buys speed, not holes.
+  assert(delivery.snapshotManifest.entries.length > 0);
+});
+
 await test('T03', 'a failing preflight blocks handoff and stage-review refuses to pick it', () => {
   const f = fixture(BAD_COUNTERS);
-  const out = stage.cmdStageClose(f.cfg, { profile: 'smoke' });
+  const out = stage.cmdStageClose(f.cfg, { profile: 'smoke', preflight: true });
   assert.equal(out.exitCode, 5);
   assert.equal(out.ok, false);
   const index = io.readJson(path.join(f.dir, 'out/collab/handoff/index.json'));
@@ -284,7 +302,7 @@ await test('T15', 'a docs-only stage delivers its docs and can run its own profi
 
   // And the real run must pass preflight: previously the snapshot held no docs
   // at all, so the smoke check failed on a file the export never copied.
-  const out = stage.cmdStageClose(cfg, {});
+  const out = stage.cmdStageClose(cfg, { preflight: true });
   assert.equal(out.exitCode, 0);
   const task = state.loadTask(cfg, out.taskId);
   assert.ok(task.snapshotRoots.includes('docs/handoff'));
@@ -393,7 +411,7 @@ await test('SA01', 'a preflight that mutates its snapshot input cannot be handed
   const f = fixture(
     "require('node:fs').writeFileSync('tools/collab/stage-input.txt','tampered');" + GOOD,
   );
-  const close = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke' });
+  const close = stage.cmdStageClose(f.cfg, { roots: 'tools/collab', profile: 'smoke', preflight: true });
   assert.equal(close.exitCode, 5);
   assert.equal(close.preflight.ok, false);
   assert.match(close.preflight.reason, /integrity/i);
