@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 840,
-  "updatedAt": "2026-10-31T13:43:22.478Z",
+  "revision": 848,
+  "updatedAt": "2026-11-01T01:22:59.812Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -468,12 +468,21 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T12:56:32.064Z"
+    },
+    "S47-DeptReportPartial": {
+      "title": "S47 DeptReportLogic按完整方法拆partial：仅单文件体积下降",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-10-31T14:06:22.246Z"
     }
   },
-  "lastDeliveryId": "DEL-20261031130233-d734b9",
+  "lastDeliveryId": "DEL-20261031141433-af88d9",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

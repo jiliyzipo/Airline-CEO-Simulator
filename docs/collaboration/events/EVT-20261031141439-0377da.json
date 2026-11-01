@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261031141439-0377da",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 842,
+  "at": "2026-10-31T14:14:39.151Z",
+  "actor": "codex",
+  "action": "deliver",
+  "taskId": "S47-DeptReportPartial",
+  "deliveryId": "DEL-20261031141433-af88d9",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "delivered DEL-20261031141433-af88d9",
+  "data": {
+    "authorization": {
+      "schemaVersion": 1,
+      "grantedBy": "user",
+      "actor": "codex",
+      "projectId": "Airline-CEO-Simulator",
+      "taskId": "S47-DeptReportPartial",
+      "actions": [
+        "deliver"
+      ],
+      "allowedRoots": [
+        "Unity Project/Assets",
+        "Unity Project/Packages",
+        "Unity Project/ProjectSettings",
+        "tools/balance",
+        "tools/semcheck",
+        "tools/slotcheck",
+        "tools/regression",
+        "tools/collab"
+      ],
+      "statement": "记录本聊天用户批准Codex实施S47确认方案及一个DEL的开发授权；仅DeptReportLogic整方法位移、2个新partial及配对meta，保留CrewPosts/Ambiguous/Build。全量根仅提供隔离回归依赖，不扩大改动授权。不是Cursor反向复验授权。",
+      "sha256": "8ed9a8e67ccb375bb3b0e2c361965475a04fd0ea73abfcf27c5c90db6bc46170"
+    },
+    "independence": "developer self-check requires a separate reviewer"
+  }
+}

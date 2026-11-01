@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S47-DeptReportPartial",
+  "title": "S47 DeptReportLogic按完整方法拆partial：仅单文件体积下降",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "current",
+  "holder": null,
+  "scope": [
+    "只修改DeptReportLogic.cs；新增Departments.cs/Actions.cs及配对meta，共4个新增源码/meta文件；不新增asmdef；1 DEL",
+    "Departments按原L105–268与L274–465两段搬移；CrewPosts及L270分节注释留主文件；Ambiguous原位保留",
+    "36迁移+26保留=62；Build两个重载全文不动；千行文件25→24；行数与导入时间零收益"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "本阶段改动全部进入交付快照：导出后未列文件为 0，清单与源指纹一致（S47-DeptReportPartial）"
+    },
+    {
+      "id": "AC2",
+      "text": "Unity EditMode 套件在隔离快照内真实执行，本 run 生成的 NUnit XML 全部用例通过（S47-DeptReportPartial）"
+    },
+    {
+      "id": "AC3",
+      "text": "测试计数与机器结果一致：total>0、failed=0、skipped<total（S47-DeptReportPartial）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "user-approved-Phase2-S47-2026-10-31",
+  "createdAt": "2026-10-31T14:06:22.246Z",
+  "updatedAt": "2026-11-01T01:22:59.786Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "tools/balance",
+    "tools/semcheck",
+    "tools/slotcheck",
+    "tools/regression",
+    "tools/collab"
+  ],
+  "freshnessNote": "Review REV-20261101012027-d1a3c0 still applies to delivery DEL-20261031141433-af88d9.",
+  "staleForReviewId": null
+}

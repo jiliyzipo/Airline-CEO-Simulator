@@ -230,3 +230,59 @@
 
 上面的结论不改变 S47 的拆分方案要求，但请在你的方案里明确写一句：
 "本批收益为单文件体积下降，行数与导入时间均为零收益。"
+
+---
+
+## 9. Explicit 用例口径（**用户裁决 2026-11-01，立即生效**）
+
+### 9.1 裁决内容
+
+`T057OneXPlayModeTests` 的两个 `[Explicit]` 用例：
+
+- **默认不跑。**
+- **仅当本批改动触及时间系统时**才显式补跑。
+
+### 9.2 依据
+
+实测（`docs/handoff/迭代成本实测_2026-11-01.md`）：
+
+| 套件 | 用例 | 耗时 |
+|---|---:|---:|
+| PlayMode 默认 | 173 | 67.5 s |
+| PlayMode Explicit | 2 | **510.1 s** |
+
+这 2 个用例占一次交付闭环机器时间的 **73%**。它们慢是设计使然：验证 1× 下
+"现实 1 分钟 = 游戏 1 分钟"，必须真的等满现实时间，加速即失去意义。
+
+### 9.3 "触及时间系统"的判定范围
+
+判据不是"改了哪些文件"，而是**本批 diff 是否可能改变时钟推进、倍速或停表行为**。
+下列任一成立即算触及：
+
+1. 改动文件属于时间系统本体：
+   - `Systems/TimeManager.cs`
+   - `Systems/GameSpeed.cs`
+   - `Systems/LiveClockSimulator.cs`
+   - `Logic/LiveClockLogic.cs`
+   - `Logic/InboxTime.cs`
+   - `Logic/ExternalTimeMapper.cs`
+2. 改动涉及 `Time.timeScale`、`Time.unscaledDeltaTime`、`Time.deltaTime`、
+   `GameSpeed.Set` / `GameSpeed.IsPaused`、`TimeManager.SimulationEnabled`。
+3. 改动新增或修改了会**开/关表**的逻辑（例如到期强制待办、弹窗阻塞、暂停菜单）。
+4. 改动调整了 tick 频率、调度间隔或时间累积方式。
+5. 改动影响了 `TimeManager` 的序列化字段。
+
+**判定由开发者在交付摘要里显式声明**：写 `touchesTimeSystem: true|false` 并给出理由。
+判定为 `true` 而没跑，独立复验应直接判该批证据不足；判定为 `false` 但实际改了时钟行为，
+属于误报，按缺陷登记。
+
+### 9.4 汇报口径随之调整
+
+- 删掉"无剩余未执行项"这个说法——它会把默认不跑的 Explicit 变成必跑。
+- 改为：`PlayMode 默认 <n>/<n> 通过；Explicit 2 项按 §9 口径 <已跑|未跑（未触及时间系统）>`。
+- 原始 XML 不要改写 Explicitness 标记，也不要为了凑"全绿"去把 Explicit 转成常规用例。
+
+### 9.5 与指标的关系
+
+这条裁决不改变 §1 的 25→12 指标，也不改变 §2 的分批顺序；
+它只削减每批的机器等待时间，不改变任何验收判据的严格度。

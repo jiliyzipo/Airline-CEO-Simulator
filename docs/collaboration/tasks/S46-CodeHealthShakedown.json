@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "current",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "用户明确授权的4个源码文件；ReadField删除和Editor诊断Trim转发；人工源码4+报告1，任务记录1，总计6；不新增cs/meta",
@@ -30,7 +30,7 @@
   "blockers": [],
   "sourceTaskBook": "user-approved-codehealth-shakedown-2026-10-31",
   "createdAt": "2026-10-31T12:56:32.064Z",
-  "updatedAt": "2026-10-31T13:43:22.453Z",
+  "updatedAt": "2026-10-31T14:35:09.477Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -41,6 +41,6 @@
     "tools/regression",
     "tools/collab"
   ],
-  "freshnessNote": "Review REV-20261031133752-c22bc2 still applies to delivery DEL-20261031130233-d734b9.",
-  "staleForReviewId": null
+  "freshnessNote": "Historical review REV-20261031133752-c22bc2 passed delivery DEL-20261031130233-d734b9; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261031133752-c22bc2"
 }

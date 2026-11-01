@@ -1,10 +1,11 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-10-31T13:59:22.963Z
-状态 revision：840
-Cursor 最近确认读取：revision 833 @ 2026-10-31T08:55:51.094Z
-Codex 最近确认读取：revision 840 @ 2026-10-31T13:53:06.639Z
+生成时间：2026-11-01T01:23:00.232Z
+状态 revision：848
+Cursor 最近确认读取：revision 843 @ 2026-11-01T00:34:33.269Z
+Codex 最近确认读取：revision 843 @ 2026-10-31T14:35:10.389Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
+> 状态已更新，Codex 尚未确认读取最新 revision。
 
 协作方式：手动 sync/ack + 可选前台 watch；Hook 原生接线须单独核实，计数不代表客户端已触发。
 ## 任务
@@ -80,11 +81,11 @@ Codex 最近确认读取：revision 840 @ 2026-10-31T13:53:06.639Z
 - **S30-InboxRowLayout** 阶段 S30-InboxRowLayout：Editor/UI/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 4 taken over by later passed deliveries, 1 still uncovered (tools/regression/ai-run.mjs).
 - **S31-RouteConsoleMerge** 阶段 S31-RouteConsoleMerge：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
-  - Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261031130233-d734b9, DEL-20261029121039-25aaa7, DEL-20261031045140-2cd3d8 等 4 个.
+  - Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261031130233-d734b9, DEL-20261029121039-25aaa7, DEL-20261031045140-2cd3d8 等 5 个.
 - **S33-Assets-Tests** 阶段 S33-Assets-Tests：Assets-Tests/Systems/UI · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
   - Historic verdict REV-20261029102331-4029cf covered 4 changed files; 1 were edited later and are now owned by passed deliveries DEL-20261031045140-2cd3d8.
 - **S34-Logic** 阶段 S34-Logic：Logic/Assets-Tests/Data · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
-  - Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 3 were edited later and are now owned by passed deliveries DEL-20261031130233-d734b9, DEL-20261031045140-2cd3d8.
+  - Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 3 were edited later and are now owned by passed deliveries DEL-20261031130233-d734b9, DEL-20261031141433-af88d9, DEL-20261031045140-2cd3d8.
 - **S35-Slotcheck** 阶段 S35-Slotcheck：Slotcheck/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
   - Historic verdict REV-20261029230451-f09f2a covered 4 changed files; 2 were edited later and are now owned by passed deliveries DEL-20261031072012-3ed2fd, DEL-20261031045140-2cd3d8.
 - **S36-UI** 阶段 S36-UI：UI/Logic/Slotcheck · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
@@ -104,8 +105,10 @@ Codex 最近确认读取：revision 840 @ 2026-10-31T13:53:06.639Z
   - Historical review REV-20261031083615-e0bc7e passed delivery DEL-20261031072012-3ed2fd; current workspace needs re-review.
 - **S45-T057OneX** 阶段 S45：T05.7 1× 真时钟取证（新建/接管开局 + 到期停表） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261031084620-ec742c passed delivery DEL-20261031081842-1227f3; current workspace needs re-review.
-- **S46-CodeHealthShakedown** Phase 1 首批流程演练：目标为零、仅验证流程 · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
-  - Review REV-20261031133752-c22bc2 still applies to delivery DEL-20261031130233-d734b9.
+- **S46-CodeHealthShakedown** Phase 1 首批流程演练：目标为零、仅验证流程 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261031133752-c22bc2 passed delivery DEL-20261031130233-d734b9; current workspace needs re-review.
+- **S47-DeptReportPartial** S47 DeptReportLogic按完整方法拆partial：仅单文件体积下降 · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261101012027-d1a3c0 still applies to delivery DEL-20261031141433-af88d9.
 - **T01** R42 交割后加班失败 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=accepted · 只读引用
   - taskBookStatus=accepted
 - **T02** 可复现开发基线 · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 任务书=partial_open · 只读引用
@@ -121,11 +124,11 @@ Codex 最近确认读取：revision 840 @ 2026-10-31T13:53:06.639Z
 
 ## 最新交付
 
-- DEL-20261031130233-d734b9 → S46-CodeHealthShakedown @ 2026-10-31T13:02:38.741Z
+- DEL-20261031141433-af88d9 → S47-DeptReportPartial @ 2026-10-31T14:14:39.098Z
 
 ## 最新检测
 
-- REV-20261031133752-c22bc2 → delivery DEL-20261031130233-d734b9 status=passed · 独立检测角色 @ 2026-10-31T13:43:10.396Z
+- REV-20261101012027-d1a3c0 → delivery DEL-20261031141433-af88d9 status=passed · 独立检测角色 @ 2026-11-01T01:22:24.770Z
 
 ## 开放缺陷
 

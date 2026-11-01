@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101012223-5788be",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 846,
+  "at": "2026-11-01T01:22:23.467Z",
+  "actor": "cursor",
+  "action": "review-run",
+  "taskId": "S47-DeptReportPartial",
+  "deliveryId": "DEL-20261031141433-af88d9",
+  "reviewId": "REV-20261101012027-d1a3c0",
+  "parentEventId": null,
+  "summary": "review-run exit=0 cwd=snapshot status=running",
+  "data": {
+    "exitCode": 0,
+    "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261031141433-af88d9",
+    "cancelledDuringRun": false,
+    "runToken": "bdab5ed2e0e8dc7b",
+    "resultFile": "Unity Project/Logs/Tasks20261017_bdab5ed2e0e8dc7b.xml",
+    "resultFileProducedByRun": true,
+    "resultFileSha256": "a3d31877d4d0dff8d7fd9f2b2eb1858f42616a0d9da5fc5d3c294d56a0b74b78",
+    "postSnapshotOk": true,
+    "postSnapshotReason": null
+  }
+}
