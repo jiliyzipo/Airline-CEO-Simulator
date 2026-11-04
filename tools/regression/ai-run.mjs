@@ -36,11 +36,19 @@ const resultDir = path.join(repo, 'out', 'ai-result');
 const assetsDir = path.join(repo, 'Unity Project', 'Assets');
 const asmDir = path.join(repo, 'Unity Project', 'Library', 'ScriptAssemblies');
 
-/** 本项目自己的程序集；外部包（UnityEngine.*、nunit 等）不参与新旧比对。 */
+/**
+ * 本项目自己的程序集；外部包（UnityEngine.*、nunit 等）不参与新旧比对。
+ *
+ * 为什么把 PlayModeTests 也算进来：`newestSource()` 扫的是 `Assets/**` 下**全部** .cs，
+ * 里面有 PlayMode 用例。只盯 Runtime/Editor/EditModeTests 的话，改一条 PlayMode 用例就会
+ * 让「最新源码」永远晚于那三个程序集 —— 而 Unity 编译用例程序集又不会顺带重编 Runtime，
+ * 于是守卫永久误报「程序集过期」，明明运行时代码一字未动也跑不了回归（2026-11-01 实测）。
+ */
 const PROJECT_ASSEMBLIES = [
   'AirlineCEO.Runtime.dll',
   'AirlineCEO.Editor.dll',
   'AirlineCEO.EditModeTests.dll',
+  'AirlineCEO.PlayModeTests.dll',
 ];
 
 const REFRESH_SUITE = '__refresh';

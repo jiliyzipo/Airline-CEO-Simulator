@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AirlineCEO.Data;
 using AirlineCEO.Logic;
 using AirlineCEO.Systems;
+using AirlineCEO.UI;
 
 namespace SlotCheck
 {
@@ -398,6 +399,7 @@ namespace SlotCheck
             R41FlightPhases(ref fail);
             R42RouteSplit(ref fail);
             R43RotationBuilder(ref fail);
+            R44FleetModuleAffinity(ref fail);
 
             Console.WriteLine(fail == 0 ? "SLOTCHECK OK" : $"SLOTCHECK FAIL {fail}");
             return fail == 0 ? 0 : 1;
@@ -2318,16 +2320,20 @@ namespace SlotCheck
                 mixed.Contains("<link=aircraft:B-2004>") && mixed.Contains("<link=aircraft:B-2005>"), ref fail);
 
             // —— ⑤ 「去某页办这件事」的显式页面链接必须与关键词链接同口径，且能解析回同一页 ——
-            // 单航线页「点此串环 ›」就是这类：文案写着一个页面名，落地却要精确到 pageId。
+            // 邮件正文里「去某页办这件事 ›」就是这类：文案写着一个页面名，落地却要精确到 pageId。
             // 判据分两段：包出来的 markup 里带的 id 必须是 page: 前缀；TryResolve 解回去必须是原页。
-            string n98 = TermNavMap.PageLink("n98_航线航班环选择器", "点此串环 ›");
-            bool wrapped = n98.Contains("<link=page:n98_航线航班环选择器>") && n98.Contains("点此串环 ›");
-            bool resolved = TermNavMap.TryResolve("page:n98_航线航班环选择器", out var hitRing)
-                            && hitRing.pageId == "n98_航线航班环选择器";
-            Check("[关键] PageLink 包出的页面链接可解析回原页面（串环入口点得动）",
+            // ★2026-11-01：原示例用的 n98「航线分配」与 n36「航班环构建器」都已整页删除，
+            // 改挂仍在服役的 n42 周计划页（判据本身与页 id 无关）。
+            const string targetPage = "n42_航班周总计划";
+            const string shown = "去办这件事 ›";
+            string pageLink = TermNavMap.PageLink(targetPage, shown);
+            bool wrapped = pageLink.Contains("<link=page:" + targetPage + ">") && pageLink.Contains(shown);
+            bool resolved = TermNavMap.TryResolve("page:" + targetPage, out var hitRing)
+                            && hitRing.pageId == targetPage;
+            Check("[关键] PageLink 包出的页面链接可解析回原页面（去某页办这件事点得动）",
                 wrapped && resolved, ref fail);
             Check("PageLink 传空页 id 时原样返回文案（不产出死链）",
-                TermNavMap.PageLink("", "点此串环 ›") == "点此串环 ›"
+                TermNavMap.PageLink("", shown) == shown
                 && TermNavMap.PageLink("n9_机队", null) == "", ref fail);
         }
 
@@ -2771,6 +2777,48 @@ namespace SlotCheck
                 body.Contains("【排不进的航段 · 运力缺口】")
                 && (body.Contains("缺时间") || body.Contains("缺机") || body.Contains("缺槽")), ref fail);
             Check("正文不出现空洞措辞「运力不足」", !body.Contains("运力不足"), ref fail);
+        }
+
+        // ———————————————————— R44 机队子页归属「机队」模块（2026-11-01 CEO：飞机详情移入机队） ————————————————————
+        //
+        // 报障原文：「"飞机详情页面"移入"机队"模块」。
+        // 症状是：从「单航线」页点机号，详情页确实打开了，但底栏还亮着「航线」，
+        // 顶栏也是航线那排页签 —— 页面被塞进了**当时开着的**那个部门框里。
+        // 判据只需一条：这几张机队页开页前必须先把底栏切到「机队」。
+        static void R44FleetModuleAffinity(ref int fail)
+        {
+            Console.WriteLine("\nR44 机队子页归属（详情/座位/大修/购机必须在机队模块里打开）：");
+
+            var cases = new (string pageId, string want, string why)[]
+            {
+                ("n10_飞机详情_履历", "n9_机队", "飞机详情"),
+                ("n11_座位配置", "n9_机队", "座位配置"),
+                ("n107_预算确认", "n9_机队", "大修预算确认"),
+                ("n97_购机决策会议", "n9_机队", "购机决策会议"),
+            };
+            for (int i = 0; i < cases.Length; i++)
+            {
+                string got = PrefabNavIntegration.ModuleTabForPage(cases[i].pageId);
+                Check($"{cases[i].why} 归「机队」（{cases[i].pageId} → {got ?? "null"}）",
+                    got == cases[i].want, ref fail);
+            }
+
+            // 反向：航线侧页面不得被顺手拽到机队 —— 否则从邮件点单航线会跳部门。
+            string[] notFleet = { "n41_单航线", "n42_航班周总计划", "n43_航班详细计划", "n66_航季总纲" };
+            int dragged = 0;
+            for (int i = 0; i < notFleet.Length; i++)
+                if (PrefabNavIntegration.ModuleTabForPage(notFleet[i]) != null)
+                {
+                    dragged++;
+                    Console.WriteLine($"    误判：{notFleet[i]} → {PrefabNavIntegration.ModuleTabForPage(notFleet[i])}");
+                }
+            Check("航线侧页面不被拽到机队（单航线/周计划/飞行计划/航季 共 " + notFleet.Length + " 个）",
+                dragged == 0, ref fail);
+
+            // 大小写/空值不得抛，也不得给出错误的部门。
+            Check("空 pageId 返回 null（不强制切部门）",
+                PrefabNavIntegration.ModuleTabForPage("") == null
+                && PrefabNavIntegration.ModuleTabForPage(null) == null, ref fail);
         }
 
         static void Check(string name, bool ok, ref int fail)
