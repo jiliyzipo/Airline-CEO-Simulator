@@ -528,6 +528,7 @@ namespace AirlineCEO.UI.Shell
             var listRt = _listRoot as RectTransform;
             if (listRt != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(listRt);
+            SettleRowSubjectAnchors();
             if (unreadGrew && _listScroll != null)
                 _listScroll.verticalNormalizedPosition = 1f;
             }
@@ -607,21 +608,52 @@ namespace AirlineCEO.UI.Shell
         }
 
         /// <summary>
-        /// 列表行高。基准 52，按无障碍字号倍率等比放大 ——
-        /// 行内两条文字带是用相对锚点切的，缩放时一起长；行高不跟着长，
+        /// 列表行高。基准 66，按无障碍字号倍率等比放大 ——
+        /// 行内三条文字带（发件人 / 主题两行）是用相对锚点切的，缩放时一起长；行高不跟着长，
         /// 「特大」字号下就会重现「主题压住发件人」。
+        ///
+        /// 2026-11-04：52 → 66。主题由单行改两行 —— 单行时「请决策：开通伦敦希思罗 LHR → …」
+        /// 被截在目的地之前，两条同前缀的决策件在列表里长得一模一样。
         /// </summary>
-        public static float RowHeight() => Mathf.Ceil(52f * Accessibility.FontMultiplier());
+        public static float RowHeight() => Mathf.Ceil(BaseRowHeight * Accessibility.FontMultiplier());
+
+        /// <summary>标准字号下的行高基值（回归用它算「行高是否随倍率长」）。</summary>
+        public const float BaseRowHeight = 66f;
+
+        /// <summary>主题占几行。两行是 2026-11-04 的裁定，见 <see cref="RowHeight"/>。</summary>
+        public const int SubjectLines = 2;
 
         /// <summary>
-        /// 行内两条文字带的上下沿（锚点比例，0 = 行底，1 = 行顶）。
-        /// 上带 = 发件人；下带 = 主题 + 时间（**同一条基线**，见 <see cref="TimeAnchor"/>）。
+        /// 行内文字带的上下沿（锚点比例，0 = 行底，1 = 行顶）。
+        /// 上带 = 发件人；下带 = 主题（可两行）+ 时间（**同一条带、同一垂直对齐**）。
         /// 抽成常量是为了让回归能直接断言「主题与时间同带」，不必截图比对。
         /// </summary>
-        public const float SenderBandMin = 0.55f;
-        public const float SenderBandMax = 0.95f;
-        public const float SubjectBandMin = 0.08f;
-        public const float SubjectBandMax = 0.55f;
+        public const float SenderBandMin = 0.73f;
+        public const float SenderBandMax = 0.99f;
+        public const float SubjectBandMin = 0.07f;
+        public const float SubjectBandMax = 0.72f;
+        /// <summary>
+        /// 单行主题专用的居中带：两行带（<see cref="SubjectBandMin"/>..Max）要装两行字，
+        /// 带心只有 0.395，单行主题放进去会「中间偏下」（2026-11-04 第二轮报障）。
+        /// 单行时改锚到这条带（带心 0.46 ≈ 行心），两行时仍用满带 —— 行数在 CreateRow 里
+        /// 用 <c>ForceMeshUpdate</c> 实测，不靠猜。
+        /// </summary>
+        public const float SubjectSingleBandMin = 0.20f;
+        public const float SubjectSingleBandMax = 0.72f;
+
+        /// <summary>
+        /// 主题 / 时间的垂直对齐。
+        /// 2026-11-04 报了三轮：先「都在栏的底部」（全 Bottom），改全 Middle 后又
+        /// 「单行中间偏下」（两行带的带心偏低），再「两行主题的时间对着下面一行」。
+        /// 最终口径：**时间永远垂直居中** ——
+        /// · 两行主题：块在满带里居中，时间同带同 Middle（与两行块的中点同高，即两行正中间）；
+        /// · 单行主题：换到 <see cref="SubjectSingleBandMin"/> 居中带，主题与时间同带同 Middle。
+        /// 贴底（Bottom*）在行内不再出现。
+        /// </summary>
+        public const TextAlignmentOptions SubjectAlign = TextAlignmentOptions.Left;
+        public const TextAlignmentOptions TimeAlign = TextAlignmentOptions.Right;
+        public const TextAlignmentOptions SubjectSingleAlign = TextAlignmentOptions.Left;
+        public const TextAlignmentOptions TimeSingleAlign = TextAlignmentOptions.Right;
 
         /// <summary>下带里主题的右边界（此后留给时间）。</summary>
         public const float SubjectRight = 0.82f;
@@ -637,15 +669,27 @@ namespace AirlineCEO.UI.Shell
             new Vector2(TextLeft, SenderBandMin), new Vector2(TextRight, SenderBandMax),
             Vector2.zero, Vector2.zero);
 
-        /// <summary>主题：下带左侧，到 <see cref="SubjectRight"/> 截断（单行省略）。</summary>
+        /// <summary>主题（两行）：满带，块居中、末行省略。</summary>
         public static UIFactory.Anchor SubjectAnchor() => new UIFactory.Anchor(
             new Vector2(TextLeft, SubjectBandMin), new Vector2(SubjectRight, SubjectBandMax),
             Vector2.zero, Vector2.zero);
 
-        /// <summary>时间：下带右侧，与主题同一上下沿 —— 这是 2026-11-03「一高一低」的修法。</summary>
+        /// <summary>
+        /// 时间：**永远**在居中带（带心 0.46 ≈ 行心），不随主题行数变。
+        /// 2026-11-04 第三轮报障：「邮件主题两行，时间对的是下面一行，时间应该始终在中间位置」——
+        /// 贴末行（BottomRight）作废；两行主题时时间落在两行之间偏上、与单行行同高。
+        /// </summary>
         public static UIFactory.Anchor TimeAnchor() => new UIFactory.Anchor(
-            new Vector2(TimeLeft, SubjectBandMin), new Vector2(TextRight, SubjectBandMax),
+            new Vector2(TimeLeft, SubjectSingleBandMin), new Vector2(TextRight, SubjectSingleBandMax),
             Vector2.zero, Vector2.zero);
+
+        /// <summary>主题（单行）：居中带，落在行心附近而不是两行满带的带心（偏下）。</summary>
+        public static UIFactory.Anchor SubjectSingleAnchor() => new UIFactory.Anchor(
+            new Vector2(TextLeft, SubjectSingleBandMin), new Vector2(SubjectRight, SubjectSingleBandMax),
+            Vector2.zero, Vector2.zero);
+
+        /// <summary>时间（单行主题）：与单行主题同带同对齐 —— 即 <see cref="TimeAnchor"/>。</summary>
+        public static UIFactory.Anchor TimeSingleAnchor() => TimeAnchor();
 
         /// <summary>日期分组表头行高（单行，随字号等比）。</summary>
         public static float DayHeaderHeight() => Mathf.Ceil(24f * Accessibility.FontMultiplier());
@@ -685,10 +729,10 @@ namespace AirlineCEO.UI.Shell
             UIFactory.Label(avatar.transform, "Glyph", Glyph(m), 13,
                 TextAlignmentOptions.Center, UIFactory.Fill, titleCol, titleStyle);
 
-            // 发件人（上）+ 主题（下左）+ 时间（下右）
-            // 单行 + 省略号：行高只有 52，发件人与主题各占一条窄带。TMP 默认 Wrap + Overflow，
-            // 主题一长就折成两行、从窄带里上下溢出去压住发件人（2026-10-28 报障：
-            // 「[来文] 2026年10月28日 · 台风…」把「新闻官 王志强」盖了一半）。
+            // 发件人（上带）+ 主题（下带左，可两行）+ 时间（下带右，**永远垂直居中**）
+            // 行数必须写死：TMP 默认 Wrap + Overflow 会一直折行、越出窄带压住发件人
+            //（2026-10-28 报障：「[来文] 2026年10月28日 · 台风…」把「新闻官 王志强」盖了一半）。
+            // 2026-11-04：主题由单行放宽到两行 —— 见 RowHeight 的说明。
             var senderLabel = UIFactory.Label(row.transform, "Sender", SenderText(m), 14,
                 TextAlignmentOptions.MidlineLeft, SenderAnchor(),
                 titleCol, titleStyle);
@@ -698,15 +742,21 @@ namespace AirlineCEO.UI.Shell
             //   旧版时间钉在发件人那条带（[0.52,0.95]），却只有 12 号灰字、发件人常常很短
             //   （「运营部」三个字），于是列表看上去只有「主题」和它上方的「时间」两截，
             //   时间悬在主题上方，像错行。时间与主题本就是同一条信息（这封信、这个点到的），
-            //   统一放进**下带**：左截主题、右对齐时间，共用一条基线。
+            //   统一放进**下带**：左截主题、右对齐时间。
             //   发件人独占上带，仍留得下无障碍「特大」字号的 16→21px 字身（见 RowHeight）。
+            //
+            //   ★2026-11-04 报了三轮，最终口径：**时间永远垂直居中**。
+            //   ① 全 Bottom → 「都在栏的底部」；② 全 Middle 但单行走两行满带 → 「单行中间偏下」
+            //   （改锚居中带解决）；③ 两行主题的时间贴末行（BottomRight）→ 「时间对着下面一行」。
+            //   现在两行主题：块在满带里居中，时间同带 Middle（= 两行的正中间）；
+            //   单行主题：居中带 + Middle。行内不再出现任何 Bottom 对齐。
             var subjectLabel = UIFactory.Label(row.transform, "Subject",
                 InboxManager.RowSubject(m), 12,
-                TextAlignmentOptions.MidlineLeft, SubjectAnchor(),
+                SubjectAlign, SubjectAnchor(),
                 subCol, unread ? FontStyles.Bold : FontStyles.Normal);
-            UIFactory.ClampSingleLine(subjectLabel);
+            UIFactory.ClampLines(subjectLabel, SubjectLines);
             UIFactory.Label(row.transform, "Time", InboxTime.Clock(m), 12,
-                TextAlignmentOptions.MidlineRight, TimeAnchor(), subCol);
+                TimeAlign, TimeAnchor(), subCol);
 
             // 整行可点
             var btn = row.AddComponent<Button>();
@@ -725,10 +775,42 @@ namespace AirlineCEO.UI.Shell
         }
 
         /// <summary>
-        /// 收件箱列表的每一行只给固定高度，发件人与主题各是一条窄带。
-        /// TMP 默认 Wrap + Overflow：文本一长就换行并向外溢出，压到相邻那条带上去。
-        /// 统一收成「单行 + 省略号」（`UIFactory.ClampSingleLine`），完整内容在右侧详情页看。
+        /// 布局重建后，把**单行**主题改锚到居中带（2026-11-04 第二轮报障：单行「中间偏下」）。
+        ///
+        /// 为什么不在 CreateRow 里做：TMP 的折行结果依赖行的真实宽度，而行宽要到
+        /// <c>LayoutRebuilder.ForceRebuildLayoutImmediate</c> 之后才存在 —— 提前
+        /// <c>ForceMeshUpdate</c> 会拿宽度 0 的布局，把每条主题都判成「一行」。
+        /// 行数用 TMP 自己的 <c>lineCount</c>（折行后真实行数，含被省略裁掉的行）：
+        /// 两行 = 满带（块居中 + 时间贴末行），单行 = 居中带（主题与时间同带同对齐）。
         /// </summary>
+        void SettleRowSubjectAnchors()
+        {
+            for (int i = 0; i < _rows.Count; i++)
+            {
+                var row = _rows[i];
+                if (row == null) continue;
+                var subject = row.transform.Find("Subject");
+                if (subject == null) continue;   // 日期表头行没有 Subject
+                var text = subject.GetComponent<TextMeshProUGUI>();
+                if (text == null) continue;
+                text.ForceMeshUpdate();
+                bool single = text.textInfo.lineCount <= 1;
+                var rt = subject as RectTransform;
+                UIFactory.ApplyAnchor(rt, single ? SubjectSingleAnchor() : SubjectAnchor());
+                text.alignment = single ? SubjectSingleAlign : SubjectAlign;
+                var time = row.transform.Find("Time");
+                if (time != null)
+                {
+                    UIFactory.ApplyAnchor(time as RectTransform, single ? TimeSingleAnchor() : TimeAnchor());
+                    time.GetComponent<TextMeshProUGUI>().alignment =
+                        single ? TimeSingleAlign : TimeAlign;
+                }
+            }
+        }
+
+        // 列表行是固定高度，发件人一条带、主题一条带（两行）。
+        // TMP 默认 Wrap + Overflow：文本一长就换行并向外溢出，压到相邻那条带上去。
+        // 所以行数写死（`UIFactory.ClampLines`），完整内容在右侧详情页看。
 
         /// <summary>
         /// 列表的发件人字样：外部来文统一写成「新闻官 沈其昌」。

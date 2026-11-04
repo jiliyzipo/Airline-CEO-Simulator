@@ -87,6 +87,9 @@ namespace AirlineCEO.EditorTools
                 { "inbox-status", InboxStatusRegression.Run },
                 { "inbox-arrival", InboxArrivalRegression.Run },
                 { "inbox-row-layout", InboxRowLayoutRegression.Run },
+                // ★2026-11-04：邮件点机号 → 飞机详情 → < 多停一站（落在借来的部门页上）。
+                //   纯函数 + 正反例 + 「只认标记」旧口径的 canary，改返回判据时单跑。
+                { "nav-back-unwind", NavBackUnwindRegression.Run },
                 { "route-console-merge", RouteConsoleMergeRegression.Run },
                 { "network-pool", NetworkPoolVisibilityRegression.Run },
                 { "open-route-study", OpenRouteStudyRegression.Run },
@@ -108,6 +111,8 @@ namespace AirlineCEO.EditorTools
                 { "takeover-cost-ledger", TakeoverCostLedgerRegression.Run },
                 { "tutorial-copy", TutorialCopyRegression.Run },
                 { "transition-unlock-cadence", TransitionUnlockCadenceRegression.Run },
+                // ★2026-11-04：询价函办结后正文仍列着已被租走的机号（与「在租」表打脸）。
+                { "transition-inquiry-freeze", TransitionInquiryBodyFreezeRegression.Run },
                 { "write-command", WriteCommandRegression.Run },
             };
 

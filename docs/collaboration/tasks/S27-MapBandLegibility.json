@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T12:33:01.628Z",
-  "updatedAt": "2026-11-04T07:55:52.423Z",
+  "updatedAt": "2026-11-04T12:29:03.930Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 36 taken over by later passed deliveries, 4 still uncovered (tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 32 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs, Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs …).",
   "staleForReviewId": "REV-20261027124433-1357a2",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -98,13 +98,17 @@
   "scopeDrift": {
     "basis": 110,
     "intact": 70,
-    "covered": 36,
+    "covered": 32,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
-      "tools/collab/tests/run-all.mjs"
+      "tools/collab/tests/run-all.mjs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 8
   }
 }

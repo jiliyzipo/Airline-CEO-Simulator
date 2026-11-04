@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261104124030-9c37f2",
+  "deliveryId": "DEL-20261104123522-e90c14",
+  "taskId": "S53-InboxRowBackNav",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "running",
+  "profile": "unity-editmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "EditMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity EditMode tests in the isolated snapshot; refuses to run unless companyName=AirlineCEORegression; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "a1f0e555a407f4315f3cf21519e03cf64cd393242ed5c537e4a6dd8447cdb4b6",
+    "verification": "09f850b79b91257ac3aa84e42af731414fd4b3901a09d2a9301af7068ee8110b",
+    "contract": "0cb3feeae0ef7343079b5980c0405a1896219cfad7a779cdad690ade030f1495"
+  },
+  "snapshotPath": "out/collab/DEL-20261104123522-e90c14",
+  "createdAt": "2026-11-04T12:40:30.981Z",
+  "updatedAt": "2026-11-04T12:40:32.313Z",
+  "runs": [],
+  "coverage": [],
+  "issues": [],
+  "workerPid": 52148,
+  "activeRunToken": "17d47831cf013ab2",
+  "activeRunStartedAt": "2026-11-04T12:40:32.313Z"
+}

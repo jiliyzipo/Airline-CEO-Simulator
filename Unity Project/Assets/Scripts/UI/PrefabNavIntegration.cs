@@ -26,6 +26,15 @@ namespace AirlineCEO.UI
         readonly NavHistory _history = new NavHistory();
         bool _historyApplying;
 
+        /// <summary>
+        /// 深链为安放子页而**临时**切过去的部门页，以及切页前的所在页。
+        /// 那一次切页是导航的实现细节，不是用户去过的地方：进浏览历史会让返回多停一站
+        /// （2026-11-04 报障：邮件点机号 → 飞机详情 → 返回落在「机队 › 过渡业务」）。
+        /// </summary>
+        string _autoModuleFrom;
+        string _autoModuleTo;
+        bool _autoModuleSwitchPending;
+
         /// <summary>Shell 底栏高度（像素）：prefab 与运行时构建保持一致。</summary>
         const float ShellBarHeight = 72f;
         /// <summary>底栏上方那条（a 读数 + c 命令台）的下缘（画布像素）：底栏上缘（8+72）+ 4 间距。</summary>
@@ -393,11 +402,35 @@ namespace AirlineCEO.UI
             // 属于机队，不属于航线。从「单航线」页或邮件点机号进来时，底栏可能还停在
             // 「航线」——那会把详情塞进航线模块的子框里，顶栏还是航线那排页签，
             // 看着像走错了部门。故先切到「机队」再开子页。
+            //
+            // ★2026-11-04 报障：「读过渡经营邮件 → 点正文里的机号 → 飞机详情 → 按 <」
+            //   落到了「机队 › 过渡业务」，再按一次才回到那封信。
+            //   上面这次切页是**为了给子页找宿主**，不是用户要去那个部门 —— 它不该进浏览历史，
+            //   否则一次返回就被这个中间站吃掉。故记下来路，由 GoBack 跳过这一层。
             if (!overlay && !settingsPopover)
             {
                 string moduleTab = ModuleTabForPage(pageId);
-                if (moduleTab != null && (_shell == null || _shell.ActivePageId != moduleTab))
+                bool autoSwitch = moduleTab != null && (_shell == null || _shell.ActivePageId != moduleTab);
+                if (autoSwitch)
+                {
+                    _autoModuleFrom = _shell != null ? _shell.ActivePageId : null;
+                    _autoModuleTo = moduleTab;
+                    _autoModuleSwitchPending = true;
                     SelectTab(moduleTab);
+                    _autoModuleSwitchPending = false;   // OnTabSelected 是同步的，回来即已消费
+                }
+                else
+                {
+                    // 用户本来就在那个部门里点进来的：这一层是他的真实上下文，返回就该停在那儿。
+                    // 例外：同一次深链里又开了一个同部门的子页（此时底栏已经因为上面那次切页
+                    // 落在 moduleTab 上）—— 不能把这当成「用户自己走过来的」，否则来路记录
+                    // 会被第二次 OpenSubPage 抹掉，返回又得多停一站。
+                    if (_autoModuleTo == null || moduleTab != _autoModuleTo)
+                    {
+                        _autoModuleFrom = null;
+                        _autoModuleTo = null;
+                    }
+                }
             }
 
             var module = (overlay || settingsPopover) ? null : FindActiveModulePanel();
@@ -1137,7 +1170,7 @@ namespace AirlineCEO.UI
             _shell?.SetHistoryEnabled(_history.CanBack || overlayBack || modalBack, _history.CanForward);
         }
 
-        void GoBack()
+        public void GoBack()
         {
             // 弹窗优先：它盖在页面之上，返回一次只关最上面那层。
             if (ModalBackStack.TryDismissTop())
@@ -1148,7 +1181,50 @@ namespace AirlineCEO.UI
             // 栈顶若是底栏 L1，不要 Pop（会清空内容区变空白），按浏览历史回上一页。
             if (_router != null && _router.StackDepth > 0 && !IsShellTab(_router.CurrentPageId))
             {
+                string closing = _router.CurrentPageId;
                 _router.Back();
+                // ★2026-11-04（PlayMode 实跑抓出，见交接件 9.7）：
+                //   `_router.Back()` 会触发 OnRouterClosed，而它**已经**把浏览历史退了一格
+                //   （`_history.Current == 被关页` 时 MoveBack）。这里再 MoveBack 就是双退 ——
+                //   「从机队点详情」的负面对照会被弹回收件箱。
+                //   栈空时（来路 L1 是 legacy 部门页、切过去时 ClearStack 过）历史游标已经
+                //   停在来路上，直接把它画出来即可；只有 Closed 没退（游标仍等于被关页）才补退。
+                string landing = _router.CurrentPageId;
+                if (string.IsNullOrEmpty(landing))
+                {
+                    if (_history.Current == closing) _history.MoveBack();
+                    _autoModuleFrom = null;
+                    _autoModuleTo = null;
+                    ModuleFrame.ExitSubpage();
+                    ApplyHistory(_history.Current);
+                    RefreshHistoryButtons();
+                    return;
+                }
+                // ★2026-11-04：这一层部门页是深链为了安放子页临时切过去的（见 OpenSubPage）。
+                //   用户从没在这里停过 —— 再退一次浏览历史，让一次 < 就回到他来时那一页。
+                //   判据见 ShouldUnwindPastHostTab（纯函数，回归直接钉它）。
+                if (ShouldUnwindPastHostTab(landing, _history.Previous, _autoModuleFrom, _autoModuleTo,
+                        out string restoreTo))
+                {
+                    _autoModuleFrom = null;
+                    _autoModuleTo = null;
+                    ModuleFrame.ExitSubpage();
+                    // 先把底栏切回来时的部门，再把历史里那一页叠上去。
+                    // 少了这一步，「从单航线点机号」这种路径回退时会把 n41 塞进机队的子框：
+                    // 底栏还亮着「机队」，内容却是航线的单航线页。
+                    bool applying = _historyApplying;
+                    _historyApplying = true;   // 恢复上下文不是一次新的浏览动作
+                    try
+                    {
+                        if (_shell == null || _shell.ActivePageId != restoreTo) SelectTab(restoreTo);
+                        if (_history.MoveBack()) ApplyHistory(_history.Current);
+                    }
+                    finally { _historyApplying = applying; }
+                    RefreshHistoryButtons();
+                    return;
+                }
+                _autoModuleFrom = null;
+                _autoModuleTo = null;
                 if (_router.StackDepth == 0 || IsShellTab(_router.CurrentPageId))
                     ModuleFrame.ExitSubpage();
                 RefreshHistoryButtons();
@@ -1189,6 +1265,40 @@ namespace AirlineCEO.UI
             for (int i = 0; i < defs.Length; i++)
                 if (defs[i].pageId == pageId) return true;
             return false;
+        }
+
+        /// <summary>
+        /// 返回时「刚弹出来的这一层部门页是不是深链借来安放子页的」——只有借来的才继续退一格。
+        ///
+        /// 2026-11-04 报障：读过渡经营邮件 → 点正文机号 → 飞机详情 → 按 &lt; 落在「机队」，
+        /// 再按一次才回信封。根因是 OpenSubPage 为了让飞机详情挂在机队下先切了一次底栏。
+        ///
+        /// 判据两条，满足其一即认定「借来的」：
+        /// ① 浏览历史里当前页的**前一格**（用户真正来的地方）不是这个部门页 ——
+        ///    这一条不依赖任何临时标记，是最可靠的一条；
+        /// ② OpenSubPage 当次记下的来路指向这个部门页（前一格本身是子页时靠它拿回部门）。
+        /// 反例（必须不触发）：用户本来就在机队里点进详情，此时前后两格都是机队。
+        ///
+        /// 返回 true 时 <paramref name="restoreTo"/> 是应当切回去的底栏部门页；
+        /// 来路本身是子页（如「单航线」）时取标记里的部门页，两者都拿不到就不动。
+        /// </summary>
+        public static bool ShouldUnwindPastHostTab(string landing, string historyPrevious,
+            string markedFrom, string markedTo, out string restoreTo)
+        {
+            restoreTo = null;
+            if (!IsShellTab(landing)) return false;
+
+            // 来路本身是子页时，要先把它所在的部门切回来，否则那一页会被塞进当前部门的子框。
+            restoreTo = IsShellTab(historyPrevious) ? historyPrevious : markedFrom;
+            if (!IsShellTab(restoreTo)) return false;
+            if (string.Equals(restoreTo, landing, System.StringComparison.Ordinal)) return false;
+
+            bool historySaysCameFromElsewhere = !string.IsNullOrEmpty(historyPrevious)
+                                                && !string.Equals(historyPrevious, landing,
+                                                    System.StringComparison.Ordinal);
+            bool markerSaysBorrowed = !string.IsNullOrEmpty(markedFrom)
+                                      && string.Equals(markedTo, landing, System.StringComparison.Ordinal);
+            return historySaysCameFromElsewhere || markerSaysBorrowed;
         }
 
         static bool IsMapHomePage(string pageId) =>
@@ -1369,6 +1479,15 @@ namespace AirlineCEO.UI
         {
             if (RejectIfNotGameplayReady("切换页签 " + pageId)) return;
 
+            // 这一次切页是不是 OpenSubPage 为了安放子页临时做的？是则不进浏览历史。
+            bool transientTab = _autoModuleSwitchPending && pageId == _autoModuleTo;
+            if (!transientTab)
+            {
+                // 任何一次真实切页都会终结上一次深链的「来路」记录，避免它跨导航生效。
+                _autoModuleFrom = null;
+                _autoModuleTo = null;
+            }
+
             if (!string.IsNullOrEmpty(pageId) && pageId.StartsWith("n87", System.StringComparison.Ordinal))
                 EnsureHrConfig(pageId);
 
@@ -1398,7 +1517,7 @@ namespace AirlineCEO.UI
                 if (_contentHost != null) _contentHost.gameObject.SetActive(false);
                 _router?.ClearStack(destroyInstances: false);
                 _bootstrap?.HandleShellNavigation(pageId);
-                RecordHistory(pageId);
+                if (!transientTab) RecordHistory(pageId);
                 RaiseChrome();
                 return;
             }
@@ -1409,7 +1528,7 @@ namespace AirlineCEO.UI
             bool ok = _router.Navigate(pageId, replaceCurrent: true);
             if (!ok)
                 Debug.LogWarning($"[Phase1] Navigate failed: {pageId}");
-            RecordHistory(pageId);
+            if (!transientTab) RecordHistory(pageId);
             RaiseChrome();
         }
 

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104123525-f43ee3",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 982,
+  "at": "2026-11-04T12:35:25.041Z",
+  "actor": "cursor",
+  "action": "deliver",
+  "taskId": "S53-InboxRowBackNav",
+  "deliveryId": "DEL-20261104123522-e90c14",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "delivered DEL-20261104123522-e90c14",
+  "data": {}
+}

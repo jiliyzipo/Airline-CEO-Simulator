@@ -207,10 +207,24 @@ namespace AirlineCEO.UI
         /// </summary>
         public static TextMeshProUGUI ClampSingleLine(TextMeshProUGUI text)
         {
+            return ClampLines(text, 1);
+        }
+
+        /// <summary>
+        /// 把标签收成「最多 lines 行 + 末行省略号」。
+        ///
+        /// 与 <see cref="ClampSingleLine"/> 同源：固定高度的块里，行数必须写死 ——
+        /// TMP 默认的 Wrap + Overflow 会一直折行并越过自己的矩形。
+        /// 2026-11-04 用户裁定：收件箱列表的主题改两行（单行时两条「请决策：开通伦敦希思罗 → …」
+        /// 在列表里分不出目的地），行高随之由 52 抬到 66。
+        /// </summary>
+        public static TextMeshProUGUI ClampLines(TextMeshProUGUI text, int lines)
+        {
             if (text == null) return null;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
+            int n = Mathf.Max(1, lines);
+            text.textWrappingMode = n == 1 ? TextWrappingModes.NoWrap : TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Ellipsis;
-            text.maxVisibleLines = 1;
+            text.maxVisibleLines = n;
             return text;
         }
 

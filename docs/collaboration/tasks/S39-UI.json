@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：UI、Logic、Systems、Assets-Tests、Collab、Slotcheck",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-30T13:12:12.693Z",
-  "updatedAt": "2026-11-04T07:55:52.553Z",
+  "updatedAt": "2026-11-04T12:29:04.076Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261104074739-592c9d.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 2 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs, Unity Project/Assets/Scripts/UI/Navigation/NavHistory.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
+  "staleForReviewId": "REV-20261030133510-4850f0",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:11.096Z",
@@ -66,9 +66,15 @@
   },
   "scopeDrift": {
     "basis": 30,
-    "intact": 25,
-    "covered": 5,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "intact": 23,
+    "covered": 2,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Navigation/NavHistory.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
+      "Unity Project/Assets/Scripts/UI/UIFactory.cs",
+      "Unity Project/Assets/Tests/PlayMode/T038UiAcceptancePlayModeTests.cs"
+    ],
+    "uncoveredCount": 5
   }
 }

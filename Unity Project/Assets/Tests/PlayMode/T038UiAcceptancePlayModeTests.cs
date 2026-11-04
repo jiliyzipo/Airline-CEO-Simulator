@@ -269,6 +269,170 @@ namespace AirlineCEO.Tests.PlayMode
         }
 
         // —————————————————————————————————————————————————————————————
+        // ③b 返回：深链为安放子页而临时切的那次部门页，不许吃掉一次返回
+        //
+        // 2026-11-04 用户手测：读过渡经营邮件 → 点正文里的机号 → 飞机详情 → 按 <
+        // 落在「机队 › 过渡业务」，再按一次才回到那封信。
+        // 根因不是返回栈坏了，而是 OpenSubPage 为了让飞机详情挂在「机队」下（R44），
+        // 临时切了一次部门页；那一次切页被写进浏览历史，于是多出一个中间站。
+        // —————————————————————————————————————————————————————————————
+
+        [UnityTest]
+        public IEnumerator BackFromAircraftPage_SkipsTheModuleSwitchMadeOnTheWayIn()
+        {
+            var gs = NewState("T038AircraftBack");
+            gs.fleet.Add(MakeAircraft("B-3100"));
+            var mail = new InboxMail
+            {
+                id = "t038-aircraft-back", sender = "运营部", role = "过渡经营", glyph = "运",
+                subject = "T038 机号返回测试", body = "T038ACBODY 请核对 B-3100 的履历。",
+                action = "notice", kind = "report", status = "pending",
+                receivedYear = 1, receivedQuarter = 1, deadlineQuarters = 2
+            };
+            var nav = BuildShell("T038AircraftBackCanvas", new List<InboxMail> { mail });
+            yield return null;
+
+            var inbox = UnityEngine.Object.FindFirstObjectByType<InboxPanelUI>();
+            Assert.IsNotNull(inbox);
+            Row(inbox, mail.id).onClick.Invoke();
+            yield return null;
+
+            var click = inbox.GetComponentInChildren<InboxLinkClick>(true);
+            Assert.IsNotNull(click);
+            click.onLink("aircraft:B-3100");
+            yield return null;
+
+            Assert.AreEqual("n10_飞机详情_履历", nav.Router.CurrentPageId, "机号链接应落到飞机详情");
+            Assert.AreEqual("n9_机队", nav.Shell.ActivePageId, "飞机详情必须开在机队模块下（R44）");
+
+            nav.GoBack();
+            yield return null;
+
+            Assert.AreEqual("n7_收件箱", nav.Router.CurrentPageId,
+                "一次 < 就该回到收件箱：为了安放详情而临时切过去的部门页不是用户去过的地方");
+            var back = UnityEngine.Object.FindFirstObjectByType<InboxPanelUI>();
+            Assert.IsNotNull(back, "返回后收件箱面板不应被销毁");
+            Assert.IsNotNull(LabelContaining(back.gameObject, "T038ACBODY"),
+                "返回后应仍停在那封信的正文上，而不是退回列表");
+        }
+
+        /// <summary>
+        /// 上面那条的负面对照：用户**本来就在机队里**点进飞机详情时，返回必须停在机队，
+        /// 不能因为修了深链就一路弹回收件箱。这一条守着修复不越界。
+        ///
+        /// 2026-11-04 PlayMode 实跑后改写断言：「机队」是 legacy 部门页，切过去时
+        /// <c>OnTabSelected</c> 会 ClearStack —— 机队 L1 从来不在路由栈里。
+        /// 所以「停在机队」的真实形态是：路由栈空（CurrentPageId == null）、
+        /// 浏览历史停在 n9、底栏亮着机队、收件箱面板不显示。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator BackFromAircraftPage_StaysInFleet_WhenFleetWasTheUsersOwnContext()
+        {
+            var gs = NewState("T038AircraftBackFleet");
+            gs.fleet.Add(MakeAircraft("B-3200"));
+            var nav = BuildShell("T038AircraftBackFleetCanvas", new List<InboxMail>());
+            yield return null;
+
+            nav.SelectTab("n9_机队");
+            yield return null;
+            Assert.AreEqual("n9_机队", nav.Shell.ActivePageId);
+
+            FleetNetContext.SelectedRegistration = "B-3200";
+            nav.OpenSubPage("n10_飞机详情_履历");
+            yield return null;
+            Assert.AreEqual("n10_飞机详情_履历", nav.Router.CurrentPageId);
+
+            nav.GoBack();
+            yield return null;
+
+            Assert.IsNull(nav.Router.CurrentPageId,
+                "机队是 legacy 部门页（切过去时 ClearStack），返回停在机队的真实形态是路由栈空");
+            Assert.AreEqual("n9_机队", nav.Shell.ActivePageId,
+                "用户从机队点进来的，返回就该停在机队 —— 修复不得把这条路径也弹回收件箱");
+            var inbox = UnityEngine.Object.FindFirstObjectByType<InboxPanelUI>();
+            Assert.IsTrue(inbox == null || !inbox.gameObject.activeInHierarchy,
+                "停在机队时收件箱面板不得显示出来");
+        }
+
+        // —————————————————————————————————————————————————————————————
+        // ③c 列表行：单行主题落在行心附近，两行主题占满下带（2026-11-04 两轮报障）
+        // —————————————————————————————————————————————————————————————
+
+        [UnityTest]
+        public IEnumerator InboxRows_SingleSubjectSitsNearRowCenter_TwoLineSubjectFillsBand()
+        {
+            var gs = NewState("T038RowLayout");
+            var shortMail = new InboxMail
+            {
+                id = "t038-row-short", sender = "运营部", role = "汇报", glyph = "运",
+                subject = "T038 短", body = "short", action = "notice", kind = "report",
+                status = "pending", receivedYear = 1, receivedQuarter = 1, deadlineQuarters = 2
+            };
+            var longMail = new InboxMail
+            {
+                id = "t038-row-long", sender = "运营部", role = "汇报", glyph = "运",
+                subject = "T038 请决策：开通伦敦希思罗到莫斯科的第五航权",
+                body = "long", action = "notice", kind = "report",
+                status = "pending", receivedYear = 1, receivedQuarter = 1, deadlineQuarters = 2
+            };
+            var nav = BuildShell("T038RowLayoutCanvas", new List<InboxMail> { shortMail, longMail });
+            yield return null;
+
+            // 行宽要到真实尺寸才有折行可言：默认 Canvas 只有 100×100，任何主题都会折行。
+            var canvasRt = nav.GetComponent<RectTransform>();
+            canvasRt.sizeDelta = new Vector2(1280f, 720f);
+            var inbox = UnityEngine.Object.FindFirstObjectByType<InboxPanelUI>();
+            Assert.IsNotNull(inbox);
+            inbox.Show();   // 按新宽度重建列表（内部会跑 SettleRowSubjectAnchors）
+            yield return null;
+
+            CheckRow(inbox, shortMail.id, wantSingle: true);
+            CheckRow(inbox, longMail.id, wantSingle: false);
+        }
+
+        static void CheckRow(InboxPanelUI inbox, string mailId, bool wantSingle)
+        {
+            var row = Row(inbox, mailId);
+            Assert.IsNotNull(row, "找不到行 " + mailId);
+            var rowRt = row.GetComponent<RectTransform>();
+            var subject = row.transform.Find("Subject");
+            var time = row.transform.Find("Time");
+            Assert.IsNotNull(subject);
+            Assert.IsNotNull(time);
+            var st = subject.GetComponent<TMPro.TextMeshProUGUI>();
+            st.ForceMeshUpdate();
+
+            if (wantSingle)
+            {
+                Assert.AreEqual(1, st.textInfo.lineCount, "短主题应当只占一行");
+                var srt = subject as RectTransform;
+                Assert.AreEqual(InboxPanelUI.SubjectSingleBandMin, srt.anchorMin.y, 0.001f,
+                    "单行主题应锚到居中带（否则「中间偏下」复发）");
+                float rowCenter = rowRt.TransformPoint(rowRt.rect.center).y;
+                float subjectCenter = srt.TransformPoint(srt.rect.center).y;
+                float rowH = rowRt.rect.height;
+                Assert.LessOrEqual(Mathf.Abs(subjectCenter - rowCenter), rowH * 0.12f,
+                    $"单行主题偏离行心：Δ={subjectCenter - rowCenter:F1}px，行高 {rowH:F0}px");
+                var tt = time.GetComponent<TMPro.TextMeshProUGUI>();
+                Assert.AreEqual(InboxPanelUI.TimeSingleAlign, tt.alignment,
+                    "单行主题的时间应与主题同带同对齐");
+            }
+            else
+            {
+                Assert.AreEqual(2, st.textInfo.lineCount, "长主题应当折成两行（末行省略）");
+                var srt = subject as RectTransform;
+                Assert.AreEqual(InboxPanelUI.SubjectBandMin, srt.anchorMin.y, 0.001f,
+                    "两行主题应占满下带");
+                var trt = time as RectTransform;
+                Assert.AreEqual(InboxPanelUI.SubjectSingleBandMin, trt.anchorMin.y, 0.001f,
+                    "时间应始终在居中带（2026-11-04 第三轮：「时间应该始终在中间位置」）");
+                var tt = time.GetComponent<TMPro.TextMeshProUGUI>();
+                Assert.AreEqual(InboxPanelUI.TimeAlign, tt.alignment,
+                    "两行主题的时间应垂直居中，不贴末行");
+            }
+        }
+
+        // —————————————————————————————————————————————————————————————
         // ④ 批准：按钮消失、不重复扣钱；换一封信不得留有上一封的提示
         // —————————————————————————————————————————————————————————————
 

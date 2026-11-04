@@ -1424,7 +1424,7 @@ namespace AirlineCEO.Logic
                 glyph = "运",
                 subject = subject,
                 body = InboxLetter.Frame(gs, "运营部", "过渡经营请示", subject, body,
-                    "请在本函底部选择「签约闲置机」或「本次不接」。签约将自动分配当前闲置飞机。",
+                    InquiryAdvice,
                     gs.SimUtc.Add(GameState.LocalUtcOffset).ToString("yyyy年MM月dd日"),
                     needDecision: true),
                 status = "pending",
@@ -1553,6 +1553,8 @@ namespace AirlineCEO.Logic
                 BeginCollect();
                 TopUpStandingOffers(gs);
                 FlushInquiry(gs);
+                // 名单已经不准了：改成冻结口径（见 RefreshInquiryMailBodies 的说明）。
+                mail.body = FreezeClosedInquiryBody(mail.body);
             }
             gs.NotifyChanged();
             return true;
@@ -1623,6 +1625,8 @@ namespace AirlineCEO.Logic
                 BeginCollect();
                 TopUpStandingOffers(gs);
                 FlushInquiry(gs);
+                // 名单已经不准了：改成冻结口径（见 RefreshInquiryMailBodies 的说明）。
+                mail.body = FreezeClosedInquiryBody(mail.body);
             }
             message = n > 0
                 ? string.Join(" ", notes.ToArray())
@@ -1638,6 +1642,7 @@ namespace AirlineCEO.Logic
             if (mail == null) { message = "询价函不可用。"; return false; }
             mail.status = "rejected";
             message = "已选择本次不接。报价仍保留至有效期，过期作废。";
+            mail.body = FreezeClosedInquiryBody(mail.body);   // 按钮没了，正文别再让人「在底部选择」
             gs?.NotifyChanged();
             return true;
         }
@@ -1698,21 +1703,57 @@ namespace AirlineCEO.Logic
             return $"{start:yyyy年MM月dd日}—{end:yyyy年MM月dd日}";
         }
 
+        /// <summary>询价函「去决策」那句：签约会自动分配当前闲置飞机。</summary>
+        const string InquiryAdvice = "请在本函底部选择「签约闲置机」或「本次不接」。签约将自动分配当前闲置飞机。";
+        /// <summary>询价函办结后替换掉上面那句 —— 按钮已经没了，再让人「在底部选择」就是骗人。</summary>
+        const string InquiryClosedAdvice = "本函已办结，决策已记录；未签约的报价已失效。";
+        /// <summary>办结后「当前可签闲置机」那一行的口径：名单不再刷新，别再冒充实时。</summary>
+        const string InquiryClosedIdleLine = "当前可签闲置机　（本函已办结，名单冻结；以机队 › 过渡业务为准）";
+
         static void RefreshInquiryMailBodies(GameState gs)
         {
             if (gs?.inbox == null) return;
             for (int i = 0; i < gs.inbox.Count; i++)
             {
                 var m = gs.inbox[i];
-                if (m == null || m.action != InquiryAction || !InboxManager.IsOpen(m)) continue;
+                if (m == null || m.action != InquiryAction) continue;
+                if (!InboxManager.IsOpen(m))
+                {
+                    // 2026-11-04 报障：询价函办结后正文仍是生成时的快照 ——
+                    // 「当前可签闲置机」里还挂着已经被租走的机号（截图里 B-2027 同时在「在租」表里）。
+                    // 原来的刷新条件要求还留着报价（offers.Count > 0），全部签约后报价清零，
+                    // 这段正文就永远不会再更新。办结后统一改成冻结口径，别再冒充实时名单。
+                    m.body = FreezeClosedInquiryBody(m.body);
+                    continue;
+                }
                 var offers = OffersOnMail(gs, m);
                 if (offers.Count == 0) continue;
                 string core = BuildInquiryCore(gs, offers);
                 m.body = InboxLetter.Frame(gs, "运营部", "过渡经营请示", m.subject, core,
-                    "请在本函底部选择「签约闲置机」或「本次不接」。签约将自动分配当前闲置飞机。",
+                    InquiryAdvice,
                     gs.SimUtc.Add(GameState.LocalUtcOffset).ToString("yyyy年MM月dd日"),
                     needDecision: true);
             }
+        }
+
+        /// <summary>
+        /// 把办结的询价函正文改成「历史快照」口径：名单不再列举（它已经不准了），
+        /// 底部那句「请在底部选择…」也换成办结说明。幂等 —— 每天 Ensure 都会跑到。
+        /// </summary>
+        static string FreezeClosedInquiryBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) return body;
+            if (body.IndexOf(InquiryClosedIdleLine, StringComparison.Ordinal) < 0)
+            {
+                int head = body.IndexOf("\n当前可签闲置机", StringComparison.Ordinal);
+                if (head >= 0)
+                {
+                    int end = body.IndexOf("\n\n", head + 1, StringComparison.Ordinal);
+                    if (end < 0) end = body.Length;
+                    body = body.Substring(0, head) + "\n" + InquiryClosedIdleLine + body.Substring(end);
+                }
+            }
+            return body.Replace(InquiryAdvice, InquiryClosedAdvice);
         }
 
         static string BuildInquiryCore(GameState gs, List<TransitionOffer> offers)

@@ -50,6 +50,24 @@ namespace AirlineCEO.EditorTools
                         + "期望 NoWrap / Ellipsis / 1（否则长主题会折行压住发件人）");
                 }
 
+                // ①b 主题两行（2026-11-04 用户裁定）：单行时「请决策：开通伦敦希思罗 LHR → …」
+                //    被截在目的地之前，两条同前缀的决策件在列表里长得一模一样。
+                var subjectGo = new GameObject("__row_subject__", typeof(RectTransform), typeof(CanvasRenderer));
+                subjectGo.transform.SetParent(go.transform, false);
+                var subjectProbe = subjectGo.AddComponent<TextMeshProUGUI>();
+                UIFactory.ClampLines(subjectProbe, InboxPanelUI.SubjectLines);
+                bool wrapsTwo = subjectProbe.textWrappingMode == TextWrappingModes.Normal
+                                && subjectProbe.overflowMode == TextOverflowModes.Ellipsis
+                                && subjectProbe.maxVisibleLines == 2;
+                all &= wrapsTwo;
+                if (!wrapsTwo)
+                {
+                    Debug.LogError(
+                        $"列表行-①b 主题不是「两行 + 末行省略」：wrap={subjectProbe.textWrappingMode} "
+                        + $"overflow={subjectProbe.overflowMode} maxLines={subjectProbe.maxVisibleLines}；"
+                        + "期望 Normal / Ellipsis / 2");
+                }
+
                 // ② 来文主题：日期前缀去掉，风暴名与强度留下
                 var mail = new InboxMail
                 {
@@ -93,7 +111,10 @@ namespace AirlineCEO.EditorTools
                 // ⑥ 主题与时间同带（2026-11-03 报障：「主题和时间一高一低」）
                 all &= CheckSubjectTimeAligned();
 
-                if (all) Debug.Log("收件箱列表行排版：单行收敛 + 日期前缀去除 + 行高随字号缩放 + 主题时间同带，6 组口径全部通过");
+                // ⑦ 单行主题落在行心附近、两行主题块居中（2026-11-04 两轮报障：先贴底、后偏下）
+                all &= CheckVerticalPlacement();
+
+                if (all) Debug.Log("收件箱列表行排版：单行收敛 + 主题两行 + 日期前缀去除 + 行高随字号缩放 + 主题时间同带 + 单行居中/两行块居中，8 组口径全部通过");
                 return all;
             }
             finally
@@ -104,53 +125,134 @@ namespace AirlineCEO.EditorTools
         }
 
         /// <summary>
-        /// ⑥ 主题与时间必须共用同一条下带（2026-11-03 报障：「左侧邮件主题和时间的位置没有对齐，一高一低」）。
+        /// ⑦ 单行主题落在行心附近、时间**永远垂直居中** —— 贴底与「中间偏下」都不许。
         ///
-        /// 旧版把时间钉在发件人那条带（[0.52,0.95]），而发件人常常只有三个字（「运营部」），
-        /// 列表看上去就只剩「主题」和悬在它上方的「时间」两截。判定三条：
-        /// ① 两者的上下沿完全相同；② 左右不重叠（主题右界 ≤ 时间左界）；
-        /// ③ 下带在「特大」字号下仍装得下主题那行字（挪下来不能挤压）。
-        /// canary：把「时间放回上带」这个已知错误口径喂进同一个判定，它必须拒绝。
+        /// 2026-11-04 报了三轮：先「所有的邮件标题和时间都在栏的底部」（全 Bottom），
+        /// 改全 Middle 后又「单行中间偏下」（单行被放进两行满带，带心只有 0.395），
+        /// 再「两行主题的时间对着下面一行」（时间贴末行 BottomRight）。
+        /// 最终口径：两行 = 满带块居中 + 时间同带 Middle（两行正中间）；
+        /// 单行 = 换到居中带（带心 0.46）+ Middle。行内不再出现任何 Bottom。
+        ///
+        /// 判定四条：
+        /// ① 单行带中心在 0.5±0.08（行心附近），且**高于**两行满带中心（否则单行仍偏下）；
+        /// ② 两行主题与两行时间的垂直对齐都是 Middle（时间居中，不贴末行）；
+        /// ③ 单行主题与单行时间同一种垂直对齐（Middle），不会一高一低；
+        /// ④ canary：「全 Bottom」与「两行时间贴末行」这两个已知错误口径必须被拒。
+        /// </summary>
+        static bool CheckVerticalPlacement()
+        {
+            bool all = true;
+            const int VerticalMask = 0xF00;   // TMP：VerticalAlignmentOptions = 0x100/0x200/0x400...
+            int middle = (int)VerticalAlignmentOptions.Middle;
+            int bottom = (int)VerticalAlignmentOptions.Bottom;
+
+            float singleCenter = (InboxPanelUI.SubjectSingleBandMin + InboxPanelUI.SubjectSingleBandMax) * 0.5f;
+            float twoLineCenter = (InboxPanelUI.SubjectBandMin + InboxPanelUI.SubjectBandMax) * 0.5f;
+            if (Mathf.Abs(singleCenter - 0.5f) > 0.08f)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑦ 单行带中心偏离行心：{singleCenter:F3}，期望 0.5±0.08");
+            }
+            if (singleCenter <= twoLineCenter)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑦ 单行带没有比两行满带更靠上：single={singleCenter:F3} ≤ two={twoLineCenter:F3}"
+                               + "（单行仍会「中间偏下」）");
+            }
+
+            int subjectV = (int)InboxPanelUI.SubjectAlign & VerticalMask;
+            int timeV = (int)InboxPanelUI.TimeAlign & VerticalMask;
+            int singleSubjectV = (int)InboxPanelUI.SubjectSingleAlign & VerticalMask;
+            int singleTimeV = (int)InboxPanelUI.TimeSingleAlign & VerticalMask;
+            if (subjectV != middle)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑦ 两行主题不是块居中：0x{subjectV:X}，期望 Middle=0x{middle:X}");
+            }
+            if (timeV != middle)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑦ 两行主题的时间不居中：0x{timeV:X}，期望 Middle=0x{middle:X}"
+                               + "（贴末行就是 2026-11-04 第三轮报障的「时间对着下面一行」）");
+            }
+            if (singleSubjectV != middle || singleTimeV != middle)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑦ 单行主题/时间不是垂直居中：0x{singleSubjectV:X}/0x{singleTimeV:X}，"
+                               + $"期望 Middle=0x{middle:X}");
+            }
+
+            // canary：两个已知错误口径（全 Bottom / 两行时间贴末行）必须被拒
+            int wrongAllBottomV = (int)TextAlignmentOptions.BottomLeft & VerticalMask;
+            int wrongTimeBottomV = (int)TextAlignmentOptions.BottomRight & VerticalMask;
+            if (wrongAllBottomV == middle || wrongTimeBottomV == middle)
+            {
+                all = false;
+                Debug.LogError("列表行-⑦ canary 失效：判定分不出 Bottom 与 Middle，"
+                               + "抓不住「都在栏的底部」/「时间对着下面一行」");
+            }
+            return all;
+        }
+
+        /// <summary>
+        /// ⑥ 时间**永远**在居中带，且与主题不互相压字。
+        ///
+        /// 2026-11-03 报障：「左侧邮件主题和时间的位置没有对齐，一高一低」——旧版把时间钉在
+        /// 发件人那条带（[0.52,0.95]），列表看上去只剩「主题」和悬在它上方的「时间」两截。
+        /// 2026-11-04 第三轮报障后口径改为：时间常驻居中带（与单行主题同带），
+        /// 两行主题占满带、时间落在两行之间偏上的行心位置。判定四条：
+        /// ① 时间的上下沿 == 居中带（<see cref="InboxPanelUI.SubjectSingleBandMin"/>..Max）；
+        /// ② 单行主题与时间同带（不会一高一低）；
+        /// ③ 左右不重叠（主题右界 ≤ 时间左界）；
+        /// ④ 两行主题的带**包含**时间的带（时间不会探出主题块上下沿）。
+        /// canary：把「时间钉在发件人带上」这个已知错误口径喂进同一判定，它必须拒绝。
         /// </summary>
         static bool CheckSubjectTimeAligned()
         {
             bool all = true;
 
             var subject = InboxPanelUI.SubjectAnchor();
+            var subjectSingle = InboxPanelUI.SubjectSingleAnchor();
             var time = InboxPanelUI.TimeAnchor();
-            bool sameBand = Mathf.Approximately(subject.min.y, time.min.y)
-                            && Mathf.Approximately(subject.max.y, time.max.y);
+
+            bool timeCentered = Mathf.Approximately(time.min.y, InboxPanelUI.SubjectSingleBandMin)
+                                && Mathf.Approximately(time.max.y, InboxPanelUI.SubjectSingleBandMax);
+            bool sameBandAsSingle = Mathf.Approximately(subjectSingle.min.y, time.min.y)
+                                    && Mathf.Approximately(subjectSingle.max.y, time.max.y);
             bool noOverlap = subject.max.x <= time.min.x + 0.0001f;
-            if (!sameBand || !noOverlap)
+            bool insideTwoLine = time.min.y >= subject.min.y - 0.0001f
+                                 && time.max.y <= subject.max.y + 0.0001f;
+            if (!timeCentered || !sameBandAsSingle || !noOverlap || !insideTwoLine)
             {
                 all = false;
-                Debug.LogError($"列表行-⑥ 主题与时间没对齐：主题 y[{subject.min.y},{subject.max.y}] x≤{subject.max.x}，"
-                               + $"时间 y[{time.min.y},{time.max.y}] x≥{time.min.x}"
-                               + "（须同带且不重叠）");
+                Debug.LogError($"列表行-⑥ 时间没有常驻居中带：时间 y[{time.min.y},{time.max.y}]，"
+                               + $"居中带 y[{InboxPanelUI.SubjectSingleBandMin},{InboxPanelUI.SubjectSingleBandMax}]；"
+                               + $"单行主题同带={sameBandAsSingle} 不压字={noOverlap} 两行带包含={insideTwoLine}");
             }
 
-            // canary：旧口径（时间上带）必须被判为「不同带」
+            // canary：旧口径（时间钉在发件人带上）必须被判为「不在居中带」
             var wrong = new UIFactory.Anchor(new Vector2(0.68f, 0.52f), new Vector2(0.97f, 0.95f),
                 Vector2.zero, Vector2.zero);
-            bool wrongRejected = !(Mathf.Approximately(subject.min.y, wrong.min.y)
-                                   && Mathf.Approximately(subject.max.y, wrong.max.y));
+            bool wrongRejected = !(Mathf.Approximately(wrong.min.y, InboxPanelUI.SubjectSingleBandMin)
+                                   && Mathf.Approximately(wrong.max.y, InboxPanelUI.SubjectSingleBandMax));
             if (!wrongRejected)
             {
                 all = false;
                 Debug.LogError("列表行-⑥ canary 失效：判定放过了「时间钉在发件人带上」这个已知错误口径");
             }
 
-            // 「特大」字号下下带仍装得下主题那行字
+            // 「特大」字号下下带仍装得下主题那两行字
             Accessibility.SetFontScale(FontScale.XLarge);
             float mult = Accessibility.FontMultiplier();
             float rowH = InboxPanelUI.RowHeight();
             int subjectFont = Mathf.RoundToInt((12 + 2) * mult);
             float band = rowH * (InboxPanelUI.SubjectBandMax - InboxPanelUI.SubjectBandMin);
             Accessibility.SetFontScale(FontScale.Standard);
-            if (band < subjectFont)
+            float need = subjectFont * InboxPanelUI.SubjectLines;
+            if (band < need)
             {
                 all = false;
-                Debug.LogError($"列表行-⑥「特大」下主题带装不下：band={band:F1} < 字号 {subjectFont}");
+                Debug.LogError($"列表行-⑥「特大」下主题带装不下 {InboxPanelUI.SubjectLines} 行：band={band:F1} < {need}");
             }
             return all;
         }
@@ -164,18 +266,15 @@ namespace AirlineCEO.EditorTools
         static bool RowHeightSuffices(float rowH, float mult, out string why)
         {
             why = null;
-            if (rowH < 52f * mult)
-            {
-                why = $"rowH={rowH} 未随倍率 {mult} 增长（至少 {52f * mult}）";
-                return false;
-            }
             int senderFont = Mathf.RoundToInt((14 + 2) * mult);
             int subjectFont = Mathf.RoundToInt((12 + 2) * mult);
-            float senderBand = rowH * (0.95f - 0.55f);
-            float subjectBand = rowH * (0.55f - 0.08f);
-            if (senderBand < senderFont || subjectBand < subjectFont)
+            float senderBand = rowH * (InboxPanelUI.SenderBandMax - InboxPanelUI.SenderBandMin);
+            float subjectBand = rowH * (InboxPanelUI.SubjectBandMax - InboxPanelUI.SubjectBandMin);
+            float subjectNeed = subjectFont * InboxPanelUI.SubjectLines;
+            if (senderBand < senderFont || subjectBand < subjectNeed)
             {
-                why = $"发件人带 {senderBand:F1} vs 字号 {senderFont}；主题带 {subjectBand:F1} vs 字号 {subjectFont}（rowH={rowH}）";
+                why = $"发件人带 {senderBand:F1} vs 字号 {senderFont}；"
+                      + $"主题带 {subjectBand:F1} vs {InboxPanelUI.SubjectLines} 行 {subjectNeed}（rowH={rowH}）";
                 return false;
             }
             return true;
@@ -197,7 +296,7 @@ namespace AirlineCEO.EditorTools
         {
             bool all = true;
 
-            // canary：52px 固定行高在「特大」下装不下 21 + 18 两行字，判定必须拒绝
+            // canary：52px 固定行高在「特大」下连发件人那行都装不下，判定必须拒绝
             if (RowHeightSuffices(52f, 1.30f, out _))
             {
                 all = false;
@@ -218,6 +317,16 @@ namespace AirlineCEO.EditorTools
                 {
                     all = false;
                     Debug.LogError($"列表行-⑤「{Accessibility.FontScaleLabel(level)}」不通过：{why}");
+                }
+
+                // 行高必须跟着字号倍率长：字变大而行高不动，等于把挤压缩小后原地复发。
+                float expected = Mathf.Ceil(InboxPanelUI.BaseRowHeight * mult);
+                if (Mathf.Abs(rowH - expected) > 0.01f)
+                {
+                    all = false;
+                    Debug.LogError(
+                        $"列表行-⑤「{Accessibility.FontScaleLabel(level)}」行高没随倍率 {mult} 长："
+                        + $"rowH={rowH}，应为 {expected}（{InboxPanelUI.BaseRowHeight}×倍率）");
                 }
 
                 int dayFont = Mathf.RoundToInt((12 + 2) * mult);

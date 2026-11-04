@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-11-04T07:55:52.144Z",
+  "updatedAt": "2026-11-04T12:29:03.612Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 16 taken over by later passed deliveries, 6 still uncovered (docs/handoff/Baseline_2026-10-17.json, docs/handoff/P21_命令台历史_开发记录_2026-10-25.md, docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md …).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 14 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs, docs/handoff/Baseline_2026-10-17.json …).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -74,8 +74,10 @@
   "scopeDrift": {
     "basis": 44,
     "intact": 22,
-    "covered": 16,
+    "covered": 14,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "docs/handoff/Baseline_2026-10-17.json",
       "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md",
       "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md",
@@ -83,6 +85,6 @@
       "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md",
       "docs/handoff/两条账务口径裁定_2026-10-25.md"
     ],
-    "uncoveredCount": 6
+    "uncoveredCount": 8
   }
 }
