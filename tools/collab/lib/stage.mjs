@@ -2187,6 +2187,111 @@ export function cmdStageSupersede(cfg, args = {}) {
 }
 
 /* ------------------------------------------------------------------ */
+/* task-supersede                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Retire a task whose work was delivered inside a **later task's** delivery.
+ *
+ * Why `stage-supersede` cannot express this: it takes a superseded *delivery*,
+ * and this shape of task never produced one. S50-RouteAssignRetire is the case
+ * that forced this command — its scope (n98 撤页 / 机队第 6 页签 / 命令台加机)
+ * was all delivered by S51 in `DEL-20261103001103-55b815`, so it sits forever at
+ * `todo/not_run` and a bare `stage-close` keeps picking it up as "the stage in
+ * progress" and demanding fresh acceptance criteria for dead code.
+ *
+ * Rules, fail-closed:
+ *  · the successor delivery must exist and must belong to the named successor task;
+ *  · a task that still owns its own live delivery must be retired through
+ *    `stage-supersede --delivery <old> --by <new>` instead (that path also sweeps
+ *    the handoff index, this one has nothing to sweep);
+ *  · nothing is deleted and no historical event is rewritten; idempotent.
+ */
+export function cmdTaskSupersede(cfg, args = {}) {
+  const actor = args.actor || 'cursor';
+  if (!['cursor', 'codex', 'user'].includes(actor)) {
+    fail(EXIT.FORBIDDEN, `unknown actor: ${actor}`, { allowed: ['cursor', 'codex', 'user'] });
+  }
+  const taskId = args.task;
+  const successorTaskId = args['successor-task'];
+  const successorDeliveryId = args['successor-delivery'];
+  if (!taskId || taskId === true) fail(EXIT.USAGE, 'task-supersede requires --task <task id>');
+  if (!successorTaskId || successorTaskId === true) {
+    fail(EXIT.USAGE, 'task-supersede requires --successor-task <task id>');
+  }
+  if (!successorDeliveryId || successorDeliveryId === true) {
+    fail(EXIT.USAGE, 'task-supersede requires --successor-delivery <DEL id>');
+  }
+  if (taskId === successorTaskId) fail(EXIT.USAGE, 'a task cannot be superseded by itself');
+
+  const task = loadTask(cfg, taskId);
+  const successorDelivery = requireDelivery(cfg, successorDeliveryId);
+  if (successorDelivery.taskId !== successorTaskId) {
+    fail(
+      EXIT.CONFLICT,
+      `${successorDeliveryId} belongs to task ${successorDelivery.taskId}, not ${successorTaskId}`,
+      { delivery: successorDeliveryId, expectedTask: successorTaskId, actualTask: successorDelivery.taskId },
+    );
+  }
+
+  const own = latestDeliveryForTask(cfg, taskId);
+  if (own && !['superseded', 'retracted', 'rejected'].includes(own.status)) {
+    fail(
+      EXIT.CONFLICT,
+      `${taskId} still owns delivery ${own.deliveryId} (${own.status}); retire it with `
+        + `stage-supersede --delivery ${own.deliveryId} --by ${successorDeliveryId}`,
+      { taskId, deliveryId: own.deliveryId, status: own.status },
+    );
+  }
+
+  const note = args.note
+    ? String(args.note)
+    : `work delivered inside ${successorDeliveryId} (${successorTaskId})`;
+  const retire = retireTask(cfg, {
+    taskId,
+    successor: { deliveryId: successorDeliveryId, taskId: successorTaskId },
+    actor,
+    note,
+  });
+
+  if (!retire.changed) {
+    const sync = cmdSync(cfg, {});
+    return {
+      ok: true,
+      unchanged: true,
+      taskId,
+      supersededBy: retire.supersededBy,
+      revision: sync.revision,
+      report: `已登记过：${taskId} 已被 ${successorDeliveryId}（${successorTaskId}）取代；未做改动（revision=${sync.revision}）。`,
+      exitCode: EXIT.OK,
+    };
+  }
+
+  recordEvent(cfg, {
+    actor,
+    action: 'task-supersede',
+    taskId,
+    deliveryId: successorDeliveryId,
+    summary: `${taskId} superseded by ${successorTaskId} via ${successorDeliveryId}`,
+    data: { supersededBy: retire.supersededBy },
+  });
+  const sync = cmdSync(cfg, {});
+  return {
+    ok: true,
+    taskId,
+    supersededBy: retire.supersededBy,
+    revision: sync.revision,
+    report: [
+      `已登记：${taskId} 的工作实际由 ${successorDeliveryId}（${successorTaskId}）交付。`,
+      `看板会显示「已被 ${successorTaskId} 取代」，stage-close 不再把它当成进行中的阶段。`,
+      '未删除任何任务文件，创建/交付事件保持原样。',
+      `revision=${sync.revision}`,
+    ].join('\n'),
+    exitCode: EXIT.OK,
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* stage-retract                                                       */
 /* ------------------------------------------------------------------ */
 

@@ -60,7 +60,10 @@ Stage automation (one command per side):
   stage-reconcile [--actor cursor|codex|user]         copy supersede facts from the local handoff
                                                       index into the shared delivery ledger
   stage-supersede --delivery <old> --by <new> [--actor cursor|codex|user] [--note <text>]
-                                                      record after the fact that <old> was replaced by <new>
+                                                     record after the fact that <old> was replaced by <new>
+  task-supersede --task <old> --successor-task <task> --successor-delivery <DEL> [--actor cursor|user] [--note <text>]
+                                                     retire a task that never filed its own delivery (its work
+                                                     landed in another task's delivery) without deleting history
   stage-retract --delivery <del> --reason <text> [--actor cursor|user]
                                                       withdraw a delivery filed under the wrong task; keeps the
                                                       record, drops it from the pending list, blocks review
@@ -133,6 +136,7 @@ function main() {
     'stage-report': () => stage.cmdStageReport(cfg, args),
     'stage-reconcile': () => stage.cmdStageReconcile(cfg, args),
     'stage-supersede': () => stage.cmdStageSupersede(cfg, args),
+    'task-supersede': () => stage.cmdTaskSupersede(cfg, args),
     'stage-retract': () => stage.cmdStageRetract(cfg, args),
   };
 

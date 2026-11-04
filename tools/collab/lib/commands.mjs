@@ -163,6 +163,7 @@ export const COMMAND_FLAGS = {
   'stage-report': [],
   'stage-reconcile': ['actor'],
   'stage-supersede': ['delivery', 'by', 'actor', 'note'],
+  'task-supersede': ['task', 'successor-task', 'successor-delivery', 'actor', 'note'],
   'stage-retract': ['delivery', 'reason', 'actor'],
 };
 

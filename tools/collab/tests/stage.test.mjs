@@ -961,6 +961,96 @@ await test('R06', 'explicit stage-review on a superseded delivery is refused, an
   );
 });
 
+await test('TS01', 'task-supersede retires a task that never filed its own delivery (S50 shape)', () => {
+  const f = fixture();
+  // 继任者：一次正常交付
+  const close = stage.cmdStageClose(f.cfg, { profile: 'smoke', 'no-preflight': true });
+
+  // 这个任务从未生成过交付 —— 它的工作在继任者的交付里完成（S50 的真身）。
+  // 用刚生成的任务文件当模板，保证通过 validateTask（手写字面量会缺字段）。
+  const template = JSON.parse(
+    fs.readFileSync(path.join(f.dir, 'docs/collaboration/tasks', `${close.taskId}.json`), 'utf8'),
+  );
+  put(f.dir, 'docs/collaboration/tasks/LEGACY-Task.json', {
+    ...template,
+    taskId: 'LEGACY-Task',
+    title: 'legacy stage whose work landed elsewhere',
+    devStatus: 'todo',
+    reviewStatus: 'not_run',
+    freshness: 'unknown',
+    holder: null,
+    blockers: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    freshnessNote: '',
+    staleForReviewId: null,
+  });
+  cmd.cmdSync(f.cfg, {});
+
+  // 自取代：拒绝
+  throwsCode(
+    () => stage.cmdTaskSupersede(f.cfg, {
+      task: 'LEGACY-Task', 'successor-task': 'LEGACY-Task', 'successor-delivery': close.deliveryId,
+    }),
+    2,
+  );
+  // 继任交付不属于继任任务：拒绝（否则会把任务挂到一个错误的继任者上）
+  throwsCode(
+    () => stage.cmdTaskSupersede(f.cfg, {
+      task: 'LEGACY-Task', 'successor-task': 'OTHER-Task', 'successor-delivery': close.deliveryId,
+    }),
+    3,
+  );
+
+  const retired = stage.cmdTaskSupersede(f.cfg, {
+    task: 'LEGACY-Task',
+    'successor-task': close.taskId,
+    'successor-delivery': close.deliveryId,
+    actor: 'cursor',
+  });
+  assert.equal(retired.exitCode, 0);
+  const task = state.loadTask(f.cfg, 'LEGACY-Task');
+  assert.equal(task.supersededBy.deliveryId, close.deliveryId);
+  assert.equal(task.supersededBy.taskId, close.taskId);
+  // 任务文件还在：退场不等于抹记录
+  assert.equal(fs.existsSync(path.join(f.dir, 'docs/collaboration/tasks/LEGACY-Task.json')), true);
+
+  // 幂等：重复登记不改时间戳、不写新事件
+  const eventsBefore = fs.readdirSync(path.join(f.dir, 'docs/collaboration/events')).length;
+  const again = stage.cmdTaskSupersede(f.cfg, {
+    task: 'LEGACY-Task',
+    'successor-task': close.taskId,
+    'successor-delivery': close.deliveryId,
+    actor: 'cursor',
+  });
+  assert.equal(again.unchanged, true);
+  assert.equal(fs.readdirSync(path.join(f.dir, 'docs/collaboration/events')).length, eventsBefore);
+
+  // 退场后不再被裸跑的 stage-close 当成「进行中的阶段」吸走
+  assert.equal(state.loadTask(f.cfg, 'LEGACY-Task').supersededBy.taskId, close.taskId);
+});
+
+await test('TS02', 'task-supersede refuses a task that still owns a live delivery', () => {
+  const f = fixture();
+  const close = stage.cmdStageClose(f.cfg, { profile: 'smoke', 'no-preflight': true });
+  put(f.dir, 'tools/collab/stage-input.txt', `successor for TS02 ${serial}`);
+  // 让继任者另起一个任务：先把第一个任务跑完一轮检测
+  stage.cmdStageReview(f.cfg, { actor: 'codex', delivery: close.deliveryId });
+  const second = stage.cmdStageClose(f.cfg, { profile: 'smoke', 'no-preflight': true });
+  assert.notEqual(second.taskId, close.taskId);
+
+  // 第一个任务有自己的在册交付 → 必须走 stage-supersede，不能整任务退场
+  throwsCode(
+    () => stage.cmdTaskSupersede(f.cfg, {
+      task: close.taskId,
+      'successor-task': second.taskId,
+      'successor-delivery': second.deliveryId,
+      actor: 'cursor',
+    }),
+    3,
+  );
+});
+
 console.log(JSON.stringify({ assertionsTotal: results.length, assertionsFailed: failed, assertionsSkipped: 0 }));
 // Registered last, so it runs after hashcache's exit hook (see temp-fixtures.mjs).
 finalizeFixtures(failed);
