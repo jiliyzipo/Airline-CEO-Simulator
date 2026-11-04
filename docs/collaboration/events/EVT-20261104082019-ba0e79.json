@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104082019-ba0e79",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 975,
+  "at": "2026-11-04T08:20:19.990Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026031355-16ec52",
+  "reviewId": "REV-20261026060606-ce441e",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026061059-747c95: verified -> closed",
+  "data": {
+    "issueId": "ISSUE-20261026061059-747c95",
+    "from": "verified",
+    "to": "closed",
+    "note": "补签收：环境能力缺口已消除。"
+  }
+}

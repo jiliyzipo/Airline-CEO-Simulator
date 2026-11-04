@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104082012-d2a87b",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 972,
+  "at": "2026-11-04T08:20:12.278Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S12-CommandConsole",
+  "deliveryId": "DEL-20261025130530-eb6e48",
+  "reviewId": "REV-20261025133501-b94646",
+  "parentEventId": null,
+  "summary": "ISSUE-20261025133539-5d00c2: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261025133539-5d00c2",
+    "from": "fixed",
+    "to": "verified",
+    "note": "修复在 DEL-20261025140410-e7b753，独立检测 REV-20261026015132-1bde4e 已通过（48/48）；AC1-3 恢复机器条款、AC4-7 由检测者显式补证。"
+  }
+}

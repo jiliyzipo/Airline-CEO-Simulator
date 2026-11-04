@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104082017-0ea9c1",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 974,
+  "at": "2026-11-04T08:20:17.364Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026031355-16ec52",
+  "reviewId": "REV-20261026060606-ce441e",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026061059-747c95: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261026061059-747c95",
+    "from": "fixed",
+    "to": "verified",
+    "note": "修复在 DEL-20261026063907-c4218e，独立检测 REV-20261026064716-f5b286 已通过（profile=collab，154 断言 0 失败）；2026-11-04 复跑 tools/collab/tests/run-all.mjs = 223 断言 0 失败。"
+  }
+}

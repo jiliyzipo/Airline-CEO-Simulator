@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 971,
-  "updatedAt": "2026-11-04T07:55:57.610Z",
+  "revision": 977,
+  "updatedAt": "2026-11-04T08:20:25.609Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -593,25 +593,25 @@
       "at": "2026-10-19T09:47:56.929Z"
     },
     "ISSUE-20261025133539-5d00c2": {
-      "status": "fixed",
-      "previous": "open",
-      "actor": "cursor",
-      "note": "按条款分层修复：AC1-AC3 恢复 unity-editmode 机器条款原文，AC4-AC7 改为带证据用例名的业务条款；新增 OpenRouteStudyRegression/OpenRouteStudyTests 补 AC5 断言。新交付 DEL-20261025140410-e7b753 独立检测 REV-20261026015132-1bde4e 已通过（48/48），AC4-AC7 由检测者显式补证。verified/closed 待 Codex 判定。",
-      "at": "2026-10-26T01:53:27.072Z"
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "补签收：修复已被独立复验接受。",
+      "at": "2026-11-04T08:20:14.701Z"
     },
     "ISSUE-20261026023527-01bb24": {
-      "status": "fixed",
-      "previous": "fixing",
-      "actor": "cursor",
-      "note": "新交付 DEL-20261026031355-16ec52（预检 collab 通过）。修复内容：run-all 证据落 COLLAB_RUN_DIR、失败消息去重进 stderr、0 通过判 fixtureBroken、夹具探针（树复制+cmdInit）单列、临时目录不可写回退工作区；新增 lib/suite-report.mjs 与 3 条 reporting 回归用例。请复验时若仍失败，请提供本次运行 stderr（现已包含失败原因与夹具探针结论）。",
-      "at": "2026-10-26T03:16:23.546Z"
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "随根因关闭；证据口径见上一条 note。",
+      "at": "2026-11-04T08:20:25.607Z"
     },
     "ISSUE-20261026061059-747c95": {
-      "status": "fixed",
-      "previous": "open",
-      "actor": "cursor",
-      "note": "新交付 DEL-20261026063907-c4218e（预检 collab 通过）。按上一轮留下的诊断定性：10 项失败全为受限令牌的环境能力缺口（临时目录 rename EPERM、git clone 的 upload-pack 子进程被拒 0xC0000022、CIM 查询被拒、慢沙箱撞 120s 墙），非业务回归。修复：clone 探针+SKIP 语义、doctor 只由",
-      "at": "2026-10-26T06:41:29.085Z"
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "补签收：环境能力缺口已消除。",
+      "at": "2026-11-04T08:20:19.984Z"
     },
     "ISSUE-20261026121935-4e76e6": {
       "status": "wontfix",

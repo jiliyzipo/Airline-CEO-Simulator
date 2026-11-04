@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104082022-75cce9",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 976,
+  "at": "2026-11-04T08:20:22.855Z",
+  "actor": "codex",
+  "action": "issue-status",
+  "taskId": "S13-CollabSupersede",
+  "deliveryId": "DEL-20261026022132-804f18",
+  "reviewId": "REV-20261026023352-31f65f",
+  "parentEventId": null,
+  "summary": "ISSUE-20261026023527-01bb24: fixed -> verified",
+  "data": {
+    "issueId": "ISSUE-20261026023527-01bb24",
+    "from": "fixed",
+    "to": "verified",
+    "note": "本条无自己的通过交付：其修复交付 DEL-20261026031355-16ec52 的检测 REV-20261026060606-ce441e 未通过（10 项失败）。同任务同 profile 的接续交付 DEL-20261026063907-c4218e 由 REV-20261026064716-f5b286 独立通过（profile=collab，154 断言 0 失败），2026-11-04 复跑 run-all 223 断言 0 失败。故此 verified 依据的是接续复验，不是对本条原交付的复验。"
+  }
+}
