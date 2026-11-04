@@ -39,7 +39,8 @@ namespace AirlineCEO.Logic
         /// 判据顺序刻意是「先否决、后算账」：航线本身不成立（例如同一城市、航程超出物理可能）时
         /// 不该去算日利 —— 那会产出一封看起来很专业的信，却在推销一条不该存在的航线。
         /// </summary>
-        public static Plan Build(GameState gs, string originCode, string destCode, string viaCode)
+        public static Plan Build(GameState gs, string originCode, string destCode, string viaCode,
+            bool rush = false)
         {
             var plan = new Plan
             {
@@ -78,7 +79,7 @@ namespace AirlineCEO.Logic
                 : AirportCatalog.Od(originCode, destCode, plan.via);
             plan.subject = $"请决策：开通 {plan.path}（各部门研究会）";
             plan.body = BuildBody(gs, originCode, destCode, plan.path,
-                originLabel, destLabel, viaLabel, km, out var rpm);
+                originLabel, destLabel, viaLabel, km, out var rpm, rush, plan.via);
             plan.rpm = rpm;
             plan.ok = true;
             return plan;
@@ -95,7 +96,7 @@ namespace AirlineCEO.Logic
 
         static string BuildBody(GameState gs, string originCode, string destCode, string path,
             string originLabel, string destLabel, string viaLabel, float dist,
-            out RPMCalculator.RPMOutput rpm)
+            out RPMCalculator.RPMOutput rpm, bool rush = false, string viaCode = "")
         {
             float cash = gs != null ? gs.cash : 0f;
             float cost = ActionExecutor.OpenRouteStartupCost;
@@ -129,13 +130,19 @@ namespace AirlineCEO.Logic
             if (intl) permit.Append(" + 航权额度 + 对方许可");
             permit.Append(" + 公示期\n");
             permit.Append(needsSlot
-                ? "· 发证之后　协调机场时刻槽（先证后槽：许可到手再办/竞拍，避免费用打水漂）\n"
-                : "· 发证之后　非协调机场无时刻限制，报备航班计划即可开航\n");
+                ? $"· 时刻槽并行　先槽后证：许可受理后即可先占时刻，{PermitTimeline.SlotPreHoldDays} 天内须取得航权\n"
+                : "· 非协调机场　无时刻限制，报备航班计划即可开航\n");
             permit.Append("· 通过率参考　").Append(
                 $"{RoutePermitLogic.PassChance(gs, originCode, destCode, intl, 1) * 100f:F0}%（受安全评级、局方关系与竞对运力影响）\n");
 
             var core = new StringBuilder();
             core.Append($"<b>议题：批准开通 {path}</b>\n");
+            // ★2026-11-03：加急会商写在议题正下方 —— 这是「为什么这封信当晚就到了」的唯一解释，
+            //   同时把边界说清：压的是运营部自己的会商，局方审查一天都不会省。
+            if (rush)
+                core.Append(InboxLetter.Bullet(
+                    $"加急会商：运营部当日召集各部门，纪要 {InboxCadence.ReplyHours} 小时内呈报"
+                    + "（局方审查工期不受此影响，受理后可用「加急请示」花点数再压）"));
 
             core.Append(InboxLetter.Section("航线与运力"));
             core.Append(InboxLetter.Row("出发地", originLabel));
@@ -147,7 +154,8 @@ namespace AirlineCEO.Logic
             core.Append(demand.FormatBlock()).Append('\n');
 
             core.Append(InboxLetter.Section("财务与资金"));
-            core.Append(InboxLetter.Bullet($"综合评定　{rpm.score} 分（{rpm.rating}）"));
+            core.Append(InboxLetter.Bullet($"综合评定　{rpm.score} 分（{rpm.rating}）"
+                + "—— 按预估日利润、利润率与竞争强度折算的 0–100 分，70 分以上视为可开"));
             core.Append(InboxLetter.Bullet($"预估日利润　约 {rpm.dailyProfit:F1} 万美元/日"));
             core.Append(InboxLetter.Bullet($"启动资金　{cost:F0} 万美元"));
             core.Append(InboxLetter.Bullet(affordLine));
@@ -160,9 +168,70 @@ namespace AirlineCEO.Logic
             core.Append(InboxLetter.Bullet($"安全监察：{saf}"));
             core.Append(InboxLetter.Bullet($"机务工程部：{mnt}"));
 
+            // ★2026-11-03 用户问询：「各部门应该检查…是否要申请航权，是否要购买或申请时刻槽，
+            //   购买或申请哪个时刻收益最大化，现金是否支持」。旧版把这些全写在「批准后要办的事」里，
+            //   CEO 在签字那一刻看不到「**现在**已经有 / 还缺什么」，也看不到这条航线开航前一共有多少开销。
+            //
+            // ★同日二次报障：「『开航前置条件』不在邮件底部」。这张清单是 CEO 落笔签字前最后要看的东西，
+            //   所以单独攒一份，排在「批准后的准入办理」之后、只在「请示事项」之前 ——
+            //   而不是夹在部门意见与办理流程中间。
+            var gate = new StringBuilder();
+            gate.Append(InboxLetter.Section("开航前置条件（现在就有 / 还缺什么）"));
+            bool rightsOk = AirlineCEO.Systems.StrategyManager.HasRouteRight(gs, originCode, destCode);
+            gate.Append(InboxLetter.Bullet(intl
+                ? (rightsOk ? "航权　已占双边航权额度，可进入许可办理"
+                            : "航权　**缺**：须先向对方申请双边航权额度；缺则许可审查会挂起（届时另函请示）")
+                : "航权　国内航线不需要双边航权，凭航线经营许可即可"));
+            if (intl)
+                gate.Append(InboxLetter.Bullet(RoutePermitLogic.HasOverseasQualification(gs)
+                    ? "资质　国际运行资质已具备（有可执飞国际/地区的机组）"
+                    : "资质　**缺**：须海外引进 ≥1 名运行人员，或把培训中心升到 3 级后考取「国际运行资质」"));
+
+            float slotTotal = 0f;
+            if (needsSlot)
+            {
+                string hubApt = RoutePermitLogic.FromHub(originCode, destCode)
+                    ? (string.IsNullOrEmpty(gs.hubIata) ? originCode : gs.hubIata)
+                    : originCode;
+                var apts = new System.Collections.Generic.List<string>();
+                AddStation(apts, hubApt);
+                AddStation(apts, viaCode);
+                AddStation(apts, destCode);
+                for (int i = 0; i < apts.Count; i++)
+                {
+                    string apt = apts[i];
+                    if (!AirportCatalog.IsCoordinated(apt)) continue;
+                    var pick = RoutePermitLogic.TryBestSlotClock(gs, apt);
+                    if (!pick.ok)
+                    {
+                        gate.Append(InboxLetter.Bullet($"时刻　{apt} **四个时段池全满**，暂无法配槽——须等退槽或二级市场挂牌"));
+                        continue;
+                    }
+                    slotTotal += pick.price;
+                    gate.Append(InboxLetter.Bullet(
+                        $"时刻　{apt} 建议 {pick.clock}（需求 {pick.demand:F2}、约 {pick.price:F0} 万）"
+                        + $"—— {RoutePermitLogic.WhyPicked(pick.band)}"));
+                }
+                gate.Append(InboxLetter.Bullet(
+                    $"渠道　时刻可**免费**走协调池申请（按序分配），也可付费走二级市场（当场过户）；"
+                    + "不缺那几天就别花这笔钱"));
+            }
+            else
+                gate.Append(InboxLetter.Bullet("时刻　两端都是非协调机场，无需时刻槽，报备航班计划即可开航"));
+
+            float need = cost + slotTotal;
+            gate.Append(InboxLetter.Bullet(cash >= need
+                ? $"全链条现金　启动 {cost:F0} + 时刻 {slotTotal:F0} = **{need:F0} 万**，当前 {cash:F0} 万，**够**"
+                : $"全链条现金　启动 {cost:F0} + 时刻 {slotTotal:F0} = **{need:F0} 万**，当前 {cash:F0} 万，"
+                  + $"**差 {need - cash:F0} 万** —— 批准后仍会在开航/交割时失败，请先融资，或改走免费协调池"));
+
             core.Append(InboxLetter.Section("批准后的准入办理（批准 ≠ 可以飞）"));
             core.Append(permit);
-
+            // ★2026-11-04：CEO 要「从零到航班运行的全流程」，不能只到「取得航权和时刻」。
+            //   这里是九关全貌图 + 每关由谁办、卡在哪；下方「开航前置条件」再报此刻已有/还缺什么。
+            core.Append(RoutePermitLogic.LifecycleChart(intl, needsSlot));
+            core.Append(RoutePermitLogic.LifecycleNotes(intl, needsSlot));
+            core.Append(gate);
             core.Append(InboxLetter.Section("请示事项"));
             core.Append(InboxLetter.Bullet($"批准：转入局方准入办理（本季不扣款）；取得许可并配到时刻后开航时扣启动资金 {cost:F0} 万"));
             core.Append(InboxLetter.Bullet("暂缓：保留提案，本季不动用资金，可再补充评估"));
@@ -170,6 +239,15 @@ namespace AirlineCEO.Logic
 
             return InboxLetter.Frame(gs, "运营部", "开航研究会", $"请决策：开通 {path}（各部门研究会）",
                 core.ToString(), "以上研究会结论，请您审阅后作出决策。");
+        }
+
+        /// <summary>把停站加入清单（去重，保持本场端 → 经停端 → 对端的顺序）。</summary>
+        static void AddStation(System.Collections.Generic.List<string> list, string code)
+        {
+            if (string.IsNullOrEmpty(code)) return;
+            for (int i = 0; i < list.Count; i++)
+                if (string.Equals(list[i], code, System.StringComparison.OrdinalIgnoreCase)) return;
+            list.Add(code);
         }
     }
 }

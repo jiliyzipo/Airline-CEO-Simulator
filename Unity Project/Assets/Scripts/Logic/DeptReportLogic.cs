@@ -80,6 +80,8 @@ namespace AirlineCEO.Logic
             if (ask.topic == CeoCommandRouter.TopicCloseRoute) return CloseRouteReview(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicCapacity) return CapacityDirective(gs, ask, raw);
             if (ask.topic == CeoCommandRouter.TopicRotation) return RotationDirective(gs, ask, raw);
+            if (ask.topic == CeoCommandRouter.TopicAddFlight) return AddFlightDirective(gs, ask, raw);
+            if (ask.topic == CeoCommandRouter.TopicSlotDeal) return SlotDealDirective(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicOpenRoute) return OpenRouteDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicFleetBuy) return FleetBuyDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicHrRecruit) return HrRecruitDirective(ask);

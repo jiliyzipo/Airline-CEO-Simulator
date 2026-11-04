@@ -63,6 +63,63 @@ namespace AirlineCEO.Logic
             string.Equals(iata, "SIN", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
+        /// 机场所属国家（中文，与国家底表同源）。底表未收录时按 <see cref="IsChina"/> 名单兜底，
+        /// 都没有则返回 ""（未知）—— 未知不等于「本国」，调用方必须显式处理。
+        /// </summary>
+        public static string CountryOf(string iata)
+        {
+            if (string.IsNullOrEmpty(iata)) return "";
+            string c = iata.Trim().ToUpperInvariant();
+            var eco = AirlineCEO.Data.CityEconomyCatalog.Find(c);
+            if (eco != null && !string.IsNullOrEmpty(eco.countryZh)) return eco.countryZh.Trim();
+            return IsChina(c) ? "中国" : "";
+        }
+
+        /// <summary>
+        /// 航权自由度：相对**承运人本国**（<paramref name="homeCountry"/>）判定这一对航点属于哪种航权。
+        ///
+        /// ★2026-11-04 报障：「基地在巴黎，申请 PEK—SIN 第五航权是对的，CEO 又申请开通 CDG—SIN，
+        /// 为什么会收到战略部发的申请 CDG—SIN 第五航权，而且从基地巴黎到新加坡也不是第五航权吧？」
+        ///
+        /// 旧口径只有「国际 = 要航权 = 第五航权」一条线：不管两端在哪，提案标题一律写「第五航权」、
+        /// 一律扣 25 点。于是法国承运人回自己的基地 CDG 飞 SIN（第三/第四航权，只受法新双边协定管）
+        /// 也被当成爬了第五航权，成本还按最难的那种收。这不只是措辞问题 —— 它让「本国 ↔ 对方」
+        /// 这种最容易办的航权，和「他国 ↔ 他国」这种要三国点头的航权，在账上完全等价。
+        ///
+        /// 返回值：
+        /// <list type="bullet">
+        /// <item><b>0</b>　国内：两端同属本国，凭航线经营许可即可（不需要双边航权）；</item>
+        /// <item><b>3</b>　第三/第四航权：本国 ↔ 他国。双边协定里最基础的一档，本国承运人的主业；</item>
+        /// <item><b>5</b>　第五航权：他国 ↔ 他国。须接在本国始发的航段之后（如 CDG—PEK—SIN 的 PEK—SIN 段）；</item>
+        /// <item><b>-1</b>　国内载权（他国境内两点之间）：任何协定都不给，承运人不得承运。</item>
+        /// </list>
+        /// </summary>
+        public static int FreedomOf(string homeCountry, string origin, string dest)
+        {
+            string home = (homeCountry ?? "").Trim();
+            string co = CountryOf(origin);
+            string cd = CountryOf(dest);
+            // 国家未知时退回旧口径「国际 = 第三/第四航权」，绝不默认成第五航权（那会多收 4 点关系）
+            if (home.Length == 0 || co.Length == 0 || cd.Length == 0)
+                return IsForeignEndpoint(origin) || IsForeignEndpoint(dest) ? 3 : 0;
+
+            bool originHome = string.Equals(co, home, StringComparison.Ordinal);
+            bool destHome = string.Equals(cd, home, StringComparison.Ordinal);
+            if (originHome && destHome) return 0;       // 国内
+            if (originHome || destHome) return 3;       // 本国 ↔ 他国
+            if (string.Equals(co, cd, StringComparison.Ordinal)) return -1;   // 他国境内两点：国内载权
+            return 5;                                   // 他国 ↔ 他国
+        }
+
+        /// <summary>航权自由度的展示名（提案标题、持仓列表共用一处，免得两处写两种说法）。</summary>
+        public static string FreedomLabel(int freedom)
+        {
+            if (freedom <= 0) return "无需双边航权";
+            if (freedom == 3) return "第三/第四航权";
+            return $"第{freedom}航权";
+        }
+
+        /// <summary>
         /// 端点是否在中国内地以外（港澳台算境外）。**纯函数**，供 `tools/balance` 离线使用。
         ///
         /// 判定顺序与 <c>RoutePermitLogic.IsInternational</c> 的①相同：国家底表优先

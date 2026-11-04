@@ -38,6 +38,12 @@ namespace AirlineCEO.Systems
             if (gs.stg.alliance == null) gs.stg.alliance = new AllianceState();
             if (gs.stg.investments == null) gs.stg.investments = new List<InvestmentProject>();
             if (gs.stg.contingencyPlans == null) gs.stg.contingencyPlans = new List<ContingencyPlan>();
+            // 时刻二级市场（2026-11-02）：旧存档没有该子状态，读档后须补建，
+            // 否则挂牌/意向列表为 null，第一次打开市场页就 NRE。
+            if (gs.stg.slotMarket == null) gs.stg.slotMarket = new SlotMarketState();
+            if (gs.stg.slotMarket.listings == null) gs.stg.slotMarket.listings = new List<SlotMarketListing>();
+            if (gs.stg.slotMarket.mine == null) gs.stg.slotMarket.mine = new List<SlotMarketListing>();
+            if (gs.stg.slotMarket.offers == null) gs.stg.slotMarket.offers = new List<SlotBuyerOffer>();
             if (gs.stg.fiveYearPriority == null || gs.stg.fiveYearPriority.Length != 5)
                 gs.stg.fiveYearPriority = new[] { 1, 2, 3, 4, 5 };
             // 时刻槽使用率考核（2026-10 新增）：旧存档没有该子状态，读档后须补建，
@@ -131,12 +137,28 @@ namespace AirlineCEO.Systems
         }
 
         public bool ApplyRouteRight(string origin, string destination, int freedom, out string message)
+            => ApplyRouteRightOn(GameState.Instance, origin, destination, freedom, out message);
+
+        /// <summary>
+        /// 航权入账的**纯函数式入口**：状态由调用方给出，不走 <c>GameState.Instance</c>。
+        ///
+        /// 为什么要拆这一层：交割链路（InboxManager）只认单例，但回归必须能在
+        /// 内存 GameState 上验「点数不够时到底扣没扣」——编辑模式下 <c>GameState.Instance</c>
+        /// 不保证被 Awake 赋值（实测为 null），走单例的入口在隔离夹具里根本跑不起来，
+        /// 于是这条最该被钉住的扣点逻辑反而没有回归守着。
+        /// </summary>
+        public static bool ApplyRouteRightOn(GameState gs, string origin, string destination,
+            int freedom, out string message)
         {
-            var gs = GameState.Instance;
             if (gs == null) { message = "无 GameState"; return false; }
             var stg = EnsureState(gs);
-            float govCost = 15f + freedom * 2f;
-            if (stg.governmentRelation < govCost) { message = "政府关系点数不足。"; return false; }
+            float govCost = RightCost(freedom);
+            if (stg.governmentRelation < govCost)
+            {
+                message = $"政府关系点数不足（本航权需 {govCost:F0} 点，当前 {stg.governmentRelation:F0} 点；"
+                          + $"每季自然回升 {GovernmentRelationPerQuarter:F0} 点）。";
+                return false;
+            }
             stg.governmentRelation -= govCost;
             stg.rights.Add(new RouteRight
             {
@@ -150,6 +172,40 @@ namespace AirlineCEO.Systems
             gs.AddDecisionLog("战略：" + message);
             gs.NotifyChanged();
             return true;
+        }
+
+        /// <summary>
+        /// 一条航权的政府关系成本：`15 + 2 × 航权自由度`（第五航权 = 25 点）。
+        ///
+        /// 单独成函数是因为**提案正文、办理闸门、实际扣点**三处都要报同一个数。
+        /// 各自写一遍 `15f + freedom * 2f` 的话，改了一处忘另一处，信里写 25 点、扣的却是别的数。
+        /// </summary>
+        public static float RightCost(int freedom) => 15f + freedom * 2f;
+
+        /// <summary>政府关系点数上限。</summary>
+        public const float GovernmentRelationCap = 100f;
+
+        /// <summary>
+        /// 政府关系每季自然回升（★2026-11-01）。
+        ///
+        /// 修的是一个**只减不增**的漏斗：全仓原先只有扣点（航权 25 点、异议公关 10 点），
+        /// 初值 50、任何地方都不回补 —— 一局最多办 2 条航权，办完就再也办不了，
+        /// 而国际线准入又硬性依赖航权额度（RoutePermitLogic.MissingPrerequisite 的缺口 1）。
+        /// 现实里政府关系是靠持续合规、航线表现与政治资源累积起来的，不是一次性配额。
+        ///
+        /// 回升取 2 点/季：一条第五航权（25 点）≈ 12.5 个季度的累积，长线经营才攒得出下一条，
+        /// 但不会让「透支点数」变成无痛操作。上限 100 与页面上「政府关系 / 100」的读数一致。
+        /// </summary>
+        public const float GovernmentRelationPerQuarter = 2f;
+
+        /// <summary>季末：政府关系自然回升（带上限，并兜住旧档可能出现的负值）。</summary>
+        public static void TickQuarter(GameState gs)
+        {
+            var stg = EnsureState(gs);
+            if (stg == null) return;
+            if (stg.governmentRelation < 0f) stg.governmentRelation = 0f;
+            stg.governmentRelation = Mathf.Min(GovernmentRelationCap,
+                stg.governmentRelation + GovernmentRelationPerQuarter);
         }
 
         public static string SlotBandName(int band) => band switch { 0 => "早", 1 => "中", 2 => "晚", _ => "夜" };

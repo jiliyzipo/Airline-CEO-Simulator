@@ -9,8 +9,9 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// n42 周计划 / n43 详细 / n66 航季 / n36 构建航班环。
-    /// Prefab 无法持久化 C# lambda，Awake/OnEnable 重绑；计划页用表格，环页用交互构建器。
+    /// n42 周计划 / n43 详细 / n66 航季。
+    /// Prefab 无法持久化 C# lambda，Awake/OnEnable 重绑；计划页用表格。
+    /// （★2026-11-01：n36「航班环」页整页删除，看板已搬进「机队 › 周计划及航班环」。）
     /// </summary>
     public class OpsSubpagePanel : BasePanel
     {
@@ -91,12 +92,8 @@ namespace AirlineCEO.UI
         public override void BindPage(string pageId, string title = null)
         {
             string kind = NormalizeKind(pageId);
-            if (kind == "n36" && string.IsNullOrEmpty(title))
-                title = "航班环 · 运营部编成";
             if (kind == "n43" && string.IsNullOrEmpty(title))
                 title = "航班飞行计划";
-            if (kind == "n98" && string.IsNullOrEmpty(title))
-                title = "航线分配";
             base.BindPage(pageId, title);
             _pageKind = kind;
             pageKind = _pageKind;
@@ -187,12 +184,6 @@ namespace AirlineCEO.UI
             if (titleLabel == null) return;
             switch (_pageKind)
             {
-                case "n36":
-                    titleLabel.text = "航班环 · 运营部编成";
-                    break;
-                case "n98":
-                    titleLabel.text = "航线分配";
-                    break;
                 case "n42":
                     titleLabel.text = "航班周总计划";
                     break;
@@ -220,36 +211,8 @@ namespace AirlineCEO.UI
         {
             ResolveRefs();
             var gs = GameState.Instance;
-            var card = transform.Find("Card");
 
-            // n36：航班环**只读**看板。CEO 不再点航段拼环（2026-10-30 重构），
-            // 编成由运营部在后台按六步流水线跑，批准也只发生在收件箱；本页只呈现结果。
-            if (_pageKind == "n36")
-            {
-                SetBodyVisible(false);
-                SetTableVisible(false);
-                HideSelector();
-                HideLegacyRingBuilder();
-                if (card != null) OpsRotationBoardUI.Ensure(card);
-                ApplyPanelTitle(null, null, -1);
-                return;
-            }
-
-            if (_pageKind == "n98")
-            {
-                SetBodyVisible(false);
-                SetTableVisible(false);
-                HideBoard();
-                HideLegacyRingBuilder();
-                if (card != null) OpsRouteRingSelectorUI.Ensure(card);
-                ApplyPanelTitle(null, null, -1);
-                return;
-            }
-
-            HideBoard();
-            HideLegacyRingBuilder();
-            HideSelector();
-
+            // ★2026-11-01：n36「航班环」页已删除，本类只负责 n42 / n43 / n66 三张表页。
             if (_pageKind == "n42" || _pageKind == "n43" || _pageKind == "n66")
             {
                 SetBodyVisible(false);
@@ -523,39 +486,15 @@ namespace AirlineCEO.UI
             UiTable.AddNote(_tableContent, "下一步：点「生成周总计划」。× 关闭整层；← 返回只退一层。");
         }
 
-        void HideSelector()
-        {
-            var sel = GetComponentInChildren<OpsRouteRingSelectorUI>(true);
-            if (sel != null) sel.gameObject.SetActive(false);
-        }
-
-        /// <summary>离开 n36 时把看板收起，免得它压在周计划表上。</summary>
-        void HideBoard()
-        {
-            var board = GetComponentInChildren<OpsRotationBoardUI>(true);
-            if (board != null) board.gameObject.SetActive(false);
-        }
-
-        /// <summary>旧版手工拼环层（预置体烘焙的 RingBuilder）：任何页面都不再启用。</summary>
-        void HideLegacyRingBuilder()
-        {
-            var legacy = GetComponentInChildren<OpsRingBuilderUI>(true);
-            if (legacy != null) legacy.gameObject.SetActive(false);
-        }
-
         static string NormalizeKind(string id)
         {
             if (string.IsNullOrEmpty(id)) return "";
             if (id.StartsWith("n42")) return "n42";
             if (id.StartsWith("n43")) return "n43";
             if (id.StartsWith("n66")) return "n66";
-            if (id.StartsWith("n36")) return "n36";
-            if (id.StartsWith("n98")) return "n98";
             if (id.Contains("周总")) return "n42";
             if (id.Contains("详细") || id.Contains("飞行计划")) return "n43";
             if (id.Contains("航季")) return "n66";
-            if (id.Contains("选择器")) return "n98";
-            if (id.Contains("航班环") || id.Contains("构建航班环")) return "n36";
             return id;
         }
     }

@@ -64,32 +64,30 @@ namespace AirlineCEO.UI
                 UITheme.TextMuted);
 
             UIFactory.Button(root, "BtnSeason", "航季总纲",
-                new UIFactory.Anchor(new Vector2(0.03f, 0.64f), new Vector2(0.22f, 0.71f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.03f, 0.64f), new Vector2(0.33f, 0.71f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => OpenOpsPage("n66_航季总纲"), 13);
             UIFactory.Button(root, "BtnWeek", "航班周计划",
-                new UIFactory.Anchor(new Vector2(0.24f, 0.64f), new Vector2(0.45f, 0.71f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.35f, 0.64f), new Vector2(0.64f, 0.71f), Vector2.zero, Vector2.zero),
                 UITheme.Accent, () => OpenOpsPage("n42_航班周总计划"), 13);
-            UIFactory.Button(root, "BtnRing", "航班环编成",
-                new UIFactory.Anchor(new Vector2(0.47f, 0.64f), new Vector2(0.68f, 0.71f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, () => OpenOpsPage("n36_航班环构建器"), 13);
+            // ★2026-11-01（用户裁定）：「航班环编成」按钮撤掉 —— 那块运营部看板已搬进
+            //   「机队 › 周计划及航班环」页签，同一块看板不再留两个入口。
             UIFactory.Button(root, "BtnRecalc", "重算调度",
-                new UIFactory.Anchor(new Vector2(0.70f, 0.64f), new Vector2(0.96f, 0.71f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.66f, 0.64f), new Vector2(0.96f, 0.71f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, RecalcAllRoutes, 13);
 
             UIFactory.Button(root, "BtnIrrops", "航班异常",
-                new UIFactory.Anchor(new Vector2(0.03f, 0.56f), new Vector2(0.18f, 0.63f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.03f, 0.56f), new Vector2(0.22f, 0.63f), Vector2.zero, Vector2.zero),
                 UITheme.Danger, OpenIrrops, 12);
             UIFactory.Button(root, "BtnBuyAdvise", "购机建议",
-                new UIFactory.Anchor(new Vector2(0.20f, 0.56f), new Vector2(0.38f, 0.63f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.24f, 0.56f), new Vector2(0.46f, 0.63f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, SubmitFleetAdvice, 12);
-            UIFactory.Button(root, "BtnAssign", "航线分配",
-                new UIFactory.Anchor(new Vector2(0.40f, 0.56f), new Vector2(0.58f, 0.63f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => OpenOpsPage("n98_航线航班环选择器"), 12);
+            // ★2026-11-01：原「航线分配」按钮（n98）已删除 —— 该页撤掉后加机改由命令台下达，
+            //   运营部在后台编成并回邮件，不再需要这个入口。
             UIFactory.Button(root, "BtnStg", "战略·时刻",
-                new UIFactory.Anchor(new Vector2(0.60f, 0.56f), new Vector2(0.78f, 0.63f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.48f, 0.56f), new Vector2(0.72f, 0.63f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, () => OpenShellTab("n16_战略发展部"), 12);
             UIFactory.Button(root, "BtnMx", "机务·停飞",
-                new UIFactory.Anchor(new Vector2(0.80f, 0.56f), new Vector2(0.96f, 0.63f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.74f, 0.56f), new Vector2(0.97f, 0.63f), Vector2.zero, Vector2.zero),
                 UITheme.PanelDeep, () => OpenShellTab("n17_机务工程部"), 12);
 
             UIFactory.Label(root, "RoutesTitle", "已开通航线", 15, TextAlignmentOptions.MidlineLeft,

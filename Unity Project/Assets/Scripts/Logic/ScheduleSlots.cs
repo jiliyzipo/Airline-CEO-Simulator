@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace AirlineCEO.Logic
 {
     /// <summary>
-    /// 航线时段预设（早/午/晚/红眼）。供航线分配（n98）、排班调整（S4）共用。
+    /// 航线时段预设（早/午/晚/红眼）。供命令台加班与运力调令、排班调整（S4）共用。
     /// 纯 C#，Unity 与 tools/balance 可复用。
     ///
     /// ★2026-10-15（CEO 问询后）**时段与时刻是两套东西**，本类把这件事写清楚：

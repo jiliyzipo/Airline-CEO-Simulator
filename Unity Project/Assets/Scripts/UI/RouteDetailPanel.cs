@@ -88,6 +88,47 @@ namespace AirlineCEO.UI
                 titleLabel.text = title;
         }
 
+        /// <summary>
+        /// 页面标题写**具体航班号**，不再只写栏目的本名。
+        ///
+        /// 报障（2026-11-01 截图）：标题只写「单航线」，CEO 在同一栏目下看不同班次时
+        /// 分不清眼前是哪一班的计划，必须靠下面那行航班号才对得上号。
+        /// 口径与 <see cref="OpsSubpagePanel"/> 的 n43「NS108 航班飞行计划」一致，
+        /// 只是本页是往返，去程/回程两个号一起写。
+        /// 没有具体航线（停飞 / 提案 / 未选择）时没有号可写，退回栏目本名。
+        /// </summary>
+        void ApplyFlightPlanTitle(string noA, string noB)
+        {
+            if (titleLabel == null) return;
+            if (string.IsNullOrEmpty(noA))
+            {
+                titleLabel.text = "单航线";
+                return;
+            }
+            titleLabel.text = string.IsNullOrEmpty(noB) ? $"{noA} 飞行计划" : $"{noA}/{noB} 飞行计划";
+        }
+
+        /// <summary>
+        /// 航线总览的标题写**城市对**：这一页不是某一班的飞行计划，而是本线**全部班次**的航班表。
+        ///
+        /// 2026-11-01 用户裁定：上一页（班次详情）才是「CD100/CD101 飞行计划」；
+        /// 这一页跑的是该航线在所有班次上的排班，身份是**航线本身**而不是某个号，
+        /// 故标题写「机场代码 + 机场名称 —— 机场代码 + 机场名称」：
+        /// 「CDG 巴黎戴高乐—BCN 巴塞罗那 航班计划」。
+        /// 航班号不写进标题：号段会随加密/减班变化，而这张表的范围永远是整条线。
+        /// 有了名称之后，正文里那行「巴黎戴高乐 CDG ⇄ 巴塞罗那 BCN」就是重复，已删。
+        /// </summary>
+        void ApplyScheduleTitle(RouteData r)
+        {
+            if (titleLabel == null) return;
+            if (r == null || string.IsNullOrEmpty(r.origin) || string.IsNullOrEmpty(r.destination))
+            {
+                titleLabel.text = "单航线";
+                return;
+            }
+            titleLabel.text = $"{AirportCatalog.Label(r.origin)}—{AirportCatalog.Label(r.destination)} 航班计划";
+        }
+
         protected override void Awake()
         {
             if (root == null) root = transform as RectTransform;
@@ -175,6 +216,8 @@ namespace AirlineCEO.UI
             Clear(_content);
 
             var r = CurrentRoute();
+            // 没有具体航线时没有航班号可写，标题退回栏目的本名。
+            ApplyScheduleTitle(null);
             if (r == null)
             {
                 string pending = FleetNetContext.SelectedRouteId;
@@ -242,12 +285,13 @@ namespace AirlineCEO.UI
         /// <summary>航线总览：紧凑摘要 + 全部班次列表（点班次进入周排班）。</summary>
         void RenderOverview(RouteData r, GameState gs, OpsEconomics.ScheduleMetrics m)
         {
-            L1("H", AirportCatalog.OdRoundTrip(r.origin, r.destination), 0.0f, 0.945f, 0.55f, 1.0f, 18, UITheme.TextPrimary, true);
             string stop = string.IsNullOrEmpty(r.stopover) ? "直飞" : $"经停 {r.stopover}";
-            FlightScheduleFormat.Numbers(r, 0, out string noA, out string noB);
-            L1("Sub", $"{noA}/{noB} · {stop} · {r.season}季 · 开航 {r.openedDate}",
-                0.0f, 0.888f, 0.55f, 0.938f, 12, UITheme.TextMuted);
-            WireKeywordNav(L1("Acs", FormatOperatingAircrafts(r, gs), 0.55f, 0.888f, 1.0f, 0.938f, 12,
+            ApplyScheduleTitle(r);
+            // 城市对已由标题承担（2026-11-01 用户裁定：标题写机场代码，下面那行删掉），
+            // 于是「直飞 · 季节 · 开航」和执飞飞机两行提上来补空出的那一行。
+            L1("Sub", $"{stop} · {r.season}季 · 开航 {r.openedDate}",
+                0.0f, 0.945f, 0.55f, 1.0f, 12, UITheme.TextMuted);
+            WireKeywordNav(L1("Acs", FormatOperatingAircrafts(r, gs), 0.55f, 0.945f, 1.0f, 1.0f, 12,
                 null, false, TextAlignmentOptions.MidlineRight));
 
             // 紧凑摘要：每行独立区间，最多两行，超出截断而不外溢
@@ -359,11 +403,13 @@ namespace AirlineCEO.UI
             var f = r.flights[_selFlight];
             var trip = FlightScheduleFormat.Trip(r, f);
             FlightScheduleFormat.Numbers(r, _selFlight, out string noA, out string noB);
+            ApplyFlightPlanTitle(noA, noB);
 
-            // 顶栏：航班号 + 城市对
-            L1("H", $"{noA} / {noB}", 0.0f, 0.945f, 0.5f, 1.0f, 18, UITheme.TextPrimary, true);
-            L1("Od", $"{AirportCatalog.Label(r.origin)} {r.origin}　⇄　{AirportCatalog.Label(r.destination)} {r.destination}",
-                0.5f, 0.945f, 1.0f, 1.0f, 13, UITheme.TextMuted, false, TextAlignmentOptions.MidlineRight);
+            // 顶栏只剩城市对：航班号已经写进页面标题（ApplyFlightPlanTitle），
+            // 这里再印一遍就是同一行字出现两次（2026-11-01 用户裁定合并）。
+            // Label() 本身就返回「城市 代码」，不要再拼一次 code，否则印成「CDG CDG」。
+            L1("Od", $"{AirportCatalog.Label(r.origin)}　⇄　{AirportCatalog.Label(r.destination)}",
+                0.0f, 0.945f, 0.75f, 1.0f, 13, UITheme.TextMuted, false, TextAlignmentOptions.MidlineLeft);
             L1("Sub", $"第 {_selFlight + 1} / {r.FlightCount} 班 · {r.season}季 · "
                       + (string.IsNullOrEmpty(f.registration) ? RouteData.UnassignedAircraftLabel : r.aircraftType)
                       + $" · {(string.IsNullOrEmpty(f.slotLabel) ? "—" : f.slotLabel)}",
@@ -484,8 +530,8 @@ namespace AirlineCEO.UI
         /// · <b>本机日利用</b> = 该机号**全部航线**的周均轮挡（一圈 2 段、不含过站），
         ///   与 <see cref="EconomyBalanceParams.TargetDailyUtilizationHours"/> 对比 ——
         ///   这是「还剩多少时间可以再串一条线」唯一可比的读数；
-        /// · <b>点此串环</b> 落到 n98「航线/航班环选择器」，落地时把本机号写进上下文
-        ///   （见 <see cref="OnKeyword"/>），免得打开的是「上一次选中的那架机」。
+        /// · <b>点此串环</b> 原先落到 n98 让 CEO 手工绑环。★2026-11-01 该页整页删除，
+        ///   串环改由运营部后台编成，故这里改为指向「机队 → 周计划及航班环」看结果。
         ///
         /// 无执飞机时**不得**说「未串环」：连飞机都没有，谈不上串不串环。旧版把
         /// <see cref="RouteData.UnassignedAircraftLabel"/> 当机号去查环，必然查不到，
@@ -499,7 +545,7 @@ namespace AirlineCEO.UI
             string util = $"本机日利用 {AircraftDailyUtilHours(gs, reg):F1}/{EconomyBalanceParams.TargetDailyUtilizationHours:0}h";
             var ring = FindRing(gs, r, reg);
             if (ring == null)
-                return $"未串环 · {util} · " + TermNavMap.PageLink("n98_航线航班环选择器", "点此串环 ›");
+                return $"未串环 · {util} · 由运营部后台编环，可在命令台说「把基地的飞机编满」";
 
             // 合格是常态，只把例外印出来 —— 这一行是单行截断的，多两个字就可能把后面的日利挤没了。
             return $"航班环 {ring.ringId}（过站 {ring.turnMinutes} 分{(ring.valid ? "" : " · 未通过")}）· {util}";
@@ -623,21 +669,8 @@ namespace AirlineCEO.UI
                 OpenAircraft(hit.routeKey);
                 return;
             }
-            // 「点此串环」→ n98「航线/航班环选择器」：落地页按 OpsSubpageContext 选机，
-            // 不把本页这架机写进去，就会打开「上一次选中的那架机」，玩家以为串错了。
-            if (hit.pageId != null && hit.pageId.StartsWith("n98"))
-            {
-                string reg = "";
-                var r0 = CurrentRoute();
-                if (r0 != null)
-                {
-                    r0.EnsureFlights();
-                    var f0 = (_selFlight >= 0 && _selFlight < r0.flights.Count) ? r0.flights[_selFlight] : null;
-                    reg = f0 != null && !string.IsNullOrEmpty(f0.registration) ? f0.registration : r0.registration;
-                }
-                if (!string.IsNullOrEmpty(reg) && reg != RouteData.UnassignedAircraftLabel)
-                    OpsSubpageContext.SelectedRegistration = reg;
-            }
+            // ★2026-11-01：n98「航线分配」已整页删除，串环不再由 CEO 手工绑定。
+            //   原先这里要给 n98 预置机号上下文，现无落地页，相关分支一并撤掉。
             // ★2026-10-19：本页正文也会走 TermNavMap.Decorate，于是航班号（flight:→n43）与
             // 三字码对（route:→n41）这类带键链接会出现在这里。落地页按上下文键选对象，
             // 不把键写回去就会打开「上一次选中的航线」—— 看着跳了，跳的是别人。

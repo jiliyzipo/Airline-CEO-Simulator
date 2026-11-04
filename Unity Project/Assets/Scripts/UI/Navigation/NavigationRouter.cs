@@ -290,7 +290,8 @@ namespace AirlineCEO.UI.Navigation
         {
             if (string.IsNullOrEmpty(pageId)) return false;
             return pageId.StartsWith("n6_") || pageId.StartsWith("n7_") || pageId.StartsWith("n8_")
-                   || pageId.StartsWith("n110") || pageId.StartsWith("n111")
+                   || pageId.StartsWith("n110")
+                   || (pageId.StartsWith("n111") && !pageId.Contains("二级市场"))
                    || pageId.StartsWith("n12_") || pageId.StartsWith("n28_")
                    || pageId.StartsWith("n30_") || pageId.StartsWith("n38_")
                    || pageId.StartsWith("n21_") || pageId.StartsWith("n104_")

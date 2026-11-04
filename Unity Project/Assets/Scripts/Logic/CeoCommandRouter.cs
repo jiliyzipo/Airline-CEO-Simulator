@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using AirlineCEO.Data;
 
 namespace AirlineCEO.Logic
@@ -85,6 +86,34 @@ namespace AirlineCEO.Logic
             public int channel;
             /// <summary>招聘紧迫度（1 常规 / 2 较急 / 3 紧急）。</summary>
             public int urgency;
+
+            /// <summary>
+            /// 「在某一刻加一班」的目标时刻（`"HH:mm"`，如 `06:30`）。
+            ///
+            /// ★2026-11-01：n98「航线分配」页删掉后，加班入口收敛到命令台。
+            /// 运力调令（<see cref="TopicCapacity"/>）说的是「一天几班」，铺哪些时刻由运营部安排；
+            /// 而 CEO 说「06:30 加一班」时点的是**一个具体的槽** —— 两者口径不同，故单列一个话题。
+            /// </summary>
+            public string clock;
+
+            /// <summary>
+            /// 时刻槽事务的渠道：`true` = 二级市场买入（付费、当场成交），
+            /// `false` = 协调池申请（免费、排队、批准后按天交割）。见 <see cref="TopicSlotDeal"/>。
+            /// </summary>
+            public bool slotBuy;
+
+            /// <summary>
+            /// 原话里带「加急」一类的字眼（开航）：研究会当日会商，纪要几小时内进收件箱。
+            ///
+            /// ★2026-11-03 报障：「在命令台输入『开通 PEK-SZX 的加急航线』，当天没收到邮件，
+            /// 依旧是 2 日后回复」。病根是「加急」只被招聘的紧迫度词表接住，开航这条路
+            /// 把这四个字**默默丢掉**了 —— CEO 以为下了加急令，实际按常规节奏走。
+            ///
+            /// 语义边界刻意划清：加急只压**运营部内部会商**（那是自己的部门，CEO 说了算）；
+            /// 局方审查的工期不在这一步压缩，仍由受理后的「加急请示」花
+            /// <see cref="PermitTimeline.RushCostPoint"/> 点来换。
+            /// </summary>
+            public bool rush;
         }
 
         /// <summary>把一个名字片段解析成三字码；解不出返回 null。用于把「在营航线」也当词表。</summary>
@@ -100,6 +129,16 @@ namespace AirlineCEO.Logic
         public const string TopicHrRecruit = "hr_recruit";
         /// <summary>融资请示：说「申请银行贷款」→ 财务部发融资请示件。</summary>
         public const string TopicFinance = "finance_request";
+        /// <summary>
+        /// 时刻槽买卖 / 申请（2026-11-03）：CEO 说「购买 SIN 12:00 时刻槽」。
+        ///
+        /// ★报障原话：「命令台输入：购买 SIN 12:00 时刻槽，收到完全无关的邮件」——
+        /// 旧版这句话里只有「时刻槽」落在 <see cref="OpsWords"/> 上，于是被派给了运营部，
+        /// 回了一封「8 条航线 · 周 112 班 · 准点 80%」的网络总账：槽没买、账没动，
+        /// 却像受理了一样。买入/申请是**写**指令，必须被认出来并交到既有渠道
+        /// （二级市场成交 / 协调池申请），办不成也要如实说办不成。
+        /// </summary>
+        public const string TopicSlotDeal = "slot_deal";
         /// <summary>运力调令（加减班 / 改班期 / 换机号）：不自己改账，交给既有运力管线。</summary>
         public const string TopicCapacity = "capacity";
         /// <summary>
@@ -110,6 +149,17 @@ namespace AirlineCEO.Logic
         public const string TopicRotation = "rotation_plan";
         /// <summary>问某一条**具体航线**的现状（班期/为什么没排/几班/谁飞）：交运营部按本线台账答复。</summary>
         public const string TopicRouteQuery = "route_query";
+        /// <summary>
+        /// 具体时刻加一班（2026-11-01）：CEO 说「06:30 给北京—上海加一班」。
+        ///
+        /// 与 <see cref="TopicCapacity"/> 的分工：调令说的是**一天几班**（加密/削减），
+        /// 铺哪几个时刻由运营部按机队条件算；本话题点的是**一个具体的时刻槽**（如 06:30）。
+        /// 为什么单列：n98「航线分配」页删掉后，CEO 原先在页面上点时刻加班的路径没了，
+        /// 而这条路径要办的事（占一个具体槽）与「加密到每天 3 班」并不等价 ——
+        /// 加密由运营部挑时刻，加时刻是 CEO 指定时刻，两者不能互相顶替。
+        /// 落账仍然走呈报（<c>InboxManager.QueueAssignFlight</c>），本话题只负责认出意图与参数。
+        /// </summary>
+        public const string TopicAddFlight = "add_flight";
         /// <summary>公司整体经营（跨部门判断）：由航空顾问答，不归任何单一部门。</summary>
         public const string TopicCompany = "company";
 
@@ -356,6 +406,21 @@ namespace AirlineCEO.Logic
                 }
             }
 
+            // ①a 时刻槽买卖 / 申请（2026-11-03）。
+            //    必须排在部门词表**之前**：这句话里唯一像个部门词的就是「时刻槽」，
+            //    掉进词表就是运营部一封网络总账 —— 槽没动、账没动，却像受理了（用户报障）。
+            if (TryReadSlotDeal(text, out CeoAsk slotAsk)) return slotAsk;
+
+            // ①a′ 具体时刻加一班（2026-11-01）：CEO 说「06:30 给北京—上海加一班」。
+            //
+            //    ★为什么要有这一条：n98「航线分配」页整页删掉后，CEO 原先在页面上点一个
+            //    具体时刻加班的路径没了。而「加密到每天 3 班」只说了**数量**，铺哪几个时刻
+            //    由运营部按机队窗口算 —— 如果 CEO 要的就是 06:30 这一格，调令办不到这件事。
+            //    故这里单认一类句子：**加班的动词 + 一个具体时刻**。
+            //    判据刻意要求明确时刻（HH:mm 或早/午/晚/红眼班）：没有时刻的「加一班」
+            //    仍然交给 ①b 的运力管线（由运营部挑时刻），不在这里抢。
+            if (TryReadAddFlight(text, extra, contextRouteKey, out CeoAsk addAsk)) return addAsk;
+
             // ①b 运力调令：加减班 / 改班期 / 换机号。
             //    **必须能切出「出发地—目的地」才算调令** —— 判据直接用运力管线自己的
             //    HasDirectiveSignal（增/减/维持/派机四族），不另起一套词表：
@@ -596,6 +661,15 @@ namespace AirlineCEO.Logic
         // ———— 四类写指令的词表与参数读取 ————
 
         static readonly string[] OpenVerbs = { "开通", "开航", "新开", "开辟" };
+
+        /// <summary>
+        /// 开航「加急」词表（2026-11-03）。
+        ///
+        /// 只在 <see cref="TryOpenRoute"/> 里用：CEO 已经把航线点明，这些词只可能是在催进度；
+        /// 反过来在别的语境里它们是模糊的（「紧急融资」有自己的词表），所以不做全局词。
+        /// </summary>
+        static readonly string[] RushWords =
+            { "加急", "紧急", "尽快", "当天", "今天就要", "今天就", "马上", "立刻", "立即" };
         static readonly string[] BuyVerbs = { "购买", "购置", "采购", "订购", "引进", "买" };
         static readonly string[] RecruitVerbs = { "招聘", "招募", "招收", "招" };
 
@@ -652,7 +726,9 @@ namespace AirlineCEO.Logic
                 origin = o,
                 dest = d,
                 originText = ot,
-                destText = dt
+                destText = dt,
+                // ★2026-11-03：把「加急」带下去 —— 丢了它就等于 CEO 说了不听。
+                rush = HasAny(text, RushWords)
             };
             return true;
         }
@@ -881,6 +957,162 @@ namespace AirlineCEO.Logic
         }
 
         // ———— 机场名解析 ————
+
+        // ———— 具体时刻加一班（2026-11-01）————
+
+        /// <summary>
+        /// 加班动词。刻意不收裸「加」：裸「加」在「加密到每天 3 班」「加到 5 班」里到处都是，
+        /// 放开它会把运力调令抢成「在某一刻加一班」。
+        /// </summary>
+        static readonly string[] AddFlightWords =
+        {
+            "加一班", "加个航班", "加航班", "补一班", "再排一班", "排一班", "加一架", "加机"
+        };
+
+        /// <summary>
+        /// 「在某一刻加一班」的意图判定。命中才返回 true，参数不全时返回 false（交给后面的分支）。
+        ///
+        /// 三个条件缺一不可：
+        /// <list type="number">
+        /// <item>有加班动词（<see cref="AddFlightWords"/>）；</item>
+        /// <item>有**具体时刻**（`HH:mm` 或早/午/晚/红眼班）—— 没有时刻就是「加一班」的数量问题，
+        ///   那是 ①b 运力调令的地盘，由运营部挑时刻；</item>
+        /// <item>能定位到航线（城对 / 班号 / 单航线页的上下文）。定位不到不返回，
+        ///   让句子照常走部门词表，绝不猜一条线去动它的班次。</item>
+        /// </list>
+        /// </summary>
+        static bool TryReadAddFlight(string text, PieceResolver extra, string contextRouteKey, out CeoAsk ask)
+        {
+            ask = default;
+            if (string.IsNullOrEmpty(text)) return false;
+            if (CapacityDirectiveLogic.LooksLikeQuestion(text)) return false;
+            if (!HasAny(text, AddFlightWords)) return false;
+            // 「加密到每天 3 班」哪怕同时写了时刻，说的也是**每日班次**，不归这里
+            if (Has(text, "加密") || Has(text, "每天") || Has(text, "每日")) return false;
+
+            string clock = ReadAddClock(text);
+            if (string.IsNullOrEmpty(clock)) return false;
+
+            string flightNo = TryReadFlightNumber(text, out string fn) ? fn : null;
+            bool pair = SplitPair(text, extra, out string o, out string d, out string ot, out string dt);
+            if (!pair && flightNo == null && string.IsNullOrEmpty(contextRouteKey)) return false;
+
+            ask.deptCode = "OPS";
+            ask.kind = CeoAskKind.Act;
+            ask.topic = TopicAddFlight;
+            ask.ok = true;
+            ask.clock = clock;
+            ask.origin = o;
+            ask.dest = d;
+            ask.originText = ot;
+            ask.destText = dt;
+            ask.flightNumber = flightNo;
+            ask.contextRouteKey = contextRouteKey;
+            return true;
+        }
+
+        // ———— 时刻槽买卖 / 申请（2026-11-03）————
+
+        /// <summary>买入渠道的说法（二级市场：付费、当场过户）。</summary>
+        static readonly string[] SlotBuyWords = { "购买", "购入", "买入", "收购", "买下", "买一条", "买" };
+
+        /// <summary>免费渠道的说法（协调池：排队、批准后按天交割）。</summary>
+        static readonly string[] SlotApplyWords = { "申请", "协调池", "协调" };
+
+        /// <summary>
+        /// 「购买 / 申请 <b>某一个时刻</b>的时刻槽」的意图判定。
+        ///
+        /// 三个条件：① 句中真的在说时刻槽（「时刻槽 / 槽位」）；② 有买入或申请的说法；
+        /// ③ 不是问句（「为什么缺时刻槽」归运营部答，那是读）。
+        ///
+        /// 参数不全（没机场 / 没时刻）**仍然返回 true**，只是 `ok=false` 并附上引导 ——
+        /// 这一点与「加一班」的判据不同，是刻意的：句子已经点明是买卖时刻槽，
+        /// 落到部门词表只会换来一封不相干的汇报。宁可说「请补机场和时刻」，也不能装作受理。
+        /// </summary>
+        static bool TryReadSlotDeal(string text, out CeoAsk ask)
+        {
+            ask = default;
+            if (string.IsNullOrEmpty(text)) return false;
+            if (!Has(text, "时刻槽") && !Has(text, "槽位")) return false;
+            if (CapacityDirectiveLogic.LooksLikeQuestion(text)) return false;
+
+            bool wantsBuy = HasAny(text, SlotBuyWords);
+            bool wantsApply = !wantsBuy && HasAny(text, SlotApplyWords);
+            if (!wantsBuy && !wantsApply) return false;
+
+            ask.deptCode = "STG";
+            ask.kind = CeoAskKind.Act;
+            ask.topic = TopicSlotDeal;
+            ask.slotBuy = wantsBuy;
+            ask.origin = ReadSlotAirport(text);
+            ask.clock = ReadAddClock(text);
+
+            if (string.IsNullOrEmpty(ask.origin) || string.IsNullOrEmpty(ask.clock))
+            {
+                ask.ok = false;
+                ask.note = "时刻槽要说清「机场 + 时刻」。例：购买 SIN 12:00 时刻槽（二级市场，付费当场成交）；"
+                         + "申请 SIN 12:00 时刻槽（协调池，免费，批准后按天交割）。本次未向任何部门派件。";
+                return true;
+            }
+            ask.ok = true;
+            return true;
+        }
+
+        /// <summary>
+        /// 原话里点名的机场。三字码（SIN）与中文名（新加坡、上海浦东）都认；
+        /// 中文名**取最长命中**，免得「上海浦东」被「上海」抢先认成虹桥。
+        /// </summary>
+        static string ReadSlotAirport(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            var list = AirportCatalog.Airports;
+            string best = null;
+            int bestLen = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var a = list[i];
+                if (string.IsNullOrEmpty(a.code) || string.IsNullOrEmpty(a.nameZh)) continue;
+                if (a.nameZh.Length < 2 || a.nameZh.Length <= bestLen) continue;
+                if (text.IndexOf(a.nameZh, StringComparison.Ordinal) >= 0) { best = a.code; bestLen = a.nameZh.Length; }
+            }
+            if (!string.IsNullOrEmpty(best)) return best;
+
+            var m = Regex.Match(text.ToUpperInvariant(), @"(?<![A-Z])[A-Z]{3}(?![A-Z])");
+            if (m.Success)
+            {
+                var a = AirportCatalog.FindByCode(m.Value);
+                if (!string.IsNullOrEmpty(a.code)) return a.code;
+            }
+            return "";
+        }
+
+        static readonly Regex RxClock = new Regex(@"(\d{1,2})\s*[:：]\s*(\d{2})", RegexOptions.Compiled);
+
+        /// <summary>
+        /// 从原话里读一个具体时刻，返回 `"HH:mm"`；读不到返回空串。
+        /// 时刻以 `HH:mm` 为准（n98 当年就是这个口径：06:30 与 07:00 各占各的槽）；
+        /// 只说了「早班」这类时段名时，折成该波峰的峰点（08:00 等），与
+        /// <see cref="ScheduleSlots.BandNameToClock"/> 同一口径。
+        /// </summary>
+        static string ReadAddClock(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            var m = RxClock.Match(text);
+            if (m.Success
+                && int.TryParse(m.Groups[1].Value, out int h)
+                && int.TryParse(m.Groups[2].Value, out int mi)
+                && h >= 0 && h <= 23 && mi >= 0 && mi <= 59)
+                return $"{h:00}:{mi:00}";
+
+            for (int i = 0; i < ScheduleSlots.Labels.Length; i++)
+                if (text.IndexOf(ScheduleSlots.Labels[i], StringComparison.Ordinal) >= 0)
+                    return ScheduleSlots.DepTimes[i];
+            for (int i = 0; i < ScheduleSlots.SlotBands.Length; i++)
+                if (text.IndexOf(ScheduleSlots.SlotBands[i] + "班", StringComparison.Ordinal) >= 0)
+                    return ScheduleSlots.DepTimes[i];
+            return "";
+        }
+
 
         /// <summary>
         /// 从一句话里抽「出发地—目的地」。

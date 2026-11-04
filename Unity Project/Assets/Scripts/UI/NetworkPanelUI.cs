@@ -51,20 +51,23 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.02f, 0.94f), new Vector2(0.12f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary, FontStyles.Bold);
 
+            // ★2026-11-02（用户裁定）：二级市场不再是模块级页签，改为「航权与时刻槽」内的二级标签。
+            //   理由：它是「取得时刻槽」的另一条渠道，与协调池申请是同一件事的两面；
+            //   摆在模块级会让玩家以为航权和市场是两个不相干的板块，还得记住哪页买、哪页申请。
             string[] labels = { "航线总览", "航权与时刻槽", "城市经济指数", "运力缺口", "开通新航线" };
             var bar = UIFactory.Panel(root, "NetTabs",
                 new UIFactory.Anchor(new Vector2(0.13f, 0.935f), new Vector2(0.97f, 0.995f), Vector2.zero, Vector2.zero),
                 new Color(0.04f, 0.10f, 0.18f, 0.55f));
             bar.GetComponent<Image>().raycastTarget = false;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < labels.Length; i++)
             {
                 int idx = i;
-                float x0 = i / 5f;
-                float x1 = (i + 1) / 5f;
+                float x0 = i / (float)labels.Length;
+                float x1 = (i + 1) / (float)labels.Length;
                 _tabs[i] = UIFactory.Button(bar.transform, "NT" + i, labels[i],
-                    new UIFactory.Anchor(new Vector2(x0 + 0.008f, 0.08f), new Vector2(x1 - 0.008f, 0.92f),
+                    new UIFactory.Anchor(new Vector2(x0 + 0.006f, 0.08f), new Vector2(x1 - 0.006f, 0.92f),
                         Vector2.zero, Vector2.zero),
-                    i == 4 ? UITheme.Accent : UITheme.NavIdle, () => SetTab(idx), 13);
+                    i == labels.Length - 1 ? UITheme.Accent : UITheme.NavIdle, () => SetTab(idx), 12);
             }
 
             _overviewRoot = UIFactory.Panel(root, "Overview",
@@ -98,7 +101,7 @@ namespace AirlineCEO.UI
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             _rightsRoot = UIFactory.Panel(root, "Rights",
-                new UIFactory.Anchor(new Vector2(0.01f, 0.02f), new Vector2(0.99f, 0.92f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.005f, 0.015f), new Vector2(0.995f, 0.925f), Vector2.zero, Vector2.zero),
                 new Color(0, 0, 0, 0));
             var rrImg = _rightsRoot.GetComponent<Image>();
             if (rrImg != null) { rrImg.color = new Color(0, 0, 0, 0); rrImg.raycastTarget = false; }
@@ -171,6 +174,20 @@ namespace AirlineCEO.UI
             SetTab(2);
         }
 
+        /// <summary>
+        /// 深链入口：切到「航权与时刻槽」页签，并停在**二级标签「时刻二级市场」**上
+        /// （二级市场购买意向邮件、n111 深链用 —— 市场现在没有独立的模块页签）。
+        /// </summary>
+        public void ShowSlotMarketTab()
+        {
+            SetTab(1);
+            if (_rightsPanel != null)
+            {
+                _rightsPanel.SubTab = 1;
+                _rightsPanel.RefreshBody();
+            }
+        }
+
         /// <summary>深链入口：切到「航权与时刻槽」页签（收件箱「详见」/ 终端导航 n77 用）。</summary>
         public void ShowRightsTab()
         {
@@ -201,7 +218,7 @@ namespace AirlineCEO.UI
 
         void OnStateChanged()
         {
-            if (_tab == 2) return;   // 城市经济指数自行重建
+            if (_tab == 3) return;   // 城市经济指数自行重建
             Refresh();
         }
 
@@ -238,7 +255,7 @@ namespace AirlineCEO.UI
             if (_tabs != null && _tabs.Length > 3 && _tabs[3] != null)
             {
                 // 页签文案固定为「运力缺口」，后面不带数字：
-                // 与其余页签（航线总览 / 航权与时刻槽 / 城市经济指数 / 开通新航线）保持一致，
+                // 与其余页签（航线总览 / 航权与时刻槽 / 城市经济指数 / 运力缺口 / 开通新航线）保持一致，
                 // 且居中页签的文字宽度不会随缺口大小左右晃动。
                 // 缺口数量在下方 KPI 行「缺口 N 架（X%）」给出，页签本身只用颜色提示严重度。
                 var img = _tabs[3].GetComponent<Image>();
@@ -455,7 +472,10 @@ namespace AirlineCEO.UI
             var permits = RoutePermitLogic.InFlightPermits(gs);
             for (int i = 0; i < permits.Count; i++)
             {
-                string line = "拟开航 · 准入办理中 · " + RoutePermitLogic.ProgressLine(permits[i])
+                string line = "拟开航 · 准入办理中 · " + RoutePermitLogic.ProgressLine(permits[i],
+                    AirlineCEO.Systems.GameState.Instance != null
+                        ? AirlineCEO.Systems.GameState.Instance.SimUtc
+                        : System.DateTime.UtcNow)
                     + "\n进度见「航权与时刻槽」；异议或重申在收件箱处理";
                 var pl = UIFactory.Label(_listRoot, "Permit" + i, line, 13,
                     TextAlignmentOptions.TopLeft,
@@ -563,13 +583,18 @@ namespace AirlineCEO.UI
         /// <summary>
         /// 内嵌「航权与时刻槽」（n77）：复用 STG 子页面板，挂在本模块的页签宿主下。
         /// 与从「愿景」打开是同一份渲染逻辑（StrategySubpagePanel），数据源同为 GameState，不产生第二套状态。
+        ///
+        /// ★2026-11-02（用户裁定）：改为 <c>embedded: true</c> —— 面板不再套自己的遮罩与卡片边框，
+        /// 正文直接铺满本模块给的整块内容区。旧版这里是两层内边距（模块 1% + 卡片 6%/8%）叠加，
+        /// 等于把模块页签已经画好的边框又画了一遍，四周白白让出约 15% 面积。
+        /// 「时刻二级市场」则成为该面板内的二级标签（见 StrategySubpagePanel.RenderRightsHub）。
         /// </summary>
         void EnsureRightsEmbed()
         {
             if (_rightsRoot == null) return;
             if (_rightsPanel == null)
             {
-                _rightsPanel = StrategySubpagePanel.Build("n77", "航权与时刻槽");
+                _rightsPanel = StrategySubpagePanel.Build("n77", "航权与时刻槽", embedded: true);
                 _rightsPanel.transform.SetParent(_rightsRoot.transform, false);
                 var rt = _rightsPanel.GetComponent<RectTransform>();
                 if (rt != null)

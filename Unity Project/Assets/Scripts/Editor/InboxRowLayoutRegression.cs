@@ -90,7 +90,10 @@ namespace AirlineCEO.EditorTools
                 //    「特大」1.30 下 52px 的行装不下 21px + 18px 两行字。
                 all &= CheckRowHeights();
 
-                if (all) Debug.Log("收件箱列表行排版：单行收敛 + 日期前缀去除 + 行高随字号缩放，5 组口径全部通过");
+                // ⑥ 主题与时间同带（2026-11-03 报障：「主题和时间一高一低」）
+                all &= CheckSubjectTimeAligned();
+
+                if (all) Debug.Log("收件箱列表行排版：单行收敛 + 日期前缀去除 + 行高随字号缩放 + 主题时间同带，6 组口径全部通过");
                 return all;
             }
             finally
@@ -98,6 +101,58 @@ namespace AirlineCEO.EditorTools
                 Accessibility.SetFontScale(FontScale.Standard);
                 Object.DestroyImmediate(go);
             }
+        }
+
+        /// <summary>
+        /// ⑥ 主题与时间必须共用同一条下带（2026-11-03 报障：「左侧邮件主题和时间的位置没有对齐，一高一低」）。
+        ///
+        /// 旧版把时间钉在发件人那条带（[0.52,0.95]），而发件人常常只有三个字（「运营部」），
+        /// 列表看上去就只剩「主题」和悬在它上方的「时间」两截。判定三条：
+        /// ① 两者的上下沿完全相同；② 左右不重叠（主题右界 ≤ 时间左界）；
+        /// ③ 下带在「特大」字号下仍装得下主题那行字（挪下来不能挤压）。
+        /// canary：把「时间放回上带」这个已知错误口径喂进同一个判定，它必须拒绝。
+        /// </summary>
+        static bool CheckSubjectTimeAligned()
+        {
+            bool all = true;
+
+            var subject = InboxPanelUI.SubjectAnchor();
+            var time = InboxPanelUI.TimeAnchor();
+            bool sameBand = Mathf.Approximately(subject.min.y, time.min.y)
+                            && Mathf.Approximately(subject.max.y, time.max.y);
+            bool noOverlap = subject.max.x <= time.min.x + 0.0001f;
+            if (!sameBand || !noOverlap)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑥ 主题与时间没对齐：主题 y[{subject.min.y},{subject.max.y}] x≤{subject.max.x}，"
+                               + $"时间 y[{time.min.y},{time.max.y}] x≥{time.min.x}"
+                               + "（须同带且不重叠）");
+            }
+
+            // canary：旧口径（时间上带）必须被判为「不同带」
+            var wrong = new UIFactory.Anchor(new Vector2(0.68f, 0.52f), new Vector2(0.97f, 0.95f),
+                Vector2.zero, Vector2.zero);
+            bool wrongRejected = !(Mathf.Approximately(subject.min.y, wrong.min.y)
+                                   && Mathf.Approximately(subject.max.y, wrong.max.y));
+            if (!wrongRejected)
+            {
+                all = false;
+                Debug.LogError("列表行-⑥ canary 失效：判定放过了「时间钉在发件人带上」这个已知错误口径");
+            }
+
+            // 「特大」字号下下带仍装得下主题那行字
+            Accessibility.SetFontScale(FontScale.XLarge);
+            float mult = Accessibility.FontMultiplier();
+            float rowH = InboxPanelUI.RowHeight();
+            int subjectFont = Mathf.RoundToInt((12 + 2) * mult);
+            float band = rowH * (InboxPanelUI.SubjectBandMax - InboxPanelUI.SubjectBandMin);
+            Accessibility.SetFontScale(FontScale.Standard);
+            if (band < subjectFont)
+            {
+                all = false;
+                Debug.LogError($"列表行-⑥「特大」下主题带装不下：band={band:F1} < 字号 {subjectFont}");
+            }
+            return all;
         }
 
         /// <summary>

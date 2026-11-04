@@ -95,7 +95,8 @@ namespace AirlineCEO.Logic
                 if (international && !rightOk)
                     sb.Append(InboxLetter.Bullet($"航权未落定：{o}—{d} 这条线的双边额度还没拿到。"
                         + "这是国际线的第一道闸，没有它后面的许可一律批不下来 —— "
-                        + "请到「战略 → 航权与时刻槽」申请/竞标，批复后再回「开通新航线」递件。"));
+                        + "先进「开通新航线」递件：许可审查发现缺这一对航权时，运营部会把航权申请自动送进收件箱，"
+                        + "批准后下季办结（每条约 25 点政府关系，点数每季自然回升）。"));
                 if (international && !crewOk)
                     sb.Append(InboxLetter.Bullet("国际运行资质缺口：需至少 1 名海外引进渠道的运行人员，"
                         + "或把培训中心升到 3 级后给飞行员考取「国际运行资质」。"));
@@ -494,6 +495,162 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
+        /// 具体时刻加一班（2026-11-01）：命令台说「06:30 给北京—上海加一班」。
+        ///
+        /// 与运力调令分开的理由：调令说的是**一天几班**，铺哪些时刻由运营部按机队窗口安排；
+        /// 本指令点的是**一个具体时刻槽**。混进调令会让「06:30 加一班」被办成「加密到每天 N 班」，
+        /// 时刻由系统自己挑 —— CEO 要的那一格未必被排上。
+        /// 执行仍然交给既有管线（<see cref="InboxManager.QueueAddFlightByOps"/> → 呈报待批），
+        /// 本方法只负责认线与回一句话。
+        /// </summary>
+        static DeptAnswer AddFlightDirective(GameState gs, CeoCommandRouter.CeoAsk ask, string raw)
+        {
+            if (string.IsNullOrEmpty(ask.clock))
+                return Fail("没读到要加在哪一刻。例：06:30 给北京—上海加一班。");
+
+            if (!TryResolveRoute(gs, ask, raw, out RouteData route))
+                return Fail(DescribeMissingRoute(gs, ask, asking: false));
+
+            int samePair = string.IsNullOrEmpty(ask.contextRouteKey) && ask.flightNumber == null
+                ? CountRoutePair(gs, route.origin, route.destination)
+                : 1;
+            if (samePair > 1)
+            {
+                string eg = FirstFlightNumberOf(gs, route.origin, route.destination);
+                return Fail($"{route.origin}—{route.destination} 有 {samePair} 条在营航线"
+                            + $"（{FlightNumbersOf(gs, route.origin, route.destination)}），"
+                            + $"请指明班号{(string.IsNullOrEmpty(eg) ? "" : "（例：" + eg + "）")}；本次未作呈报。");
+            }
+
+            return new DeptAnswer
+            {
+                ok = true,
+                needsRun = true,
+                ask = ask,
+                routeKey = route.routeId,
+                deptCode = "OPS",
+                sender = "运营部",
+                role = "加班呈报",
+                glyph = "运",
+                subject = $"加机呈报 {route.origin}—{route.destination} {ask.clock}",
+                oneLine = $"{route.origin}—{route.destination} {ask.clock}"
+            };
+        }
+
+        /// <summary>
+        /// 真正下达：交运营部「挑一架排得进的机 → 呈报」的那条既有管线。
+        ///
+        /// 之所以不让命令台自己挑机：挑机要一起判值勤上限、过站、宵禁、串飞（
+        /// <see cref="OpsRotationLogic.PickForWindow"/>），那是运营部的排班口径；
+        /// 命令台只该把「哪条线、哪一刻」讲清楚。
+        /// </summary>
+        public static bool RunAddFlight(GameState gs, string routeKey, string clock, string raw, out string receipt)
+        {
+            receipt = "";
+            if (gs == null) { receipt = "游戏尚未就绪。"; return false; }
+
+            var route = RouteCloseLogic.FindByRouteId(gs, routeKey);
+            if (route == null)
+            {
+                receipt = "这条航线已不在运营，本次指令作废（未改动任何台账）。";
+                return false;
+            }
+
+            bool ok = InboxManager.QueueAddFlightByOps(gs, route, clock, out string msg);
+            receipt = string.IsNullOrEmpty(msg)
+                ? $"{route.origin}—{route.destination} {clock}：运营部已受理，结果以邮件呈报。"
+                : msg;
+            return ok;
+        }
+
+        /// <summary>
+        /// 时刻槽买卖 / 申请（2026-11-03）：命令台说「购买 SIN 12:00 时刻槽」。
+        ///
+        /// 与页面同一套渠道，绝不新开第三条结算：
+        /// <list type="bullet">
+        /// <item>**购买**（二级市场）：找到同机场同时刻的他航挂牌 → 当场过户扣款
+        /// （<see cref="AirlineCEO.Logic.SlotMarketLogic.Buy"/>）；没有挂牌就**如实说不成**，
+        /// 并指出两条正路（等挂牌 / 走协调池）。</item>
+        /// <item>**申请**（协调池）：免费、排队，<see cref="InboxManager.QueueApplySlots"/> 递提案，
+        /// CEO 在收件箱批一次 → 按天交割。</item>
+        /// </list>
+        ///
+        /// 为什么要单独一条：这句话原先只命中「时刻槽」这个词，被派给运营部回了
+        /// 一封「8 条航线 · 周 112 班」的总账 —— 槽没买、账没动，却像受理了一样（用户报障）。
+        /// </summary>
+        static DeptAnswer SlotDealDirective(GameState gs, CeoCommandRouter.CeoAsk ask)
+        {
+            string apt = ask.origin ?? "";
+            string clk = ask.clock ?? "";
+            if (string.IsNullOrEmpty(apt) || string.IsNullOrEmpty(clk))
+                return Fail("时刻槽要说清「机场 + 时刻」。例：购买 SIN 12:00 时刻槽。");
+
+            var airport = AirportCatalog.FindByCode(apt);
+            string aptName = string.IsNullOrEmpty(airport.nameZh) ? apt : $"{airport.nameZh} {apt}";
+
+            if (ask.slotBuy)
+            {
+                if (!AirlineCEO.Logic.SlotMarketLogic.TryFindOnShelf(gs, apt, clk, out var listing))
+                {
+                    // 没有挂牌 ≠ 没听懂：给出两条正路，并声明**没有**发生任何事。
+                    string free = "";
+                    string pool = RoutePermitLogic.SlotPoolLineAt(gs, apt, clk);
+                    if (!string.IsNullOrEmpty(pool)) free = $"（当前 {pool}）";
+                    return Fail($"{aptName} {clk} 此刻没有他航挂牌，二级市场买不到{free}。"
+                                + "可改说「申请 " + apt + " " + clk + " 时刻槽」（协调池，免费、排队，批准后按天交割），"
+                                + "或到「航线 → 航权与时刻槽 → 时刻二级市场」看本季货架。本次**未成交、未扣款、未改台账**。");
+                }
+
+                float ask0 = listing.askWan;
+                if (gs.cash < ask0)
+                {
+                    return Fail($"{aptName} {clk} 挂牌叫价 {ask0:F0} 万，现有现金 {gs.cash:F0} 万"
+                                + $"（差 {ask0 - gs.cash:F0} 万）。可先融资或改走协调池申请（免费）。"
+                                + "本次**未成交、未扣款**。");
+                }
+            }
+
+            return new DeptAnswer
+            {
+                ok = true,
+                needsRun = true,
+                ask = ask,
+                deptCode = "STG",
+                sender = "战略发展部",
+                role = ask.slotBuy ? "时刻槽购置" : "时刻槽申请",
+                glyph = "战",
+                subject = $"{(ask.slotBuy ? "购置" : "申请")}时刻槽 {apt} {clk}",
+                oneLine = $"{apt} {clk}"
+            };
+        }
+
+        static bool RunSlotDeal(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            receipt = "";
+            if (gs == null) { receipt = "游戏尚未就绪。"; return false; }
+
+            string apt = ask.origin ?? "";
+            string clk = ask.clock ?? "";
+            if (ask.slotBuy)
+            {
+                if (!AirlineCEO.Logic.SlotMarketLogic.TryFindOnShelf(gs, apt, clk, out var listing))
+                {
+                    receipt = $"二级市场此刻没有 {apt} {clk} 的挂牌，未成交、未扣款。";
+                    return false;
+                }
+                bool bought = AirlineCEO.Logic.SlotMarketLogic.Buy(gs, listing.id, out string msg);
+                receipt = msg;
+                return bought;
+            }
+
+            bool applied = InboxManager.QueueApplySlots(gs, apt, clk, 1, null, out string applyMsg);
+            receipt = string.IsNullOrEmpty(applyMsg)
+                ? $"战略发展部已递交 {apt} {clk} 时刻槽的协调池申请，批准后按天交割。"
+                : applyMsg;
+            return applied;
+        }
+
+        /// <summary>
         /// 真正下达：解析原话 → 交 <see cref="CapacityDirectiveLogic"/> 既有管线 → 呈报件进收件箱。
         ///
         /// 三条必须照抄页面侧的做法（否则命令台会变成「第三套结算」）：
@@ -562,15 +719,24 @@ namespace AirlineCEO.Logic
                 return true;
             }
 
-            bool ok = InboxManager.QueueCapacityReport(gs, route, rep, -1, true);
+            bool ok = InboxManager.QueueCapacityReport(gs, route, rep, out bool studying, -1, true);
             // 挂起「原话 → 解析结果」：CEO 在收件箱批准后才真正成为记忆（与页面同源）
             DirectiveLexicon.Stage(d.raw, d, d.fromAi);
 
             string ring = string.IsNullOrEmpty(rep.ringIdsCsv) ? "未编环" : "拟定航班环 " + rep.ringIdsCsv;
+            // ★2026-11-04 用户问询：「还没收到反馈邮件时再输入同样指令，游戏怎么应对？这是个 bug 吗？」
+            //   旧行为确实是 bug：同一条航线重下同一句令，`Schedule` 会把**同一封**待发呈报的
+            //   到件时刻改到「新令 + 研究期」，于是研究期被一次次重置，CEO 永远等不到回音。
+            //   现在同目标的重下不再重排期、也不生成第二份方案，只如实告诉他原令还在研究中。
+            string wait = InboxManager.CapacityStudyWaitText(gs, route);
             receipt = ok
-                ? $"{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}"
-                  + $" · 运营部已受理：约 {InboxCadence.StudyBusinessDays} 个工作日研究后进收件箱"
-                  + "（班次此刻未动，批准后立即排班）"
+                ? (studying
+                    ? $"{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}"
+                      + $" · 这条调令运营部**已在研究中**（{wait}），本次不重复受理、不会顺延到件时间"
+                      + "（若要改方案，请下达不同的目标）"
+                    : $"{CapacityDirectiveLogic.RegsOf(route)} · {route.DualWeeklyLine()} · {ring}"
+                      + $" · 运营部已受理，进入研究期：约 {InboxCadence.CapacityStudyBusinessDays} 个工作日后进收件箱（{wait}）"
+                      + "（班次此刻未动，批准后立即排班）")
                 : $"{route.DualWeeklyLine()} · 呈报未能投递，请检查收件箱状态";
             return ok;
         }
@@ -626,6 +792,10 @@ namespace AirlineCEO.Logic
             {
                 case CeoCommandRouter.TopicCapacity:
                     return RunCapacityDirective(gs, ans.routeKey, raw, out receipt);
+                case CeoCommandRouter.TopicAddFlight:
+                    return RunAddFlight(gs, ans.routeKey, ans.ask.clock, raw, out receipt);
+                case CeoCommandRouter.TopicSlotDeal:
+                    return RunSlotDeal(gs, ans.ask, out receipt);
                 case CeoCommandRouter.TopicOpenRoute:
                     return RunOpenRoute(gs, ans.ask, out receipt);
                 case CeoCommandRouter.TopicFleetBuy:
@@ -642,17 +812,26 @@ namespace AirlineCEO.Logic
         static bool RunOpenRoute(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
         {
             // 与页面「提交研究」同一个组装函数：同一条航线不会有两个版本的研究会纪要。
-            var plan = OpenRouteStudyLogic.Build(gs, ask.origin, ask.dest, ask.via);
+            var plan = OpenRouteStudyLogic.Build(gs, ask.origin, ask.dest, ask.via, ask.rush);
             if (!plan.ok)
             {
                 receipt = string.IsNullOrEmpty(plan.reject) ? "这条航线不成立，未发请示。" : plan.reject;
                 return false;
             }
             bool ok = InboxManager.QueueOpenRouteStudy(gs, ask.origin, ask.dest, ask.via,
-                plan.subject, plan.body);
+                plan.subject, plan.body, ask.rush);
             receipt = ok
-                ? $"{plan.path}：开航研究会已在收件箱呈报（{plan.rpm.score} 分，"
-                  + $"约 {InboxCadence.StudyBusinessDays} 个工作日后到件；批准后仍须办妥准入）"
+                // ★2026-11-03 用户问询：「反馈行里写『75 分』是什么意思？」——
+                //   光写一个裸分数等于让人猜。这里带上量纲（/100）、评级，以及它到底在评什么；
+                //   同时把「已在收件箱呈报」改成「已交运营部研究」：信要等工期到了才进收件箱，
+                //   旧措辞和同一条反馈里的「约 2 个工作日后到件」自相矛盾。
+                ? $"{plan.path}：已交运营部做开航研究会（航线评分 {plan.rpm.score}/100 · {plan.rpm.rating}，"
+                  + "按预估日利润、利润率与竞争强度折算）"
+                  + (ask.rush
+                      ? $"；加急会商，约 {InboxCadence.ReplyHours} 小时后把纪要与前置条件清单送进收件箱；"
+                        + "局方审查仍按工期走，受理后可用「加急请示」再压"
+                      : $"；约 {InboxCadence.StudyBusinessDays} 个工作日后把纪要与前置条件清单送进收件箱；"
+                        + "批准后仍须办妥准入")
                 : $"{plan.path}：请示未能投递，请检查收件箱状态";
             return ok;
         }

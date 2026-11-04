@@ -12,7 +12,17 @@ namespace AirlineCEO.UI.Navigation
 
             string kind = null;
             string title = null;
-            if (pageId.StartsWith("n76") || pageId.Contains("运力规划"))
+            int subTab = 0;
+            // ★2026-11-02：「时刻二级市场」已是 n77 的二级标签（不是独立页面）。
+            // 先认这一条，历史深链 `n111_时刻二级市场` 也一并接住；
+            // 同时避开 `n111_CEO合同` 那个同号不同页的坑（合同页由 ShellRuntimeFactory 接）。
+            if (pageId.Contains("二级市场"))
+            {
+                kind = "n77";
+                title = "航权与时刻槽";
+                subTab = 1;
+            }
+            else if (pageId.StartsWith("n76") || pageId.Contains("运力规划"))
             {
                 kind = "n76";
                 title = "机队与运力规划";
@@ -47,6 +57,11 @@ namespace AirlineCEO.UI.Navigation
                 kind = "n102";
                 title = "谈判弹窗";
             }
+            else if (pageId.StartsWith("n111"))
+            {
+                // 已由顶部「二级市场」分支接走；此处只兜底再无独立 n111 业务页。
+                kind = null;
+            }
             else if (pageId.StartsWith("n108") || pageId.Contains("临空") || pageId.Contains("非航"))
             {
                 kind = "n108";
@@ -56,6 +71,11 @@ namespace AirlineCEO.UI.Navigation
             if (kind == null) return null;
 
             var panel = StrategySubpagePanel.Build(kind, title);
+            if (subTab > 0)
+            {
+                panel.SubTab = subTab;
+                panel.RefreshBody();
+            }
             panel.BindPage(pageId, title);
             Parent(panel.gameObject, parent);
             return panel.gameObject;

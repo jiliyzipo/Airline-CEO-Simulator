@@ -224,7 +224,19 @@ namespace AirlineCEO.Logic
             return w;
         }
 
+        /// <summary>
+        /// 落款日期的占位符。写信时还不知道这封信哪天真正落箱（开航研究会有 2 个工作日工期、
+        /// 局方批复按天排），所以先留占位，投递/装封时再兑成**到件那一天**。
+        /// </summary>
+        public const string DateToken = "{{落款日期}}";
+
         /// <summary>落款：部门 · 职位 姓名 / 日期。</summary>
+        /// <remarks>
+        /// 2026-11-03 报障：「邮件落款日期是 11 月 3 日，这是明显的错误」——
+        /// 旧实现默认取 <c>DateTime.Now</c>，写进去的是**玩家电脑的系统日期**，
+        /// 与游戏内日历（顶栏 2026 年 11 月 24 日）毫无关系。模拟器里的公函不许读系统时钟。
+        /// 现在默认写占位符，由 <see cref="SealDate(string,string)"/> 在落箱时兑现。
+        /// </remarks>
         public static string Sign(GameState gs, string sender, string role, string dateText = null)
         {
             Identify(gs, sender, role, out string dept, out string post, out string name);
@@ -233,9 +245,21 @@ namespace AirlineCEO.Logic
                 title = string.IsNullOrEmpty(post) ? $"{dept} {name}" : $"{dept} · {post} {name}";
             else
                 title = string.IsNullOrEmpty(post) ? dept : $"{dept} · {post}";
-            string date = string.IsNullOrEmpty(dateText) ? DateTime.Now.ToString("yyyy年MM月dd日") : dateText;
+            string date = string.IsNullOrEmpty(dateText) ? DateToken : dateText;
             return $"{title}\n{date}";
         }
+
+        /// <summary>把落款占位符兑成具体日期；已兑现过的正文原样返回（幂等）。</summary>
+        public static string SealDate(string body, string dateText)
+        {
+            if (string.IsNullOrEmpty(body) || string.IsNullOrEmpty(dateText)) return body;
+            if (body.IndexOf(DateToken, StringComparison.Ordinal) < 0) return body;
+            return body.Replace(DateToken, dateText);
+        }
+
+        /// <summary>按这封信的**到件日**兑现落款。</summary>
+        public static string SealDate(InboxMail mail)
+            => mail == null ? "" : SealDate(mail.body, InboxTime.DateText(mail));
 
         /// <summary>组装完整信笺：称谓 + 自我介绍 + 正文 + 落款。</summary>
         /// <param name="needDecision">false 时为通报/回执，不写「请示／作出决策」。</param>
@@ -273,12 +297,46 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
+        /// 旧档的转呈件把「来文文日」当成了转呈日期，于是出现「归在 11 月 3 日、落款 11 月 4 日」。
+        /// 已经落进存档的正文不再重写（不覆盖历史），但**显示时**按到件日纠正末行日期 ——
+        /// 否则旧档会永远带着这个自相矛盾，而玩家没法知道哪一版才是对的。
+        /// 只动「末行是一整行日期」的情形：转发人的落款格式固定，改这一格不会误伤正文。
+        /// </summary>
+        static string FixTransmittalDate(string body, InboxMail mail)
+        {
+            if (mail == null || mail.action != "news" || string.IsNullOrEmpty(body)) return body;
+            var lines = body.Replace("\r\n", "\n").Split('\n');
+            int i = lines.Length - 1;
+            while (i >= 0 && lines[i].Trim().Length == 0) i--;
+            if (i < 0) return body;
+            string raw = lines[i];
+            string trimmed = raw.Trim();
+            if (!LooksLikeDateLine(trimmed)) return body;
+            string want = InboxTime.DateText(mail);
+            if (trimmed == want) return body;
+            lines[i] = raw.Replace(trimmed, want);
+            return string.Join("\n", lines);
+        }
+
+        static bool LooksLikeDateLine(string s)
+        {
+            if (s.Length < 8 || s.Length > 24) return false;
+            return s.IndexOf('年') > 0 && s.IndexOf('月') > 0
+                   && s.EndsWith("日", StringComparison.Ordinal)
+                   && s.IndexOf(' ') < 0;
+        }
+
+        /// <summary>
         /// 显示时的兜底装封：老邮件若没有称谓，就地补上称谓与落款。
         /// 快讯 / 媒体 / 告警类不装封（它们不是部门报给 CEO 的公函）。
         /// </summary>
         public static string FrameIfNeeded(GameState gs, InboxMail mail, string body)
         {
             if (mail == null || string.IsNullOrEmpty(body)) return body ?? "";
+            // 落款兜底：正文里若还留着占位符（写信时到件日未知），显示这一刻按到件日兑现。
+            body = SealDate(body, InboxTime.DateText(mail));
+            // 旧档兜底：转呈日期早就写死了的那批，显示时按到件日纠正。
+            body = FixTransmittalDate(body, mail);
             if (mail.action == "news" || mail.kind == "media" || mail.kind == "alert") return body;
             string head = body.TrimStart();
             if (head.StartsWith("尊敬的", StringComparison.Ordinal)) return body;
@@ -287,7 +345,7 @@ namespace AirlineCEO.Logic
             if (mail.action == "permit_progress" || mail.action == "news"
                 || mail.action == "finance_progress" || mail.action == "transition_progress")
                 decision = false;
-            return Frame(gs, mail.sender, mail.role, mail.subject, body, null, InboxTime.DayHeader(mail), decision);
+            return Frame(gs, mail.sender, mail.role, mail.subject, body, null, InboxTime.DateText(mail), decision);
         }
     }
 }

@@ -36,8 +36,27 @@ namespace AirlineCEO.Data
         public bool effectPending;
         public int effectYear;
         public int effectQuarter;
+        /// <summary>
+        /// 结算到期时刻（UTC ticks，0 = 旧档未排期）。
+        ///
+        /// ★2026-11-02 CEO 裁决「审批按天、结算按季」：许可与时刻的每一道关都落到**具体某天**，
+        /// 由 <c>InboxManager.ProcessPendingEffects</c> 在每个游戏日比对，而不是等季末。
+        /// 旧档该值为 0，读档后自动退化回 <see cref="effectYear"/> / <see cref="effectQuarter"/> 的季度口径
+        ///（见 ProcessPendingEffects 的兜底分支）—— 存档不能因为这一条改动而作废。
+        /// </summary>
+        public long dueUtcTicks;
         public int receivedYear;
         public int receivedQuarter;
+        /// <summary>
+        /// 收件当天的**本季天数**（1–90）。0 = 旧档，没有这个水位。
+        ///
+        /// 为什么需要它：老档/坏档丢了公历时钟时，<c>SaveManager.RepairClockFromInbox</c> 要把时钟
+        /// 抬回「已收邮件」那一天；但本季天数是独立计数器、跟公历没有固定换算（每季固定 90 天，
+        /// 季首与哪个月对齐由开局的现实日期决定）。旧算法拿「坏档被兜底成的今天」与邮件日期相减，
+        /// 于是**同一个存档在不同日期打开会算出不同的本季天数**（2026-11-04 复验实测 17 → 16）。
+        /// 记下收件当时的 simDay，读档就能还原真实水位，与打开游戏的那一天无关。
+        /// </summary>
+        public int receivedSimDay;
         public int deadlineQuarters = 2;  // 自收件季度起允许搁置的季度数
 
         // ———— 航线准入许可（Phase 18）————
@@ -63,8 +82,19 @@ namespace AirlineCEO.Data
         /// <summary>受理所在季度（用于生成节点进度表）。</summary>
         public int permitAcceptYear;
         public int permitAcceptQuarter;
+        /// <summary>
+        /// 受理瞬间（UTC ticks）与本次办理的**总工期天数**（★2026-11-02 天级口径）。
+        /// 两者一起决定每个节点的具体日期；0 表示旧档，退回按季度排节点（见 EnsurePermitTimeline）。
+        /// </summary>
+        public long permitAcceptUtcTicks;
+        public int permitTotalDays;
         /// <summary>已上报到第几个节点：1=受理 2=审查 3=航权/时刻 4=公示 5=批复。</summary>
         public int permitNode;
+        /// <summary>
+        /// 本许可是否已用政府关系点数加急（工期压到 <see cref="AirlineCEO.Logic.PermitTimeline.RushFactor"/>）。
+        /// 只许加急一次：点数花完再压一次，等于把「审批不可控」这条前提整块删掉。
+        /// </summary>
+        public bool permitRush;
 
         // ———— 运力调整呈报（CEO 指令 → 运营部执行 → 呈报待批复）————
         /// <summary>本次呈报建立的航班环 ID（退回时撤销）。</summary>
@@ -82,6 +112,19 @@ namespace AirlineCEO.Data
         public int capTargetWaves;
         /// <summary>本呈报执行**前**的每日波次（用于区分「一班没动」与「动了但没排满」）。</summary>
         public int capBeforeWaves;
+        /// <summary>
+        /// 本呈报执行**前**的每周班次（离港日口径）。0 = 旧档未记录。
+        ///
+        /// ★2026-11-03 报障（PEK-LHR / PEK-IST）：「第一封说航班量调整为每日一趟往返，第二封却说运力未变动」。
+        /// 病根是裁定只看**每日波次**（`RouteData.FlightCount`）：「3 班/周（周一/三/五）→ 每日 1 班」
+        /// 前后都是 1 波，于是被判成「一班未动」，回执把一次真实的加密说成了没办。
+        /// 判定「到底动没动」必须同时看波次与周频，两个都没变才许说「未变动」。
+        /// </summary>
+        public int capBeforeWeekly;
+        /// <summary>
+        /// 本次呈报**目标**的每周班次（离港日口径）。0 = CEO 未指定班期（目标按实际排定口径读）。
+        /// </summary>
+        public int capTargetWeekly;
         /// <summary>
         /// 本次呈报「想要但排不出」的缺口段（渲染好的原文，与呈报正文同源）。
         /// 批复回执照抄一段并写明「本批复不视为该缺口已解决」，免得回执只报一句「已生效」。
@@ -122,12 +165,20 @@ namespace AirlineCEO.Data
         /// </summary>
         public string flightProposalsCsv = "";
 
-        // ———— 时刻槽申请单（n98 点时段却缺槽 → 运营部呈报申请，附拟加班次缘由）————
+        // ———— 时刻槽申请单（命令台点某一刻加班却缺槽 → 运营部呈报申请，附拟加班次缘由；原 n98 页 2026-11-01 删除）————
         /// <summary>
         /// 本时刻槽申请为谁而提（如「B-2006 拟加 FRA—CDG 的晚班 18:00」）。
         /// 交割回执照抄一句，免得只报「FRA 晚班 1 个」，CEO 事后不知道是要给哪条线加机。
         /// </summary>
         public string slotReason = "";
+        /// <summary>
+        /// 本单是**加班/临时航班**的时刻申请（2026-11-02，C 批）。
+        ///
+        /// 现实里临时航班的时刻是先到先得、协调人当场核，不像换季集中申请那样排队等协调会，
+        /// 所以交割期比常规申请短（<see cref="AirlineCEO.Logic.PermitTimeline.SlotExtraFlightDays"/> 天）。
+        /// 存成布尔而不是靠 <see cref="slotReason"/> 里有没有「加班」二字来判断 —— 文案一改判据就废。
+        /// </summary>
+        public bool slotExtra;
 
         /// <summary>
         /// 本函涉及的时刻槽**具体时刻**（`"HH:mm"`，★2026-10-15）。
@@ -158,6 +209,28 @@ namespace AirlineCEO.Data
         /// 交割后自动重排就只能拿回程时刻去排去程，排出来是一条没人要的班次。
         /// </summary>
         public string slotFlightClock = "";
+
+        /// <summary>
+        /// 本时刻槽单是为**哪张准入许可**而提（`routeId` 或受理单 id）。
+        /// ★2026-11-02（先槽后证并行）：许可还在审查时就可以先抢时刻，
+        /// 于是「这条槽是给哪条未开航的线预备的」必须结构化记下来 ——
+        /// 宽限期到期要按它把槽退回协调池（天数见 <c>PermitTimeline.SlotPreHoldDays</c>）。
+        /// </summary>
+        public string slotPermitId = "";
+
+        /// <summary>
+        /// 时刻预占到期时刻（UTC ticks，0 = 未预占）。
+        ///
+        /// ★2026-11-02：现实里「可以先拿时刻、14 个工作日内补航权，补不上则时刻收回」。
+        /// 本作把它落成 **20 天**倒计时：到期仍未发证 → 槽退回协调池、协调费不退、局方关系 −1 档。
+        /// </summary>
+        public long slotPreHoldUtcTicks;
+
+        /// <summary>
+        /// 预占中的槽清单，格式 `"PEK|07:30;SHA|12:10"`（机场|时刻）。
+        /// 到期退槽时按它精确找回那几条持仓 —— 只存下标会在别的槽进出后错位。
+        /// </summary>
+        public string slotPreHoldCsv = "";
 
         // ———— 加班时刻槽备选（运营部按整张窗口网格提名 → CEO 点选一刻）————
         /// <summary>

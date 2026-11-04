@@ -163,6 +163,10 @@ namespace AirlineCEO.Logic
             public int requestedWaves;
             /// <summary>指令**前**的每日波次（区分「一班没动」与「动了但没排满」）。</summary>
             public int beforeWaves;
+            /// <summary>指令**前**的每周班次（离港日口径）。与 <see cref="beforeWaves"/> 一起判定「动没动」。</summary>
+            public int beforeWeekly;
+            /// <summary>本次**目标**的每周班次（离港日口径）：CEO 说了班期就按「天数 × 波次」，否则取实际排定值。</summary>
+            public int requestedWeekly;
             public float profitBefore;
             public float profitAfter;
             /// <summary>
@@ -939,6 +943,9 @@ namespace AirlineCEO.Logic
 
             int beforeWaves = route.FlightCount;
             int beforeWeekly = route.weeklyFlights;
+            // 与裁定同口径：`WeeklyFlightsDeparture()` 是各行 weeklyFlights 之和，
+            // `route.weeklyFlights` 只是主班那一个数 —— 多波次航线两者不等，比的是哪一个必须一致。
+            int beforeWeeklyTotal = route.WeeklyFlightsDeparture();
             int beforeStaff = route.groundStaffAssigned;
             string beforeRegs = RegsOf(route);
             float beforeProfit = route.dailyProfit;
@@ -953,6 +960,7 @@ namespace AirlineCEO.Logic
 
             string oldType = route.aircraftType;
             int requestedWaves = 0;
+            int requestedWeekly = 0;
             List<OpsScheduleLogic.WaveShortage> shortages = null;
             if (!keepAsIs)
             {
@@ -993,6 +1001,10 @@ namespace AirlineCEO.Logic
                 //   凭空生成 +1 万/班的盈利基准并写回 baseDailyProfit —— 亏损航线一次调令即永久转盈。）
                 float baseline = OpsEconomics.ResolvedSingleFlightBaseline(route);
                 OpsEconomics.ApplyToRoute(route, baseline, gs.onTimePercent);
+
+                // 目标周频：CEO 明说了班期（「每日」「每天 2 班」）就按班期 × 波次算；没说明就取实际排定值
+                // —— 此时「想排多少」与「排出多少」本来就是同一个数，缺口由波次那一关负责报。
+                requestedWeekly = honorWeekly > 0 ? honorWeekly : route.WeeklyFlightsDeparture();
             }
 
             route.directivePending = true;
@@ -1003,6 +1015,10 @@ namespace AirlineCEO.Logic
             //   这两个数，才能说出「已生效 / 部分生效 / 一班没动」这一句真话（旧版回执恒定写「已生效」）。
             rep.requestedWaves = keepAsIs ? 0 : requestedWaves;
             rep.beforeWaves = beforeWaves;
+            // ★2026-11-03：周频也要留档 —— 只记每日波次时，「3 班/周 → 每日 1 班」在回执里会被判成
+            //   「一班未动」（前后都是 1 波），明明是加密却说没办。
+            rep.beforeWeekly = beforeWeeklyTotal;
+            rep.requestedWeekly = keepAsIs ? 0 : requestedWeekly;
 
             rep.capacitySection = keepAsIs
                 ? InboxLetter.Bullet($"CEO 要求维持现有运力，运营部未改动班次：{route.DualWeeklyLine()} · {RegsOf(route)}。")
@@ -2138,13 +2154,32 @@ namespace AirlineCEO.Logic
         /// 削减方向单独判：「减到每天 N 班」的达成是 ≤ N，不是 ≥ N。
         /// </summary>
         public static CapVerdict VerdictOf(RouteData route, int targetWaves, int beforeWaves)
+            => VerdictOf(route, targetWaves, beforeWaves, 0, 0);
+
+        /// <summary>
+        /// 同上，但把**每周班次**一起纳进判据（★2026-11-03 报障：PEK-LHR / PEK-IST）。
+        ///
+        /// 只比每日波次会把「3 班/周（周一/三/五）→ 每日 1 班」判成「一班未动」：前后都是 1 波，
+        /// 而周频从 3 涨到 7 —— 一次真实的加密被回执说成没办，CEO 同时收到「已调整为每日」与
+        /// 「运力未变动」两封互相打架的邮件。
+        ///
+        /// <paramref name="beforeWeekly"/>／<paramref name="targetWeekly"/> 为 0 表示未记录（旧档）：
+        /// 此时退回纯波次口径，不敢凭空断言「动了」。
+        /// </summary>
+        public static CapVerdict VerdictOf(RouteData route, int targetWaves, int beforeWaves,
+                                           int targetWeekly, int beforeWeekly)
         {
             int now = route != null ? route.FlightCount : 0;
+            int nowWeekly = route != null ? route.WeeklyFlightsDeparture() : 0;
             if (targetWaves < 0) return CapVerdict.Keep;               // 指令本身就是维持现状
             if (targetWaves == 0) return CapVerdict.Unknown;           // 旧档：没有目标可比，不敢断言
-            if (beforeWaves > 0 && now == beforeWaves) return CapVerdict.Unchanged;   // 一班没动
+            // 「一班没动」＝ 波次没变 **且** 周频没变。只看波次会在「3 班/周 → 每日」上撒谎。
+            bool wavesSame = beforeWaves > 0 && now == beforeWaves;
+            bool weeklySame = beforeWeekly <= 0 || nowWeekly == beforeWeekly;
+            if (wavesSame && weeklySame) return CapVerdict.Unchanged;
             bool reduce = beforeWaves > 0 && targetWaves < beforeWaves;
             bool reached = reduce ? now <= targetWaves : now >= targetWaves;
+            if (reached && targetWeekly > 0 && !reduce && nowWeekly < targetWeekly) reached = false;
             return reached ? CapVerdict.Done : CapVerdict.Partial;
         }
 
@@ -2184,26 +2219,34 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static string FormatReceiptBody(GameState gs, RouteData route, string ringIdsCsv,
                                                int targetWaves, int beforeWaves,
-                                               string gapSection, string slotSection)
+                                               string gapSection, string slotSection,
+                                               int targetWeekly = 0, int beforeWeekly = 0)
         {
             if (route == null) return "运力回执不可用。";
             route.EnsureFlights();
-            var v = VerdictOf(route, targetWaves, beforeWaves);
+            var v = VerdictOf(route, targetWaves, beforeWaves, targetWeekly, beforeWeekly);
             int now = route.FlightCount;
+            int nowWeekly = route.WeeklyFlightsDeparture();
             var sb = new StringBuilder();
 
             sb.Append(InboxLetter.Section("本次裁定"));
             switch (v)
             {
                 case CapVerdict.Done:
-                    sb.Append(InboxLetter.Bullet($"本次调令**全部落地**：每日 {now} 段往返，目标已达成。"));
+                    sb.Append(InboxLetter.Bullet($"本次调令**全部落地**：每日 {now} 段往返"
+                                                 + (beforeWeekly > 0 && beforeWeekly != nowWeekly
+                                                     ? $"、每周 {beforeWeekly} → {nowWeekly} 班" : "")
+                                                 + "，目标已达成。"));
                     break;
                 case CapVerdict.Partial:
-                    sb.Append(InboxLetter.Bullet($"本次调令**只落地一部分**：目标每日 {targetWaves} 段，实际排定 {now} 段，"
-                                                 + $"还有 {targetWaves - now} 段排不出来（原因见下）。"));
+                    sb.Append(InboxLetter.Bullet($"本次调令**只落地一部分**：目标每日 {targetWaves} 段"
+                                                 + (targetWeekly > 0 ? $"／每周 {targetWeekly} 班" : "")
+                                                 + $"，实际排定每日 {now} 段／每周 {nowWeekly} 班（原因见下）。"));
                     break;
                 case CapVerdict.Unchanged:
-                    sb.Append(InboxLetter.Bullet($"本次调令**一班未动**：目标每日 {targetWaves} 段，实际仍是 {now} 段 —— "
+                    sb.Append(InboxLetter.Bullet($"本次调令**一班未动**：目标每日 {targetWaves} 段"
+                        + (targetWeekly > 0 ? $"／每周 {targetWeekly} 班" : "")
+                        + $"，实际仍是每日 {now} 段／每周 {nowWeekly} 班 —— "
                         + "与指令前完全一致" + (string.IsNullOrEmpty(gapSection) ? "。" : "（原因见下）。")));
                     break;
                 case CapVerdict.Keep:
@@ -2219,11 +2262,17 @@ namespace AirlineCEO.Logic
 
             sb.Append(InboxLetter.Section("班次"));
             sb.Append(InboxLetter.Row("每日班次", beforeWaves > 0 ? $"{beforeWaves} 班 → {now} 班" : $"{now} 班"));
+            // ★2026-11-03：周频也要报「指令前 → 现在」。只写现值的行，配上「每日班次 1→1」，
+            //   读起来像什么都没发生 —— 而实际动的是「飞哪几天」。
+            bool weeklyChanged = beforeWeekly > 0 && beforeWeekly != nowWeekly;
             sb.Append(InboxLetter.Row("每周班次（离港日）",
-                $"{route.WeeklyFlightsDeparture()} 班（{FlightScheduleFormat.DaysSummary(route.WeekdayOpsDeparture())}）"));
+                (weeklyChanged ? $"{beforeWeekly} 班 → " : "")
+                + $"{nowWeekly} 班（{FlightScheduleFormat.DaysSummary(route.WeekdayOpsDeparture())}）"));
             sb.Append(InboxLetter.Row("每周班次（值勤日）",
                 $"{route.WeeklyFlightsDuty()} 班（{FlightScheduleFormat.DaysSummary(route.WeekdayOpsDuty())}）"));
-            if (targetWaves > 0) sb.Append(InboxLetter.Row("目标班次", $"每日 {targetWaves} 段往返"));
+            if (targetWaves > 0)
+                sb.Append(InboxLetter.Row("目标班次", $"每日 {targetWaves} 段往返"
+                    + (targetWeekly > 0 ? $" · 每周 {targetWeekly} 班" : "")));
             else if (v == CapVerdict.Keep) sb.Append(InboxLetter.Row("目标班次", "维持现状（按您的指令）"));
             sb.Append(InboxLetter.Row("执飞机号", $"{RegsOf(route)} · {route.aircraftType}"));
 

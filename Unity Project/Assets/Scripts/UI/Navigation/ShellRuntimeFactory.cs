@@ -14,6 +14,11 @@ namespace AirlineCEO.UI.Navigation
             GameObject go = null;
             if (pageId.StartsWith("n110") || pageId.Contains("CEO资料"))
                 go = CeoDossierPanel.BuildProfile().gameObject;
+            else if (pageId.StartsWith("n111") && pageId.Contains("二级市场"))
+            {
+                // 「时刻二级市场」是 n77 的二级标签，不归 Shell（n111 同号另指 CEO 聘任合同）。
+                go = null;
+            }
             else if (pageId.StartsWith("n111") || pageId.Contains("CEO合同"))
                 go = CeoDossierPanel.BuildContract().gameObject;
             else if (pageId.StartsWith("n20") || (pageId.Contains("董事会") && !pageId.Contains("财年")))

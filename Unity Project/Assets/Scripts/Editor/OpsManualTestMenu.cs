@@ -11,8 +11,9 @@ namespace AirlineCEO.EditorTools
 {
     /// <summary>
     /// OPS 手测（第 418 行待办）：一键进入经营态并定位/触发
-    /// ① 航班异常 IRROPS 弹窗　② 航线分配 n98。
+    /// ① 航班异常 IRROPS 弹窗　② 机队「周计划及航班环」页签。
     /// 菜单：AirlineCEO → Phase 2 → OPS 手测 · …
+    /// （★2026-11-01：原「航线分配 n98」页已整页删除，对应两条手测菜单一并撤掉。）
     /// </summary>
     public static class OpsManualTestMenu
     {
@@ -27,11 +28,11 @@ namespace AirlineCEO.EditorTools
             else OpenInEditMode("航班异常 IRROPS 弹窗在运行时由 OpsIrropsModalUI 构建，编辑模式下场景内无该对象。\n进入 Play 模式后再次点击本菜单即可弹出。");
         }
 
-        [MenuItem("AirlineCEO/Phase 2/OPS 手测 · 航线分配 n98", false, 16)]
-        public static void OpenAssign()
+        [MenuItem("AirlineCEO/Phase 2/OPS 手测 · 机队「周计划及航班环」", false, 16)]
+        public static void OpenPlanRing()
         {
-            if (EditorApplication.isPlaying) OpenAssignInPlayMode(false);
-            else OpenInEditMode("航线分配页 n98 在运行时由 OpsRuntimeFactory 构建，编辑模式下场景内无该对象。\n进入 Play 模式后再次点击本菜单即可切到「航线/航班环选择器」。");
+            if (EditorApplication.isPlaying) OpenPlanRingInPlayMode(false);
+            else OpenInEditMode("机队「周计划及航班环」页签在运行时由 FleetUI 构建，编辑模式下场景内无该对象。\n进入 Play 模式后再次点击本菜单即可切到该页签。");
         }
 
         [MenuItem("AirlineCEO/Phase 2/OPS 手测 · IRROPS + 截图", false, 17)]
@@ -45,15 +46,15 @@ namespace AirlineCEO.EditorTools
             OpenIrropsInPlayMode(true);
         }
 
-        [MenuItem("AirlineCEO/Phase 2/OPS 手测 · 航线分配 + 截图", false, 18)]
-        public static void OpenAssignAndCapture()
+        [MenuItem("AirlineCEO/Phase 2/OPS 手测 · 周计划及航班环 + 截图", false, 18)]
+        public static void OpenPlanRingAndCapture()
         {
             if (!EditorApplication.isPlaying)
             {
-                EditorUtility.DisplayDialog("OPS 手测 · 航线分配 + 截图", "请在 Play 模式下使用此功能（截图需要 Game 视图渲染）。", "确定");
+                EditorUtility.DisplayDialog("OPS 手测 · 周计划及航班环 + 截图", "请在 Play 模式下使用此功能（截图需要 Game 视图渲染）。", "确定");
                 return;
             }
-            OpenAssignInPlayMode(true);
+            OpenPlanRingInPlayMode(true);
         }
 
         static void OpenIrropsInPlayMode(bool capture)
@@ -75,25 +76,23 @@ namespace AirlineCEO.EditorTools
             if (capture) CaptureAfterDelay("OpsIrrops.png");
         }
 
-        static void OpenAssignInPlayMode(bool capture)
+        static void OpenPlanRingInPlayMode(bool capture)
         {
             EnsureInGameplay();
-            ShowOpsPanel();
 
-            OpsPanelUI.OpenOpsPage("n98_航线航班环选择器");
+            var nav = Object.FindFirstObjectByType<PrefabNavIntegration>(FindObjectsInactive.Include);
+            if (nav != null) nav.SelectTab("n9_机队");
+            FleetUI.OpenPlanRingTab();
 
-            var router = NavigationRouter.Instance;
-            if (router != null)
-                Debug.Log($"[AirlineCEO] 已打开航线分配页，导航栈顶 = {router.CurrentPageId}（期望 n98_航线航班环选择器）。");
-
-            var sub = Object.FindFirstObjectByType<OpsSubpagePanel>(FindObjectsInactive.Include);
-            if (sub != null)
+            var fleet = Object.FindFirstObjectByType<FleetUI>(FindObjectsInactive.Include);
+            if (fleet != null)
             {
-                Selection.activeGameObject = sub.gameObject;
-                EditorGUIUtility.PingObject(sub.gameObject);
+                Selection.activeGameObject = fleet.gameObject;
+                EditorGUIUtility.PingObject(fleet.gameObject);
+                Debug.Log("[AirlineCEO] 已切到机队「周计划及航班环」页签。");
             }
 
-            if (capture) CaptureAfterDelay("OpsAssign.png");
+            if (capture) CaptureAfterDelay("PlanRing.png");
         }
 
         /// <summary>复现「点运营部导航」：隐藏其他部门、激活运营面板。</summary>

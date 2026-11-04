@@ -207,6 +207,13 @@ namespace AirlineCEO.Data
         public List<InvestmentProject> investments = new List<InvestmentProject>();
         public List<ContingencyPlan> contingencyPlans = new List<ContingencyPlan>();
         public int[] fiveYearPriority = { 1, 2, 3, 4, 5 }; // 航线扩张/机队升级/联盟深化/成本优化/绿色转型
+
+        /// <summary>
+        /// 时刻二级市场（2026-11-02）：他航挂牌、我司挂牌、购买意向。
+        /// 与协调池分家的原因见 <see cref="SlotMarketListing"/> 的注释 ——
+        /// 二级市场是航司间转让，**不占协调池容量**，故成交不走 <c>AcquireSlotsAt</c> 的池容量判据。
+        /// </summary>
+        public SlotMarketState slotMarket = new SlotMarketState();
     }
 
     [Serializable]

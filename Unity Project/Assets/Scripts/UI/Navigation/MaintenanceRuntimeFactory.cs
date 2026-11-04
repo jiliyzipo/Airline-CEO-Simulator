@@ -37,10 +37,10 @@ namespace AirlineCEO.UI.Navigation
                 kind = "n85";
                 title = "维修培训与资质";
             }
-            else if (pageId.StartsWith("n105") || pageId.Contains("订单确认"))
+            else if (pageId.StartsWith("n105") || pageId.Contains("订单确认") || pageId.Contains("订单信息"))
             {
                 kind = "n105";
-                title = "订单确认";
+                title = "订单详情";
             }
 
             if (kind == null) return null;

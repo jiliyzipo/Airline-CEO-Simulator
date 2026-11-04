@@ -20,7 +20,13 @@ namespace AirlineCEO.Systems
 
         public static string SlotPrefixFor(int index) => AutoSlotPrefix + index + "_";
 
-        /// <summary>把当前活动存档整体克隆到 slot 前缀（不覆盖活动存档）。</summary>
+        /// <summary>
+        /// 把当前活动存档整体克隆到 slot 前缀（不覆盖活动存档）。
+        /// ★2026-11-03 修：这里**必须按类型克隆**（<see cref="SaveManager.CloneKey"/>）。
+        /// 旧实现用 GetString/SetString 无差别拷贝，float/int 全被写成字符串，
+        /// 于是「时间回溯 / 时间胶囊 / 分支存档」一恢复就现金归零、财年季度回到 1/1、
+        /// 公历时钟退回现实日期（用户报障：快进到 11 月 19 日存档，重开变成 11 月 3 日、现金 0）。
+        /// </summary>
         public static void CaptureToSlot(string slotPrefix)
         {
             var keys = SaveManager.AllSaveKeys;
@@ -30,7 +36,7 @@ namespace AirlineCEO.Systems
                 string k = keys[i];
                 string activeKey = active + k;
                 if (PlayerPrefs.HasKey(activeKey))
-                    PlayerPrefs.SetString(slotPrefix + k, PlayerPrefs.GetString(activeKey, ""));
+                    SaveManager.CloneKey(k, activeKey, slotPrefix + k);
             }
             PlayerPrefs.Save();
         }
@@ -45,7 +51,7 @@ namespace AirlineCEO.Systems
                 string k = keys[i];
                 string slotKey = slotPrefix + k;
                 if (PlayerPrefs.HasKey(slotKey))
-                    PlayerPrefs.SetString(active + k, PlayerPrefs.GetString(slotKey, ""));
+                    SaveManager.CloneKey(k, slotKey, active + k);
             }
             PlayerPrefs.Save();
         }

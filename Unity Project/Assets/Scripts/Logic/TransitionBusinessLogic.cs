@@ -398,7 +398,7 @@ namespace AirlineCEO.Logic
         /// <summary>
         /// 该机为什么不能排定期航班（可排班返回空串）。
         /// 判据与 <see cref="AvailableAircraft"/> / <see cref="BusyLabel"/> 同源：不在册 / 已退役退租 / 被过渡业务占用。
-        /// 供 n98 航线选择器把「为什么点不动」如实摊开（旧版把这些飞机直接禁用，点击毫无反馈）。
+        /// 供命令台加班时把「这一刻为什么派不出机」如实摊开（旧版 n98 页面把这些飞机直接禁用，点击毫无反馈；该页 2026-11-01 删除）。
         /// </summary>
         public static string ScheduleBlockReason(GameState gs, string registration)
         {
@@ -1140,6 +1140,15 @@ namespace AirlineCEO.Logic
 
         static void MaybeUnlockReports(GameState gs)
         {
+            // ★2026-11-03 用户裁定：先收**开通通告**，几小时后再收**询价请示**。
+            //
+            //   旧版两封信都由 `ProgressReady`（同一 +6 小时）投递：通告与询价同一分钟落进收件箱，
+            //   而且通告本身还带着报价单号（`needDecision=true`），紧接着 `FlushInquiry` 又把
+            //   同一批单号另发一封 → 收件箱里两封待批件抢同一批报价，签了其中一封，
+            //   另一封的单号就作废。现改为：这里只发**通告**（汇报件、不带单号、无需批复），
+            //   把当前在板报价并入 `_freshOffers`，由 `FlushInquiry` 用
+            //   `InboxCadence.InquiryReady`（再晚 <see cref="InboxCadence.InquiryHours"/> 小时）
+            //   发**唯一一封**询价请示。
             if (CrewReady(gs) && !gs.transitionCrewMailSent)
             {
                 gs.transitionCrewMailSent = true;
@@ -1147,16 +1156,11 @@ namespace AirlineCEO.Logic
                 sb.Append($"「{CrewPost}」已到岗，湿租合同与包机合同市场同步开放。\n\n");
                 AppendOfferLines(sb, gs, TransitionKinds.Wet);
                 AppendOfferLines(sb, gs, TransitionKinds.Charter);
-                if (CountOffers(gs, TransitionKinds.Wet) + CountOffers(gs, TransitionKinds.Charter) == 0)
-                {
-                    sb.Append("客户询价将在随后数日内陆续送达，届时另函汇报。");
-                    Report(gs, "解锁", "进度汇报：湿租与包机市场已开通", sb.ToString());
-                }
-                else
-                {
-                    sb.Append("以上询价请在本函底部直接签约或暂不接单。");
-                    QueueInquiry(gs, "请示：湿租与包机市场已开通", sb.ToString(), OfferIdsOf(gs, TransitionKinds.Wet, TransitionKinds.Charter));
-                }
+                sb.Append("以上报价已上报价板，供先看条款与费率。\n");
+                sb.Append($"运营部还要逐家确认档期与交机条件，**询价请示另函**送达（约 {InboxCadence.InquiryHours} 小时后），"
+                          + "届时在本函之外单独批复即可。");
+                Report(gs, "解锁", "进度汇报：湿租与包机市场已开通", sb.ToString());
+                MarkFreshForInquiry(gs, TransitionKinds.Wet, TransitionKinds.Charter);
             }
 
             if (InstructorReady(gs) && !gs.transitionInstructorMailSent)
@@ -1165,14 +1169,33 @@ namespace AirlineCEO.Logic
                 var sb = new StringBuilder();
                 sb.Append($"「{InstructorPost}」已到岗，可承接培训合同。\n\n");
                 AppendOfferLines(sb, gs, TransitionKinds.Training);
-                if (CountOffers(gs, TransitionKinds.Training) == 0)
-                    sb.Append("航校询价将在随后数日内陆续送达，届时另函汇报。");
-                else
-                    sb.Append("以上询价请在本函底部直接签约或暂不接单。");
-                if (CountOffers(gs, TransitionKinds.Training) == 0)
-                    Report(gs, "解锁", "进度汇报：培训合同市场已开通", sb.ToString());
-                else
-                    QueueInquiry(gs, "请示：培训合同市场已开通", sb.ToString(), OfferIdsOf(gs, TransitionKinds.Training));
+                sb.Append("以上报价已上报价板，供先看条款与费率。\n");
+                sb.Append($"航校询价需逐家确认教员与模拟机档期，**询价请示另函**送达（约 {InboxCadence.InquiryHours} 小时后）。");
+                Report(gs, "解锁", "进度汇报：培训合同市场已开通", sb.ToString());
+                MarkFreshForInquiry(gs, TransitionKinds.Training);
+            }
+        }
+
+        /// <summary>
+        /// 把当前在板的某几类报价并入「本次询价」，让 <see cref="FlushInquiry"/> 另函请示。
+        ///
+        /// 为什么通告不能自己带单号：带了就是待批件，与随后那封询价请示抢同一批报价。
+        /// 但通告日之前就摆在板上的常驻报价（干租/湿租）当天不会进 `_freshOffers`，
+        /// 只发通告就等于把它们藏起来了 —— 所以这里显式并进去。
+        /// </summary>
+        static void MarkFreshForInquiry(GameState gs, params string[] kinds)
+        {
+            if (gs?.transitionOffers == null || kinds == null) return;
+            for (int i = 0; i < gs.transitionOffers.Count; i++)
+            {
+                var o = gs.transitionOffers[i];
+                if (o == null) continue;
+                for (int k = 0; k < kinds.Length; k++)
+                {
+                    if (o.kind != kinds[k]) continue;
+                    if (!_freshOffers.Contains(o)) _freshOffers.Add(o);
+                    break;
+                }
             }
         }
 
@@ -1392,6 +1415,7 @@ namespace AirlineCEO.Logic
                 Report(gs, "询价", subject, body);
                 return;
             }
+
             var mail = new InboxMail
             {
                 id = $"ti_{gs.SimUtc.Ticks}_{UnityEngine.Random.Range(100, 999)}",
@@ -1410,7 +1434,8 @@ namespace AirlineCEO.Logic
                 payloadCsv = string.Join(",", offerIds.ToArray()),
                 deadlineQuarters = 1
             };
-            InboxManager.Schedule(gs, mail, InboxCadence.ProgressReady(gs.SimUtc));
+            // 询价另函：晚于市场开通通告（ProgressReady）+ InquiryHours 小时，见 InboxCadence。
+            InboxManager.Schedule(gs, mail, InboxCadence.InquiryReady(gs.SimUtc));
         }
 
         static List<string> OfferIdsOf(GameState gs, params string[] kinds)

@@ -389,6 +389,17 @@ namespace AirlineCEO.UI
                 RaiseChrome();
             }
 
+            // ★2026-11-01（用户裁定）：飞机详情（以及座位配置 / 大修预算 / 购机决策会议）
+            // 属于机队，不属于航线。从「单航线」页或邮件点机号进来时，底栏可能还停在
+            // 「航线」——那会把详情塞进航线模块的子框里，顶栏还是航线那排页签，
+            // 看着像走错了部门。故先切到「机队」再开子页。
+            if (!overlay && !settingsPopover)
+            {
+                string moduleTab = ModuleTabForPage(pageId);
+                if (moduleTab != null && (_shell == null || _shell.ActivePageId != moduleTab))
+                    SelectTab(moduleTab);
+            }
+
             var module = (overlay || settingsPopover) ? null : FindActiveModulePanel();
             bool inFrame = module != null;
             if (inFrame)
@@ -521,13 +532,8 @@ namespace AirlineCEO.UI
                 }
             }
 
-            var selectors = scanRoot != null
-                ? scanRoot.GetComponentsInChildren<OpsRouteRingSelectorUI>(true)
-                : null;
-            if (selectors == null) return;
-            for (int i = 0; i < selectors.Length; i++)
-                if (selectors[i] != null && selectors[i].gameObject.activeInHierarchy)
-                    selectors[i].Refresh();
+            // ★2026-11-01：n98「航线分配」页已删除，原先在这里刷新 OpsRouteRingSelectorUI 的
+            //   一段一并撤掉（类型不存在了）。其余页面照旧刷新，避免显示上一轮的旧数据。
         }
 
         void EnsureOpsConfig(string pageId)
@@ -556,18 +562,6 @@ namespace AirlineCEO.UI
                 cfg.title = "航季总纲";
                 cfg.level = "L2";
                 cfg.parentId = "n13_运营部";
-            }
-            else if (pageId.StartsWith("n36"))
-            {
-                cfg.title = "构建航班环";
-                cfg.level = "L3";
-                cfg.parentId = "n13_运营部";
-            }
-            else if (pageId.StartsWith("n98"))
-            {
-                cfg.title = "航线/航班环选择器";
-                cfg.level = "L3";
-                cfg.parentId = "n10_飞机详情_履历";
             }
             else if (pageId.StartsWith("n24") || pageId.Contains("IRROPS") || pageId.Contains("航班异常"))
             {
@@ -972,7 +966,7 @@ namespace AirlineCEO.UI
             }
             else if (pageId.StartsWith("n105"))
             {
-                cfg.title = "订单确认";
+                cfg.title = "订单详情";
                 cfg.level = "L5";
                 cfg.parentId = "n83_航材与供应链";
             }
@@ -1328,7 +1322,23 @@ namespace AirlineCEO.UI
                 || pageId.StartsWith("n115") || pageId.Contains("外部信息源")
                 || pageId.StartsWith("n116") || pageId.Contains("行情源")
                 || pageId.StartsWith("n110") || pageId.Contains("CEO资料")
-                || pageId.StartsWith("n111") || pageId.Contains("CEO合同");
+                || (pageId.StartsWith("n111") && !pageId.Contains("二级市场")) || pageId.Contains("CEO合同");
+        }
+
+        /// <summary>
+        /// 子页归属哪个底栏模块 —— 只用来「开页前先把底栏切过去」。
+        /// 现在只有一类：机队子页（飞机详情 / 座位配置 / 大修预算 / 购机决策会议）
+        /// 必须落在「机队」模块里，否则会挂进当时恰好开着的部门框。
+        /// 返回 null = 不强制（沿用当前模块）。
+        /// </summary>
+        public static string ModuleTabForPage(string pageId)
+        {
+            if (string.IsNullOrEmpty(pageId)) return null;
+            if (pageId.StartsWith("n10_", System.StringComparison.Ordinal) || pageId.Contains("飞机详情")) return "n9_机队";
+            if (PageIdMatch.Is(pageId, "n11") || pageId.Contains("座位")) return "n9_机队";
+            if (pageId.StartsWith("n107", System.StringComparison.Ordinal) || pageId.Contains("大修预算")) return "n9_机队";
+            if (pageId.StartsWith("n97", System.StringComparison.Ordinal) || pageId.Contains("购机决策")) return "n9_机队";
+            return null;
         }
 
         static Transform FindActiveModulePanel()

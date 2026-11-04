@@ -74,6 +74,27 @@ namespace AirlineCEO.Logic
         /// <summary>是否基地始发（航线双向等价）。</summary>
         public static bool FromHub(string origin, string dest) => RouteRightManager.IsFromHomeBase(origin, dest);
 
+        /// <summary>
+        /// 承运人**本国**（用于航权自由度判定）：取主基地所在国，主基地未定时退回 CEO 国籍。
+        /// 主基地优先是有意的 —— 航权是「承运人所属国」与对方谈的，而这家公司的注册国就是基地所在国；
+        /// CEO 国籍只是最后的兜底。两处都为空时返回 ""，由 <see cref="AirportRegions.FreedomOf"/>
+        /// 退回保守口径（国际 = 第三/第四航权）。
+        /// </summary>
+        public static string HomeCountry(GameState gs)
+        {
+            string hub = gs != null ? (gs.hubIata ?? "").Trim() : "";
+            string c = AirportRegions.CountryOf(hub);
+            if (c.Length > 0) return c;
+            return gs != null ? (gs.ceoNationality ?? "").Trim() : "";
+        }
+
+        /// <summary>
+        /// 这一对航点需要哪一档航权（0 国内 / 3 第三四 / 5 第五 / -1 国内载权）。
+        /// 见 <see cref="AirportRegions.FreedomOf"/> 的口径说明。
+        /// </summary>
+        public static int FreedomFor(GameState gs, string origin, string dest)
+            => AirportRegions.FreedomOf(HomeCountry(gs), origin, dest);
+
         /// <summary>审查 + 公示所需季度数：国际/地区更长；重申一次加一季。</summary>
         public static int ReviewQuarters(bool international, int attempt)
         {
@@ -620,8 +641,7 @@ namespace AirlineCEO.Logic
 
         /// <summary>某个**具体时刻**的时刻池占用一行式（n77 与申请/购入邮件用）。</summary>
         public static string SlotPoolLineAt(GameState gs, string airport, string clock)
-        {
-            int m = ScheduleSlots.ParseClock(clock);
+        {            int m = ScheduleSlots.ParseClock(clock);
             if (m < 0) return "";
             int b = ScheduleSlots.BandOfDep(ScheduleSlots.FormatClock(m));
             int cap = SlotPoolCapacity(airport, b);
@@ -630,6 +650,172 @@ namespace AirlineCEO.Logic
             string coord = AirlineCEO.Data.AirportCatalog.IsCoordinated(airport) ? "协调机场" : "非协调";
             return $"{airport} {ScheduleSlots.FormatClock(m)} · 该时刻已持 {heldAt} 条；"
                    + $"所在{StrategyManager.SlotBandName(b)}班池 {heldBand}/{cap}（余 {Math.Max(0, cap - heldBand)}）· {coord}";
+        }
+
+        /// <summary>
+        /// 一条时刻槽的选点结论（见 <see cref="TryBestSlotClock"/>）。
+        /// </summary>
+        public struct SlotPick
+        {
+            /// <summary>false = 四个时段池都已满（或机场未知），<see cref="reason"/> 说明原因。</summary>
+            public bool ok;
+            public string airport;
+            /// <summary>推荐离港时刻（系列时刻，`"HH:mm"`）。</summary>
+            public string clock;
+            public int band;
+            /// <summary>二级市场估价（万美元）。</summary>
+            public float price;
+            /// <summary>该时段需求系数（1.00 = 早高峰基准）。</summary>
+            public float demand;
+            /// <summary>性价比 = 需求 ÷ 价格（每花一万美元换来的需求）；仅供参考展示，不参与排序。</summary>
+            public float valuePerCost;
+            /// <summary>一行理由，直接写进请示正文。</summary>
+            public string reason;
+            /// <summary>同一时段「早/中/晚/夜」中是否最划算。</summary>
+            public bool best;
+        }
+
+        /// <summary>
+        /// **买/申请哪个时刻最划算** —— 2026-11-03 用户问询落地。
+        ///
+        /// 旧口径：许可一受理就固定按 `ScheduleSlots.DepTimes[1]`（12:00）提一张买单，从不比较。
+        /// 而项目里两套数本就可比：
+        /// <list type="bullet">
+        /// <item>需求：`ScheduleSlots.Demands` = 早 1.00 / 中 0.90 / 晚 **1.10** / 夜 0.80；</item>
+        /// <item>价格：`StrategyEconomics.SlotValueWan` 时段倍率 = 早 **1.4** / 中 1.0 / 晚 **0.85** / 夜 0.6。</item>
+        /// </list>
+        /// 于是枢纽机场（基价 600 万）里，12:00 是「0.90 需求 / 600 万」，18:00 是「1.10 需求 / 510 万」——
+        /// 晚报高峰**又旺又便宜**，旧口径一次都没推荐过它。
+        ///
+        /// 判据 = **需求为主，价格只做修正**：`score = 需求 − 0.15 × 相对价格`（相对价格 = 本时段价 ÷ 四时段最高价）。
+        /// 不用纯「需求 ÷ 价格」是有原因的：夜航 0.80 需求、0.6 倍价，性价比会排到第一，
+        /// 但夜航是**最不赚钱**的班次，用它「省钱」等于拿掉整条航线的收入，不是 CEO 要的最优。
+        /// 价格只占 15% 权重：够把同需求档的便宜时段顶上来（如 18:00 比 12:00 又旺又便宜），
+        /// 但不会让淡季时段反超旺季。再乘两个修正：
+        /// ① 池已满的时段直接出局（买了也落不了地）；
+        /// ② 现金买不起的时段打 0.35 折 —— 「最优」必须是**买得起的**最优，否则等于把 CEO 往死路上推。
+        /// </summary>
+        public static SlotPick TryBestSlotClock(GameState gs, string airport, float cashWan = -1f)
+        {
+            var pick = new SlotPick
+            {
+                airport = airport,
+                band = 1,
+                clock = ScheduleSlots.DepTimes[1],
+                reason = ""
+            };
+            if (gs == null || string.IsNullOrEmpty(airport))
+            {
+                pick.reason = "机场未定，无法比价。";
+                return pick;
+            }
+
+            float cash = cashWan >= 0f ? cashWan : gs.cash;
+            int bestBand = -1;
+            float bestScore = -1f;
+            float bestPerWan = 0f;
+            float maxPrice = 1f;
+            for (int b = 0; b < ScheduleSlots.DepTimes.Length; b++)
+            {
+                maxPrice = Mathf.Max(maxPrice, StrategyEconomics.SlotValueWan(airport, b));
+            }
+
+            var full = new System.Text.StringBuilder();
+
+            for (int b = 0; b < ScheduleSlots.DepTimes.Length; b++)
+            {
+                if (SlotPoolFull(gs, airport, b))
+                {
+                    full.Append(ScheduleSlots.DepTimes[b]).Append(' ');
+                    continue;
+                }
+                float demand = ScheduleSlots.Demands[b];
+                float price = StrategyEconomics.SlotValueWan(airport, b);
+                float perWan = demand / Mathf.Max(1f, price);
+                // 需求为主（0..1.2），价格只做 15% 的修正（相对本机场四时段最高价）
+                float score = demand - 0.15f * (price / maxPrice);
+                if (cash < price) score *= 0.35f;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestPerWan = perWan;
+                    bestBand = b;
+                }
+            }
+
+            if (bestBand < 0)
+            {
+                pick.reason = $"{airport} 四个时段池都已满（{full.ToString().Trim()}），只能等退槽或二级市场挂牌。";
+                return pick;
+            }
+
+            int band = bestBand;
+            pick.ok = true;
+            pick.best = true;
+            pick.band = band;
+            pick.clock = ScheduleSlots.DepTimes[band];
+            pick.price = StrategyEconomics.SlotValueWan(airport, band);
+            pick.demand = ScheduleSlots.Demands[band];
+            pick.valuePerCost = bestPerWan;
+
+            string bandName = StrategyManager.SlotBandName(band);
+            int free = SlotsAvailable(gs, airport, band);
+            string priceCmp = ComparePrice(airport, band);
+            pick.reason = $"{bandName} {pick.clock}：需求系数 {pick.demand:F2}（"
+                          + $"{DemandWord(band)}）、二级市场约 {pick.price:F0} 万美元（{priceCmp}），"
+                          + $"该时段池余 {free} 条"
+                          + (cash >= pick.price ? "" : $"；现金 {cash:F0} 万不足以买入，须先融资或改走免费协调池");
+            return pick;
+        }
+
+        /// <summary>为什么挑这个时段 —— 一句给 CEO 看的白话，不写公式。</summary>
+        public static string WhyPicked(int band)
+        {
+            if (band == 2) return "晚高峰需求最高，槽价还比早班便宜";
+            if (band == 0) return "早高峰需求次高，槽价最贵（商务客最集中）";
+            if (band == 1) return "午班需求与价格都居中";
+            return "夜航槽价最便宜，但需求最淡";
+        }
+
+        static string DemandWord(int band)
+        {
+            if (band == 2) return "全天最旺";
+            if (band == 0) return "早高峰";
+            if (band == 1) return "平峰";
+            return "红眼最淡";
+        }
+
+        /// <summary>与「把钱花在 12:00」相比便宜/贵多少 —— 让 CEO 一眼看出换时段省了多少。</summary>
+        static string ComparePrice(string airport, int band)
+        {
+            float mid = StrategyEconomics.SlotValueWan(airport, 1);
+            float mine = StrategyEconomics.SlotValueWan(airport, band);
+            float diff = mine - mid;
+            if (Mathf.Abs(diff) < 1f) return "与 12:00 同价";
+            return diff < 0f
+                ? $"比 12:00 的 {mid:F0} 万便宜 {-diff:F0} 万"
+                : $"比 12:00 的 {mid:F0} 万贵 {diff:F0} 万";
+        }
+
+        /// <summary>
+        /// 「买还是免费申请」的一句话对比（写进时刻提案正文）。
+        ///
+        /// 两条渠道现实里并存：协调池申请（WASG 正常渠道，按序分配、不收费）与二级市场购入
+        /// （向持槽航司买、即买即用）。旧版请示永远只写「建议购入」，等于替 CEO 放弃了免费那条路。
+        /// </summary>
+        public static string SlotChannelNote(GameState gs, string airport, string clock)
+        {
+            int m = ScheduleSlots.ParseClock(clock);
+            int b = m < 0 ? 1 : ScheduleSlots.BandOfDep(ScheduleSlots.FormatClock(m));
+            float price = StrategyEconomics.SlotValueWan(airport, b);
+            int free = SlotsAvailable(gs, airport, b);
+            bool full = free <= 0;
+            int queueDays = PermitTimeline.SlotPoolWindowDays;
+            return full
+                ? $"该时段池已满（余 0 条）：协调池申请要等退槽，按经验约 {PermitTimeline.SlotPoolOffWindowDays} 天以上；"
+                  + $"急用只能走二级市场，约 {price:F0} 万美元。"
+                : $"该时段池尚余 {free} 条：**免费**协调池申请按序分配，通常 {queueDays} 天内出结果；"
+                  + $"二级市场约 {price:F0} 万美元可**当场过户**。不缺这 {queueDays} 天就别花这笔钱。";
         }
 
         /// <summary>
@@ -1427,18 +1613,60 @@ namespace AirlineCEO.Logic
             return $"局受{y}年Q{q}-{o}{d}-{n:00}";
         }
 
-        /// <summary>当前办理到第几步（1–6：五道许可关 + 时刻开航）。</summary>
-        public static int DisplayNode(InboxMail m)
+        /// <summary>
+        /// 当前办理到第几步（1–9：五道许可关 + 时刻 → 开航执行 → 编班 → 投入运营）。
+        ///
+        /// ★2026-11-04：旧版到第 6 关（时刻）就封顶，而「排班、定机型、定价、维修」这些
+        /// 真正把航线飞起来的事全被塞进「时刻协调与开航」一个格子里 —— 图上看是「已开航」，
+        /// 实际运营部的航班计划还躺在收件箱等 CEO 批准。现在按真实串行链拆成 7/8/9 三关。
+        /// </summary>
+        public static int DisplayNode(InboxMail m, GameState gs = null)
         {
             if (m == null) return 0;
             if (m.permitStage == StageGranted)
-                return m.permitGate == "时刻" ? NodeGrant : NodeSlot;
+            {
+                if (m.permitGate == "时刻") return NodeGrant;         // 已核准、缺槽
+                if (m.effectPending) return NodeSlot;                 // 已发证、卡在开航执行（现金/运力）
+                // 已开航：编班是否还挂在收件箱，决定停在 8 还是 9
+                return ScheduleStillPending(m, gs) ? NodeSchedule : NodeOperate;
+            }
             if (m.permitStage == StageDenied)
                 return Mathf.Clamp(m.permitNode + 1, NodeAccept, NodeGrant);
             return Mathf.Clamp(m.permitNode + 1, NodeAccept, NodeGrant);
         }
 
-        public static float Progress01(InboxMail m) => DisplayNode(m) / (float)NodeSlot;
+        /// <summary>
+        /// 这条线的航班计划是否**还等 CEO 批准**（决定第 8 关是「进行中」还是「已完成」）。
+        ///
+        /// 判据取「航线自己的 schedulePending 或收件箱里还有一封待批的编班件」两者之一：
+        /// 只看邮件会在 CEO 已批准、邮件已结案但班次尚未执行的空档里误报「未完成」；
+        /// 只看 schedulePending 则漏掉「方案已递进来、CEO 还没点」的那一段。
+        /// </summary>
+        public static bool ScheduleStillPending(InboxMail m, GameState gs = null)
+        {
+            if (gs == null) gs = AirlineCEO.Systems.GameState.Instance;
+            if (gs == null || m == null) return false;
+            string o = m.origin, d = m.dest;
+            if (string.IsNullOrEmpty(o) || string.IsNullOrEmpty(d)) return false;
+            string routeId = null;
+            if (gs.activeRoutes != null)
+            {
+                for (int i = 0; i < gs.activeRoutes.Count; i++)
+                {
+                    var r = gs.activeRoutes[i];
+                    if (r == null) continue;
+                    if (!string.Equals(r.origin, o, System.StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!string.Equals(r.destination, d, System.StringComparison.OrdinalIgnoreCase)) continue;
+                    routeId = r.routeId;
+                    if (r.schedulePending) return true;
+                    break;
+                }
+            }
+            return !string.IsNullOrEmpty(routeId)
+                   && AirlineCEO.Systems.InboxManager.HasOpenOpsScheduleFor(gs, routeId);
+        }
+
+        public static float Progress01(InboxMail m) => DisplayNode(m) / (float)NodeLast;
 
         public static string NodeShort(int node) => node switch
         {
@@ -1448,18 +1676,33 @@ namespace AirlineCEO.Logic
             NodeNotice => "公示",
             NodeGrant => "批复",
             NodeSlot => "时刻",
+            NodeLaunch => "开航",
+            NodeSchedule => "编班",
+            NodeOperate => "运营",
             _ => "—"
         };
 
         /// <summary>一行式办理进度（供 n77 与邮件复用）。</summary>
-        public static string ProgressLine(InboxMail m)
+        public static string ProgressLine(InboxMail m) => ProgressLine(m, DateTime.UtcNow);
+
+        /// <summary>
+        /// 一行式办理进度（★2026-11-02：到期改为**具体日期 + 还剩几天**）。
+        /// 传 <paramref name="nowUtc"/> 是因为「还剩几天」必须相对**游戏时钟**算，
+        /// 拿本机时间会在加速档下给出离谱的天数。
+        /// </summary>
+        public static string ProgressLine(InboxMail m, DateTime nowUtc)
         {
             if (m == null) return "";
             string stage = StageName(m.permitStage);
             if (m.permitStage == StageGranted)
-                stage = !m.effectPending ? "已发证"
-                    : m.permitGate == "时刻" ? "已核准 · 待配时刻"
-                    : "已核准 · 待开航";
+            {
+                // ★2026-11-04：开航 ≠ 已运营。航班计划还挂在收件箱时要如实写「待批」，
+                // 否则 CEO 在「航权与时刻槽」页会以为这条线已经在载客了。
+                if (m.effectPending)
+                    stage = m.permitGate == "时刻" ? "已核准 · 待配时刻" : "已核准 · 待开航";
+                else
+                    stage = ScheduleStillPending(m) ? "已开航 · 航班计划待批" : "已发证 · 已运营";
+            }
             else if (m.permitStage == StageDenied) stage = "未获批 · 待重申或放弃";
             else if (!string.IsNullOrEmpty(m.permitGate)) stage += " · 受阻于" + m.permitGate;
             string node = "";
@@ -1468,8 +1711,11 @@ namespace AirlineCEO.Logic
                 int n = Mathf.Clamp(m.permitNode + 1, NodeAccept, NodeGrant);
                 node = $" · 节点 {n}/{NodeGrant} {NodeName(n)}";
             }
-            string due = (m.permitDueYear > 0 || m.permitDueQuarter > 0)
-                ? $" · 预计 第{m.permitDueYear}年 Q{m.permitDueQuarter}" : "";
+            string due = "";
+            if (m.dueUtcTicks > 0)
+                due = " · 下次复核 " + PermitTimeline.DateWithCountdown(new DateTime(m.dueUtcTicks, DateTimeKind.Utc), nowUtc);
+            else if (m.permitDueYear > 0 || m.permitDueQuarter > 0)
+                due = $" · 预计 第{m.permitDueYear}年 Q{m.permitDueQuarter}";
             return $"{m.origin}—{m.dest} · {stage}{node}{due} · 通过率 {m.permitChance * 100f:F0}%";
         }
 
@@ -1480,7 +1726,15 @@ namespace AirlineCEO.Logic
         public const int NodeRights = 3;   // 航权额度核验
         public const int NodeNotice = 4;   // 局方公示
         public const int NodeGrant = 5;    // 批复与发证
-        public const int NodeSlot = 6;     // 时刻协调与开航（发证后）
+        public const int NodeSlot = 6;     // 时刻协调（发证后）
+        /// <summary>开航执行：启动资金 + 适航运力 + 指派机型与航班号，落航线记录。</summary>
+        public const int NodeLaunch = 7;
+        /// <summary>航班计划编排：运营部编班（班次 × 时刻 × 机组 × 维修四闸并行校验），CEO 批准后执行。</summary>
+        public const int NodeSchedule = 8;
+        /// <summary>投入运营：首班载客，票价与收益按 MKT 票价矩阵生效。</summary>
+        public const int NodeOperate = 9;
+        /// <summary>流程图的最后一关（进度条按它算 100%）。</summary>
+        public const int NodeLast = NodeOperate;
 
         public static int Turn(int year, int quarter) => year * 4 + (quarter - 1);
 
@@ -1499,7 +1753,10 @@ namespace AirlineCEO.Logic
             NodeRights => "航权额度核验",
             NodeNotice => "局方公示",
             NodeGrant => "批复与发证",
-            NodeSlot => "时刻协调与开航",
+            NodeSlot => "时刻协调",
+            NodeLaunch => "开航执行",
+            NodeSchedule => "航班计划编排",
+            NodeOperate => "投入运营",
             _ => "未启动"
         };
 
@@ -1512,10 +1769,17 @@ namespace AirlineCEO.Logic
                 ? "核配双边航空运输协定内的航权额度与指定承运人名额（国际硬前置）"
                 : "国内航线不涉航权额度，随经营许可一并核准",
             NodeNotice => "局方公示拟开通航线，竞对可在公示期内提出异议（可能顺延审批）",
-            NodeGrant => "许可核准发证（发证前不得售票）；时刻协调与开航均在此之后办理",
+            NodeGrant => "许可核准发证（发证前不得售票）；时刻、开航与排班均在此之后办理",
             NodeSlot => needsSlot
-                ? "凭证向协调机场申请时刻：按夏秋/冬春协调季分配，热门时段需竞拍或购买（先证后槽，未获许可则不必花钱）"
+                ? $"凭证向协调机场申请时刻：与许可**并行**办理（先槽后证），{PermitTimeline.SlotPreHoldDays} 天内须取得航权，逾期时刻退回协调池；热门时段需竞拍或购买"
                 : "非协调机场无时刻限制，凭证报备航班计划后即可排班开航",
+            // ★2026-11-04 用户要求：「应该列出从零到航班运行的全流程，目前只是从零到取得航权和时刻就结束了，
+            //   应该补上排航班计划、定价、安排机型、维修等等一系列的流程」。
+            // 下面三关就是发证之后真正把航线飞起来的那一段 —— 每一关都对应系统里已有的闸门，不是画出来的。
+            NodeLaunch => "校验启动资金与适航运力，指派执飞机型与机号、分配航班号，航线记录建档",
+            NodeSchedule => "运营部编排班次与起飞时刻（班次、时刻槽、机组产能、维修可用性四道闸并行校验），"
+                            + "编成航班计划后呈报 CEO 批准；未批准则班次不执行",
+            NodeOperate => "首班载客，票价按 MKT 票价矩阵生效（可调），收益、准点、维修计划随之接入常规经营",
             _ => ""
         };
 
@@ -1558,8 +1822,53 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
+        /// 准入进度表 · **天级版**（★2026-11-02）。每个节点给出具体日期与「还剩几天」。
+        ///
+        /// 与季度版（<see cref="ProgressTable"/>）并列存在：新单走这一版，
+        /// 读档里 <c>permitAcceptUtcTicks</c> 为 0 的旧单继续走季度版 —— 存档不作废。
+        /// </summary>
+        public static string ProgressTableDays(bool international, bool needsSlot,
+            DateTime acceptUtc, int totalDays, int doneNode, int stage, bool launchPending)
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int node = NodeAccept; node <= NodeGrant; node++)
+            {
+                DateTime at = PermitTimeline.DayAt(acceptUtc, PermitTimeline.NodeDayOffset(node, totalDays));
+                string state;
+                if (node == NodeGrant && stage == StageDenied) state = "✗ 未获批（可重申）";
+                else if (node <= doneNode) state = "✓ 已完成";
+                else if (node == doneNode + 1) state = "◐ 进行中";
+                else state = "○ 待办";
+                sb.Append($"<b>{node}) {NodeName(node)}</b>　{PermitTimeline.DateLabel(at)}　{state}\n");
+                sb.Append($"　　{NodeDetail(node, international, needsSlot)}\n");
+            }
+
+            DateTime slotAt = PermitTimeline.DayAt(acceptUtc, totalDays);
+            string launchState;
+            if (!launchPending && stage == StageGranted) launchState = "✓ 已完成";
+            else if (stage == StageDenied) launchState = "— 需先取得许可";
+            else if (launchPending && stage == StageGranted) launchState = "◐ 进行中";
+            else launchState = "○ 待办";
+            sb.Append($"<b>{NodeSlot}) {NodeName(NodeSlot)}</b>　{PermitTimeline.DateLabel(slotAt)} 起　{launchState}"
+                + (needsSlot ? "" : "（非协调机场，无需时刻）") + "\n");
+            sb.Append($"　　{NodeDetail(NodeSlot, international, needsSlot)}\n");
+            // 发证后三关（开航执行 → 编班 → 投入运营）与流程图同序同义。
+            // 文字版拿不到航线运行态（不知道编班批没批），故只按「是否已开航」三分，
+            // 精确到「编班是否待批」请看流程图那一版。
+            for (int node = NodeLaunch; node <= NodeOperate; node++)
+            {
+                string st = stage != StageGranted ? "○ 待办"
+                    : launchPending ? (node == NodeLaunch ? "◐ 进行中" : "○ 待办")
+                    : "✓ 已完成";
+                sb.Append($"<b>{node}) {NodeName(node)}</b>　发证后　{st}\n");
+                sb.Append($"　　{NodeDetail(node, international, needsSlot)}\n");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// 准入进度表：受理 → 批复逐节点列出目标季度与状态（doneNode = 已上报节点），
-        /// 需要时刻的航线再补一行「时刻协调与开航」（发证后办理，只卡开航不卡发证）。
+        /// 需要时刻的航线再补一行「时刻协调」（发证后办理，只卡开航不卡发证）。
         /// </summary>
         public static string ProgressTable(bool international, bool needsSlot,
             int acceptYear, int acceptQuarter, int dueYear, int dueQuarter, int doneNode,
@@ -1588,6 +1897,62 @@ namespace AirlineCEO.Logic
             sb.Append($"<b>{NodeSlot}) {NodeName(NodeSlot)}</b>　第{sy}年 Q{sq} 起　{launchState}"
                 + (needsSlot ? "" : "（非协调机场，无需时刻）") + "\n");
             sb.Append($"　　{NodeDetail(NodeSlot, international, needsSlot)}\n");
+            for (int node = NodeLaunch; node <= NodeOperate; node++)
+            {
+                string st = stage != StageGranted ? "○ 待办"
+                    : launchPending ? (node == NodeLaunch ? "◐ 进行中" : "○ 待办")
+                    : "✓ 已完成";
+                sb.Append($"<b>{node}) {NodeName(node)}</b>　发证后　{st}\n");
+                sb.Append($"　　{NodeDetail(node, international, needsSlot)}\n");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 「从受理到航班运行」的九关**目录图**（全部待办），供开航研究会呈报使用。
+        ///
+        /// ★2026-11-04 CEO 报障：「当 CEO 下达开通一条航线的指令后，应该列出从零到航班运行的全流程，
+        /// 目前只是从零到取得航权和时刻就结束了，这个流程不完整，应该补上排航班计划、定价、
+        /// 安排机型、维修等等一系列的流程」。
+        ///
+        /// 与 <see cref="ProgressTableDays"/> 的区别：那是**某张许可**走到哪的实况表，
+        /// 这里给的是 CEO 签字前该看到的**全貌** —— 一共九关，前五关是局方许可，第六关是时刻，
+        /// 第七到第九关才轮到公司自己把飞机真正飞起来。图上每一关都对应系统里真实存在的闸门。
+        /// </summary>
+        public static string LifecycleChart(bool international, bool needsSlot,
+            string title = "从受理到航班运行（全流程九关）")
+        {
+            var nodes = new System.Collections.Generic.List<FlowNode>();
+            nodes.Add(new FlowNode(NodeName(NodeAccept), FlowState.Pending, "局方出具受理号"));
+            nodes.Add(new FlowNode(NodeName(NodeReview), FlowState.Pending, "审查运力与安全能力"));
+            nodes.Add(new FlowNode(NodeName(NodeRights), international ? FlowState.Pending : FlowState.Skipped,
+                international ? "双边协定额度" : "国内不涉航权额度"));
+            nodes.Add(new FlowNode(NodeName(NodeNotice), FlowState.Pending, "公示期内可被异议"));
+            nodes.Add(new FlowNode(NodeName(NodeGrant), FlowState.Pending, "发证后方可售票"));
+            nodes.Add(new FlowNode(NodeName(NodeSlot), needsSlot ? FlowState.Pending : FlowState.Skipped,
+                needsSlot ? "各停站各一对" : "非协调机场无需时刻"));
+            nodes.Add(new FlowNode(NodeName(NodeLaunch), FlowState.Pending,
+                $"启动资金 {AirlineCEO.Systems.ActionExecutor.OpenRouteStartupCost:F0} 万 · 派机型"));
+            nodes.Add(new FlowNode(NodeName(NodeSchedule), FlowState.Pending, "班次 × 时刻 × 机组 × 维修"));
+            nodes.Add(new FlowNode(NodeName(NodeOperate), FlowState.Pending, "首班载客 · 票价生效"));
+            return ProcessFlow.Render(title, nodes);
+        }
+
+        /// <summary>九关各由谁办、卡在哪（与 <see cref="LifecycleChart"/> 配套的文字说明）。</summary>
+        public static string LifecycleNotes(bool international, bool needsSlot)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append(InboxLetter.Bullet("第1–5关　**局方**办理：受理 → 审查 → 航权 → 公示 → 发证；"
+                + (international ? "国际线多一道双边航权额度核验与对方许可。" : "国内线不涉航权额度。")));
+            sb.Append(InboxLetter.Bullet("第6关　**时刻**："
+                + (needsSlot ? "向协调机场申请/购买各停站时刻，与许可并行（先槽后证有宽限期）。"
+                             : "两端均为非协调机场，报备航班计划即可，无需时刻。")));
+            sb.Append(InboxLetter.Bullet("第7关　**运营部 + 机务**：扣启动资金、核适航运力、指派机型与机号、分配航班号。"
+                + "现金或可用飞机不足时卡在这一关，许可证继续有效。"));
+            sb.Append(InboxLetter.Bullet("第8关　**运营部编班 → CEO 批准**：班次、起飞时刻、机组产能、维修可用性四道闸并行校验；"
+                + "任何一道排不出，那一波次就会缺班并写明原因，加密前须先补人、补机或补槽。"));
+            sb.Append(InboxLetter.Bullet("第9关　**市场部 + 收益**：首班载客，票价按 MKT 票价矩阵生效"
+                + "（默认基础价即可起飞，可在「市场销售 › 航班定价」按舱位调价）；此后准点、维修与收益接入常规经营。"));
             return sb.ToString();
         }
 

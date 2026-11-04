@@ -35,18 +35,9 @@ namespace AirlineCEO.UI.Navigation
                 kind = "n66";
                 title = "航季总纲";
             }
-            // ★顺序有意义：n98 的页面 id 是「n98_航线航班环选择器」，也含「航班环」三个字，
-            // 若先把 n36 的 Contains("航班环") 判在前面，n98 会被当成 n36 建出来（选择器整块消失）。
-            else if (pageId.StartsWith("n98") || pageId.Contains("选择器") || pageId.Contains("航班环选择"))
-            {
-                kind = "n98";
-                title = "航线分配";
-            }
-            else if (pageId.StartsWith("n36") || pageId.Contains("航班环"))
-            {
-                kind = "n36";
-                title = "航班环 · 运营部编成";
-            }
+            // ★2026-11-01：n98「航线分配」与 n36「航班环构建器」两页都已删除。
+            //   n98 的逐机航线计划与飞机详情重复；n36 的看板搬进了「机队 › 周计划及航班环」。
+            //   故 OPS 侧只剩 n42 / n43 / n66 三张表页，不再有「航班环」运行时页。
 
             if (kind == null) return null;
 

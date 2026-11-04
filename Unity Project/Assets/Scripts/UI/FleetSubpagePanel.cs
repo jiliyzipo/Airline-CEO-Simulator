@@ -315,7 +315,7 @@ namespace AirlineCEO.UI
                 }
             }
             if (n == 0)
-                return "每条班次均按往返执行（去程 + 回程 2 段/班）；未跨航线串环。可在「分配航线」串环，或由 CEO 运力指令自动编环";
+                return "每条班次均按往返执行（去程 + 回程 2 段/班）；未跨航线串环。串环由运营部在后台编成，可在命令台说「把基地的飞机编满」";
             return sb.ToString();
         }
 
@@ -412,17 +412,10 @@ namespace AirlineCEO.UI
                 : leased ? (exitFee > 0.01f ? $"退租（违约金 {exitFee:F0}）" : "退租")
                 : $"转售/退役(+{residual:F0})";
             B("Seat", "载客量配置", 0.0f, 0.16f, 0.20f, 0.25f, UITheme.Accent, () => FleetUI.OpenFleetPage("n11_座位配置"), 13);
-            B("Assign", "分配航线", 0.22f, 0.16f, 0.40f, 0.25f, UITheme.Accent, AssignRoute, 13);
-            B("Retire", exitLabel, 0.42f, 0.16f, 0.66f, 0.25f, UITheme.Danger, Retire, 12);
-            B("Overhaul", "安排大修", 0.68f, 0.16f, 0.86f, 0.25f, UITheme.Warning, () => FleetUI.OpenFleetPage("n107_预算确认"), 13);
-            B("Replace", "申请替换", 0.88f, 0.16f, 1.0f, 0.25f, UITheme.PanelDeep, () => FleetUI.OpenPurchaseMeeting(), 11);
-        }
-
-        void AssignRoute()
-        {
-            var ac = CurrentAircraft();
-            if (ac != null) OpsSubpageContext.SelectedRegistration = ac.registration;
-            OpsPanelUI.OpenOpsPage("n98_航线航班环选择器");
+            // ★2026-11-01：原「分配航线」按钮（n98）已删除 —— 该页撤掉后派机/加班改由命令台下达。
+            B("Retire", exitLabel, 0.22f, 0.16f, 0.50f, 0.25f, UITheme.Danger, Retire, 12);
+            B("Overhaul", "安排大修", 0.52f, 0.16f, 0.70f, 0.25f, UITheme.Warning, () => FleetUI.OpenFleetPage("n107_预算确认"), 13);
+            B("Replace", "申请替换", 0.72f, 0.16f, 0.86f, 0.25f, UITheme.PanelDeep, () => FleetUI.OpenPurchaseMeeting(), 11);
         }
 
         void Retire()

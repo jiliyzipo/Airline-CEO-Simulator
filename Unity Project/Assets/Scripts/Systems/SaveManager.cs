@@ -80,6 +80,8 @@ namespace AirlineCEO.Systems
         private const string KeyMkt = "ACEO_Mkt";
         private const string KeyCargo = "ACEO_Cargo";
         private const string KeyCommerce = "ACEO_Commerce";
+        /// <summary>机务状态（航材库存 / 采购订单 / OEM 关系 / 定检排程）。★2026-11-03 补齐：此前从未落盘。</summary>
+        private const string KeyMnt = "ACEO_Mnt";
         private const string KeySubsidies = "ACEO_RouteSubsidies";
         private const string KeyTransition = "ACEO_TransitionBusiness";
         private const string KeyTransitionIntro = "ACEO_TransitionIntroSent";
@@ -165,7 +167,7 @@ namespace AirlineCEO.Systems
             KeyLoanDefaults, KeyHasSeenHedgeTutorial, KeyBudget, KeyBudgetYear, KeyBudgetSubmitted,
             KeyBudgetApproved, KeyCarbon, KeyRestructuring, KeyPdpPayable, KeyFxHedgeRatio,
             KeyUsdCny, KeyUsdCnyHistory, KeyCumFxPnl, KeyOneOffLast,
-            KeyMkt, KeyCargo, KeyCommerce, KeySubsidies, KeyTransition, KeyAircraftOrders, KeyInsurance,
+            KeyMkt, KeyCargo, KeyCommerce, KeyMnt, KeySubsidies, KeyTransition, KeyAircraftOrders, KeyInsurance,
             KeyFuelProc, KeyCarbonComp, KeyCumTaxPaid, KeyYearTaxPaid, KeyDecision, KeyFleet,
             KeyActiveRoutes, KeyFlightRings, KeyTakeover, KeyLegacyIssues,
             KeyTransitionIntro, KeyTransitionQIncome, KeyCommandLog,
@@ -190,10 +192,142 @@ namespace AirlineCEO.Systems
         static void SetF(string key, float v) => PlayerPrefs.SetFloat(P(key), v);
         static void SetS(string key, string v) => PlayerPrefs.SetString(P(key), v);
         static void SetI(string key, int v) => PlayerPrefs.SetInt(P(key), v);
-        static float GetF(string key, float def) => PlayerPrefs.GetFloat(P(key), def);
+
+        /// <summary>
+        /// 读 float。**先按字符串试解析**：多槽位快照在 2026-11-03 之前用
+        /// <c>GetString/SetString</c> 无差别克隆，把 float/int 写成了字符串，
+        /// 直接 GetFloat 会静默返回默认值（现金变 0）。这里把「存成数字文本」的值捞回来。
+        /// 正常存档该键是 float，GetString 取不到文本 → 落到 GetFloat，行为不变。
+        /// </summary>
+        static float GetF(string key, float def)
+        {
+            string full = P(key);
+            if (!PlayerPrefs.HasKey(full)) return def;
+            string raw = PlayerPrefs.GetString(full, "");
+            if (TryParseNumber(raw, out float parsed)) return parsed;
+            return PlayerPrefs.GetFloat(full, def);
+        }
+
         static string GetS(string key, string def) => PlayerPrefs.GetString(P(key), def);
-        static int GetI(string key, int def) => PlayerPrefs.GetInt(P(key), def);
+
+        /// <summary>读 int；字符串化的旧快照同 <see cref="GetF"/> 一样就地捞回。</summary>
+        static int GetI(string key, int def)
+        {
+            string full = P(key);
+            if (!PlayerPrefs.HasKey(full)) return def;
+            string raw = PlayerPrefs.GetString(full, "");
+            if (TryParseNumber(raw, out int parsed)) return parsed;
+            return PlayerPrefs.GetInt(full, def);
+        }
+
         static bool HasKey(string key) => PlayerPrefs.HasKey(P(key));
+
+        // ———— 存档键类型表（多槽位快照按类型克隆，2026-11-03） ————
+        // 教训：SaveSlotManager.CaptureToSlot 曾用 GetString/SetString 无差别克隆，
+        // 把 float/int 全写成空字符串 → 时间回溯 / 时间胶囊 / 分支存档一恢复，
+        // 现金、财年、季度与公历时钟全部回落到默认值（现金 0、第 1 年 Q1、
+        // 时钟退回现实日期），而清单里是字符串的收件箱反而完好无损。
+        // 这两个集合必须与 Save() 里的 SetF / SetI 调用保持一致（有回归用例守着）。
+        static readonly HashSet<string> FloatKeys = new HashSet<string>
+        {
+            KeyCash, KeySatisfaction, KeyLegacyScore, KeyYearNet,
+            KeyLiveQIncome, KeyLiveQExpense, KeyLiveQDeptExpense,
+            KeyOnTime, KeyFuelPrice, KeyPdpPayable, KeyFxHedgeRatio,
+            KeyUsdCny, KeyCumFxPnl, KeyTransitionQIncome,
+            KeyCumTaxPaid, KeyYearTaxPaid,
+            KeyMacroEconomy + "_GDP",
+        };
+
+        static readonly HashSet<string> IntKeys = new HashSet<string>
+        {
+            KeyAdvisorTutStep, KeyAdvisorTutMail, KeyAdvisorTutDeferred, KeyAdvisorTutDone, KeyAdvisorTutAwait,
+            KeyYear, KeyQuarter, KeySpeedLevel,
+            KeySimDay, KeySimHour, KeySimMinute, KeyWallYear, KeyWallMonth, KeyWallDay,
+            KeyFirstFlight, KeyDifficulty, KeyGameOver, KeyCeoBirthYear, KeyGameOverVictory,
+            KeyActiveMode, KeyLegendActive, KeyFastActive,
+            KeySafetyDQuarters, KeyMajorCrash, KeyLastDefeatKind, KeyIronmanActive,
+            KeyMistakeProtectionRemaining, KeyMistakeProtectionUsedYear,
+            KeyTargetsYear, KeyAnnualGoalsConfirmedYear,
+            KeyProbationUsed, KeyFailVotes, KeySafetyRating,
+            KeyHasAOGTriggered, KeyAOGChoice, KeyAOGAdvisor,
+            KeyHasExpansion, KeyExpansionDelay, KeyExpansionAccepted, KeyExpansionRejected,
+            KeyGreatRoute, KeyLastExpansionYear,
+            KeyLoanDefaults, KeyHasSeenHedgeTutorial,
+            KeyBudgetYear, KeyBudgetSubmitted, KeyBudgetApproved,
+            KeyTransitionIntro, KeyMacroEconomy + "_Duration", KeyOnTimeLowQuarters,
+        };
+
+        /// <summary>
+        /// 把「被写成字符串」的数字解析回数值：先按不变文化，再按当前文化
+        /// （小数逗号地区 Unity 的 float→string 会写出逗号）。
+        /// </summary>
+        static bool TryParseNumber(string raw, out float value)
+        {
+            value = 0f;
+            if (string.IsNullOrEmpty(raw)) return false;
+            return float.TryParse(raw, System.Globalization.NumberStyles.Float,
+                       System.Globalization.CultureInfo.InvariantCulture, out value)
+                || float.TryParse(raw, System.Globalization.NumberStyles.Float,
+                       System.Globalization.CultureInfo.CurrentCulture, out value);
+        }
+
+        static bool TryParseNumber(string raw, out int value)
+        {
+            value = 0;
+            if (string.IsNullOrEmpty(raw)) return false;
+            return int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                       System.Globalization.CultureInfo.InvariantCulture, out value)
+                || int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                       System.Globalization.CultureInfo.CurrentCulture, out value);
+        }
+
+        /// <summary>某个主存档键在 PlayerPrefs 里的真实类型。</summary>
+        public static PrefKind KindOf(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return PrefKind.String;
+            if (FloatKeys.Contains(key)) return PrefKind.Float;
+            if (IntKeys.Contains(key)) return PrefKind.Int;
+            return PrefKind.String;
+        }
+
+        /// <summary>
+        /// 按类型把一条存档键从 <paramref name="fromFull"/> 克隆到 <paramref name="toFull"/>。
+        /// 数字来源若被写成了字符串（旧快照），这里按文本解析救回；解析不出来就**不覆盖**目标，
+        /// 免得把还能用的值抹成 0。
+        /// </summary>
+        public static bool CloneKey(string bareKey, string fromFull, string toFull)
+        {
+            if (!PlayerPrefs.HasKey(fromFull)) return false;
+            string raw = PlayerPrefs.GetString(fromFull, "");
+            bool hasText = !string.IsNullOrEmpty(raw);
+            switch (KindOf(bareKey))
+            {
+                case PrefKind.Float:
+                    if (hasText && TryParseNumber(raw, out float f))
+                    {
+                        PlayerPrefs.SetFloat(toFull, f);
+                        return true;
+                    }
+                    if (hasText) return false;   // 文本但不是数字 → 别写坏
+                    PlayerPrefs.SetFloat(toFull, PlayerPrefs.GetFloat(fromFull, 0f));
+                    return true;
+                case PrefKind.Int:
+                    if (hasText && TryParseNumber(raw, out int i))
+                    {
+                        PlayerPrefs.SetInt(toFull, i);
+                        return true;
+                    }
+                    if (hasText) return false;
+                    PlayerPrefs.SetInt(toFull, PlayerPrefs.GetInt(fromFull, 0));
+                    return true;
+                default:
+                    PlayerPrefs.SetString(toFull, raw);
+                    return true;
+            }
+        }
+
+        /// <summary>主存档键的 PlayerPrefs 类型。</summary>
+        public enum PrefKind { String, Int, Float }
 
         [Serializable]
         private class FloatListSave
@@ -566,6 +700,18 @@ namespace AirlineCEO.Systems
             SetS(KeyCommerce, JsonUtility.ToJson(new AirportCommerceSave
             {
                 state = gs.commerce ?? new AirportCommerceState()
+            }));
+
+            // 机务（GDB 第16章 · 航材与供应链）
+            // ★2026-11-03 报障修：「批准了航材采购，到交期却没有扣款入库」。
+            //   病根不在结算，而在**这一块从来没写过**：KeyMnt 不存在，MaintenanceSave 这个
+            //   包装类早在 StrategyTypes 里定义好了却无人引用 —— 于是每次重开游戏/读档，
+            //   航材库存与采购订单整块归零，而收件箱里那封「请批准采购 PO-001」是存过档的。
+            //   玩家再点批准，ApprovesPartsOrder 按 orderNo 找不到订单，只能报「未找到对应采购订单」，
+            //   邮件被兜底标成「已批准」，扣款与入库就永远等不到了。
+            SetS(KeyMnt, JsonUtility.ToJson(new MaintenanceSave
+            {
+                state = gs.mnt ?? new MaintenanceState()
             }));
 
             // 财务细分（GDB 第15章 · P2 长线运营）
@@ -1145,6 +1291,20 @@ namespace AirlineCEO.Systems
                 gs.commerce = new AirportCommerceState();
             }
 
+            // 机务（GDB 第16章）读档
+            // ★2026-11-03：旧档没有 KeyMnt —— 留 null 会让「已批准待扣款」的航材采购单
+            //   连同订单号一起消失。这里读不到就建空状态；随后 EnsureState 补齐 oems 等默认项，
+            //   已经排定的扣款靠收件箱里那封邮件的 dueUtcTicks 走（见 ApprovePartsOrder 的回退）。
+            try
+            {
+                var mntBlob = JsonUtility.FromJson<MaintenanceSave>(GetS(KeyMnt, ""));
+                gs.mnt = mntBlob?.state ?? new MaintenanceState();
+            }
+            catch
+            {
+                gs.mnt = new MaintenanceState();
+            }
+
             // 财务细分（GDB 第15章 · P2 长线运营）读档
             try
             {
@@ -1407,6 +1567,9 @@ namespace AirlineCEO.Systems
                 catch (System.Exception e) { Debug.LogWarning($"[SaveManager] pendingInbox 反序列化失败：{e.Message}"); }
             }
             InboxManager.BackfillReceiptRouteRefs(gs);
+            // 无条件过一遍：不仅是缺字段的新档，任何「时钟落在已收邮件之前」的档都要抬回水位，
+            // 否则已投递过的邮件会按旧日期再投一次。时钟正常时这里直接返回，不动任何东西。
+            RepairClockFromInbox(gs);
             string msgJson = GetS(KeyMessages, "");
             if (!string.IsNullOrEmpty(msgJson))
             {
@@ -1475,14 +1638,80 @@ namespace AirlineCEO.Systems
             if (renumbered > 0)
                 Debug.Log($"[SaveManager] 航班号迁移：{renumbered} 条航线重编（旧档连号分配会互撞）");
 
+            // 日志带上公历日期与本季天数：只打「现金 + 第 N 年 Q M」时，时钟被拨回
+            // 现实日期这一层损坏在日志里完全看不出来（2026-11-03 报障排查绕了远路）。
+            string clockTag = $"{gs.DateLabel} · {gs.wallMonth}月{gs.wallDay}日 {gs.GameUtcClockLabel}（本季第 {gs.simDay} 天）";
             LastStatus = gs.gameOver
                 ? (gs.gameOverVictory
-                    ? $"已读档 F9 · 已通关（遗产 {gs.lastLegacyGrade}） · {gs.DateLabel}"
-                    : $"已读档 F9 · 游戏已结束 · {gs.DateLabel}")
-                : $"已读档 F9 · 现金 {gs.cash:F0} · {gs.DateLabel}";
+                    ? $"已读档 F9 · 已通关（遗产 {gs.lastLegacyGrade}） · {clockTag}"
+                    : $"已读档 F9 · 游戏已结束 · {clockTag}")
+                : $"已读档 F9 · 现金 {gs.cash:F0} · {clockTag}";
             Debug.Log($"[SaveManager] {LastStatus}");
             AirlineCEO.UI.ChineseFontProvider.RefreshAfterLoad();
             gs.NotifyChanged();
+        }
+
+        /// <summary>
+        /// 时钟兜底修复：老档 / 被写坏的档没有公历时钟字段时，不能直接落到现实日期 ——
+        /// 那会把时钟甩到「已收邮件」之前（用户报障：快进到 11 月 19 日存档，读回来变 11 月 3 日，
+        /// 于是又收到一批盖 11 月 3 日日期的邮件）。收件箱里最新的收件时刻是**确定发生过的过去**，
+        /// 用它当最低水位把时钟推回去。
+        /// </summary>
+        /// <remarks>
+        /// 只把公历时钟拨回去还不够：<c>simDay</c>（本季第几天）在同一场损坏里也可能一起归零成 1，
+        /// 时钟拨回去而天数不跟上，季内「按天结算」的邮件、成本与到期节点就会从第 1 天重跑一遍
+        /// —— 玩家看到的就是「又收到 11 月 3 日的邮件」。
+        ///
+        /// ★2026-11-04 独立检测（REV-20261104042149-25327e）：本季天数曾经是拿「坏档被兜底成的
+        /// **今天**」与邮件日期相减来补的，于是同一个存档在不同日期打开会算出不同的天数
+        /// （11-03 读是第 17 天，11-04 读是第 16 天）—— 这正是**不能拿现实日期当存档事实**的老毛病。
+        /// 现在改成读信上记的收件当日天数（<see cref="InboxMail.receivedSimDay"/>）：它是收信那一刻
+        /// 写进存档的，与哪天打开游戏无关。旧档没有这个水位时**不臆造天数**，保留存档里的值。
+        /// </remarks>
+        static void RepairClockFromInbox(GameState gs)
+        {
+            if (gs?.inbox == null) return;
+            long newest = 0;
+            int newestDay = 0;
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || m.receivedUtcTicks <= 0) continue;
+                if (m.receivedUtcTicks > newest)
+                {
+                    newest = m.receivedUtcTicks;
+                    // 只信**本季**那封信的日序号：上一季第 30 天不能当本季第 30 天用。
+                    bool sameQuarter = (m.receivedYear <= 0 || m.receivedYear == gs.year)
+                                       && (m.receivedQuarter <= 0 || m.receivedQuarter == gs.quarter);
+                    newestDay = sameQuarter ? m.receivedSimDay : 0;
+                }
+            }
+            if (newest <= 0) return;
+            var stamp = new DateTime(newest, DateTimeKind.Utc);
+            stamp = new DateTime(stamp.Year, stamp.Month, stamp.Day, stamp.Hour, stamp.Minute, 0, DateTimeKind.Utc);
+            var broken = gs.SimUtc;
+            if (stamp <= broken)
+            {
+                // 时钟没坏：只补那些「信上记了收件日、存档天数却没跟上」的档（旧档字段为 0 时不动）
+                if (newestDay > gs.simDay) gs.simDay = Mathf.Clamp(newestDay, 1, GameState.DaysPerQuarter);
+                return;
+            }
+            int dayBefore = gs.simDay;
+            gs.SetSimUtc(stamp);
+            if (newestDay > 0)
+            {
+                // 信上有确切水位：直接对齐，不做任何按现实日期推算的加法
+                gs.simDay = Mathf.Clamp(Mathf.Max(gs.simDay, newestDay), 1, GameState.DaysPerQuarter);
+            }
+            else
+            {
+                // 旧档信件没有日序号：只能保证「不倒退」，天数保留存档里的值（不按今天臆造）
+                gs.simDay = Mathf.Clamp(gs.simDay, 1, GameState.DaysPerQuarter);
+            }
+            Debug.LogWarning(
+                $"[SaveManager] 存档缺少公历时钟字段：按最新收件时刻校正时钟 → {gs.GameLocalDateTimeLabel}"
+                + $"（本季第 {dayBefore} 天 → 第 {gs.simDay} 天"
+                + $"{(newestDay > 0 ? "，以收件日为准" : "，旧档无收件日，保留存档天数")}）");
         }
     }
 }

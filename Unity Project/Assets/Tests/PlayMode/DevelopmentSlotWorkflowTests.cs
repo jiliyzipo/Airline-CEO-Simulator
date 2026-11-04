@@ -29,6 +29,22 @@ namespace AirlineCEO.Tests.PlayMode
             return gs;
         }
 
+        /// <summary>
+        /// 把模拟时钟推到该单的**结算到期时刻**，再跑一次结算。
+        ///
+        /// ★2026-11-02 CEO 裁决「审批按天、结算按季」：许可与时刻改为按绝对时刻
+        /// （<see cref="InboxMail.dueUtcTicks"/>）到期，逐日比对。只要季度往前走、时钟不动，
+        /// 结算就**不会**发生 —— 这正是本文件几条用例原来红掉的原因（靠 `gs.quarter = 2` 触发季末结算，
+        /// 验的是一套已经废止的刻度）。这里推进时钟而不是改断言：交割日之后必须真结算。
+        /// </summary>
+        static void SettleByClock(GameState gs, InboxMail mail)
+        {
+            Assert.IsNotNull(mail, "结算对象必须存在");
+            Assert.AreNotEqual(0L, mail.dueUtcTicks, "批准后必须排定结算到期时刻");
+            gs.SetSimUtc(new DateTime(mail.dueUtcTicks, DateTimeKind.Utc));
+            InboxManager.ProcessPendingEffects(gs);
+        }
+
         [Test]
         public void PartialSettlement_WaitsForOtherStation_ThenProducesCeoAssignment()
         {
@@ -44,11 +60,11 @@ namespace AirlineCEO.Tests.PlayMode
             }
             float cash = gs.cash;
             Assert.IsTrue(InboxManager.Approve(gs, applications[0], out _));
-            gs.quarter = 2; InboxManager.ProcessPendingEffects(gs);
+            SettleByClock(gs, applications[0]);
             Assert.IsFalse(RoutePermitLogic.CanScheduleClock(gs, route, "18:00", true));
             Assert.AreEqual(1, route.FlightCount);
             Assert.IsTrue(InboxManager.Approve(gs, applications[1], out _));
-            gs.quarter = 3; InboxManager.ProcessPendingEffects(gs);
+            SettleByClock(gs, applications[1]);
             Assert.IsTrue(RoutePermitLogic.CanScheduleClock(gs, route, "18:00", true));
             Assert.AreEqual(cash, gs.cash, "Coordinator allocation is free.");
             Assert.AreEqual(1, route.FlightCount, "Settlement itself does not impersonate CEO approval.");
@@ -109,6 +125,7 @@ namespace AirlineCEO.Tests.PlayMode
                 Assert.IsTrue(route.flights[0].airborne, "The flight must actually take off before saving.");
             }
             var save = new GameObject("SlotWorkflowSave").AddComponent<SaveManager>();
+            long dueTicks = gs.inbox.Find(x => x.id == "save_slot").dueUtcTicks;
             save.Save();
             gs.inbox.Clear(); gs.cash = -123;
             save.Load();
@@ -119,7 +136,11 @@ namespace AirlineCEO.Tests.PlayMode
             Assert.AreEqual("PEK", restored.origin);
             Assert.AreEqual("18:00", restored.slotClock);
             Assert.AreEqual(route.routeId, restored.slotRouteId);
-            if (stage != "pending") Assert.AreEqual(2, restored.effectQuarter);
+            if (stage != "pending")
+            {
+                Assert.AreNotEqual(0L, dueTicks, "批准后必须排定结算到期时刻");
+                Assert.AreEqual(dueTicks, restored.dueUtcTicks, "存档必须原样带回结算时刻（天级口径）");
+            }
             if (stage == "assignment") Assert.IsTrue(gs.inbox.Any(x => x.action == InboxManager.AssignFlightAction && InboxManager.IsOpen(x)));
             if (stage == "airborne") Assert.IsTrue(gs.activeRoutes[0].flights[0].airborne);
         }
@@ -156,7 +177,7 @@ namespace AirlineCEO.Tests.PlayMode
                 Assert.IsTrue(StrategyManager.AcquireSlotsAt(gs, "PEK", "12:00", cap, true, out _));
             }
             float cash = gs.cash;
-            gs.quarter = 2; InboxManager.ProcessPendingEffects(gs);
+            SettleByClock(gs, mail);
             bool oldHolding = gs.stg.slots.Any(s => s.airport == "PEK" && s.slotTime == "09:30");
             Assert.AreEqual(fillTargetPool, oldHolding, "Rejected change must preserve original holding; successful change replaces it.");
             Assert.AreEqual(cash, gs.cash, "Coordinator time changes are free.");

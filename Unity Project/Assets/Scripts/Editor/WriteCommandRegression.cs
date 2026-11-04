@@ -111,6 +111,7 @@ namespace AirlineCEO.EditorTools
 
             // ———— 三、投递：必须落在既有管线的那封请示件上 ————
             bool fleetRun = false, fleetDedupe = false, hrRun = false, finRun = false, openRun = false;
+            bool ringRouted = false, ringQueued = false, ringQuerySafe = false, ringOk = false;
             string openReceipt = "";
 
             var go = new GameObject("__write_command_gs__");
@@ -161,6 +162,33 @@ namespace AirlineCEO.EditorTools
                 openRun = openDone && openMail != null
                           && !string.IsNullOrEmpty(openMail.subject) && openMail.subject.Contains("开通")
                           && openReceipt.Contains("开航研究会");
+
+                // ———— 四、航班环重编只能走命令台（★2026-11-01：看板上那颗按钮已撤掉） ————
+                // 撤掉按钮的前提是**指令这条路真的通**：说一句「把深圳基地的飞机编满」，
+                // 运营部就得按六步重算并把方案发进收件箱等批。若这条路断了，
+                // 界面撤按钮就等于把这个功能整个删掉 —— 所以这里补上正反两条。
+                string rawRing = "把深圳基地的飞机编满";
+                var ringAsk = CeoCommandRouter.Route("n9_机队", rawRing);
+                ringRouted = ringAsk.ok && ringAsk.kind == CeoCommandRouter.CeoAskKind.Act
+                             && ringAsk.topic == CeoCommandRouter.TopicRotation
+                             && ringAsk.deptCode == "OPS";
+
+                gs.fleet.Add(new Aircraft { registration = "B-7301", type = "A320neo", source = "自有", status = AircraftStatuses.Airworthy });
+                gs.activeRoutes.Add(new RouteData
+                {
+                    routeId = "R-RING-PEK", origin = "PEK", destination = "PVG",
+                    depTime = "08:00", arrTime = "10:00", weeklyFlights = 7, aircraftType = "A320neo"
+                });
+                var ringAns = DeptReportLogic.Build(gs, ringAsk, rawRing);
+                // 重编方案按「研究期」延迟投递：此刻在 pendingInbox，到点才进收件箱。
+                // 这正是设计口径 —— 指令下去不等于方案已在案头，所以要断言的是「已排期呈报」。
+                var ringMail = FindPendingByAction(gs, InboxManager.RotationPlanAction);
+                ringQueued = ringAns.ok && ringMail != null
+                             && InboxManager.FindOpenRotationPlan(gs) == null;
+                // 读类不得被当成重编令：问句不能被认成 Act，否则 CEO 一问就凭空多出一封待批方案。
+                var ringQ = CeoCommandRouter.Route("n9_机队", "现在航班环编得怎么样");
+                ringQuerySafe = ringQ.kind != CeoCommandRouter.CeoAskKind.Act;
+                ringOk = ringRouted && ringQueued && ringQuerySafe;
             }
             finally
             {
@@ -172,7 +200,7 @@ namespace AirlineCEO.EditorTools
                        && hrOk && hrLooseOk && hrUrgentOk && hrNoCountOk
                        && loanOk && bridgeOk && equityOk
                        && finReportOk && finLeftOk && hrProgressOk && fleetCountOk && whyBuyOk
-                       && fleetRun && fleetDedupe && hrRun && finRun && openRun;
+                       && fleetRun && fleetDedupe && hrRun && finRun && openRun && ringOk;
 
             Debug.Log($"命令台写指令 → 开线={openOk}（{open.origin}—{open.dest}）　缺机场退回引导={openBadOk}"
                       + $"　分析件不被抢={openAnalyzeOk}"
@@ -185,6 +213,7 @@ namespace AirlineCEO.EditorTools
                       + $"　融资=贷款{loanOk}/过桥{bridgeOk}/增资{equityOk}"
                       + $"　读类不写成类=融资汇报{finReportOk}/余额{finLeftOk}/招聘进度{hrProgressOk}/机队规模{fleetCountOk}/为什么{whyBuyOk}"
                       + $"　投递=购机{fleetRun}/去重{fleetDedupe}/招聘{hrRun}/融资{finRun}/开线{openRun}"
+                      + $"　航班环重编走命令台={ringRouted}/方案进收件箱={ringQueued}/问句不被当调令={ringQuerySafe}"
                       + $"　{(all ? "✓" : "✗")}");
             return all;
         }

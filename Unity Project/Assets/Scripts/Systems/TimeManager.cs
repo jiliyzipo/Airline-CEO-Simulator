@@ -112,6 +112,9 @@ namespace AirlineCEO.Systems
                 // 用绝对时刻才不会漏减。放在 TickDay 之后，保证先按旧状态结算当日成本再复飞。
                 FleetManager.ReleaseCompletedOverhauls(gs);
                 InboxManager.DeliverDue(gs, gs.SimUtc);
+                // ★2026-11-02：审批按天推进 —— 许可与时刻的到期点落在具体某天，
+                // 不再只在季末结算。这里只跑到期结算，季末提案/换季清算仍由 CloseQuarter 统一跑。
+                InboxManager.SettleDueEffects(gs, gs.SimUtc);
                 remaining -= step;
                 if (within + step >= minutesPerQuarter)
                 {
@@ -334,6 +337,10 @@ namespace AirlineCEO.Systems
 
             AirlineCEO.Logic.CityEconomyLogic.TickQuarter(gs);
             HrManager.TickQuarter(gs);
+            // 政府关系每季自然回升（★2026-11-01：修「只减不增」——见 StrategyManager.TickQuarter）
+            StrategyManager.TickQuarter(gs);
+            // 时刻二级市场：本季货架换新 + 为我司挂牌摇购买意向（★2026-11-02）
+            AirlineCEO.Logic.SlotMarketLogic.TickQuarter(gs);
 
             // 过渡业务（开局三架飞机）：季末刷新报价板并结清本季报告计数
             TransitionBusinessLogic.OnQuarterTick(gs);

@@ -26,40 +26,99 @@ namespace AirlineCEO.UI
 
         string _pageKind;
         Transform _content;
+        /// <summary>
+        /// 当前渲染宿主：默认就是 <see cref="_content"/>；n77 页在顶部让出一条二级标签后
+        /// 把正文挂到下面的子面板上，于是正文自己的坐标仍然从 0 到 1 算，不必逐个减偏移。
+        /// </summary>
+        Transform _bodyHost;
         TextMeshProUGUI _toast;
         float _rpmFreq = 7f;
-        int _slotBuyIndex = -1;   // n77：购买时刻槽的目标（机场×时段候选表下标，−1 = 未选）
+        int _slotAirportIndex = -1;   // n77：时刻槽目标机场下标（第一层，−1 = 未选）
+        int _slotClockIndex;          // n77：该机场下的具体时刻下标（第二层）
+        string _mkSel = "";           // n77/二级市场：选中的一行（"mkt:<挂牌号>" / "own:<持仓下标>" / "mine:<挂牌号>"）
 
-        public static StrategySubpagePanel Build(string pageKind, string title)
+        /// <summary>n77 的二级标签：0 = 持仓与在办，1 = 时刻二级市场。</summary>
+        public int SubTab { get; set; }
+
+        /// <summary>
+        /// 构建子页。
+        /// </summary>
+        /// <param name="embedded">
+        /// true = **嵌进模块页签**（航线模块内嵌 n77）：不再套一层半透明遮罩与卡片边框，
+        /// 正文直接铺满调用方给的区域。原先两层内边距（模块 0.01 + 卡片 0.06）叠起来只剩
+        /// 约 84% 的可用面积，等于把模块页签本身就有的边框又画了一遍 —— 用户要求
+        /// 「框架放大到最大红框」，指的就是去掉这一层。
+        /// </param>
+        public static StrategySubpagePanel Build(string pageKind, string title, bool embedded = false)
         {
-            var root = UIFactory.Panel(null, "StgSub_" + pageKind, UIFactory.Fill,
-                new Color(0.02f, 0.05f, 0.1f, 0.72f), rounded: false);
-            var card = UIFactory.Panel(root.transform, "Card",
-                new UIFactory.Anchor(new Vector2(0.06f, 0.08f), new Vector2(0.94f, 0.94f), Vector2.zero, Vector2.zero),
-                UITheme.Panel);
-            UIFactory.AddBorder(card, UITheme.Border, new Vector2(1.2f, -1.2f));
-            var cg = card.AddComponent<CanvasGroup>();
+            GameObject root;
+            GameObject card;
+            Transform contentParent;
+            UIFactory.Anchor contentAnchor;
+            CanvasGroup cg;
 
-            var titleLabel = UIFactory.Label(card.transform, "Title", title, 22,
-                TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.04f, 0.90f), new Vector2(0.78f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, FontStyles.Bold);
-            var close = UIFactory.Button(card.transform, "Close", "×",
-                new UIFactory.Anchor(new Vector2(0.90f, 0.90f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => { }, 20);
-            UIFactory.Button(card.transform, "Back", "← 返回",
-                new UIFactory.Anchor(new Vector2(0.04f, 0.02f), new Vector2(0.20f, 0.10f), Vector2.zero, Vector2.zero),
-                UITheme.PanelDeep, () => { }, 14);
+            if (embedded)
+            {
+                // 底色透明：模块页签（NetworkPanelUI）已经是一块带边框的深色板，
+                // 再糊一层半透明遮罩会让整页发灰，也吃掉可用面积。
+                root = UIFactory.Panel(null, "StgSub_" + pageKind, UIFactory.Fill,
+                    new Color(0, 0, 0, 0), rounded: false);
+                var rootImg = root.GetComponent<Image>();
+                if (rootImg != null) rootImg.raycastTarget = false;
+                contentParent = root.transform;
+                contentAnchor = new UIFactory.Anchor(new Vector2(0.012f, 0.012f), new Vector2(0.988f, 0.988f),
+                    Vector2.zero, Vector2.zero);
+                card = root;
+                cg = root.AddComponent<CanvasGroup>();
+            }
+            else
+            {
+                root = UIFactory.Panel(null, "StgSub_" + pageKind, UIFactory.Fill,
+                    new Color(0.02f, 0.05f, 0.1f, 0.72f), rounded: false);
+                card = UIFactory.Panel(root.transform, "Card",
+                    new UIFactory.Anchor(new Vector2(0.06f, 0.08f), new Vector2(0.94f, 0.94f), Vector2.zero, Vector2.zero),
+                    UITheme.Panel);
+                UIFactory.AddBorder(card, UITheme.Border, new Vector2(1.2f, -1.2f));
+                cg = card.AddComponent<CanvasGroup>();
+                contentParent = card.transform;
+                contentAnchor = new UIFactory.Anchor(new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.88f),
+                    Vector2.zero, Vector2.zero);
+            }
 
-            var content = UIFactory.Panel(card.transform, "Content",
-                new UIFactory.Anchor(new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.88f), Vector2.zero, Vector2.zero),
+            TextMeshProUGUI titleLabel = null;
+            Button close = null;
+            if (!embedded)
+            {
+                titleLabel = UIFactory.Label(card.transform, "Title", title, 22,
+                    TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(0.04f, 0.90f), new Vector2(0.78f, 0.98f), Vector2.zero, Vector2.zero),
+                    UITheme.TextPrimary, FontStyles.Bold);
+                close = UIFactory.Button(card.transform, "Close", "×",
+                    new UIFactory.Anchor(new Vector2(0.90f, 0.90f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero),
+                    UITheme.PanelDeep, () => { }, 20);
+                UIFactory.Button(card.transform, "Back", "← 返回",
+                    new UIFactory.Anchor(new Vector2(0.04f, 0.02f), new Vector2(0.20f, 0.10f), Vector2.zero, Vector2.zero),
+                    UITheme.PanelDeep, () => { }, 14);
+            }
+
+            var content = UIFactory.Panel(contentParent, "Content", contentAnchor,
                 new Color(0, 0, 0, 0), rounded: false);
             content.GetComponent<Image>().raycastTarget = false;
 
+            // Toast 挂在**内容之外**：正文每次 Refresh 都会 Clear(_content)，
+            // 提示条若在里面，刷新一次就没了（也会被下一次 Clear 删掉）。
+            // 内嵌模式下它落在二级标签条最右侧（那里正好是空位），与标签、面包屑互不侵占；
+            // 独立卡片模式下仍留在卡片底部。
             var toast = UIFactory.Label(card.transform, "Toast", "", 12,
-                TextAlignmentOptions.Center,
-                new UIFactory.Anchor(new Vector2(0.20f, 0.005f), new Vector2(0.80f, 0.03f), Vector2.zero, Vector2.zero),
+                embedded ? TextAlignmentOptions.MidlineRight : TextAlignmentOptions.Center,
+                embedded
+                    ? new UIFactory.Anchor(new Vector2(0.735f, 0.921f), new Vector2(0.985f, 0.983f), Vector2.zero, Vector2.zero)
+                    : new UIFactory.Anchor(new Vector2(0.20f, 0.005f), new Vector2(0.80f, 0.03f), Vector2.zero, Vector2.zero),
                 UITheme.Warning);
+            if (embedded) UIFactory.ClampSingleLine(toast);
+            // Toast 是后建的兄弟节点，但正文宿主 Content 也是后建的 —— 不抬到最上层
+            // 就会被标签条的半透明底衬盖住（看起来像提示发灰）。
+            toast.transform.SetAsLastSibling();
 
             var panel = root.AddComponent<StrategySubpagePanel>();
             panel.pageKind = pageKind;
@@ -122,12 +181,13 @@ namespace AirlineCEO.UI
         {
             ResolveRefs();
             if (_content == null) return;
+            _bodyHost = null;            // 每个子页重建时先回到默认宿主
             Clear(_content);
 
             switch (_pageKind)
             {
                 case "n76": RenderFleetPlan(); break;
-                case "n77": RenderRouteRight(); break;
+                case "n77": RenderRightsHub(); break;
                 case "n78": RenderAlliance(); break;
                 case "n79": RenderInvestment(); break;
                 case "n80": RenderResearch(); break;
@@ -136,6 +196,7 @@ namespace AirlineCEO.UI
                 case "n108": RenderCommerce(); break;
                 default: RenderFallback(); break;
             }
+            _bodyHost = null;
         }
 
         static string NormalizeKind(string pageId)
@@ -149,10 +210,16 @@ namespace AirlineCEO.UI
             if (pageId.StartsWith("n35")) return "n35";
             if (pageId.StartsWith("n102")) return "n102";
             if (pageId.StartsWith("n108")) return "n108";
+            // n111 是一号两名：二级市场（已并入 n77 的二级标签）与 CEO 聘任合同。
+            // 只把二级市场那一支并进来；合同页有自己的面板，误并会把它渲成航线页。
+            if (pageId.StartsWith("n111") && (pageId.Contains("二级市场") || pageId.Contains("时刻"))) return "n77";
             return pageId;
         }
 
         void Toast(string msg) { if (_toast != null) _toast.text = msg ?? ""; }
+
+        /// <summary>当前渲染宿主（n77 让出二级标签后指向正文子面板，其余页就是内容区）。</summary>
+        Transform Host => _bodyHost != null ? _bodyHost : _content;
 
         void Clear(Transform host)
         {
@@ -163,7 +230,7 @@ namespace AirlineCEO.UI
         TextMeshProUGUI L(string name, string text, float x0, float y0, float x1, float y1,
             int size, Color? color = null, bool bold = false, TextAlignmentOptions align = TextAlignmentOptions.MidlineLeft)
         {
-            return UIFactory.Label(_content, name, text, size, align,
+            return UIFactory.Label(Host, name, text, size, align,
                 new UIFactory.Anchor(new Vector2(x0, y0), new Vector2(x1, y1), Vector2.zero, Vector2.zero),
                 color ?? UITheme.TextPrimary, bold ? FontStyles.Bold : FontStyles.Normal);
         }
@@ -171,7 +238,7 @@ namespace AirlineCEO.UI
         Button B(string name, string text, float x0, float y0, float x1, float y1,
             Color? color, UnityEngine.Events.UnityAction action, int size = 13)
         {
-            return UIFactory.Button(_content, name, text,
+            return UIFactory.Button(Host, name, text,
                 new UIFactory.Anchor(new Vector2(x0, y0), new Vector2(x1, y1), Vector2.zero, Vector2.zero),
                 color ?? UITheme.Accent, action, size);
         }
@@ -223,6 +290,65 @@ namespace AirlineCEO.UI
         }
 
         // ================= n77 航权与时刻槽 =================
+        /// <summary>
+        /// n77 中心页：顶部一条二级标签「持仓与在办 / 时刻二级市场」，正文挂在下方子面板。
+        ///
+        /// ★2026-11-02（用户裁定）：二级市场原先占模块顶部一整个页签，但它与协调池申请
+        /// 是**同一件事的两条取得渠道** —— 分在模块级两个页签里，玩家得先记住「哪个页签买、
+        /// 哪个页签申请」。收进 n77 的二级标签后，两条渠道同屏可切、来源关系一眼可见。
+        /// </summary>
+        void RenderRightsHub()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+            var stg = StrategyManager.EnsureState(gs);
+
+            int openOffers = 0;
+            var mkt = SlotMarketLogic.Ensure(gs);
+            if (mkt?.offers != null)
+            {
+                for (int i = 0; i < mkt.offers.Count; i++)
+                    if (mkt.offers[i] != null && mkt.offers[i].open) openOffers++;
+            }
+            int pendingCount = InboxManager.PendingSlotSettlements(gs).Count
+                               + InboxManager.PendingRightSettlements(gs).Count;
+            string marketLabel = openOffers > 0 ? $"时刻二级市场  ●{openOffers}" : "时刻二级市场";
+            string heldLabel = pendingCount > 0 ? $"持仓与在办  ●{pendingCount}" : "持仓与在办";
+
+            var bar = UIFactory.Panel(_content, "RightsTabs",
+                new UIFactory.Anchor(new Vector2(0f, 0.925f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero),
+                new Color(0.04f, 0.10f, 0.18f, 0.55f));
+            var barImg = bar.GetComponent<Image>();
+            if (barImg != null) barImg.raycastTarget = false;
+
+            // 两个二级标签各占一条，选中态用强调色 —— 与模块页签的配色规则一致。
+            // 三个区域从左到右：标签（0–0.40）/ 当前位置说明（0.41–0.72）/ 操作回执 Toast（0.735–0.995，见 Build）。
+            UIFactory.Button(bar.transform, "RightsTab0", heldLabel,
+                new UIFactory.Anchor(new Vector2(0.0f, 0.12f), new Vector2(0.195f, 0.88f), Vector2.zero, Vector2.zero),
+                SubTab == 0 ? UITheme.NavActive : UITheme.NavIdle,
+                () => { SubTab = 0; _mkSel = ""; RefreshBody(); }, 13);
+            UIFactory.Button(bar.transform, "RightsTab1", marketLabel,
+                new UIFactory.Anchor(new Vector2(0.205f, 0.12f), new Vector2(0.400f, 0.88f), Vector2.zero, Vector2.zero),
+                SubTab == 1 ? UITheme.NavActive : UITheme.NavIdle,
+                () => { SubTab = 1; RefreshBody(); }, 13);
+
+            // 右侧补一句当前位置说明 —— 二级标签把导航藏了一层，玩家需要知道自己在哪。
+            UIFactory.ClampSingleLine(UIFactory.Label(bar.transform, "RightsCrumb",
+                SubTab == 0 ? "取得时刻槽：协调池（免费·排队）" : "取得时刻槽：二级市场（付费·航司间转让）",
+                11, TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(0.410f, 0.12f), new Vector2(0.725f, 0.88f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted));
+
+            var body = UIFactory.Panel(_content, "RightsBody",
+                new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(1f, 0.912f), Vector2.zero, Vector2.zero),
+                new Color(0, 0, 0, 0), rounded: false);
+            var bodyImg = body.GetComponent<Image>();
+            if (bodyImg != null) bodyImg.raycastTarget = false;
+
+            _bodyHost = body.transform;
+            if (SubTab == 1) RenderSlotMarket(); else RenderRouteRight();
+        }
+
         void RenderRouteRight()
         {
             var gs = GameState.Instance;
@@ -243,88 +369,372 @@ namespace AirlineCEO.UI
             int rightProg = permits.Count + pendingRights.Count + openRights.Count;
             int slotProg = openSlots.Count + pendingSlots.Count;
 
-            L("H", "航权与时刻槽", 0.0f, 0.93f, 0.42f, 1.0f, 16, UITheme.Accent, true);
-            L("Gov", $"政府关系  {stg.governmentRelation:F0} / 100",
-                0.44f, 0.93f, 0.72f, 1.0f, 13, UITheme.Success, true);
+            // ———— 纵向节奏（2026-11-02 二次重排）————
+            // 用户裁定：删掉「先证后槽」说明窗（多此一举），正文区因此整块回收到四段：
+            // 状态行 / 持仓双卡 / 在办双卡 / 选择器条。
+            // 说明文字删掉后，此前为它预留的 0.13–0.30 全部还给两张卡 —— 卡片直接长高，
+            // 列表能多显示两三行，信息密度回到应有水平。选择器条仍独占底部 0–0.075 并带底衬。
+            L("Gov", $"政府关系  {stg.governmentRelation:F0} / {StrategyManager.GovernmentRelationCap:F0}"
+                + $" · 每季 +{StrategyManager.GovernmentRelationPerQuarter:F0}",
+                0.0f, 0.935f, 0.60f, 1.0f, 13, UITheme.Success, true);
             L("Doing", rightProg + slotProg > 0 ? $"在办  {rightProg + slotProg} 项" : "在办  无",
-                0.74f, 0.93f, 1.0f, 1.0f, 13, rightProg + slotProg > 0 ? UITheme.Warning : UITheme.TextMuted, true);
+                0.60f, 0.935f, 1.0f, 1.0f, 13,
+                rightProg + slotProg > 0 ? UITheme.Warning : UITheme.TextMuted, true, TextAlignmentOptions.MidlineRight);
 
-            L("ColR", "航权", 0.0f, 0.875f, 0.48f, 0.925f, 13, UITheme.TextPrimary, true);
-            L("ColS", "时刻槽", 0.52f, 0.875f, 1.0f, 0.925f, 13, UITheme.TextPrimary, true);
-
-            HoldingCard("RightHeld", 0f, 0.52f, 0.48f, 0.87f, "已入账航权",
+            HoldingCard("RightHeld", 0f, 0.505f, 0.48f, 0.925f, "已入账航权",
                 $"{rightN + legacyRightN} 项", rightN + legacyRightN > 0, HeldRightsText(stg, legacyRights));
-            HoldingCard("SlotHeld", 0.52f, 0.52f, 1f, 0.87f, "已入账时刻槽",
+            HoldingCard("SlotHeld", 0.52f, 0.505f, 1f, 0.925f, "已入账时刻槽",
                 $"{slotN + legacySlotN} 个", slotN + legacySlotN > 0, HeldSlotsText(stg, legacySlots));
 
-            ProgressCard("RightProg", 0f, 0.13f, 0.48f, 0.50f, "航权准入办理进度",
+            ProgressCard("RightProg", 0f, 0.135f, 0.48f, 0.485f, "航权准入办理进度",
                 rightProg > 0 ? $"{rightProg} 项" : "无",
                 rightProg > 0,
                 list => FillRightProgress(list, permits, pendingRights, openRights));
-            ProgressCard("SlotProg", 0.52f, 0.13f, 1f, 0.50f, "时刻槽办理进度",
+            ProgressCard("SlotProg", 0.52f, 0.135f, 1f, 0.485f, "时刻槽办理进度",
                 slotProg > 0 ? $"{slotPend} 个待交割" + (openSlots.Count > 0 ? $" · {openSlots.Count} 待批复" : "") : "无",
                 slotProg > 0,
                 list => FillSlotProgress(list, pendingSlots, openSlots));
 
-            L("Hint", "先证后槽：许可到手再办时刻，收件箱批准后下季入账。**时刻槽精确到时刻**（如 FRA 06:30），"
-                + "**一个停站一对槽**（到场 + 离场）：本场端 1 对、对端 1 对，经停站一趟往返停两次故要 2 对；"
-                + "同一时刻只有一条槽，加密需逐刻持槽。",
-                0.0f, 0.105f, 1.0f, 0.125f, 11, UITheme.TextMuted);
-
-            B("Apply", "申请航权", 0.00f, 0.0f, 0.20f, 0.095f, UITheme.PanelDeep,
-                () =>
-                {
-                    InboxManager.QueueRightDecision(gs, "PEK", "SIN", null, out string msg);
-                    Toast(msg);
-                }, 12);
-            B("Bid", "提交航权竞标", 0.215f, 0.0f, 0.42f, 0.095f, UITheme.Accent,
-                () =>
-                {
-                    InboxManager.QueueRightDecision(gs, "PEK", "SIN", null, out string msg);
-                    Toast(msg);
-                }, 12);
+            // ★2026-11-01（用户裁定）：撤掉「申请航权」「提交航权竞标」两颗按钮。
+            // 它们本来就是同一个硬编码 stub（都固定递 PEK—SIN 第五航权，没有真正的竞标对手），
+            // 而航权真正的来源是**准入流水线**：在「航线 → 开通新航线」递件后，
+            // 许可审查发现缺这一对额度时，运营部会自动把申请送进收件箱
+            // （InboxManager.AdvanceRoutePermit → QueueRightDecision）。
+            // 本页因此改为纯持仓/在办只读页 —— 与「周计划及航班环」同一套口径：
+            // 指令走收件箱批复与命令台，不在业务页手动点。
 
             // 时刻槽购入：**每一个停站**都要有槽，故先选目标机场 + **具体时刻**再提申请。
             // ★2026-10-15：候选从「机场×时段」改为「机场×时刻」—— 时刻槽精确到时刻，
             // 06:30 与 08:00 是两条槽，选「早班」这种说法在协调人那里根本不存在。
             // ★2026-10-16：候选机场补上**经停站**（它有自己的一对槽，且一趟往返两条）。
-            var targets = SlotBuyTargets(gs);
-            if (_slotBuyIndex < 0 || _slotBuyIndex >= targets.Count) _slotBuyIndex = 0;
-            bool hasTarget = targets.Count > 0;
-            var target = hasTarget ? targets[_slotBuyIndex] : null;
-            string targetText = hasTarget
-                ? $"{target.airport} {target.clock}　余 {RoutePermitLogic.SlotsAvailable(gs, target.airport, ScheduleSlots.BandOfDep(target.clock))}"
-                : "无可购目标";
-            B("Slot", "购入时刻槽", 0.435f, 0.0f, 0.62f, 0.095f, UITheme.PanelDeep,
+            // ★2026-11-02：改成**两层选择**（机场 / 时刻各自一对 ◀▶）。
+            // 旧版把「机场 → 时段 → 时刻」平铺成一条长表，一个十来条线的航网就有上百个目标，
+            // 找某个机场要连点几十下、还看不出还要点多少下 —— 选目标成了操作负担本身。
+            var airports = SlotAirports(gs);
+            if (_slotAirportIndex < 0 || _slotAirportIndex >= airports.Count) _slotAirportIndex = 0;
+            bool hasAirport = airports.Count > 0;
+            string slotAirport = hasAirport ? airports[_slotAirportIndex] : null;
+
+            var clocks = hasAirport ? SlotClocksAt(gs, slotAirport) : new List<string>();
+            if (_slotClockIndex < 0 || _slotClockIndex >= clocks.Count) _slotClockIndex = 0;
+            bool hasTarget = hasAirport && clocks.Count > 0;
+            string slotClock = hasTarget ? clocks[_slotClockIndex] : null;
+
+            string clockText = hasTarget ? slotClock : "无可选时刻";
+            string poolText = hasTarget
+                ? $"余 {RoutePermitLogic.SlotsAvailable(gs, slotAirport, ScheduleSlots.BandOfDep(slotClock))}"
+                  + $" · {StrategyManager.SlotBandName(ScheduleSlots.BandOfDep(slotClock))}班"
+                  + (AirportCatalog.IsCoordinated(slotAirport) ? " · 协调机场" : " · 非协调")
+                : "池均满或无协调机场";
+
+            // ★2026-11-01（用户裁定）：补上**协调池（免费）**入口。
+            // 原先这页只有「购入时刻槽」一条路，而提案正文却写着「不愿付费：改走协调池申请」——
+            // CEO 想省钱时无处可点，只能等运营部在缺槽时递单进来。
+            // 现实里这是两条**不同**的渠道，不只是折扣：协调池由 WASG 协调人按序分配、不收费；
+            // 二级市场向持槽航司买、按价扣款（插队）。故并排给两颗，共用同一组选中目标。
+            // 选择器独占底部一条（0–0.115），条内再留 ~0.014 的上下内边距 ——
+            // 旧版控件直接贴 0–0.095，且没有任何背景，和上面的说明文字在视觉上糊成一块。
+            var slotBar = UIFactory.Panel(Host, "SlotBar",
+                new UIFactory.Anchor(new Vector2(0f, 0f), new Vector2(1f, 0.115f), Vector2.zero, Vector2.zero),
+                new Color(0.04f, 0.10f, 0.18f, 0.55f));
+            var slotBarImg = slotBar.GetComponent<Image>();
+            if (slotBarImg != null) slotBarImg.raycastTarget = false;
+
+            B("SlotFree", "协调池申请", 0.010f, 0.014f, 0.170f, 0.101f, UITheme.Accent,
                 () =>
                 {
-                    if (!hasTarget) { Toast("当前没有可购入的时刻槽目标（池均满或无协调机场）。"); return; }
-                    InboxManager.QueueSlotDecision(gs, target.airport, target.clock, null, out string msg);
+                    if (!hasTarget) { Toast("当前没有可申请的时刻槽目标（池均满或无协调机场）。"); return; }
+                    InboxManager.QueueApplySlots(gs, slotAirport, slotClock, 1, null, out string msg);
                     Toast(msg);
                 }, 12);
-            B("SlotPrev", "◀", 0.635f, 0.0f, 0.70f, 0.095f, UITheme.NavIdle,
-                () => { if (targets.Count > 0) { _slotBuyIndex = (_slotBuyIndex - 1 + targets.Count) % targets.Count; RefreshBody(); } }, 12);
-            B("SlotNext", "▶", 0.945f, 0.0f, 1.0f, 0.095f, UITheme.NavIdle,
-                () => { if (targets.Count > 0) { _slotBuyIndex = (_slotBuyIndex + 1) % targets.Count; RefreshBody(); } }, 12);
-            L("SlotTarget", targetText, 0.70f, 0.0f, 0.945f, 0.095f, 11,
-                hasTarget ? UITheme.TextPrimary : UITheme.TextMuted, true, TextAlignmentOptions.Center);
+
+            // 第一层：机场（◀ ▶ 只在机场间跳一个机场，不再穿过几十个时刻）
+            B("SlotAptPrev", "◀", 0.185f, 0.014f, 0.225f, 0.101f, UITheme.PanelDeep,
+                () => { if (airports.Count > 0) { _slotAirportIndex = (_slotAirportIndex - 1 + airports.Count) % airports.Count; _slotClockIndex = 0; RefreshBody(); } }, 12);
+            UIFactory.ClampSingleLine(L("SlotAirport", hasAirport ? slotAirport : "—",
+                0.228f, 0.014f, 0.352f, 0.101f, 13,
+                hasAirport ? UITheme.TextPrimary : UITheme.TextMuted, true, TextAlignmentOptions.Center));
+            B("SlotAptNext", "▶", 0.355f, 0.014f, 0.395f, 0.101f, UITheme.PanelDeep,
+                () => { if (airports.Count > 0) { _slotAirportIndex = (_slotAirportIndex + 1) % airports.Count; _slotClockIndex = 0; RefreshBody(); } }, 12);
+
+            // 第二层：该机场的具体时刻
+            B("SlotPrev", "◀", 0.412f, 0.014f, 0.452f, 0.101f, UITheme.PanelDeep,
+                () => { if (clocks.Count > 0) { _slotClockIndex = (_slotClockIndex - 1 + clocks.Count) % clocks.Count; RefreshBody(); } }, 12);
+            UIFactory.ClampSingleLine(L("SlotTarget", clockText, 0.455f, 0.014f, 0.579f, 0.101f, 13,
+                hasTarget ? UITheme.TextPrimary : UITheme.TextMuted, true, TextAlignmentOptions.Center));
+            B("SlotNext", "▶", 0.582f, 0.014f, 0.622f, 0.101f, UITheme.PanelDeep,
+                () => { if (clocks.Count > 0) { _slotClockIndex = (_slotClockIndex + 1) % clocks.Count; RefreshBody(); } }, 12);
+
+            // 池况：单独一句、右对齐、强制单行 —— 长了就省略，绝不折行压到别的控件上。
+            UIFactory.ClampSingleLine(L("SlotPool", poolText, 0.640f, 0.014f, 0.995f, 0.101f, 11,
+                hasTarget ? UITheme.TextMuted : UITheme.Danger, false, TextAlignmentOptions.MidlineRight));
+        }
+
+        // ================= n77 · 二级标签「时刻二级市场」 =================
+        /// <summary>
+        /// 时刻二级市场（2026-11-02）。
+        ///
+        /// 左「他航待售」、右「我司待售」并排。两侧操作都是「点一行 → 点按钮」——
+        /// 它们本来就是同一件事的两个方向（买 / 卖），结构对称，玩家不必学两套动作。
+        ///
+        /// ★2026-11-02 用户裁决：右侧标题由「我司时刻槽」改为「我司待售」；
+        /// 同排第四颗「去协调池申请（免费）」按钮删除 —— 取得时刻槽的入口留在
+        /// 「持仓与在办」页签里，本页只做买卖，不再挂指路按钮。
+        ///
+        /// 与同页「持仓与在办」的分工必须说清：协调池申请**免费、排队、受池容量硬约束**；
+        /// 本标签花钱插队，**不受池容量约束**（航司间转让，机场总量不变）。
+        /// 两者是同一件事的两条渠道，故收在同一个二级标签条里，而不是模块级两个页签。
+        /// </summary>
+        void RenderSlotMarket()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+            var stg = StrategyManager.EnsureState(gs);
+            var mkt = SlotMarketLogic.Ensure(gs);
+            if (stg == null || mkt == null) return;
+
+            // 选中项可能已被买走 / 撤回 / 成交换了列表，先失效，避免「点了按钮却提示已下架」。
+            if (!SelectionAlive(mkt, stg)) _mkSel = "";
+
+            int openOffers = 0;
+            for (int i = 0; i < mkt.offers.Count; i++)
+                if (mkt.offers[i] != null && mkt.offers[i].open) openOffers++;
+
+            // ———— 顶部摘要（不再重复标题：二级标签已写着「时刻二级市场」）————
+            // ★2026-11-02：现金读数放大并置顶 —— 买槽是否扣钱，一眼就能对上。
+            // 右侧三个计数保持小字号：它们是信息，不是账目。
+            L("Stat", $"现金 {gs.cash:F0} 万", 0f, 0.930f, 0.22f, 1f, 16, UITheme.Success, true);
+            L("Counts", $"他航挂牌 {mkt.listings.Count} 条 · 我司挂牌 {mkt.mine.Count} 条 · 待答复意向 {openOffers}",
+                0.23f, 0.935f, 0.72f, 1f, 12, UITheme.TextPrimary);
+            L("Cash", openOffers > 0 ? $"有 {openOffers} 条购买意向待处理 → 收件箱" : "他航有意向会以邮件送达",
+                0.72f, 0.935f, 1f, 1f, 12, openOffers > 0 ? UITheme.Warning : UITheme.TextMuted,
+                openOffers > 0, TextAlignmentOptions.MidlineRight);
+
+            L("ColL", "他航待售（点一行选中 → 购买时刻槽）", 0f, 0.872f, 0.47f, 0.925f, 12, UITheme.TextPrimary, true);
+            L("ColR", "我司待售（点一行选中 → 挂牌 / 撤回）", 0.52f, 0.872f, 1f, 0.925f, 12, UITheme.TextPrimary, true);
+
+            // 说明条删除后，两侧货架从 0.315–0.862 长到 0.200–0.862 —— 多出约两行。
+            var left = UIFactory.VerticalScrollArea(Host, "MkShelf",
+                new UIFactory.Anchor(new Vector2(0f, 0.200f), new Vector2(0.47f, 0.862f), Vector2.zero, Vector2.zero));
+            FillShelf(left, mkt);
+            var right = UIFactory.VerticalScrollArea(Host, "MkMine",
+                new UIFactory.Anchor(new Vector2(0.52f, 0.200f), new Vector2(1f, 0.862f), Vector2.zero, Vector2.zero));
+            FillOwnSlots(right, mkt, stg);
+
+            bool isMkt = _mkSel.StartsWith("mkt:");
+            bool isOwn = _mkSel.StartsWith("own:");
+            bool isMine = _mkSel.StartsWith("mine:");
+
+            // 选中项的叫价 / 建议价直接写进按钮：玩家在点之前就能看到「要花多少、花完还剩多少」。
+            // ★2026-11-02（用户两次报「买了没扣现金」）：成交确实扣了钱（页顶「现金」与底栏
+            // 新增的「现金:」都会跟着变），但扣款前页面上没有任何「这一步要花多少」的预告，
+            // 玩家只能靠事后对比余额判断，于是把没动的那三个「季度…」当成现金读。
+            SlotMarketListing sel = isMkt ? SlotMarketLogic.Find(gs, _mkSel.Substring(4)) : null;
+            float selAsk = sel != null ? sel.askWan : 0f;
+            bool canAfford = sel != null && gs.cash >= selAsk;
+
+            string buyLabel = sel == null
+                ? "购买时刻槽（先点左侧一行）"
+                : canAfford
+                    ? $"购买时刻槽（{selAsk:F0} 万 · 买后 {gs.cash - selAsk:F0} 万）"
+                    : $"购买时刻槽（{selAsk:F0} 万 · 现金不足）";
+
+            string askLabel = "挂牌时刻槽（先点右侧一行）";
+            if (isOwn && int.TryParse(_mkSel.Substring(4), out int ownIdx)
+                && stg.slots != null && ownIdx >= 0 && ownIdx < stg.slots.Count && stg.slots[ownIdx] != null)
+            {
+                var oh = stg.slots[ownIdx];
+                string ownClock = RoutePermitLogic.SlotRequestClock(oh.slotTime);
+                askLabel = oh.inUse
+                    ? "挂牌时刻槽（使用中，不可挂牌）"
+                    : $"挂牌时刻槽（建议 {SlotMarketLogic.SuggestedAskWan(oh.airport, ownClock):F0} 万）";
+            }
+
+            // 动作行：三颗按钮平分一条底衬（原先第四颗「去协调池申请」已按用户要求删除 ——
+            // 取得时刻槽的入口在「持仓与在办」页签里，二级市场页不该再挂一条指路按钮）。
+            // 旧版把说明文字压在按钮下面（0.020–0.170），溢出即盖住按钮。
+            // 现在按钮独占 0.075–0.180，说明整块删掉。
+            B("MkBuy", buyLabel, 0.000f, 0.075f, 0.320f, 0.180f,
+                sel == null ? UITheme.NavIdle : canAfford ? UITheme.Accent : UITheme.Danger, () =>
+                {
+                    if (!_mkSel.StartsWith("mkt:")) { Toast("先在左侧「他航待售」里点一行。"); return; }
+                    string id = _mkSel.Substring(4);
+                    bool ok = SlotMarketLogic.Buy(gs, id, out string msg);
+                    if (ok) _mkSel = "";
+                    Toast(msg);
+                    RefreshBody();
+                }, 13);
+
+            B("MkList", askLabel, 0.340f, 0.075f, 0.660f, 0.180f,
+                isOwn ? UITheme.Accent : UITheme.NavIdle, () =>
+                {
+                    if (!_mkSel.StartsWith("own:")) { Toast("先在右侧点一条闲置的时刻槽。"); return; }
+                    if (!int.TryParse(_mkSel.Substring(4), out int idx)) return;
+                    bool ok = SlotMarketLogic.ListOwn(gs, idx, out string msg);
+                    if (ok) _mkSel = "";
+                    Toast(msg);
+                    RefreshBody();
+                }, 13);
+
+            B("MkWithdraw", "撤回挂牌", 0.680f, 0.075f, 1.000f, 0.180f,
+                isMine ? UITheme.PanelDeep : UITheme.NavIdle, () =>
+                {
+                    if (!_mkSel.StartsWith("mine:")) { Toast("先在右侧点一条已挂牌的时刻槽。"); return; }
+                    SlotMarketLogic.Withdraw(gs, _mkSel.Substring(5), out string msg);
+                    _mkSel = "";
+                    Toast(msg);
+                    RefreshBody();
+                }, 12);
+        }
+
+        void FillShelf(RectTransform list, SlotMarketState mkt)
+        {
+            if (mkt?.listings == null || mkt.listings.Count == 0)
+            {
+                var empty = UIFactory.Label(list, "Empty",
+                    "本季他航没有挂牌。\n货架每季换新；急用可切上方「持仓与在办」走协调池申请（免费，排队）。",
+                    12, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
+                UIFactory.PinFromTop(empty.gameObject, 8f, 64f, 0.02f, 0.98f);
+                UIFactory.SetScrollContentHeight(list, 84f);
+                return;
+            }
+            float y = 4f;
+            for (int i = 0; i < mkt.listings.Count; i++)
+            {
+                var l = mkt.listings[i];
+                if (l == null) continue;
+                string line = $"{l.airport} {l.clock}　{l.seller}　叫价 {l.askWan:F0} 万　（市价 {l.fairWan:F0}）";
+                string id = l.id;
+                bool sel = _mkSel == "mkt:" + id;
+                MkRow(list, "MK" + i, y, 24f, line, sel, () => { _mkSel = "mkt:" + id; RefreshBody(); });
+                y += 26f;
+            }
+            UIFactory.SetScrollContentHeight(list, y + 8f);
+        }
+
+        void FillOwnSlots(RectTransform list, SlotMarketState mkt, StrategyState stg)
+        {
+            float y = 4f;
+            int shown = 0;
+            if (stg?.slots != null)
+            {
+                for (int i = 0; i < stg.slots.Count; i++)
+                {
+                    var h = stg.slots[i];
+                    if (h == null) continue;
+                    string clock = RoutePermitLogic.SlotRequestClock(h.slotTime);
+                    var listed = FindMyListing(mkt, h.airport, clock);
+                    string key;
+                    string line;
+                    if (listed != null)
+                    {
+                        int offers = CountOpenOffers(mkt, listed.id);
+                        line = $"{h.airport} {clock}　已挂牌 {listed.askWan:F0} 万"
+                               + (offers > 0 ? $"　· {offers} 份意向待批复" : "　· 等待询价");
+                        key = "mine:" + listed.id;
+                    }
+                    else
+                    {
+                        float ask = SlotMarketLogic.SuggestedAskWan(h.airport, clock);
+                        line = $"{h.airport} {clock}　{(h.inUse ? "使用中（不可挂牌）" : "闲置")}"
+                               + $"　建议挂牌 {ask:F0} 万";
+                        key = "own:" + i;
+                    }
+                    bool sel = _mkSel == key;
+                    MkRow(list, "MY" + i, y, 24f, line, sel, () => { _mkSel = key; RefreshBody(); });
+                    y += 26f;
+                    shown++;
+                }
+            }
+            if (shown == 0)
+            {
+                var empty = UIFactory.Label(list, "Empty",
+                    "我司还没有时刻槽。\n先去「航权与时刻槽」走协调池申请（免费），或在本页左侧买一条。",
+                    12, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
+                UIFactory.PinFromTop(empty.gameObject, 8f, 64f, 0.02f, 0.98f);
+                y = 84f;
+            }
+            UIFactory.SetScrollContentHeight(list, y + 8f);
+        }
+
+        static SlotMarketListing FindMyListing(SlotMarketState mkt, string airport, string clock)
+        {
+            if (mkt?.mine == null) return null;
+            for (int i = 0; i < mkt.mine.Count; i++)
+            {
+                var l = mkt.mine[i];
+                if (l == null) continue;
+                if (!string.Equals(l.airport, airport, System.StringComparison.OrdinalIgnoreCase)) continue;
+                if (ScheduleSlots.ClockDiff(l.clock, clock) > ScheduleSlots.SlotToleranceMinutes) continue;
+                return l;
+            }
+            return null;
+        }
+
+        static int CountOpenOffers(SlotMarketState mkt, string listingId)
+        {
+            if (mkt?.offers == null) return 0;
+            int n = 0;
+            for (int i = 0; i < mkt.offers.Count; i++)
+            {
+                var o = mkt.offers[i];
+                if (o != null && o.open && o.listingId == listingId) n++;
+            }
+            return n;
+        }
+
+        bool SelectionAlive(SlotMarketState mkt, StrategyState stg)
+        {
+            if (string.IsNullOrEmpty(_mkSel)) return false;
+            if (_mkSel.StartsWith("mkt:"))
+            {
+                string id = _mkSel.Substring(4);
+                for (int i = 0; i < mkt.listings.Count; i++)
+                    if (mkt.listings[i] != null && mkt.listings[i].id == id) return true;
+                return false;
+            }
+            if (_mkSel.StartsWith("mine:"))
+            {
+                string id = _mkSel.Substring(5);
+                for (int i = 0; i < mkt.mine.Count; i++)
+                    if (mkt.mine[i] != null && mkt.mine[i].id == id) return true;
+                return false;
+            }
+            if (_mkSel.StartsWith("own:"))
+            {
+                return int.TryParse(_mkSel.Substring(4), out int idx)
+                       && stg?.slots != null && idx >= 0 && idx < stg.slots.Count;
+            }
+            return false;
+        }
+
+        /// <summary>可点击的一行（二级市场两侧共用）：整行都是按钮，不必精确点到文字上。</summary>
+        static void MkRow(RectTransform host, string name, float y, float h, string text, bool selected,
+            UnityEngine.Events.UnityAction onClick)
+        {
+            var row = UIFactory.Panel(host, name, UIFactory.Fill,
+                selected ? UITheme.NavActive : new Color(0.04f, 0.10f, 0.18f, 0.85f));
+            UIFactory.PinFromTop(row, y, h, 0.01f, 0.99f);
+            var lab = UIFactory.Label(row.transform, "L", text, 12, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.02f, 0f), new Vector2(0.98f, 1f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary);
+            lab.raycastTarget = false;   // 让点击穿透到行本身
+            var img = row.GetComponent<Image>();
+            if (img != null) img.raycastTarget = true;
+            var btn = row.AddComponent<Button>();
+            btn.targetGraphic = img;
+            btn.onClick.AddListener(onClick);
         }
 
         /// <summary>
-        /// 可购时刻槽的目标候选：本基地 + 已开航线的对端与**经停**机场，逐个**时刻网格**取池内尚有余量者。
-        /// ★2026-10-15：由「机场 × 时段（早/中/晚/夜）」改为「机场 × 具体时刻（HH:mm）」——
-        /// 买的就是 06:30 这条槽，而不是笼统的「早班时段」。
-        /// ★2026-10-16：补上经停站 —— 经停站的槽同样要买，漏了它就会「经停线永远办不成」。
+        /// 时刻槽目标机场（第一层选择）：本基地 + 已开航线的对端与**经停**机场，
+        /// 只保留至少有一个时刻还留着余量的。
+        /// ★2026-11-02：从「机场×时刻平铺」拆出这一层 —— 目标是「先找对机场，再挑时刻」，
+        /// 而不是在上百个目标里滚。顺序按「基地优先、再按航线序」，与玩家找机场的直觉一致。
         /// </summary>
-        sealed class SlotBuyTarget
+        static List<string> SlotAirports(GameState gs)
         {
-            public string airport;
-            public string clock;
-        }
-
-        static List<SlotBuyTarget> SlotBuyTargets(GameState gs)
-        {
-            var list = new List<SlotBuyTarget>();
+            var list = new List<string>();
             if (gs == null) return list;
             var apts = new List<string>();
             if (!string.IsNullOrEmpty(gs.hubIata)) apts.Add(gs.hubIata);
@@ -340,18 +750,39 @@ namespace AirlineCEO.UI
                 }
             }
             for (int i = 0; i < apts.Count; i++)
+                if (SlotClocksAt(gs, apts[i]).Count > 0) list.Add(apts[i]);
+            return list;
+        }
+
+        /// <summary>第二层：该机场还有余量的**具体时刻**（池内该时段未满才算）。</summary>
+        static List<string> SlotClocksAt(GameState gs, string airport)
+        {
+            var list = new List<string>();
+            if (gs == null || string.IsNullOrEmpty(airport)) return list;
+            for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
             {
-                for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
-                {
-                    if (RoutePermitLogic.SlotsAvailable(gs, apts[i], b) <= 0) continue;
-                    var grid = ScheduleSlots.SlotGridLabels(b);
-                    for (int k = 0; k < grid.Count; k++)
-                        list.Add(new SlotBuyTarget { airport = apts[i], clock = grid[k] });
-                }
+                if (RoutePermitLogic.SlotsAvailable(gs, airport, b) <= 0) continue;
+                var grid = ScheduleSlots.SlotGridLabels(b);
+                if (grid == null) continue;
+                for (int k = 0; k < grid.Count; k++) list.Add(grid[k]);
             }
             return list;
         }
 
+        /// <summary>
+        /// 时刻槽目标的两层候选（2026-11-02）。
+        ///
+        /// ★2026-10-15：由「机场 × 时段（早/中/晚/夜）」改为「机场 × **具体时刻**（HH:mm）」——
+        /// 买的就是 06:30 这条槽，而不是笼统的「早班时段」。
+        /// ★2026-10-16：补上经停站 —— 经停站的槽同样要买，漏了它就会「经停线永远办不成」。
+        /// ★2026-11-01：候选**两条渠道共用**（协调池申请 / 二级市场购入）——
+        /// 渠道只决定「花钱还是排队」，不影响「哪一刻有槽」。
+        /// ★2026-11-02：由「一张平铺长表」拆成 <see cref="SlotAirports"/>（机场）+
+        /// <see cref="SlotClocksAt"/>（时刻）两层。原来的平铺表在十来条线的航网上有上百项，
+        /// 想找某个机场要连点几十下，且看不到「还有几个机场」—— 选择器本身成了负担。
+        /// 旧的 <c>SlotBuyTargets</c> / <c>SlotBuyTarget</c> 随之删除：留着就是第二份口径，
+        /// 迟早会和新页面各说各话。
+        /// </summary>
         static void AddAirport(List<string> list, string apt)
         {
             if (string.IsNullOrEmpty(apt)) return;
@@ -363,7 +794,7 @@ namespace AirlineCEO.UI
 
         GameObject Card(string name, float x0, float y0, float x1, float y1, Color bg)
         {
-            return UIFactory.Panel(_content, name,
+            return UIFactory.Panel(Host, name,
                 new UIFactory.Anchor(new Vector2(x0, y0), new Vector2(x1, y1), Vector2.zero, Vector2.zero),
                 bg);
         }
@@ -639,15 +1070,27 @@ namespace AirlineCEO.UI
             {
                 string o = string.IsNullOrEmpty(m.origin) ? "—" : m.origin;
                 string d = string.IsNullOrEmpty(m.dest) ? "—" : m.dest;
-                return $"{o}—{d}  第五航权　待批复";
+                // 档位按这一对重算（本国 ↔ 对方 = 第三/第四；他国 ↔ 他国 = 第五），
+                // 别在持仓列表里把所有申请都写成「第五航权」。
+                int fd = RoutePermitLogic.FreedomFor(GameState.Instance, o, d);
+                if (fd <= 0) fd = 3;
+                return $"{o}—{d}  {AirportRegions.FreedomLabel(fd)}　待批复";
             }, ref shown);
             if (shown == 0)
             {
+                // ★2026-11-01：撤掉本页两颗「申请航权」按钮后，这里是玩家唯一会问
+                // 「那航权去哪办」的地方 —— 空态必须把来源讲清楚，否则就是拆了入口不给指路。
+                // ★2026-11-02：文案收成三行 —— 进度卡本季改成 0.29 高，五行的空态在
+                // 86px 的视口里会被裁掉一半，「指路」反而看不见。
                 var empty = UIFactory.Label(list, "Empty",
-                    "暂无在办。收件箱批准开航提案后，许可五关会显示在这里。",
-                    12, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
-                UIFactory.PinFromTop(empty.gameObject, 8f, 64f, 0.02f, 0.98f);
-                y = 80f;
+                    "暂无在办。航权不在这里点：\n"
+                    + "把国际线递进「航线 → 开通新航线」，许可审查缺那一对额度时，运营部会自动把申请送进收件箱。\n"
+                    + $"第三/第四航权（本国 ↔ 对方）约 {StrategyManager.RightCost(3):F0} 点政府关系，"
+                    + $"第五航权（他国 ↔ 他国）约 {StrategyManager.RightCost(5):F0} 点；每季回升 "
+                    + $"{StrategyManager.GovernmentRelationPerQuarter:F0} 点（上限 {StrategyManager.GovernmentRelationCap:F0}）。",
+                    11, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
+                UIFactory.PinFromTop(empty.gameObject, 4f, 82f, 0.02f, 0.98f);
+                y = 92f;
             }
             UIFactory.SetScrollContentHeight(list, y + 8f);
         }
@@ -700,7 +1143,10 @@ namespace AirlineCEO.UI
                 new Color(0.04f, 0.10f, 0.18f, 0.85f));
             UIFactory.PinFromTop(row, y, h, 0.01f, 0.99f);
 
-            string line = RoutePermitLogic.ProgressLine(mail);
+            string line = RoutePermitLogic.ProgressLine(mail,
+                AirlineCEO.Systems.GameState.Instance != null
+                    ? AirlineCEO.Systems.GameState.Instance.SimUtc
+                    : System.DateTime.UtcNow);
             UIFactory.Label(row.transform, "L", line, 12, TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.02f, 0.58f), new Vector2(0.98f, 0.96f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary);
@@ -708,11 +1154,13 @@ namespace AirlineCEO.UI
             int node = RoutePermitLogic.DisplayNode(mail);
             bool denied = mail != null && mail.permitStage == RoutePermitLogic.StageDenied;
             Color fill = denied ? UITheme.Danger : UITheme.Accent;
-            const int steps = RoutePermitLogic.NodeSlot;
+            // ★2026-11-04：九关（原为六关），段宽按关数均分 —— 写死 0.16 步长会让第 7~9 段溢出右边界。
+            int steps = RoutePermitLogic.NodeLast;
+            float segW = 0.96f / steps;
             for (int s = 1; s <= steps; s++)
             {
-                float x0 = 0.02f + (s - 1) * 0.16f;
-                float x1 = x0 + 0.15f;
+                float x0 = 0.02f + (s - 1) * segW;
+                float x1 = x0 + segW * 0.92f;
                 bool on = s <= node;
                 var seg = UIFactory.Panel(row.transform, "S" + s,
                     new UIFactory.Anchor(new Vector2(x0, 0.14f), new Vector2(x1, 0.42f), Vector2.zero, Vector2.zero),

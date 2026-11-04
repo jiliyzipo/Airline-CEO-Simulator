@@ -332,7 +332,14 @@ namespace AirlineCEO.Tests.PlayMode
             var mail = gs.inbox.First(m => m.id == "t038-rcpt");
             Assert.IsTrue(InboxManager.Approve(gs, mail, out string msg), msg);
 
-            gs.quarter = 2;
+            // ★2026-11-02：交割改为按绝对时刻到期（审批按天）。只推季度不再触发结算，
+            // 必须把时钟推到交割日：到期前不得出回执，到期才排进待发队列（部门真干了 18 天）。
+            Assert.AreNotEqual(0L, mail.dueUtcTicks, "批准后必须排定交割到期时刻");
+            InboxManager.ProcessPendingEffects(gs);
+            Assert.IsFalse(gs.inbox.Any(m => m.id.StartsWith("fx_t038-rcpt")),
+                "未到交割日不得出回执");
+
+            gs.SetSimUtc(new DateTime(mail.dueUtcTicks, DateTimeKind.Utc));
             InboxManager.ProcessPendingEffects(gs);
 
             var pending = gs.pendingInbox.FirstOrDefault(p => p?.mail != null && p.mail.id.StartsWith("fx_t038-rcpt"));
@@ -530,7 +537,13 @@ namespace AirlineCEO.Tests.PlayMode
             var ac = LabelNamed(detail.gameObject, "Ac");
             Assert.IsNotNull(ac, "单班页缺少「执飞行」");
             StringAssert.Contains("未串环", ac.text, "没有航班环记录时必须如实说未串环");
-            StringAssert.Contains("点此串环", ac.text, "必须给出串环入口，否则玩家不知道去哪办");
+            // ★2026-11-02：串环入口已从「点此串环」（原来是跳 n98 手工绑环，该页 2026-11-01 整页删除）
+            // 改为指向运营部后台编环 + 命令台口令。断言必须跟着改口径，而不是放宽成「只要不是空的」：
+            // 玩家读到「未串环」时唯一需要的下一句就是「去哪办」，所以钉「命令台 + 具体口令」两个词。
+            StringAssert.DoesNotContain("点此串环", ac.text,
+                "旧入口已随 n98 删除，不得再留指向已不存在页面的死链接");
+            StringAssert.Contains("命令台", ac.text, "必须给出串环的办理去处，否则玩家不知道去哪办");
+            StringAssert.Contains("把基地的飞机编满", ac.text, "口令要能照着说出来，否则等于只说「去问问」");
 
             // 口径：一圈 = 去 + 回两段（不含过站），与 OpsEconomics.dailyUtilizationHours 同源。
             // 1100 km / 850 kmh = 1.29h 单程 → 每日 1 班 = 2.59h/日；目标 10h 由常量给出。

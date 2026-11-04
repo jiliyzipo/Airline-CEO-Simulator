@@ -137,7 +137,7 @@ namespace AirlineCEO.Systems
             return meta;
         }
 
-        /// <summary>从 slot 克隆到另一 slot（不触碰主存档）。</summary>
+        /// <summary>从 slot 克隆到另一 slot（不触碰主存档）。类型口径同 <see cref="SaveSlotManager.CaptureToSlot"/>。</summary>
         static void RestoreSlotFrom(string fromPrefix, string toPrefix)
         {
             var keys = SaveManager.AllSaveKeys;
@@ -146,7 +146,7 @@ namespace AirlineCEO.Systems
                 string k = keys[i];
                 string fromKey = fromPrefix + k;
                 if (PlayerPrefs.HasKey(fromKey))
-                    PlayerPrefs.SetString(toPrefix + k, PlayerPrefs.GetString(fromKey, ""));
+                    SaveManager.CloneKey(k, fromKey, toPrefix + k);
             }
             PlayerPrefs.Save();
         }

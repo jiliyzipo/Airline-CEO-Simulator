@@ -9,7 +9,11 @@ using UnityEngine.UI;
 namespace AirlineCEO.UI
 {
     /// <summary>
-    /// n36 航班环看板 —— **运营部编成结果的只读视图**（2026-10-30 重构）。
+    /// 航班环看板 —— **运营部编成结果的只读视图**（2026-10-30 重构）。
+    ///
+    /// 宿主：「机队 › 周计划及航班环」页签（<c>FleetUI.RefreshPlanRing</c> 调 <see cref="Ensure"/>）。
+    /// ★2026-11-01 用户裁定：原来单独占一页的 n36「航班环构建器」整页删除，
+    /// 这块看板搬进机队页签 —— 同一块看板不留两个入口。
     ///
     /// ★报障原文：「这个航班环系统设计的极其糟糕，玩家既看不懂也无从下手，需要重新设计。
     ///   航班环的构建完全在后台进行，CEO 只在命令台下达指定，由运营部负责跟进和反馈结果。」
@@ -20,8 +24,11 @@ namespace AirlineCEO.UI
     ///
     /// · 顶部六步条：运营部每一步算出了什么、卡在哪一步（<see cref="OpsRotationBuilder.Plan.steps"/>）；
     /// · 中部甘特时间轴：每架机一行 24 小时，去程块 + 过站灰条 + 回程块，空档一眼可见；
-    /// · 底部运力缺口：排不进的航段按「缺机/缺槽/缺时间/过站不足」逐条归因；
-    /// · 唯一的按钮「请求运营部重编」—— 想改就下指令，不是自己动手拼。
+    /// · 底部运力缺口：排不进的航段按「缺机/缺槽/缺时间/过站不足」逐条归因。
+    ///
+    /// ★2026-11-01（用户裁定）：看板上**一个可点动作都没有**了 —— 原「请求运营部重编」
+    /// 按钮也撤掉。重编是一条 CEO 指令，在命令台说「把深圳基地的飞机编满」，
+    /// 由运营部按六步重算并把方案/缺口报告发回收件箱；看板只负责呈现结果。
     ///
     /// 数据每次 Refresh 由 <see cref="OpsRotationBuilder.BuildFromGameState"/> 现算（纯函数、确定性），
     /// 因此看板与收件箱呈报来自同一套六步口径，不会出现「页面说排得进、邮件说排不进」。
@@ -42,7 +49,6 @@ namespace AirlineCEO.UI
         readonly List<GameObject> _rows = new List<GameObject>();
 
         OpsRotationBuilder.Plan _plan;
-        string _notice;
 
         static readonly Color[] LegColors =
         {
@@ -87,15 +93,13 @@ namespace AirlineCEO.UI
 
         void Build(Transform root)
         {
-            // 顶栏：一句话结论 + 唯一可点的「请求重编」。页标题由 OpsSubpagePanel 提供，这里不重复。
+            // 顶栏：一句话结论。页标题由机队页签提供，这里不重复。
+            // ★2026-11-01（用户裁定）：原「请求运营部重编」按钮撤掉 —— 重编是一条 CEO 指令，
+            //   走命令台（「把深圳基地的飞机编满」）下达，看板只呈现结果，不再留可点动作。
             _headline = UIFactory.Label(root, "Headline", "", 12, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0f, 0.93f), new Vector2(0.74f, 1f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0f, 0.93f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
             _headline.textWrappingMode = TextWrappingModes.Normal;
-
-            UIFactory.Button(root, "BtnReplan", "请求运营部重编",
-                new UIFactory.Anchor(new Vector2(0.76f, 0.935f), new Vector2(1f, 0.995f), Vector2.zero, Vector2.zero),
-                UITheme.Accent, RequestReplan, 11);
 
             // 左轨六步：竖排六格，空间够写两行结论（横排六列时每个才 130px，字挤成一团）。
             _stepRoot = UIFactory.Panel(root, "Steps",
@@ -132,9 +136,7 @@ namespace AirlineCEO.UI
             if (_headline != null)
             {
                 var pending = gs != null ? InboxManager.FindOpenRotationPlan(gs) : null;
-                string head = !string.IsNullOrEmpty(_notice)
-                    ? _notice
-                    : OpsRotationBuilder.Headline(_plan);
+                string head = OpsRotationBuilder.Headline(_plan);
                 string tail = pending != null
                     ? "　·　有一封待批方案在收件箱"
                     : _plan != null && _plan.HasPlan ? "　·　批准后才落账" : "";
@@ -166,11 +168,10 @@ namespace AirlineCEO.UI
                           .Append(_plan.gaps[i].reason);
                     }
                     if (_plan.gaps.Count > show) sb.Append($"　…… 其余 {_plan.gaps.Count - show} 段见收件箱");
+                    sb.Append("\n想改排法不必自己排：在命令台说「把深圳基地的飞机编满」，运营部会按新条件重算。");
                     _gapText.text = sb.ToString();
                 }
             }
-
-            _notice = null;
         }
 
         void RebuildSteps()
@@ -358,16 +359,6 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.015f, 0f), new Vector2(0.99f, 1f), Vector2.zero, Vector2.zero),
                 UITheme.Warning);
             _rows.Add(row);
-        }
-
-        void RequestReplan()
-        {
-            var gs = GameState.Instance;
-            if (gs == null) return;
-            var plan = OpsRotationBuilder.BuildFromGameState(gs);
-            InboxManager.QueueRotationPlan(gs, plan, "CEO 在航班环看板点了「请求运营部重编」", 0);
-            _notice = "已交运营部重编，方案在收件箱待批。";
-            Refresh();
         }
 
         static string StepCap(int i)

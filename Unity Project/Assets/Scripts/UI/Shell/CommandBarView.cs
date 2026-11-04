@@ -415,8 +415,12 @@ namespace AirlineCEO.UI.Shell
                 // 写指令：交给既有管线。管线自己会产出呈报件（CEO 在收件箱批一次），
                 // 所以这里不再弹确认卡 —— 同一件事问两遍会让人以为第一次没生效。
                 bool done = DeptReportLogic.RunPending(gs, ans, raw, out string receipt);
-                CommandLog.Record(gs, raw, $"{(done ? "已下达" : "未下达")}｜{receipt}", done, Stamp(gs));
-                ShowAnswer($"{(done ? "已下达" : "未下达")}｜{receipt}", done);
+                // 时刻槽买卖是**当场成交 / 当场递件**，说「下达」会让人以为还要等一道批：
+                // 买是即时过户，申请是即时递单，两者都已经落账。
+                bool instant = ans.ask.topic == CeoCommandRouter.TopicSlotDeal;
+                string verb = done ? (instant ? "已办理" : "已下达") : (instant ? "未办理" : "未下达");
+                CommandLog.Record(gs, raw, $"{verb}｜{receipt}", done, Stamp(gs));
+                ShowAnswer($"{verb}｜{receipt}", done);
                 if (_input != null) _input.text = "";
                 RefocusInput();
                 return;

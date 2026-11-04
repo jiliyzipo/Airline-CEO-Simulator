@@ -613,6 +613,40 @@ namespace AirlineCEO.UI.Shell
         /// </summary>
         public static float RowHeight() => Mathf.Ceil(52f * Accessibility.FontMultiplier());
 
+        /// <summary>
+        /// 行内两条文字带的上下沿（锚点比例，0 = 行底，1 = 行顶）。
+        /// 上带 = 发件人；下带 = 主题 + 时间（**同一条基线**，见 <see cref="TimeAnchor"/>）。
+        /// 抽成常量是为了让回归能直接断言「主题与时间同带」，不必截图比对。
+        /// </summary>
+        public const float SenderBandMin = 0.55f;
+        public const float SenderBandMax = 0.95f;
+        public const float SubjectBandMin = 0.08f;
+        public const float SubjectBandMax = 0.55f;
+
+        /// <summary>下带里主题的右边界（此后留给时间）。</summary>
+        public const float SubjectRight = 0.82f;
+        /// <summary>下带里时间的左边界 —— 必须等于 <see cref="SubjectRight"/>，否则会互相压字。</summary>
+        public const float TimeLeft = 0.82f;
+        /// <summary>文字带左边界：让开左侧 30px 头像。</summary>
+        public const float TextLeft = 0.10f;
+        /// <summary>文字带右边界。</summary>
+        public const float TextRight = 0.97f;
+
+        /// <summary>发件人：上带整条（时间已移出此带，可以用满宽度）。</summary>
+        public static UIFactory.Anchor SenderAnchor() => new UIFactory.Anchor(
+            new Vector2(TextLeft, SenderBandMin), new Vector2(TextRight, SenderBandMax),
+            Vector2.zero, Vector2.zero);
+
+        /// <summary>主题：下带左侧，到 <see cref="SubjectRight"/> 截断（单行省略）。</summary>
+        public static UIFactory.Anchor SubjectAnchor() => new UIFactory.Anchor(
+            new Vector2(TextLeft, SubjectBandMin), new Vector2(SubjectRight, SubjectBandMax),
+            Vector2.zero, Vector2.zero);
+
+        /// <summary>时间：下带右侧，与主题同一上下沿 —— 这是 2026-11-03「一高一低」的修法。</summary>
+        public static UIFactory.Anchor TimeAnchor() => new UIFactory.Anchor(
+            new Vector2(TimeLeft, SubjectBandMin), new Vector2(TextRight, SubjectBandMax),
+            Vector2.zero, Vector2.zero);
+
         /// <summary>日期分组表头行高（单行，随字号等比）。</summary>
         public static float DayHeaderHeight() => Mathf.Ceil(24f * Accessibility.FontMultiplier());
 
@@ -651,27 +685,28 @@ namespace AirlineCEO.UI.Shell
             UIFactory.Label(avatar.transform, "Glyph", Glyph(m), 13,
                 TextAlignmentOptions.Center, UIFactory.Fill, titleCol, titleStyle);
 
-            // 发件人（左上）+ 时间（右上）
+            // 发件人（上）+ 主题（下左）+ 时间（下右）
             // 单行 + 省略号：行高只有 52，发件人与主题各占一条窄带。TMP 默认 Wrap + Overflow，
             // 主题一长就折成两行、从窄带里上下溢出去压住发件人（2026-10-28 报障：
             // 「[来文] 2026年10月28日 · 台风…」把「新闻官 王志强」盖了一半）。
             var senderLabel = UIFactory.Label(row.transform, "Sender", SenderText(m), 14,
-                TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.10f, 0.55f), new Vector2(0.68f, 0.95f), Vector2.zero, Vector2.zero),
+                TextAlignmentOptions.MidlineLeft, SenderAnchor(),
                 titleCol, titleStyle);
             UIFactory.ClampSingleLine(senderLabel);
-            UIFactory.Label(row.transform, "Time", InboxTime.Clock(m), 12,
-                TextAlignmentOptions.MidlineRight,
-                new UIFactory.Anchor(new Vector2(0.68f, 0.52f), new Vector2(0.97f, 0.95f), Vector2.zero, Vector2.zero),
-                subCol);
 
-            // 主题摘要（下）
+            // ★2026-11-03 报障：「左侧邮件主题和时间的位置没有对齐，一高一低」。
+            //   旧版时间钉在发件人那条带（[0.52,0.95]），却只有 12 号灰字、发件人常常很短
+            //   （「运营部」三个字），于是列表看上去只有「主题」和它上方的「时间」两截，
+            //   时间悬在主题上方，像错行。时间与主题本就是同一条信息（这封信、这个点到的），
+            //   统一放进**下带**：左截主题、右对齐时间，共用一条基线。
+            //   发件人独占上带，仍留得下无障碍「特大」字号的 16→21px 字身（见 RowHeight）。
             var subjectLabel = UIFactory.Label(row.transform, "Subject",
                 InboxManager.RowSubject(m), 12,
-                TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.10f, 0.08f), new Vector2(0.97f, 0.55f), Vector2.zero, Vector2.zero),
+                TextAlignmentOptions.MidlineLeft, SubjectAnchor(),
                 subCol, unread ? FontStyles.Bold : FontStyles.Normal);
             UIFactory.ClampSingleLine(subjectLabel);
+            UIFactory.Label(row.transform, "Time", InboxTime.Clock(m), 12,
+                TextAlignmentOptions.MidlineRight, TimeAnchor(), subCol);
 
             // 整行可点
             var btn = row.AddComponent<Button>();
@@ -1141,8 +1176,12 @@ namespace AirlineCEO.UI.Shell
             }
             else if (_selected.action == "parts_order")
             {
+                // 邮件里的 origin 存的就是订单号（PO-XXX）：先把上下文钉在这张单上，
+                // 否则「详见 · 订单」只会打开订单表里的最后一单。
+                if (!string.IsNullOrEmpty(_selected.origin))
+                    MaintenanceContext.ConfirmOrderNo = _selected.origin;
                 AddLink("详见 · 航材", "n83_航材与供应链", null);
-                AddLink("详见 · 订单确认", "n105_订单确认", null);
+                AddLink("详见 · 订单", "n105_订单确认", null);
             }
             else if (_selected.action == "reg_inspect")
             {
@@ -1295,7 +1334,15 @@ namespace AirlineCEO.UI.Shell
             if (_ceoReply != null) _ceoReply.gameObject.SetActive(ops);
             bool bar = (_approveBtn != null && _approveBtn.gameObject.activeSelf)
                 || (_meetBtn != null && _meetBtn.gameObject.activeSelf);
-            float footer = bar ? 48f : 8f;
+            // ★2026-11-03 报障修：「点了批准，下方没有提示」。
+            //   病根就是下面这行 height 的来源 —— 没有批复按钮时 footer 被压到 8，而提示条自己的
+            //   下沿也是 8（见 PlaceFooterNote），高度于是算成 8→4 的**负数**，标签静默消失。
+            //   讽刺的是「提示条最该出现」的时刻恰恰是「批复按钮刚刚消失」的那一刻：
+            //   批准航材采购后要告诉 CEO 钱哪天扣，批准时刻单后要告诉何时交割，全都落在这一格。
+            bool hasNote = (_hint != null && !string.IsNullOrEmpty(_hint.text))
+                || (_detailDeadline != null && _detailDeadline.gameObject.activeSelf
+                    && !string.IsNullOrEmpty(_detailDeadline.text));
+            float footer = FooterHeight(bar, hasNote);
             float replyH = ops ? 56f : 0f;
             float linksH = 24f;
             float bodyBottom = footer + replyH + linksH + 4f;
@@ -1336,14 +1383,41 @@ namespace AirlineCEO.UI.Shell
             RefreshBodyScroll(preservePosition: true);
         }
 
+        /// <summary>底栏（底部注释条）下沿：提示/截止说明贴在这个高度上。</summary>
+        public const float FooterNoteBottom = 8f;
+        /// <summary>底栏注释条与上方正文之间留的缝。</summary>
+        public const float FooterNoteGap = 4f;
+        /// <summary>注释条至少要能放下两行 12 号字（单行 14，两行 28 会挤掉正文，取 24 为下限）。</summary>
+        public const float FooterNoteMinHeight = 24f;
+
+        /// <summary>
+        /// 底栏高度：有批复按钮时让按钮有位；否则只要有话说（批准回执 / 截止说明）就留出两行，
+        /// 真没话说才收回 8。
+        ///
+        /// ★2026-11-03 报障「点批准后下方没有提示」：旧写法是 <c>bar ? 48 : 8</c>，而注释条自身
+        /// 下沿是 <see cref="FooterNoteBottom"/>（8），上沿取 <c>footer - 4</c> —— 于是没有按钮时
+        /// 上沿(4) 低于下沿(8)，**高度为负**，TMP 老老实实什么都不画。
+        /// 批复按钮一消失，说明文字跟着一起消失，等于「每办成一件事，系统就把回执藏起来」。
+        /// 抽成公开算术是为了让回归能直接断言「高度为正」，不必截图比对。
+        /// </summary>
+        public static float FooterHeight(bool hasDecisionBar, bool hasNote)
+        {
+            if (hasDecisionBar) return 48f;
+            if (hasNote) return 40f;
+            return 8f;
+        }
+
+        /// <summary>注释条的实际可用高度（可为负 —— 旧版就是这样把字画没的）。</summary>
+        public static float FooterNoteHeight(float footer) => footer - FooterNoteGap - FooterNoteBottom;
+
         static void PlaceFooterNote(TextMeshProUGUI label, float right, float footer)
         {
             if (label == null) return;
             var rt = label.rectTransform;
             rt.anchorMin = new Vector2(0f, 0f);
             rt.anchorMax = new Vector2(1f, 0f);
-            rt.offsetMin = new Vector2(12f, 8f);
-            rt.offsetMax = new Vector2(right, footer - 4f);
+            rt.offsetMin = new Vector2(12f, FooterNoteBottom);
+            rt.offsetMax = new Vector2(right, footer - FooterNoteGap);
         }
 
         void SyncFooterNotes()
@@ -1642,9 +1716,15 @@ namespace AirlineCEO.UI.Shell
                 return;
             }
             bool approved = InboxManager.Approve(GameState.Instance, _selected, out string msg);
-            if (!approved && _selected != null && InboxManager.IsOpen(_selected))
+            if (!approved && _selected != null && InboxManager.IsOpen(_selected)
+                && !IsTransactionalMail(_selected))
             {
-                // 处理器无法执行（如前置缺失）：直接结案，避免决策按钮残留、邮件永久挂起
+                // 处理器无法执行（如前置缺失）：直接结案，避免决策按钮残留、邮件永久挂起。
+                //
+                // ★2026-11-02：**过户类**邮件不适用这条兜底（见 <see cref="IsTransactionalMail"/>）。
+                // 这里的兜底会把一封「没能成交」的邮件标成 approved 并显示「已批准」——
+                // 对时刻收购意向就是**撒谎**：槽还在持仓里、现金一分没进，玩家却被告知批过了。
+                // 那正是「批准了、现金却没变化」这类报障的来源。
                 InboxManager.Mark(GameState.Instance, _selected.id, "approved");
                 if (string.IsNullOrEmpty(msg)) msg = "已批准。";
             }
@@ -1664,8 +1744,21 @@ namespace AirlineCEO.UI.Shell
             RefreshDecisionButtons();
         }
 
-        InboxMail FindAdmitFollowUp(InboxMail src)
-        {
+        /// <summary>
+        /// 「过户 / 扣款」类邮件：批准必须**真的**完成一笔交易，失败就不能算批过。
+        ///
+        /// 与普通请示件的区别：普通件批准失败多半只是「前置缺失」，结案即可；
+        /// 而收购意向批准失败时资产与现金都没动，若照样标成 approved，
+        /// 玩家看到的「已批准」与「现金没变、槽还在」互相矛盾 —— 报障就是这么来的。
+        /// 处理方式改为：保留待办、把失败原因原样显示（如「该槽正被班次占用」），
+        /// 让 CEO 先调开班次或撤牌，之后再批。
+        ///
+        /// 判据放在 <see cref="InboxManager.IsTransactionalAction"/> 里，便于回归直接断言。
+        /// </summary>
+        static bool IsTransactionalMail(InboxMail mail)
+            => mail != null && InboxManager.IsTransactionalAction(mail.action);
+
+        InboxMail FindAdmitFollowUp(InboxMail src)        {
             var mails = Mails;
             if (mails == null || src == null) return null;
             string o = src.origin ?? "";
@@ -1753,6 +1846,15 @@ namespace AirlineCEO.UI.Shell
             {
                 InboxManager.RejectInvestment(GameState.Instance, _selected, out string imsg);
                 if (_hint != null) _hint.text = imsg ?? "";
+                RebuildList();
+                RefreshDecisionButtons();
+                return;
+            }
+            if (status == "rejected" && _selected.action == InboxManager.SellSlotAction)
+            {
+                // 二级市场卖出意向：拒绝 = 婉拒本次出价，挂牌继续有效（不是把槽下架）。
+                InboxManager.RejectSlotSale(GameState.Instance, _selected, out string ssm);
+                if (_hint != null) _hint.text = ssm ?? "";
                 RebuildList();
                 RefreshDecisionButtons();
                 return;

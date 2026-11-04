@@ -18,14 +18,22 @@ namespace AirlineCEO.UI.Shell
         public const float BarHeight = BottomDockView.BarHeight;
 
         /// <summary>
-        /// 三项标签前缀。抽成常量是为了让回归能断言「标签有没有说谎」，
+        /// 标签前缀。抽成常量是为了让回归能断言「标签有没有说谎」，
         /// 不必起 UI —— 2026-10-27 的缺陷正是标签说谎：数字叫「收入」，实际是已扣成本后的净贡献。
-        /// 三个前缀都带「季度」：数值是 ×3 的季度预测。
+        /// 三个财务前缀都带「季度」：数值是 ×3 的季度预测。
+        ///
+        /// ★2026-11-02（用户报障「买了时刻槽，现金没有变化」）：那条报障其实看的是本栏 ——
+        /// 本栏**从不显示现金**，只有季度运营口径（净贡献 / 支出 / 盈亏）。
+        /// 玩家在二级市场花掉 1180 万，本栏三个数一个都不动，于是得出「没扣钱」。
+        /// 现在补一项 `现金:`（与航权页顶部同一口径、同一单位「万」），
+        /// 让「账户余额」与「运营口径」在同一行并列，谁动谁不动一眼可分。
         /// </summary>
+        public const string CashPrefix = "现金:";
         public const string IncomePrefix = "季度净贡献:";
         public const string ExpensePrefix = "季度支出:";
         public const string ProfitPrefix = "季度盈亏:";
 
+        TextMeshProUGUI _statCash;
         TextMeshProUGUI _statIncome;
         TextMeshProUGUI _statExpense;
         TextMeshProUGUI _statProfit;
@@ -50,14 +58,21 @@ namespace AirlineCEO.UI.Shell
 
         void BuildLabels()
         {
-            // 财务三项（左）：净贡献绿 / 支出红 / 盈亏黄
-            // 标签带「季度」：三个数都是 ×3 的季度预测，不是现金也不是本月实际。
-            _statIncome = StatLabel("Income", 0.005f, 0.205f, UITheme.Success);
-            _statExpense = StatLabel("Expense", 0.205f, 0.405f, UITheme.Danger);
-            _statProfit = StatLabel("Profit", 0.405f, 0.625f, UITheme.Warning);
+            // 六项。★2026-11-02：最左补「现金」—— 账户余额与运营口径必须同屏并列，
+            // 否则「花掉 1180 万而底栏不动」会被读成「没扣钱」（见 CashPrefix 注释）。
+            // 现金绿 / 净贡献绿 / 支出红 / 盈亏黄 / 航线与机队灰。
+            //
+            // 宽度按**实测首选宽度**分配（StatusBarCashPlayModeTests 打印 need/have 并断言不溢出）：
+            // 「季度净贡献:21,015,410」要 144px、「季度盈亏:-15,505,480」要 127px，
+            // 而「现金:12,345万」只要 89px、航线/机队各 60px 上下 —— 所以现金那格给得小，
+            // 富余全给三个季度数。等分六格会把它们全部挤成「季度净贡…」。
+            _statCash = StatLabel("Cash", 0.005f, 0.145f, UITheme.Success);
+            _statIncome = StatLabel("Income", 0.145f, 0.345f, UITheme.Success);
+            _statExpense = StatLabel("Expense", 0.345f, 0.525f, UITheme.Danger);
+            _statProfit = StatLabel("Profit", 0.525f, 0.715f, UITheme.Warning);
             // 航线 / 机队（右段）
-            _statRoutes = StatLabel("Routes", 0.625f, 0.785f, UITheme.TextMuted);
-            _statFleet = StatLabel("Fleet", 0.785f, 0.985f, UITheme.TextMuted);
+            _statRoutes = StatLabel("Routes", 0.715f, 0.845f, UITheme.TextMuted);
+            _statFleet = StatLabel("Fleet", 0.845f, 0.985f, UITheme.TextMuted);
         }
 
         TextMeshProUGUI StatLabel(string name, float x0, float x1, Color color)
@@ -129,6 +144,7 @@ namespace AirlineCEO.UI.Shell
             var gs = GameState.Instance;
             if (gs == null)
             {
+                if (_statCash != null) _statCash.text = CashPrefix + "—";
                 if (_statIncome != null) _statIncome.text = "净贡献 —";
                 if (_statExpense != null) _statExpense.text = "支出 —";
                 if (_statProfit != null) _statProfit.text = "盈亏 —";
@@ -142,6 +158,10 @@ namespace AirlineCEO.UI.Shell
             string income = (incomeWan * 10000f).ToString("N0");
             string expense = (expenseWan * 10000f).ToString("N0");
             string profit = (profitWan >= 0 ? "" : "-") + Mathf.Abs(profitWan * 10000f).ToString("N0");
+
+            // 现金与航权 / 时刻槽页顶部的「现金 X 万」同口径同单位（万美元），
+            // 买槽 / 卖槽会立刻反映在这一项上；后面三项是季度运营预测，不随买卖变动。
+            if (_statCash != null) _statCash.text = CashPrefix + Mathf.Round(gs.cash).ToString("N0") + "万";
 
             // 三项都带「季度」二字：三个数都是 ×3 的季度预测，历史上真的被当成现金读过
             //（任务书 §22「325.5 万」那条，就是底栏季度支出被误认成现金）。

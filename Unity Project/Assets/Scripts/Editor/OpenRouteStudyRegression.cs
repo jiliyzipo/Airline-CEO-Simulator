@@ -24,6 +24,11 @@ namespace AirlineCEO.EditorTools
     /// <item><b>UI 侧不得再长出第二个正文作者</b>。抽出去之后，<c>BuildStudyMailBody</c> /
     ///   <c>FormatPath</c> 应当已从流程类上消失；若有人为了「顺手改一句」又加回来，
     ///   纪要就重新有了两个作者，而分叉通常只在某次改口径时漏一处，事后极难发现。</item>
+    /// <item><b>选时刻的判据不许退回「固定 12:00」</b>（2026-11-03）。旧口径一受理就按
+    ///   `DepTimes[1]` 提买单，把「又旺又便宜」的 18:00 一直漏掉；同时也不许用纯
+    ///   「需求 ÷ 价格」把最便宜的夜航顶上来 —— 夜航省下的钱，小于它少赚的客。</item>
+    /// <item><b>航权 / 时刻 / 全链条现金要写在签字页上</b>，不能只躺在「批准后要办的事」里。</item>
+    /// <item><b>「最优」必须是买得起的</b>：现金不够时仍给同一时段，但正文要说明差多少。</item>
     /// </list>
     /// </summary>
     public static class OpenRouteStudyRegression
@@ -92,13 +97,81 @@ namespace AirlineCEO.EditorTools
                     && typeof(OpenRouteDecisionFlow).GetMethod("FormatPath", any) == null;
                 bool stillHasEntry = typeof(OpenRouteDecisionFlow).GetMethod("SubmitStudy", any) != null;
 
-                bool all = rejectOk && rejectNoMail && sameMemo && distOk && noSecondAuthor && stillHasEntry;
+                // ⑥ 最优时刻：四时段都空时，必须挑「又旺又便宜」的晚高峰 18:00（需求 1.10 / 0.85 倍价），
+                //    而不是旧口径钉死的 12:00；也不能被最便宜的夜航 22:00 抢走 ——
+                //    夜航需求 0.80 最淡，用「省钱」换来一条不赚钱的班次不是最优。
+                var pick = RoutePermitLogic.TryBestSlotClock(gs, "PEK", 5000f);
+                bool pickOk = pick.ok && pick.best && pick.band == 2 && pick.clock == "18:00"
+                              && pick.demand > 1f && pick.price > 0f
+                              && pick.reason.Contains("需求系数");
+
+                // ⑦ 「最优」必须是**买得起的**最优：现金 1 万时仍推荐同一时段，
+                //    但正文必须把「钱不够」写出来，不许把买不起的方案当可行方案递上去。
+                var poor = RoutePermitLogic.TryBestSlotClock(gs, "PEK", 1f);
+                bool poorOk = poor.ok && poor.price > 1f && poor.reason.Contains("不足以买入");
+
+                // ⑧ 前置条件必须写在签字页上：航权 / 时刻 / 全链条现金，
+                //    而不是藏在「批准后要办的事」里让 CEO 签完才发现还缺东西。
+                bool frontLoaded = first.body.Contains("开航前置条件")
+                                   && first.body.Contains("航权")
+                                   && first.body.Contains("时刻")
+                                   && first.body.Contains("全链条现金");
+
+                // ⑨ 前置条件要落在**签字前的最后一节**：排在「批准后的准入办理」之后、「请示事项」之前。
+                //    2026-11-03 二次报障：「『开航前置条件』不在邮件底部」——清单夹在部门意见与办理流程
+                //    中间时，CEO 一路往下读会以为后面还有正文，落笔前反而没看到该看的清单。
+                int iGate = first.body.IndexOf("开航前置条件", System.StringComparison.Ordinal);
+                int iPermit = first.body.IndexOf("批准后的准入办理", System.StringComparison.Ordinal);
+                int iAsk = first.body.IndexOf("请示事项", System.StringComparison.Ordinal);
+                bool gateAtBottom = iPermit >= 0 && iGate > iPermit && iAsk > iGate;
+
+                // ⑩ 到件时重算（2026-11-03 用户问询：「邮件时间是提案时间吗？」）：
+                //    研究会要开 2 个工作日，正文里的「当前现金」却写在下达指令那一刻。
+                //    到件时必须按当天的账重写 —— 否则 CEO 签的是一封「两天前余额」的信。
+                bool refreshOk;
+                string refreshNote;
+                var go2 = new GameObject("__open_route_refresh_gs__");
+                try
+                {
+                    var gsR = go2.AddComponent<GameState>();
+                    gsR.year = 1; gsR.quarter = 1;
+                    gsR.cash = 5000f;
+                    gsR.inbox = new List<InboxMail>();
+                    gsR.pendingInbox = new List<PendingInboxMail>();
+                    gsR.activeRoutes = new List<RouteData>();
+                    gsR.fleet = new List<Aircraft>();
+
+                    var draft = OpenRouteStudyLogic.Build(gsR, "PEK", "JFK", null);
+                    bool queued = InboxManager.QueueOpenRouteStudy(gsR, "PEK", "JFK", null,
+                        draft.subject, draft.body);
+                    bool saidRich = draft.body.Contains("当前 5000 万");
+
+                    gsR.cash = 120f;                                   // 两天里现金被别的事花掉了
+                    InboxManager.DeliverDue(gsR, gsR.SimUtc.AddDays(30));
+
+                    var landed = gsR.inbox.Count == 1 ? gsR.inbox[0] : null;
+                    bool saidPoor = landed != null && landed.body.Contains("当前 120 万")
+                                    && landed.body.Contains("差");
+                    refreshOk = queued && saidRich && saidPoor;
+                    refreshNote = queued
+                        ? $"下达时 5000 万 → 到件时 120 万，正文改口={saidPoor}"
+                        : "没能排进待发队列";
+                }
+                finally { GameObject.DestroyImmediate(go2); }
+
+                bool all = rejectOk && rejectNoMail && sameMemo && distOk && noSecondAuthor && stillHasEntry
+                           && pickOk && poorOk && frontLoaded && gateAtBottom && refreshOk;
 
                 Debug.Log($"开航纪要单一出处 → 先否决后算账={rejectOk}（{Trim(bad.reject, 40)}）"
                           + $"　否决不投递={rejectNoMail}"
                           + $"　同输入同纪要={sameMemo}（{first.path} · {first.distanceKm:F0} km · {first.rpm.score} 分）"
                           + $"　距离口径一致={distOk}（直飞 {direct:F0} / 经停 {viaKm:F0}）"
                           + $"　UI 无第二作者={noSecondAuthor}　页面入口仍在={stillHasEntry}"
+                          + $"　最优时刻={pickOk}（{pick.clock} 需求 {pick.demand:F2} / {pick.price:F0} 万）"
+                          + $"　买不起要说清={poorOk}"
+                          + $"　前置条件前置={frontLoaded}"
+                          + $"　清单在签字前={gateAtBottom}"
+                          + $"　到件重算={refreshOk}（{refreshNote}）"
                           + $"　{(all ? "✓" : "✗")}");
                 return all;
             }

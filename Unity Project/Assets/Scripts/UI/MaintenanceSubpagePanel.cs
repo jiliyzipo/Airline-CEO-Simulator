@@ -250,29 +250,56 @@ namespace AirlineCEO.UI
         }
 
         // ================= n83 航材与供应链 =================
+        /// <summary>n83 内部页签：0 = 库存与供应链，1 = 订单信息（历史订单）。</summary>
+        int _partsTab;
+
         void RenderParts()
         {
             var gs = GameState.Instance;
             if (gs == null) return;
+
+            // 页签条（用户要求：「航材与供应链」页面加一个「订单信息」标签入口）
+            var bar = UIFactory.Panel(_content, "PartsTabs",
+                new UIFactory.Anchor(new Vector2(0.0f, 0.90f), new Vector2(0.62f, 0.98f), Vector2.zero, Vector2.zero),
+                new Color(0.04f, 0.10f, 0.18f, 0.55f));
+            var barImg = bar.GetComponent<Image>();
+            if (barImg != null) barImg.raycastTarget = false;
+            string[] labels = { "库存与供应链", "订单信息" };
+            for (int i = 0; i < labels.Length; i++)
+            {
+                int idx = i;
+                float x0 = i / (float)labels.Length;
+                UIFactory.Button(bar.transform, "PartsTab" + i, labels[i],
+                    new UIFactory.Anchor(new Vector2(x0 + 0.02f, 0.12f), new Vector2(x0 + 0.48f, 0.88f), Vector2.zero, Vector2.zero),
+                    i == _partsTab ? UITheme.NavActive : UITheme.NavIdle,
+                    () => { _partsTab = idx; RefreshBody(); }, 13);
+            }
+
+            if (_partsTab == 1) RenderOrderHistory(gs);
+            else RenderPartsStock(gs);
+        }
+
+        void RenderPartsStock(GameState gs)
+        {
             var mnt = MaintenanceManager.EnsureState(gs);
             int qty = 0, safety = 0, shortage = 0;
             foreach (var p in mnt.parts) { qty += p.quantity; safety += p.safetyStock; if (p.quantity < p.safetyStock) shortage++; }
             float health = MaintenanceEconomics.StockHealth(qty, safety, shortage);
-            L("H", "航材与供应链 · 零部件全生命周期管理", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
-            L("Kpi", $"库存健康度 {health:F0} · 缺料预警 {shortage} 项 · ABC 分类管理", 0.0f, 0.82f, 0.7f, 0.90f, 13,
+            L("H", "航材与供应链 · 零部件全生命周期管理", 0.0f, 0.82f, 1.0f, 0.90f, 15, UITheme.Accent, true);
+            L("Kpi", $"库存健康度 {health:F0} · 缺料预警 {shortage} 项 · ABC 分类管理", 0.0f, 0.74f, 0.7f, 0.82f, 13,
                 health >= 70 ? UITheme.Success : health >= 40 ? UITheme.Warning : UITheme.Danger, true);
 
             var sb = new StringBuilder("实时库存：\n");
             if (mnt.parts.Count == 0) sb.Append("  （暂无库存）");
             foreach (var p in mnt.parts) sb.Append($"  {p.partNo} {p.name} · {p.category}类 · 在库 {p.quantity} · 安全线 {p.safetyStock}\n");
-            L("Parts", sb.ToString().TrimEnd('\n'), 0.0f, 0.40f, 0.5f, 0.78f, 12);
+            L("Parts", sb.ToString().TrimEnd('\n'), 0.0f, 0.36f, 0.5f, 0.72f, 12);
 
             var ob = new StringBuilder("采购订单：\n");
             if (mnt.orders.Count == 0) ob.Append("  （暂无）");
             foreach (var o in mnt.orders) ob.Append($"  {o.orderNo} · {o.partNo} ×{o.quantity} · {o.status}\n");
-            L("Orders", ob.ToString().TrimEnd('\n'), 0.52f, 0.40f, 1.0f, 0.78f, 12);
+            L("Orders", ob.ToString().TrimEnd('\n'), 0.52f, 0.36f, 1.0f, 0.72f, 12);
 
-            B("Create", "创建采购订单", 0.02f, 0.28f, 0.32f, 0.38f, UITheme.Accent,
+            B("Create", "创建采购订单", 0.02f, 0.24f, 0.32f, 0.34f, UITheme.Accent,
                 () =>
                 {
                     string msg = "创建失败";
@@ -285,7 +312,7 @@ namespace AirlineCEO.UI
                     }
                     Toast(msg); RefreshBody();
                 }, 12);
-            B("Urgent", "停飞紧急采购", 0.36f, 0.28f, 0.68f, 0.38f, UITheme.PanelDeep,
+            B("Urgent", "停飞紧急采购", 0.36f, 0.24f, 0.68f, 0.34f, UITheme.PanelDeep,
                 () =>
                 {
                     string msg = "创建失败";
@@ -294,12 +321,82 @@ namespace AirlineCEO.UI
                     {
                         var last = mnt.orders.Count > 0 ? mnt.orders[mnt.orders.Count - 1] : null;
                         if (last != null) InboxManager.QueuePartsMail(gs, last);
-                        msg += " 紧急单已送收件箱，批准后本季入库。";
+                        msg += " 紧急单已送收件箱，批准后**当场**扣款入库。";
                     }
                     Toast(msg); RefreshBody();
                 }, 12);
-            B("Shared", "共享池借用", 0.72f, 0.28f, 0.98f, 0.38f, UITheme.PanelDeep,
+            B("Shared", "共享池借用", 0.72f, 0.24f, 0.98f, 0.34f, UITheme.PanelDeep,
                 () => { Toast("共享池借用申请已提交。"); }, 12);
+        }
+
+        /// <summary>
+        /// 订单信息 · 历史订单（用户要求：所有订单的列表，点一行跳「PO-XXX订单」）。
+        /// 列表本身只用只读文本 + 行按钮，不在这里执行任何结算 —— 扣款入库仍然只由
+        /// 收件箱批复与交期结算决定，避免又出现「点一下订单就跳过交期入库」的老问题。
+        /// </summary>
+        void RenderOrderHistory(GameState gs)
+        {
+            var mnt = MaintenanceManager.EnsureState(gs);
+            int total = mnt.orders != null ? mnt.orders.Count : 0;
+            L("H", "历史订单 · 全部航材采购单", 0.0f, 0.82f, 0.6f, 0.90f, 15, UITheme.Accent, true);
+            L("Count", $"共 {total} 单（新单在前）· 点击任意一行打开该单详情", 0.0f, 0.74f, 1.0f, 0.82f, 12, UITheme.TextMuted);
+
+            if (total == 0)
+            {
+                L("Empty", "（还没有采购订单。回到「库存与供应链」页签可用「创建采购订单」发起；"
+                           + "批准走收件箱，到货后才入库。）", 0.0f, 0.40f, 1.0f, 0.52f, 13, UITheme.TextMuted);
+                return;
+            }
+
+            const int maxRows = 9;
+            float y1 = 0.71f;
+            float rowH = 0.068f;
+            int shown = 0;
+            for (int i = total - 1; i >= 0 && shown < maxRows; i--, shown++)
+            {
+                var o = mnt.orders[i];
+                if (o == null) continue;
+                float top = y1 - shown * rowH;
+                float bottom = top - rowH * 0.86f;
+                float amount = MaintenanceEconomics.OrderTotalWan(o.quantity, o.unitCostUsd);
+                string state = OrderStateLabel(gs, o, out Color color);
+                string cap = $"{o.orderNo}　{o.partNo} ×{o.quantity}　{o.supplier}　{amount:F2} 万　{state}";
+                string orderNo = o.orderNo;
+                var row = B("His" + shown, cap, 0.0f, bottom, 1.0f, top, UITheme.PanelDeep,
+                    () => OpenOrderDetail(orderNo), 12);
+                var label = row != null ? row.GetComponentInChildren<TextMeshProUGUI>() : null;
+                if (label != null)
+                {
+                    label.alignment = TextAlignmentOptions.MidlineLeft;
+                    label.color = color;
+                }
+            }
+
+            if (total > maxRows)
+                L("More", $"…另有 {total - maxRows} 单较早的订单未在此列出（按单号可在收件箱回溯）。",
+                    0.0f, 0.02f, 1.0f, 0.10f, 11, UITheme.TextMuted);
+        }
+
+        /// <summary>订单状态一句话（与 n105 详情页口径一致，但只说结论）。</summary>
+        static string OrderStateLabel(GameState gs, PurchaseOrder o, out Color color)
+        {
+            if (o.status == "已下单") { color = UITheme.Success; return "已入库"; }
+            if (o.status == "已取消") { color = UITheme.TextMuted; return "已取消"; }
+            var pending = InboxManager.FindPendingPartsMail(gs, o.orderNo);
+            if (pending != null)
+            {
+                color = UITheme.Success;
+                return $"已批复 · 在途（{InboxManager.DueCountdown(gs, pending)}到货）";
+            }
+            color = UITheme.Warning;
+            return "草稿 · 待批复";
+        }
+
+        /// <summary>跳「PO-XXX订单」详情（n105，只读）。</summary>
+        static void OpenOrderDetail(string orderNo)
+        {
+            MaintenanceContext.ConfirmOrderNo = orderNo ?? "";
+            MaintenancePanelUI.OpenMaintenancePage("n105_订单确认");
         }
 
         // ================= n84 安全质量与适航 =================
@@ -355,6 +452,17 @@ namespace AirlineCEO.UI
         }
 
         // ================= n105 订单确认 =================
+        /// <summary>
+        /// 订单详情（**只读**，本页不设任何按钮）。
+        ///
+        /// ★2026-11-03 用户裁定：「既然邮件中已经批准，订单中就无需『确认下单』的按钮，
+        /// 这个订单只是显示的作用，也无需任何按钮。」
+        ///
+        /// 此前这里有一个「确认下单（生成 PO）」按钮：点下去会**当场扣款入库**、把 15 天交期
+        /// 一跳而过，还会顺手清掉已排定的到期结算 —— 那正是「11/3 批准、11/18 没有入库邮件」
+        /// 的来源。订单的执行权只属于收件箱批复（常规单按交期结算、加急单当场入库），
+        /// 本页只如实交代它现在走到哪一步。退出用卡片底部的「← 返回」。
+        /// </summary>
         void RenderOrderConfirm()
         {
             var gs = GameState.Instance;
@@ -365,31 +473,66 @@ namespace AirlineCEO.UI
                 : MaintenanceContext.ConfirmOrderNo;
             var order = mnt.orders.Find(o => o.orderNo == orderNo);
 
-            L("H", "订单确认 · 航材采购", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
+            // ★2026-11-03 用户要求：页面的「订单确认」改成「PO-XXX订单」。
+            // 卡片标题（顶栏页标题）与本页首行都换成具体单号 —— 从历史订单点进来时，
+            // 玩家一眼能确认「我打开的就是这一单」，而不是一个通用的「订单确认」。
+            string pageTitle = string.IsNullOrEmpty(orderNo) ? "订单信息" : orderNo + "订单";
+            if (titleLabel != null) titleLabel.text = pageTitle;
+
+            L("H", pageTitle + " · 航材采购（只读）", 0.0f, 0.92f, 1.0f, 0.98f, 15, UITheme.Accent, true);
             if (order == null)
             {
-                L("None", "（无待确认订单）", 0.0f, 0.5f, 1.0f, 0.7f, 16, UITheme.TextMuted);
+                L("None", string.IsNullOrEmpty(orderNo)
+                    ? "（暂无可核对的采购订单）"
+                    : $"（未找到订单 {orderNo}：可能是被清档或该单已不在本档的订单表里）",
+                    0.0f, 0.5f, 1.0f, 0.7f, 16, UITheme.TextMuted);
                 return;
             }
-            L("Order", $"订单编号 {order.orderNo} · 类型 {(order.urgent ? "紧急采购" : "常规补货")} · 供应商 {order.supplier}",
-                0.0f, 0.80f, 1.0f, 0.90f, 13);
-            L("Detail", $"件号 {order.partNo} · 数量 {order.quantity} · 单价 {order.unitCostUsd:F0} 美元 · 交期 {order.leadDays} 天",
-                0.0f, 0.70f, 1.0f, 0.80f, 13);
-            L("Total", $"订单总金额：{MaintenanceEconomics.OrderTotalWan(order.quantity, order.unitCostUsd):F2} 万美元",
-                0.0f, 0.60f, 0.6f, 0.70f, 14, UITheme.Success, true);
-            L("Risk", "供应链风险：独家供应商（中）· 地缘风险（低）· 运输中断（低）· 全球短缺指数 18", 0.0f, 0.48f, 1.0f, 0.58f, 12, UITheme.TextMuted);
 
-            B("Confirm", "确认下单（生成 PO）", 0.02f, 0.30f, 0.34f, 0.40f, UITheme.Accent,
-                () =>
-                {
-                    string msg = "下单失败";
-                    if (MaintenanceManager.Instance != null)
-                        MaintenanceManager.Instance.ConfirmOrder(order.orderNo, out msg);
-                    Toast(msg); RefreshBody();
-                }, 13);
-            B("Modify", "退回修改", 0.38f, 0.30f, 0.66f, 0.40f, UITheme.PanelDeep,
-                () => BackOne(), 12);
-            L("Hint", "订单确认仅核对；真正扣款入库需收件箱批准（紧急单本季入库）。", 0.0f, 0.22f, 1.0f, 0.28f, 11, UITheme.TextMuted);
+            float total = MaintenanceEconomics.OrderTotalWan(order.quantity, order.unitCostUsd);
+            var pending = InboxManager.FindPendingPartsMail(gs, order.orderNo);   // 已批复、按交期在途
+
+            // —— 状态：这单现在走到哪一步，是本页最该说清楚的一件事 ——
+            string state;
+            Color stateColor;
+            if (order.status == "已下单")
+            {
+                state = "已入库　到货回执见收件箱（机务工程部 · 到货入库）";
+                stateColor = UITheme.Success;
+            }
+            else if (order.status == "已取消")
+            {
+                state = "已取消　未扣款、未入库";
+                stateColor = UITheme.TextMuted;
+            }
+            else if (pending != null)
+            {
+                state = $"已批复 · 在途　预计 {InboxManager.DueCountdown(gs, pending)}到货，届时自动扣款 {total:F2} 万并入库存";
+                stateColor = UITheme.Success;
+            }
+            else
+            {
+                state = "草稿 · 待批复　扣款与入库都在收件箱批复之后，本页不执行任何动作";
+                stateColor = UITheme.Warning;
+            }
+            L("State", state, 0.0f, 0.80f, 1.0f, 0.90f, 13, stateColor, true);
+
+            L("Order", $"订单编号 {order.orderNo} · 类型 {(order.urgent ? "紧急采购" : "常规补货")} · 供应商 {order.supplier}",
+                0.0f, 0.72f, 1.0f, 0.80f, 13);
+            L("Detail", $"件号 {order.partNo} · 数量 {order.quantity} · 单价 {order.unitCostUsd:F0} 美元 · 交期 {order.leadDays} 天",
+                0.0f, 0.64f, 1.0f, 0.72f, 13);
+            L("Total", $"订单总金额：{total:F2} 万美元", 0.0f, 0.56f, 0.6f, 0.64f, 14, UITheme.Success, true);
+
+            var part = mnt.parts != null ? mnt.parts.Find(p => p != null && p.partNo == order.partNo) : null;
+            L("Stock", part != null
+                    ? $"库存回补：{part.partNo} 在库 {part.quantity} 件（安全线 {part.safetyStock}）"
+                    : "库存回补：尚无本件号库存记录",
+                0.0f, 0.46f, 1.0f, 0.54f, 12);
+            L("Risk", "供应链风险：独家供应商（中）· 地缘风险（低）· 运输中断（低）· 全球短缺指数 18",
+                0.0f, 0.38f, 1.0f, 0.46f, 12, UITheme.TextMuted);
+            L("Hint", "本页只读：订单由收件箱批复放行 —— 常规单按交期扣款入库，紧急/AOG 单当场扣款；"
+                      + "到货当日机务部会发一封「到货入库」回执，交代流程各节点与库存回补结果。",
+                0.0f, 0.22f, 1.0f, 0.32f, 11, UITheme.TextMuted);
         }
     }
 }

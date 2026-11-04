@@ -22,9 +22,11 @@ namespace AirlineCEO.UI
         private Transform _marketRoot;
         private RectTransform _marketList;
         private int _tab;
-        private readonly Button[] _tabs = new Button[5];
+        private readonly Button[] _tabs = new Button[6];
         private GameObject _transitionRoot;
         private RectTransform _transitionList;
+        /// <summary>「周计划及航班环」页签的宿主：内嵌 <see cref="OpsRotationBoardUI"/> 看板。</summary>
+        private GameObject _planRingRoot;
 
         /// <summary>由其他面板（如收件箱指引邮件）请求在下一次刷新时切到的标签页；-1 表示无请求。</summary>
         public static int PendingTab = -1;
@@ -85,9 +87,9 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.02f, 0.94f), new Vector2(0.12f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.TextPrimary, FontStyles.Bold);
 
-            string[] labels = { "机队总览", "新机购买", "二手市场", "租赁", "过渡业务" };
+            string[] labels = { "机队总览", "新机购买", "二手市场", "租赁", "过渡业务", "周计划及航班环" };
             var bar = UIFactory.Panel(panel, "FleetTabs",
-                new UIFactory.Anchor(new Vector2(0.13f, 0.935f), new Vector2(0.90f, 0.995f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.13f, 0.935f), new Vector2(0.97f, 0.995f), Vector2.zero, Vector2.zero),
                 new Color(0.04f, 0.10f, 0.18f, 0.55f));
             bar.GetComponent<Image>().raycastTarget = false;
             for (int i = 0; i < labels.Length; i++)
@@ -151,6 +153,18 @@ namespace AirlineCEO.UI
                 new UIFactory.Anchor(new Vector2(0.005f, 0.005f), new Vector2(0.995f, 0.995f), Vector2.zero, Vector2.zero));
             transGo.SetActive(false);
 
+            // ———— 周计划及航班环（2026-11-01 用户裁定）————
+            // 由运营部在后台按六步流水线编成，CEO 只在这里看结果。
+            // 页签名已经写明这是「周计划及航班环」，故页内**不再**重复一遍「航班环 · 运营部编成」
+            // 那个标题（旧 n36 页头上就有，挪进来就是同一行字写两次）。
+            var ringGo = UIFactory.Panel(panel, "PlanRing",
+                new UIFactory.Anchor(new Vector2(0.01f, 0.04f), new Vector2(0.99f, 0.93f), Vector2.zero, Vector2.zero),
+                new Color(0, 0, 0, 0));
+            var rImg = ringGo.GetComponent<Image>();
+            if (rImg != null) { rImg.color = new Color(0, 0, 0, 0); rImg.raycastTarget = false; }
+            _planRingRoot = ringGo;
+            ringGo.SetActive(false);
+
             _toastText = UIFactory.Label(panel, "Toast", "", 12, TextAlignmentOptions.Center,
                 new UIFactory.Anchor(new Vector2(0.05f, 0.0f), new Vector2(0.95f, 0.035f), Vector2.zero, Vector2.zero),
                 UITheme.Warning);
@@ -162,7 +176,7 @@ namespace AirlineCEO.UI
             // 机队子页（飞机详情/座位配置/大修预算）正压在机队页上时先退出，
             // 否则切了标签也看不见（子页仍覆盖内容区，表现为「点了没反应」）。
             CloseModuleSubpage();
-            _tab = Mathf.Clamp(idx, 0, 4);
+            _tab = Mathf.Clamp(idx, 0, 5);
             for (int i = 0; i < _tabs.Length; i++)
             {
                 if (_tabs[i] == null) continue;
@@ -172,6 +186,7 @@ namespace AirlineCEO.UI
             if (_overviewRoot != null) _overviewRoot.SetActive(_tab == 0);
             if (_marketRoot != null) _marketRoot.gameObject.SetActive(_tab > 0 && _tab < 4);
             if (_transitionRoot != null) _transitionRoot.SetActive(_tab == 4);
+            if (_planRingRoot != null) _planRingRoot.SetActive(_tab == 5);
             Refresh();
         }
 
@@ -194,6 +209,16 @@ namespace AirlineCEO.UI
             if (ui != null) { PendingTab = -1; ui.SetTab(4); }
         }
 
+        /// <summary>外侧入口：切到底栏「机队」并直达「周计划及航班环」页（2026-11-01 新增）。</summary>
+        public static void OpenPlanRingTab()
+        {
+            PendingTab = 5;
+            var nav = FindFirstObjectByType<PrefabNavIntegration>();
+            if (nav != null) nav.SelectTab("n9_机队");
+            var ui = FindFirstObjectByType<FleetUI>();
+            if (ui != null) { PendingTab = -1; ui.SetTab(5); }
+        }
+
         private static void AddColumnLabel(Transform parent, string name, string text, float x0, float x1)
         {
             UIFactory.Label(parent, name, text, 12, TextAlignmentOptions.MidlineLeft,
@@ -214,8 +239,24 @@ namespace AirlineCEO.UI
                 RefreshOverview(gs);
             else if (_tab == 4)
                 RebuildTransition(gs);
+            else if (_tab == 5)
+                RefreshPlanRing();
             else
                 RebuildMarket(gs);
+        }
+
+        /// <summary>
+        /// 「周计划及航班环」页签：把运营部的编成看板挂进来（<see cref="OpsRotationBoardUI"/>，
+        /// 数据来自同一个 <see cref="OpsRotationBuilder.BuildFromGameState"/> 纯函数）。
+        ///
+        /// 之所以收成**唯一**一块看板：原先 n36 页与本页签各挂一份的写法，
+        /// 两处若各算各的就会出现「这里说排得进、那里说排不进」——编成结论必须只有一个来源。
+        /// ★2026-11-01：n36 页已整页删除，此处即唯一入口。
+        /// </summary>
+        void RefreshPlanRing()
+        {
+            if (_planRingRoot == null) return;
+            OpsRotationBoardUI.Ensure(_planRingRoot.transform);
         }
 
         void RefreshOverview(GameState gs)
@@ -627,24 +668,21 @@ namespace AirlineCEO.UI
                 bool tutorialTarget = AdvisorTutorialScript.IsAwaitingFleet()
                     && string.Equals(reg, AdvisorTutorialScript.RecommendedRegistration(), System.StringComparison.OrdinalIgnoreCase);
 
-                string assignLabel = tutorialTarget ? "分配至深圳—北京" : "分配航线";
-                Color assignColor = tutorialTarget ? UITheme.Success : UITheme.Accent;
-
-                UIFactory.Button(row.transform, "Assign", assignLabel,
-                    new UIFactory.Anchor(new Vector2(ColAction0, 0.12f), new Vector2(ColAction0 + 0.17f, 0.88f), Vector2.zero, Vector2.zero),
-                    assignColor, () =>
-                    {
-                        if (AdvisorTutorialScript.IsAwaitingFleet())
+                // ★2026-11-01：n98「航线分配」整页删除后，这里不再有「分配航线」按钮 ——
+                //   派机与加班的入口统一收敛到命令台（运营部在后台编成、回邮件）。
+                //   引导教程那一步仍要能推进，故只在教程目标机上保留这个按钮。
+                if (tutorialTarget)
+                {
+                    UIFactory.Button(row.transform, "Assign", "分配至深圳—北京",
+                        new UIFactory.Anchor(new Vector2(ColAction0, 0.12f), new Vector2(ColAction0 + 0.17f, 0.88f), Vector2.zero, Vector2.zero),
+                        UITheme.Success, () =>
                         {
                             OpsSubpageContext.SelectedRegistration = reg;
                             FindFirstObjectByType<AdvisorModalUI>()?.ContinueFromFleetAssign();
-                            return;
-                        }
-                        OpsSubpageContext.SelectedRegistration = reg;
-                        OpsPanelUI.OpenOpsPage("n98_航线航班环选择器");
-                    }, 10);
+                        }, 10);
+                }
                 UIFactory.Button(row.transform, "Retire", exitLabel,
-                    new UIFactory.Anchor(new Vector2(ColAction0 + 0.18f, 0.12f), new Vector2(ColAction1, 0.88f), Vector2.zero, Vector2.zero),
+                    new UIFactory.Anchor(new Vector2(tutorialTarget ? ColAction0 + 0.18f : ColAction0, 0.12f), new Vector2(ColAction1, 0.88f), Vector2.zero, Vector2.zero),
                     UITheme.Danger, () => OnRetire(reg), 10);
             }
             else

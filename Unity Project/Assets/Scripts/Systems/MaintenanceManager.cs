@@ -29,6 +29,23 @@ namespace AirlineCEO.Systems
             if (Instance == this) Instance = null;
         }
 
+        /// <summary>
+        /// 需要实例时的统一入口。
+        ///
+        /// ★2026-11-03：编辑器/批处理里 <c>AddComponent</c> 不会触发 <see cref="Awake"/>，
+        /// 于是 <see cref="Instance"/> 一直是 null —— 旧代码各自「new GameObject + AddComponent」
+        /// 之后仍拿不到实例，只能放弃执行。放到玩家身上就是「点了批准，什么也没发生」。
+        /// 这里补一次兜底赋值，让「拿不到实例就静默跳过」这类失败不再可能。
+        /// </summary>
+        public static MaintenanceManager EnsureInstance()
+        {
+            if (Instance != null) return Instance;
+            var go = new GameObject("MaintenanceManager");
+            var mgr = go.AddComponent<MaintenanceManager>();
+            if (Instance == null) Instance = mgr;
+            return Instance;
+        }
+
         public static MaintenanceState EnsureState(GameState gs)
         {
             if (gs == null) return null;
@@ -158,6 +175,10 @@ namespace AirlineCEO.Systems
             message = $"订单 {order.orderNo} 已下单并入库（{total:F2} 万）。";
             gs.AddDecisionLog("机务：" + message);
             InboxManager.OnPartsOrderFilled(gs, order.orderNo);
+            // 加急单当场入库：回执在**入库这一刻**发，不绑在某一条入口上 ——
+            // 订单状态页已改为只读（2026-11-03 用户裁定），但入库路径仍可能有别的调用方，
+            // 任何一条路走到这里都要留一封到货回执。
+            InboxManager.QueuePartsArrivalReceipt(gs, order.orderNo, true, message);
             gs.NotifyChanged();
             return true;
         }
