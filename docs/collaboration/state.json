@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 921,
-  "updatedAt": "2026-11-01T06:43:49.349Z",
+  "revision": 971,
+  "updatedAt": "2026-11-04T07:55:57.610Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -153,7 +153,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:26.160Z"
     },
@@ -162,7 +162,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:26.644Z"
     },
@@ -234,7 +234,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:17:09.955Z"
     },
@@ -333,7 +333,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:56.128Z"
     },
@@ -495,12 +495,39 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "current",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-11-01T04:13:05.330Z"
+    },
+    "S50-RouteAssignRetire": {
+      "title": "阶段 S50：撤掉 n98「航线分配」页 + 机队新增「周计划及航班环」页签（含命令台加机链路）",
+      "devStatus": "todo",
+      "reviewStatus": "not_run",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-04T06:47:37.761Z"
+    },
+    "S51-PlanRingFleetDetail": {
+      "title": "阶段 S51：删除 n36「航班环构建器」页 + 飞机详情移入「机队」模块",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "stale",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-01T12:25:51.346Z"
+    },
+    "S52-RouteLifecycle": {
+      "title": "阶段 S52：开航全流程九关（准入 → 时刻 → 开航执行 → 编班 → 投入运营）",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "passed",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-04T03:58:00.815Z"
     }
   },
-  "lastDeliveryId": "DEL-20261101063922-e47797",
+  "lastDeliveryId": "DEL-20261104074739-592c9d",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -655,6 +682,20 @@
       "actor": "codex",
       "note": "e47797独立复验确认修复，关闭目录相等边界误删证据缺陷；旧交付与历史检测记录保留。",
       "at": "2026-11-01T06:43:49.347Z"
+    },
+    "ISSUE-20261104042355-77effa": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Closed after independent EditMode verification on REV-20261104075218-bff8f4.",
+      "at": "2026-11-04T07:55:52.911Z"
+    },
+    "ISSUE-20261104062124-ae8277": {
+      "status": "closed",
+      "previous": "verified",
+      "actor": "codex",
+      "note": "Closed after independent EditMode verification on REV-20261104075218-bff8f4.",
+      "at": "2026-11-04T07:55:57.609Z"
     }
   },
   "deliveryStatus": {

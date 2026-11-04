@@ -31,12 +31,12 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T00:55:46.890Z",
-  "updatedAt": "2026-11-01T05:21:38.475Z",
+  "updatedAt": "2026-11-04T07:55:52.493Z",
   "snapshotRoots": [
     "tools/collab",
     "docs"
   ],
-  "freshnessNote": "Historic verdict REV-20261028010721-cc34b5 covered 510 changed files; 4 taken over by later passed deliveries, 10 still uncovered (docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
+  "freshnessNote": "Historic verdict REV-20261028010721-cc34b5 covered 510 changed files; 7 taken over by later passed deliveries, 10 still uncovered (docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).",
   "staleForReviewId": "REV-20261028010721-cc34b5",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -533,20 +533,20 @@
   },
   "scopeDrift": {
     "basis": 510,
-    "intact": 38,
-    "covered": 4,
+    "intact": 21,
+    "covered": 7,
     "uncovered": [
       "docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md",
       "docs/collaboration/OPERATOR_MANUAL_ZH.md",
       "docs/collaboration/PROTOCOL.md",
       "docs/handoff/Baseline_2026-10-17.json",
-      "tools/collab/lib/commands.mjs",
-      "tools/collab/lib/stage.mjs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
-      "tools/collab/tests/run-all.mjs"
+      "tools/collab/tests/run-all.mjs",
+      "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md",
+      "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md"
     ],
-    "uncoveredCount": 11
+    "uncoveredCount": 25
   }
 }

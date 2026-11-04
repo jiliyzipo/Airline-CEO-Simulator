@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101103803-5e725f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 923,
+  "at": "2026-11-01T10:38:03.655Z",
+  "actor": "cursor",
+  "action": "task-add-clause-drift",
+  "taskId": "S50-RouteAssignRetire",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "clause text differs from profile template: ⚠ S50-RouteAssignRetire：AC1、AC2、AC3、AC4 与 profile 模板文本不一致，已由「机器可判定」降级为「需检测者人工补证」（(any)(AC1,AC2,AC3,AC4)）。",
+  "data": {}
+}

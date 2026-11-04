@@ -31,12 +31,12 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T03:15:15.855Z",
-  "updatedAt": "2026-11-01T05:21:38.146Z",
+  "updatedAt": "2026-11-04T07:55:52.236Z",
   "snapshotRoots": [
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261027035404-8c86c1 covered 40 changed files; 6 taken over by later passed deliveries, 8 still uncovered (docs/handoff/Baseline_2026-10-17.json, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027035404-8c86c1 covered 40 changed files; 9 taken over by later passed deliveries, 10 still uncovered (docs/handoff/Baseline_2026-10-17.json, tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs …).",
   "staleForReviewId": "REV-20261027035404-8c86c1",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -60,18 +60,20 @@
   },
   "scopeDrift": {
     "basis": 40,
-    "intact": 25,
-    "covered": 6,
+    "intact": 12,
+    "covered": 9,
     "uncovered": [
       "docs/handoff/Baseline_2026-10-17.json",
-      "tools/collab/lib/commands.mjs",
-      "tools/collab/lib/stage.mjs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
       "tools/collab/tests/run-all.mjs",
-      "tools/collab/tests/stage.test.mjs"
+      "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md",
+      "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md",
+      "docs/handoff/P23_教程与引导文案重写_开发记录_2026-10-25.md",
+      "docs/handoff/P24_检测证据三指纹绑定与待办收敛_开发记录_2026-10-26.md",
+      "docs/handoff/P25_命令行契约与取代登记_开发记录_2026-10-26.md"
     ],
-    "uncoveredCount": 8
+    "uncoveredCount": 18
   }
 }

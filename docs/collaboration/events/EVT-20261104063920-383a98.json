@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104063920-383a98",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 957,
+  "at": "2026-11-04T06:39:20.643Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S52-RouteLifecycle",
+  "deliveryId": "DEL-20261104051917-9a7ed1",
+  "reviewId": "REV-20261104061859-ba39e0",
+  "parentEventId": null,
+  "summary": "ISSUE-20261104062124-ae8277: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261104062124-ae8277",
+    "from": "open",
+    "to": "fixed",
+    "note": "根因：RequestRefresh 的 Task.Run 续体在线程池上调 JsonUtility.FromJson（ParseSinaFlash），引擎 API 非主线程调用，退出阶段 MonoManager 已拆 → Fatal Error, exit=1073741845。修法：新增 Systems/MainThreadDispatch.cs，后台只下载、解析回主线程；LoadTextAsync 的 Application.streamingAssetsPath 改在主线程 ResolveSource 展开；退出钩子置标记并 Cancel ShutdownToken 掐断在飞 HTTP。同步改造 ExternalDataFetcher(新闻/行情/汇率)/SigmetFeed/WeatherFeed。新增 R49 main-thread-dispatch（派发语义 + Task.Run 内不得出现引擎 API 的结构判据 + 判据自身的负面控制）。自测：out/b17-dispatch 隔离导出，EditMode 134 过/0 败/0 跳 UNITY_EXIT=0，PlayMode 178 过/0 败/2 跳 UNITY_EXIT=0；把修复前文件放回同一快照，结构判据如期转红。待用户下达阶段收口后重新生成交付。"
+  }
+}

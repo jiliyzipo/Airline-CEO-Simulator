@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104043950-8b258f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 950,
+  "at": "2026-11-04T04:39:50.675Z",
+  "actor": "cursor",
+  "action": "issue-status",
+  "taskId": "S52-RouteLifecycle",
+  "deliveryId": "DEL-20261104035802-5ae335",
+  "reviewId": "REV-20261104042149-25327e",
+  "parentEventId": null,
+  "summary": "ISSUE-20261104042355-77effa: open -> fixed",
+  "data": {
+    "issueId": "ISSUE-20261104042355-77effa",
+    "from": "open",
+    "to": "fixed",
+    "note": "3 项失败已修：① 运力调令回执补回「研究期」字样，CapabilityRegression 单跑通过；② 许可受理邮件用例改为按 NodeLast 断言 9 关（标题同步为「准入 → 开航 → 运营」）并补 7/8/9 关必须待办；③ 存档时钟修复不再拿现实日期推本季天数，改读邮件上新增的 receivedSimDay，并补负面对照。EditMode 133/133、PlayMode 178/178（跳 2）自测通过。"
+  }
+}

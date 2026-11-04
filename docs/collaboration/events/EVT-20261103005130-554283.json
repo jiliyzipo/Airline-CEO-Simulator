@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261103005130-554283",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 938,
+  "at": "2026-11-03T00:51:30.325Z",
+  "actor": "codex",
+  "action": "review-finish",
+  "taskId": "S51-PlanRingFleetDetail",
+  "deliveryId": "DEL-20261103001103-55b815",
+  "reviewId": "REV-20261103005003-47f5c8",
+  "parentEventId": null,
+  "summary": "review-finish passed",
+  "data": {
+    "status": "passed",
+    "issues": []
+  }
+}

@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-11-01T01:22:59.157Z",
+  "updatedAt": "2026-11-04T07:55:52.144Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 12 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, docs/handoff/Baseline_2026-10-17.json).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 16 taken over by later passed deliveries, 6 still uncovered (docs/handoff/Baseline_2026-10-17.json, docs/handoff/P21_命令台历史_开发记录_2026-10-25.md, docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md …).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,12 +73,16 @@
   },
   "scopeDrift": {
     "basis": 44,
-    "intact": 30,
-    "covered": 12,
+    "intact": 22,
+    "covered": 16,
     "uncovered": [
-      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
-      "docs/handoff/Baseline_2026-10-17.json"
+      "docs/handoff/Baseline_2026-10-17.json",
+      "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md",
+      "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md",
+      "docs/handoff/P23_教程与引导文案重写_开发记录_2026-10-25.md",
+      "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md",
+      "docs/handoff/两条账务口径裁定_2026-10-25.md"
     ],
-    "uncoveredCount": 2
+    "uncoveredCount": 6
   }
 }

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261101122551-0fcefa",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 925,
+  "at": "2026-11-01T12:25:51.800Z",
+  "actor": "cursor",
+  "action": "task-add-clause-drift",
+  "taskId": "S51-PlanRingFleetDetail",
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "clause text differs from profile template: ⚠ S51-PlanRingFleetDetail：AC1、AC2、AC3、AC4 与 profile 模板文本不一致，已由「机器可判定」降级为「需检测者人工补证」（(any)(AC1,AC2,AC3,AC4)）。",
+  "data": {}
+}

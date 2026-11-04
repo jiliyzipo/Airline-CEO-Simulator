@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104042355-42b08f",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 949,
+  "at": "2026-11-04T04:23:55.219Z",
+  "actor": "codex",
+  "action": "review-finish",
+  "taskId": "S52-RouteLifecycle",
+  "deliveryId": "DEL-20261104035802-5ae335",
+  "reviewId": "REV-20261104042149-25327e",
+  "parentEventId": null,
+  "summary": "stage-review failed; issue ISSUE-20261104042355-77effa",
+  "data": {
+    "status": "failed",
+    "issues": [
+      "ISSUE-20261104042355-77effa"
+    ]
+  }
+}

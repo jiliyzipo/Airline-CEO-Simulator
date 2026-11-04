@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Editor、UI、Assets-Tests、Regression、Systems",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T02:11:15.020Z",
-  "updatedAt": "2026-10-31T08:45:25.934Z",
+  "updatedAt": "2026-11-04T07:55:52.501Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 4 taken over by later passed deliveries, 1 still uncovered (tools/regression/ai-run.mjs).",
-  "staleForReviewId": "REV-20261028022523-acfde4",
+  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261104074739-592c9d, DEL-20261031045140-2cd3d8.",
+  "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:56.109Z",
@@ -72,11 +72,9 @@
   },
   "scopeDrift": {
     "basis": 9,
-    "intact": 4,
-    "covered": 4,
-    "uncovered": [
-      "tools/regression/ai-run.mjs"
-    ],
-    "uncoveredCount": 1
+    "intact": 3,
+    "covered": 6,
+    "uncovered": [],
+    "uncoveredCount": 0
   }
 }

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S51-PlanRingFleetDetail",
+  "title": "阶段 S51：删除 n36「航班环构建器」页 + 飞机详情移入「机队」模块",
+  "revision": 1,
+  "devStatus": "ready_for_review",
+  "reviewStatus": "passed",
+  "freshness": "stale",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：UI / Tests / tools",
+    "① 删除 n36「航班环构建器」页：Prefab、UIConfig、OpsRingBuilderUI 空壳类及其在 OpsRuntimeFactory / OpsSubpagePanel / PrefabNavIntegration / CreateOpsPrefabs 的全部分支（同一块看板已在「机队 › 周计划及航班环」，不留第二个入口）",
+    "② 「飞机详情」移入「机队」模块：从单航线页或邮件点机号时，先把底栏切到「机队」再开子页，详情落在机队模块的子框里（座位配置 / 大修预算 / 购机决策会议沿用同一归属口径）",
+    "③ ai-run.mjs 陈旧程序集守卫改判：只改 PlayMode 用例时不再永久误报「程序集过期」",
+    "不含：n42/n43/n66 三张 OPS 表页、机队第 6 页签内的看板内容本身"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "n36 页彻底消失：运行时工厂对 n36 返回 null，UIConfig / Prefab / 归一化分支 / 导航配置 / Prefab 生成器均无 n36 残留（仅注释说明历史）"
+    },
+    {
+      "id": "AC2",
+      "text": "飞机详情落在机队模块：从非机队模块打开 n10 后底栏切到「机队」，详情实例是 FleetUI 的子节点；航线侧页面不会被误切部门（隔离用例 AircraftDetail_OpensInsideFleetModule + slotcheck R44）"
+    },
+    {
+      "id": "AC3",
+      "text": "编译与静态门禁通过：Runtime / Editor / PlayModeTests 三个 csproj 0 错；semcheck 三道门 errors=0；slotcheck 输出 SLOTCHECK OK"
+    },
+    {
+      "id": "AC4",
+      "text": "Unity 内隔离回归 23 项 0 失败（add-flight-command / schedule-page / tutorial-copy 等）；开发自测，不构成独立验收"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-11-01T12:25:51.346Z",
+  "updatedAt": "2026-11-03T04:09:08.308Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "Unity Project/Assets/Tests",
+    "tools/slotcheck",
+    "tools/semcheck",
+    "tools/regression"
+  ],
+  "freshnessNote": "Historical review REV-20261103005003-47f5c8 passed delivery DEL-20261103001103-55b815; current workspace needs re-review.",
+  "staleForReviewId": "REV-20261103005003-47f5c8"
+}

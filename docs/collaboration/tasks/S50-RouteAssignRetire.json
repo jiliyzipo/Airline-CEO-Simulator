@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "projectId": "Airline-CEO-Simulator",
+  "taskId": "S50-RouteAssignRetire",
+  "title": "阶段 S50：撤掉 n98「航线分配」页 + 机队新增「周计划及航班环」页签（含命令台加机链路）",
+  "revision": 1,
+  "devStatus": "todo",
+  "reviewStatus": "not_run",
+  "freshness": "unknown",
+  "holder": null,
+  "scope": [
+    "本阶段改动范围：UI / Logic / Systems / Editor / Assets-Tests",
+    "① 删除 n98「航线分配」页：Prefab、UIConfig、OpsRouteRingSelectorUI 及其全部入口（职责与「飞机详情 · 履历计划表」重复）",
+    "② 该页原有的「点某一刻加一班」能力改由命令台承接：CEO 在底栏命令台输入「06:30 给北京—深圳加一班」，运营部在后台挑机、调环、缺槽则向空管/机场申请，结果以邮件呈报 CEO 收件箱",
+    "③ 机队模块新增第 6 个页签「周计划及航班环」：内嵌运营部编成看板（同一块 OpsRotationBoardUI，数据同源 OpsRotationBuilder），页内不再重复写「航班环 · 运营部编成」标题",
+    "不含：n36 页本身保留（运营部仍可从航线模块进入同一块看板），本阶段不改其内容"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC1",
+      "text": "n98 页面与其入口不再存在：OpsRuntimeFactory 对 n98 返回 null，导航深层链接、OPS 面板按钮、机队列表按钮、单航线页「串环」入口均不再指向 n98；被删文件仅剩注释里对历史的说明"
+    },
+    {
+      "id": "AC2",
+      "text": "机队模块页签数为 6，第 6 个标签文案为「周计划及航班环」；切到该页时内嵌运营部编成看板可用，页内不重复出现「航班环 · 运营部编成」标题（FleetUI 标签数组与 SetTab(5) 分支）"
+    },
+    {
+      "id": "AC3",
+      "text": "命令台加机指令可解析并被承接：`06:30 给北京—深圳加一班` 走 TopicAddFlight → 运营部挑机（适航/可用/值勤/过站/宵禁/环上限）→ 生成待批呈报邮件；重复时刻被明确拒绝并回执（隔离回归 add-flight-command 通过）"
+    },
+    {
+      "id": "AC4",
+      "text": "隔离回归与静态检查通过：Runtime / Editor / PlayModeTests 三个 csproj 编译 0 错；slotcheck 输出 SLOTCHECK OK；协作工具 23 个套件 0 失败（开发自测，非独立验收）"
+    }
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "sourceTaskBook": "stage:auto",
+  "createdAt": "2026-11-01T10:38:03.190Z",
+  "updatedAt": "2026-11-04T06:47:37.761Z",
+  "snapshotRoots": [
+    "Unity Project/Assets",
+    "Unity Project/Packages",
+    "Unity Project/ProjectSettings",
+    "Unity Project/Assets/Tests",
+    "tools/slotcheck",
+    "tools/semcheck",
+    "tools/regression"
+  ],
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261103001103-55b815",
+    "taskId": "S51-PlanRingFleetDetail",
+    "actor": "cursor",
+    "note": "S50 的全部范围（n98 撤页、机队第 6 页签、命令台加机链路）实际由 S51 交付 DEL-20261103001103-55b815 完成；该任务自身从未生成交付，按用户 2026-11-04 裁决标记为已被取代（不删文件、不改历史事件）",
+    "at": "2026-11-04T06:47:37.761Z"
+  }
+}

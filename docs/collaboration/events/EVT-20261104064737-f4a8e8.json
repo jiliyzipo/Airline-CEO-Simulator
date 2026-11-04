@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261104064737-f4a8e8",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 959,
+  "at": "2026-11-04T06:47:37.768Z",
+  "actor": "cursor",
+  "action": "task-supersede",
+  "taskId": "S50-RouteAssignRetire",
+  "deliveryId": "DEL-20261103001103-55b815",
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "S50-RouteAssignRetire superseded by S51-PlanRingFleetDetail via DEL-20261103001103-55b815",
+  "data": {
+    "supersededBy": {
+      "deliveryId": "DEL-20261103001103-55b815",
+      "taskId": "S51-PlanRingFleetDetail",
+      "actor": "cursor",
+      "note": "S50 的全部范围（n98 撤页、机队第 6 页签、命令台加机链路）实际由 S51 交付 DEL-20261103001103-55b815 完成；该任务自身从未生成交付，按用户 2026-11-04 裁决标记为已被取代（不删文件、不改历史事件）",
+      "at": "2026-11-04T06:47:37.761Z"
+    }
+  }
+}

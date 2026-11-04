@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "REV-20261104042149-25327e",
+  "deliveryId": "DEL-20261104035802-5ae335",
+  "taskId": "S52-RouteLifecycle",
+  "taskRevision": 1,
+  "actor": "codex",
+  "status": "failed",
+  "profile": "unity-editmode",
+  "profileDefinition": {
+    "kind": "powershell",
+    "command": [
+      "powershell.exe",
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/regression/RunUnityTests.ps1",
+      "-ProjectPath",
+      "Unity Project",
+      "-Platform",
+      "EditMode",
+      "-RunName",
+      "{runToken}"
+    ],
+    "resultKind": "nunit",
+    "resultFile": "Unity Project/Logs/Tasks20261017_{runToken}.xml",
+    "description": "Real Unity EditMode tests in the isolated snapshot; refuses to run unless companyName=AirlineCEORegression; {runToken} makes the result path unique per execution"
+  },
+  "toolVersion": "collab-cli/1.3.0",
+  "independent": true,
+  "reviewKind": "independent",
+  "subjectFingerprints": {
+    "implementation": "f36df4edcff75538d71741c391111a3781700d2551946b1ea7024b3b8d5fbe82",
+    "verification": "637fcf2793a4a7e7860712bd58e5e32086dc6669a8f5d0b881e5a23d0144579d",
+    "contract": "f06afb957700a035335b2883e8775699477d978908a3d608f5599a64742cebf2"
+  },
+  "snapshotPath": "out/collab/DEL-20261104035802-5ae335",
+  "createdAt": "2026-11-04T04:21:50.061Z",
+  "updatedAt": "2026-11-04T04:23:29.247Z",
+  "runs": [
+    {
+      "at": "2026-11-04T04:21:51.200Z",
+      "finishedAt": "2026-11-04T04:23:29.247Z",
+      "runToken": "34bc025a33d882e5",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261104035802-5ae335",
+      "subjectImplementationFingerprint": "f36df4edcff75538d71741c391111a3781700d2551946b1ea7024b3b8d5fbe82",
+      "subjectFingerprints": {
+        "implementation": "f36df4edcff75538d71741c391111a3781700d2551946b1ea7024b3b8d5fbe82",
+        "verification": "637fcf2793a4a7e7860712bd58e5e32086dc6669a8f5d0b881e5a23d0144579d",
+        "contract": "f06afb957700a035335b2883e8775699477d978908a3d608f5599a64742cebf2"
+      },
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "34bc025a33d882e5"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261104035802-5ae335",
+      "exitCode": 1,
+      "stdoutPath": ".collab-local/logs/REV-20261104042149-25327e/run-34bc025a33d882e5/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261104042149-25327e/run-34bc025a33d882e5/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261104042149-25327e/run-34bc025a33d882e5/stdout.txt",
+        "sha256": "07caa1b391dc4ceaaccd2172436410829fbf880c4f410eb70e7b2d9db2900ab3",
+        "bytes": 5587,
+        "runToken": "34bc025a33d882e5"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261104042149-25327e/run-34bc025a33d882e5/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "34bc025a33d882e5"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_34bc025a33d882e5.xml",
+        "runToken": "34bc025a33d882e5",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261104035802-5ae335",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "a6fa56d530c06ddfee46546417b5cf1c8b83a50b9c345361c0d9986240755844",
+          "bytes": 133500,
+          "mtimeMs": 1793766206979.4768
+        },
+        "producedByRun": true,
+        "sha256": "a6fa56d530c06ddfee46546417b5cf1c8b83a50b9c345361c0d9986240755844"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      },
+      "snapshotPruned": {
+        "freedBytes": 1969532275,
+        "removedFiles": 35127,
+        "keptFiles": 26,
+        "removedDirs": 2654
+      },
+      "snapshotPrunePolicy": "failure-kept-diagnostics",
+      "snapshotPruneReason": "exit=1; machine: machine result reports 3 failed assertion(s)"
+    }
+  ],
+  "coverage": [],
+  "issues": [],
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-11-04T04:21:51.188Z",
+  "finishedAt": "2026-11-04T04:23:29.247Z"
+}

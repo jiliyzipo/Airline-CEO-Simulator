@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T13:18:57.941Z",
-  "updatedAt": "2026-10-31T08:45:19.237Z",
+  "updatedAt": "2026-11-04T07:55:52.033Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 18 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261028002145-55518e, DEL-20261031072012-3ed2fd.",
+  "freshnessNote": "Historic verdict REV-20261023015616-582178 covered 33 changed files; 19 were edited later and are now owned by passed deliveries DEL-20261025094638-6f76b0, DEL-20261104074739-592c9d, DEL-20261028002145-55518e 等 4 个.",
   "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
@@ -77,8 +77,8 @@
   },
   "scopeDrift": {
     "basis": 33,
-    "intact": 15,
-    "covered": 18,
+    "intact": 14,
+    "covered": 19,
     "uncovered": [],
     "uncoveredCount": 0
   }

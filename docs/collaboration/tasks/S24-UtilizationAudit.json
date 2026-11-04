@@ -35,7 +35,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T06:50:55.635Z",
-  "updatedAt": "2026-11-01T05:21:38.265Z",
+  "updatedAt": "2026-11-04T07:55:52.330Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -49,7 +49,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027071330-bfc0de covered 82 changed files; 19 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, tools/collab/lib/commands.mjs, tools/collab/lib/stage.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027071330-bfc0de covered 82 changed files; 27 taken over by later passed deliveries, 4 still uncovered (tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …).",
   "staleForReviewId": "REV-20261027071330-bfc0de",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -99,19 +99,14 @@
   },
   "scopeDrift": {
     "basis": 82,
-    "intact": 54,
-    "covered": 19,
+    "intact": 51,
+    "covered": 27,
     "uncovered": [
-      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
-      "tools/collab/lib/commands.mjs",
-      "tools/collab/lib/stage.mjs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
-      "tools/collab/tests/run-all.mjs",
-      "tools/collab/tests/stage.test.mjs",
-      "tools/regression/ai-run.mjs"
+      "tools/collab/tests/run-all.mjs"
     ],
-    "uncoveredCount": 9
+    "uncoveredCount": 4
   }
 }
