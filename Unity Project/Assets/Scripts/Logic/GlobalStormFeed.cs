@@ -175,7 +175,7 @@ namespace AirlineCEO.Logic
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36");
                     http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-                    using (var resp = await http.GetAsync(url).ConfigureAwait(false))
+                    using (var resp = await http.GetAsync(url, MainThreadDispatch.ShutdownToken).ConfigureAwait(false))
                     {
                         if (!resp.IsSuccessStatusCode) return null;
                         string s = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);

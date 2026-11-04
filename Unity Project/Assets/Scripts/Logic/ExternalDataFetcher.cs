@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AirlineCEO.Data;
+using AirlineCEO.Systems;
 using UnityEngine;
 
 #nullable disable
@@ -20,7 +21,9 @@ namespace AirlineCEO.Logic
     /// 现实只提供内容，游戏提供时间轴；拉取失败 / 无网络 / 未配置 → 静默返回空，交由 EventGenerator 兜底。
     /// </para>
     /// <para>
-    /// 线程模型：抓取在后台线程（.NET HttpClient，失败不产生任何 Unity 红字），结果写入待入队缓存；
+    /// 线程模型：**下载**在后台线程（.NET HttpClient，失败不产生任何 Unity 红字），解析与入箱一律回主线程
+    /// （<see cref="Systems.MainThreadDispatch"/>）。原因见该类注释：<c>JsonUtility</c> 是引擎 API，
+    /// 在线程池上调用会在编辑器退出阶段变成致命崩溃（2026-11-04 独立复验 exit=1073741845）。
     /// 主线程通过 <see cref="FetchEvents"/> 排空缓存。网络请求绝不阻塞游戏主线程。
     /// </para>
     /// <para>
@@ -514,6 +517,8 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static List<ExternalEventPayload> FetchEvents()
         {
+            // 主线程排空一次：后台已下载完、等着解析入箱的那几件在这里落地。
+            MainThreadDispatch.Drain();
             var list = new List<ExternalEventPayload>();
             lock (Gate)
             {
@@ -532,6 +537,8 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static void RequestRefresh(bool force = false)
         {
+            // ★ 先把上一轮「下载完、等解析」的结果在主线程落地（详见 MainThreadDispatch）。
+            MainThreadDispatch.Drain();
             EnsureLoaded();
             if (!_enabled) return;
             string spec = _url;
@@ -539,7 +546,7 @@ namespace AirlineCEO.Logic
 
             lock (Gate)
             {
-                if (_inFlight) return;
+                if (_inFlight && !StaleInflight(_lastAttemptUtc)) return;
                 if (!force && _intervalSeconds <= 0) return;
                 if (!force && (DateTime.UtcNow - _lastAttemptUtc).TotalSeconds < _intervalSeconds) return;
                 _inFlight = true;
@@ -547,74 +554,104 @@ namespace AirlineCEO.Logic
             }
 
             string[] sources = SplitSources(spec);
+            // ★ 相对路径要在**主线程**展开：Application.streamingAssetsPath 也是引擎 API。
+            var resolved = new string[sources.Length];
+            for (int i = 0; i < sources.Length; i++) resolved[i] = ResolveSource(sources[i]);
+
             Task.Run(async () =>
             {
-                int received = 0;
-                var adopted = new List<ExternalEventPayload>();
-                string note = "";
+                var texts = new string[resolved.Length];
                 try
                 {
-                    for (int i = 0; i < sources.Length; i++)
-                    {
-                        string text = await LoadTextAsync(sources[i]).ConfigureAwait(false);
-                        if (string.IsNullOrEmpty(text)) { note += Short(sources[i]) + "=不可达 "; continue; }
-                        var items = Parse(text, sources[i]);
-                        note += Short(sources[i]) + "=" + items.Count + " ";
-                        received += items.Count;
-                        adopted.AddRange(items);
-                    }
+                    for (int i = 0; i < resolved.Length; i++)
+                        texts[i] = await LoadTextAsync(resolved[i]).ConfigureAwait(false);
                 }
                 catch
                 {
                     // 任何异常都不向上冒：断网 / 证书 / 解析失败一律静默
                 }
-                finally
-                {
-                    lock (Gate)
-                    {
-                        int max = Mathf.Clamp(_maxPerFetch, 1, 10);
-                        // 重要度优先：同一轮里「空管/台风/航油/事故」级别的消息先于泛行业稿进箱
-                        adopted.Sort((a, b) =>
-                        {
-                            int sa = ScoreOf(a), sb = ScoreOf(b);
-                            if (sa != sb) return sb.CompareTo(sa);
-                            var ta = a?.publishedAt ?? DateTime.MinValue;
-                            var tb = b?.publishedAt ?? DateTime.MinValue;
-                            return tb.CompareTo(ta);
-                        });
-
-                        var fresh = new List<ExternalEventPayload>();
-                        for (int i = 0; i < adopted.Count && fresh.Count < max; i++)
-                        {
-                            var p = adopted[i];
-                            if (p == null || string.IsNullOrEmpty(p.id)) continue;
-                            if (Seen.Contains(p.id)) continue;
-                            string tk = TitleKey(p.title);
-                            if (tk.Length > 0 && SeenTitles.Contains(tk)) continue;
-                            Seen.Add(p.id);
-                            if (tk.Length > 0) SeenTitles.Add(tk);
-                            fresh.Add(p);
-                        }
-                        while (Seen.Count > MaxSeenIds)
-                        {
-                            var it = Seen.GetEnumerator();
-                            if (!it.MoveNext()) break;
-                            Seen.Remove(it.Current);
-                        }
-                        while (SeenTitles.Count > MaxSeenIds)
-                        {
-                            var it = SeenTitles.GetEnumerator();
-                            if (!it.MoveNext()) break;
-                            SeenTitles.Remove(it.Current);
-                        }
-                        Inbox.AddRange(fresh);
-                        _inFlight = false;
-                        _lastStatus = fresh.Count > 0
-                            ? $"{DateTime.Now:MM-dd HH:mm} 收到 {received} · 采纳 {fresh.Count}（{note.Trim()}）"
-                            : $"{DateTime.Now:MM-dd HH:mm} 收到 {received} · 无新内容（{note.Trim()}）";
-                    }
-                }
+                // ★ 线程池只负责下载。解析要用 JsonUtility —— 那是引擎 API，只能在主线程调。
+                MainThreadDispatch.Post(() => AdoptDownloadedNews(sources, texts));
             });
+        }
+
+        /// <summary>
+        /// 在飞请求超过这么久还没回收，就认为它已经丢件（主线程没排空 / 退出中被丢弃），
+        /// 允许发起下一轮。否则一次失败的下载会把整条管道永久卡死。
+        /// </summary>
+        const int StaleInflightSeconds = 300;
+
+        static bool StaleInflight(DateTime startedUtc)
+            => (DateTime.UtcNow - startedUtc).TotalSeconds > StaleInflightSeconds;
+
+        /// <summary>把一轮下载回来的文本解析并入箱（**主线程**）。</summary>
+        static void AdoptDownloadedNews(string[] sources, string[] texts)
+        {
+            int received = 0;
+            var adopted = new List<ExternalEventPayload>();
+            string note = "";
+            try
+            {
+                for (int i = 0; i < sources.Length; i++)
+                {
+                    string text = texts != null && i < texts.Length ? texts[i] : null;
+                    if (string.IsNullOrEmpty(text)) { note += Short(sources[i]) + "=不可达 "; continue; }
+                    var items = Parse(text, sources[i]);
+                    note += Short(sources[i]) + "=" + items.Count + " ";
+                    received += items.Count;
+                    adopted.AddRange(items);
+                }
+            }
+            catch
+            {
+                // 解析异常同样静默：一条坏稿不该让整轮丢件
+            }
+            finally
+            {
+                lock (Gate)
+                {
+                    int max = Mathf.Clamp(_maxPerFetch, 1, 10);
+                    // 重要度优先：同一轮里「空管/台风/航油/事故」级别的消息先于泛行业稿进箱
+                    adopted.Sort((a, b) =>
+                    {
+                        int sa = ScoreOf(a), sb = ScoreOf(b);
+                        if (sa != sb) return sb.CompareTo(sa);
+                        var ta = a?.publishedAt ?? DateTime.MinValue;
+                        var tb = b?.publishedAt ?? DateTime.MinValue;
+                        return tb.CompareTo(ta);
+                    });
+
+                    var fresh = new List<ExternalEventPayload>();
+                    for (int i = 0; i < adopted.Count && fresh.Count < max; i++)
+                    {
+                        var p = adopted[i];
+                        if (p == null || string.IsNullOrEmpty(p.id)) continue;
+                        if (Seen.Contains(p.id)) continue;
+                        string tk = TitleKey(p.title);
+                        if (tk.Length > 0 && SeenTitles.Contains(tk)) continue;
+                        Seen.Add(p.id);
+                        if (tk.Length > 0) SeenTitles.Add(tk);
+                        fresh.Add(p);
+                    }
+                    while (Seen.Count > MaxSeenIds)
+                    {
+                        var it = Seen.GetEnumerator();
+                        if (!it.MoveNext()) break;
+                        Seen.Remove(it.Current);
+                    }
+                    while (SeenTitles.Count > MaxSeenIds)
+                    {
+                        var it = SeenTitles.GetEnumerator();
+                        if (!it.MoveNext()) break;
+                        SeenTitles.Remove(it.Current);
+                    }
+                    Inbox.AddRange(fresh);
+                    _inFlight = false;
+                    _lastStatus = fresh.Count > 0
+                        ? $"{DateTime.Now:MM-dd HH:mm} 收到 {received} · 采纳 {fresh.Count}（{note.Trim()}）"
+                        : $"{DateTime.Now:MM-dd HH:mm} 收到 {received} · 无新内容（{note.Trim()}）";
+                }
+            }
         }
 
         /// <summary>直接投递载荷到待入队缓存（离线测试 / 上行推送）。同样受去重与条数上限约束。</summary>
@@ -685,6 +722,22 @@ namespace AirlineCEO.Logic
             return list.ToArray();
         }
 
+        /// <summary>
+        /// 把「无协议的本地源」展开成绝对路径。**只能在主线程调用**
+        /// （<c>Application.streamingAssetsPath</c> 是引擎 API；在线程池上读会在退出阶段崩）。
+        /// 下载线程只认绝对路径与 http(s)/file://。
+        /// </summary>
+        static string ResolveSource(string source)
+        {
+            if (string.IsNullOrEmpty(source)) return source;
+            if (source.StartsWith("file://", StringComparison.OrdinalIgnoreCase)) return source;
+            if (source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return source;
+            if (Path.IsPathRooted(source)) return source;
+            try { return Path.Combine(Application.streamingAssetsPath, source); }
+            catch { return source; }
+        }
+
         static async Task<string> LoadTextAsync(string source)
         {
             try
@@ -695,11 +748,8 @@ namespace AirlineCEO.Logic
                     || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                     return await DownloadTextAsync(source).ConfigureAwait(false);
 
-                // 无协议：本地路径（绝对或相对 StreamingAssets）
-                string path = source;
-                if (!Path.IsPathRooted(path))
-                    path = Path.Combine(Application.streamingAssetsPath, source);
-                return ReadTextFile(path);
+                // 无协议：调用方已用 ResolveSource 在主线程展开成绝对路径；没展开过就直接读
+                return ReadTextFile(source);
             }
             catch
             {
@@ -740,7 +790,7 @@ namespace AirlineCEO.Logic
                         http.DefaultRequestHeaders.Referrer = new Uri(referer);
                     }
                     catch { }
-                    using (var resp = await http.GetAsync(url).ConfigureAwait(false))
+                    using (var resp = await http.GetAsync(url, MainThreadDispatch.ShutdownToken).ConfigureAwait(false))
                     {
                         if (!resp.IsSuccessStatusCode) return null;
                         string text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -763,6 +813,7 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static void RequestQuoteRefresh(bool force = false)
         {
+            MainThreadDispatch.Drain();
             EnsureLoaded();
             if (!_quoteEnabled) return;
             string url = _quoteUrl;
@@ -770,14 +821,13 @@ namespace AirlineCEO.Logic
 
             lock (Gate)
             {
-                if (_quoteInFlight) return;
+                if (_quoteInFlight && !StaleInflight(_quoteLastAttemptUtc)) return;
                 if (!force && _quoteIntervalSeconds <= 0) return;
                 if (!force && (DateTime.UtcNow - _quoteLastAttemptUtc).TotalSeconds < _quoteIntervalSeconds) return;
                 _quoteInFlight = true;
                 _quoteLastAttemptUtc = DateTime.UtcNow;
             }
 
-            float crack = _quoteCrackSpread;
             string host = Short(url);
             // 默认地址走多源回退（腾讯 → 新浪 → Yahoo）：任一可用即止
             string[] chain = string.Equals(url, DefaultQuoteUrl, StringComparison.OrdinalIgnoreCase)
@@ -785,48 +835,52 @@ namespace AirlineCEO.Logic
                 : new[] { url };
             Task.Run(async () =>
             {
-                float price = 0f;
-                string label = "";
-                string note = "不可达";
-                foreach (string src in chain)
+                var texts = new string[chain.Length];
+                for (int i = 0; i < chain.Length; i++)
                 {
-                    try
-                    {
-                        string text = await LoadTextAsync(src).ConfigureAwait(false);
-                        if (string.IsNullOrEmpty(text)) continue;
-                        string unit;
-                        float p;
-                        string l;
-                        if (ParseQuote(text, out p, out l, out unit))
-                        {
-                            price = p;
-                            label = l;
-                            note = string.IsNullOrEmpty(unit) ? "已换算" : unit;
-                            break;
-                        }
-                        note = "无法识别报价字段";
-                    }
-                    catch
-                    {
-                        // 同新闻源：任何异常都不向上冒，静默跳到下一个源
-                    }
+                    try { texts[i] = await LoadTextAsync(chain[i]).ConfigureAwait(false); }
+                    catch { /* 同新闻源：任何异常都不向上冒，静默跳到下一个源 */ }
                 }
-                lock (Gate)
-                {
-                    _quoteInFlight = false;
-                    if (price > 0f)
-                    {
-                        _oilQuoteUsdPerTon = price;
-                        _oilQuoteLabel = string.IsNullOrEmpty(label) ? host : label;
-                        _oilQuoteAtUtc = DateTime.UtcNow;
-                        _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} {_oilQuoteLabel} → 航油 {price:F0} 美元/吨（{note}）";
-                    }
-                    else
-                    {
-                        _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} 无报价（{host} {note}）";
-                    }
-                }
+                // ★ 报价解析同样要用 JsonUtility → 回主线程（见 MainThreadDispatch）
+                MainThreadDispatch.Post(() => AdoptDownloadedQuote(host, chain, texts));
             });
+        }
+
+        /// <summary>把一轮行情下载回来的文本解析成报价并缓存（**主线程**）。</summary>
+        static void AdoptDownloadedQuote(string host, string[] chain, string[] texts)
+        {
+            float price = 0f;
+            string label = "";
+            string note = "不可达";
+            for (int i = 0; i < chain.Length; i++)
+            {
+                string text = texts != null && i < texts.Length ? texts[i] : null;
+                if (string.IsNullOrEmpty(text)) continue;
+                string unit;
+                if (ParseQuote(text, out float p, out string l, out unit))
+                {
+                    price = p;
+                    label = l;
+                    note = string.IsNullOrEmpty(unit) ? "已换算" : unit;
+                    break;
+                }
+                note = "无法识别报价字段";
+            }
+            lock (Gate)
+            {
+                _quoteInFlight = false;
+                if (price > 0f)
+                {
+                    _oilQuoteUsdPerTon = price;
+                    _oilQuoteLabel = string.IsNullOrEmpty(label) ? host : label;
+                    _oilQuoteAtUtc = DateTime.UtcNow;
+                    _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} {_oilQuoteLabel} → 航油 {price:F0} 美元/吨（{note}）";
+                }
+                else
+                {
+                    _quoteStatus = $"{DateTime.Now:MM-dd HH:mm} 无报价（{host} {note}）";
+                }
+            }
         }
 
         /// <summary>直接投递一条报价（离线自测 / 上行推送），跳过网络。</summary>
@@ -1007,12 +1061,13 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static void RequestFxRefresh(bool force = false)
         {
+            MainThreadDispatch.Drain();
             EnsureLoaded();
             if (!_fxEnabled) return;
 
             lock (Gate)
             {
-                if (_fxInFlight) return;
+                if (_fxInFlight && !StaleInflight(_fxLastAttemptUtc)) return;
                 if (!force && _fxIntervalSeconds <= 0) return;
                 if (!force && (DateTime.UtcNow - _fxLastAttemptUtc).TotalSeconds < _fxIntervalSeconds) return;
                 _fxInFlight = true;
@@ -1021,47 +1076,50 @@ namespace AirlineCEO.Logic
 
             Task.Run(async () =>
             {
-                float rate = 0f;
-                string label = "";
-                string note = "";
-                try
+                var texts = new string[DefaultFxUrls.Length];
+                for (int i = 0; i < DefaultFxUrls.Length; i++)
                 {
-                    for (int i = 0; i < DefaultFxUrls.Length && rate <= 0f; i++)
-                    {
-                        string url = DefaultFxUrls[i];
-                        string text = await LoadTextAsync(url).ConfigureAwait(false);
-                        if (string.IsNullOrEmpty(text)) { note += Short(url) + "=不可达 "; continue; }
-                        if (ParseFxRate(text, out float r, out string lb))
-                        {
-                            rate = r;
-                            label = lb;
-                        }
-                        else note += Short(url) + "=无法识别 ";
-                    }
+                    try { texts[i] = await LoadTextAsync(DefaultFxUrls[i]).ConfigureAwait(false); }
+                    catch { /* 同新闻源：任何异常静默跳过 */ }
                 }
-                catch
-                {
-                    // 同新闻源：任何异常静默跳过
-                }
-                finally
-                {
-                    lock (Gate)
-                    {
-                        _fxInFlight = false;
-                        if (rate > 0f)
-                        {
-                            _usdCny = Mathf.Clamp(rate, FxMin, FxMax);
-                            _fxLabel = string.IsNullOrEmpty(label) ? "USD/CNY" : label;
-                            _fxAtUtc = DateTime.UtcNow;
-                            _fxStatus = $"{DateTime.Now:MM-dd HH:mm} USD/CNY {_usdCny:F4}（{_fxLabel}）";
-                        }
-                        else
-                        {
-                            _fxStatus = $"{DateTime.Now:MM-dd HH:mm} 无汇率（{(note.Length > 0 ? note.Trim() : "不可达")}）";
-                        }
-                    }
-                }
+                // ★ 与新闻/行情同一条规矩：线程池只下载，结果回主线程落地。
+                MainThreadDispatch.Post(() => AdoptDownloadedFx(DefaultFxUrls, texts));
             });
+        }
+
+        /// <summary>把一轮汇率下载回来的文本解析并缓存（**主线程**）。</summary>
+        static void AdoptDownloadedFx(string[] urls, string[] texts)
+        {
+            float rate = 0f;
+            string label = "";
+            string note = "";
+            for (int i = 0; i < urls.Length && rate <= 0f; i++)
+            {
+                string url = urls[i];
+                string text = texts != null && i < texts.Length ? texts[i] : null;
+                if (string.IsNullOrEmpty(text)) { note += Short(url) + "=不可达 "; continue; }
+                if (ParseFxRate(text, out float r, out string lb))
+                {
+                    rate = r;
+                    label = lb;
+                }
+                else note += Short(url) + "=无法识别 ";
+            }
+            lock (Gate)
+            {
+                _fxInFlight = false;
+                if (rate > 0f)
+                {
+                    _usdCny = Mathf.Clamp(rate, FxMin, FxMax);
+                    _fxLabel = string.IsNullOrEmpty(label) ? "USD/CNY" : label;
+                    _fxAtUtc = DateTime.UtcNow;
+                    _fxStatus = $"{DateTime.Now:MM-dd HH:mm} USD/CNY {_usdCny:F4}（{_fxLabel}）";
+                }
+                else
+                {
+                    _fxStatus = $"{DateTime.Now:MM-dd HH:mm} 无汇率（{(note.Length > 0 ? note.Trim() : "不可达")}）";
+                }
+            }
         }
 
         static readonly Regex RxFxJson = new Regex(

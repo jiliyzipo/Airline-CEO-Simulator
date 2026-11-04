@@ -124,32 +124,41 @@ namespace AirlineCEO.Logic
 
             Task.Run(async () =>
             {
-                List<ExternalEventPayload> items = null;
-                string note = "不可达";
-                try
-                {
-                    string text = await DownloadAsync(SourceUrl).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        var parsed = Parse(text, airports);
-                        items = Trim(parsed, MaxEventsPerPull);
-                        note = $"{parsed.Count} 条影响本网络";
-                    }
-                }
+                string text = null;
+                try { text = await DownloadAsync(SourceUrl).ConfigureAwait(false); }
                 catch
                 {
                     // 静默：SIGMET 源失败不影响新闻/行情/气象
                 }
-                finally
-                {
-                    lock (Gate)
-                    {
-                        _inFlight = false;
-                        if (items != null && items.Count > 0) Inbox.AddRange(items);
-                        _status = $"{DateTime.Now:MM-dd HH:mm} {note}";
-                    }
-                }
+                // ★ 后台只下载。`Parse` 用 JsonUtility 解析 —— 引擎 API 只能在主线程调。
+                MainThreadDispatch.Post(() => AdoptDownloaded(text, airports));
             });
+        }
+
+        /// <summary>把一轮下载回来的 SIGMET 原文解析入箱（**主线程**）。</summary>
+        static void AdoptDownloaded(string text, List<string> airports)
+        {
+            List<ExternalEventPayload> items = null;
+            string note = "不可达";
+            try
+            {
+                if (!string.IsNullOrEmpty(text))
+                {
+                    var parsed = Parse(text, airports);
+                    items = Trim(parsed, MaxEventsPerPull);
+                    note = $"{parsed.Count} 条影响本网络";
+                }
+            }
+            catch
+            {
+                // 解析失败同样静默
+            }
+            lock (Gate)
+            {
+                _inFlight = false;
+                if (items != null && items.Count > 0) Inbox.AddRange(items);
+                _status = $"{DateTime.Now:MM-dd HH:mm} {note}";
+            }
         }
 
         static void EnsureLoaded()
@@ -170,7 +179,7 @@ namespace AirlineCEO.Logic
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36");
                     http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-                    using (var resp = await http.GetAsync(url).ConfigureAwait(false))
+                    using (var resp = await http.GetAsync(url, MainThreadDispatch.ShutdownToken).ConfigureAwait(false))
                     {
                         if (!resp.IsSuccessStatusCode) return null;
                         string s = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);

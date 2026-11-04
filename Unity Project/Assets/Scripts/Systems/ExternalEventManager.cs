@@ -142,6 +142,10 @@ namespace AirlineCEO.Systems
         {
             if (gs == null) return 0;
 
+            // 先把后台线程下载完、等着解析的件在主线程落地（解析要用引擎 API，见 MainThreadDispatch）。
+            // 放在最前面：本轮 Drain 就能取到刚解析出来的稿子，不必等下一拍。
+            MainThreadDispatch.Drain();
+
             int n = 0;
             // 运行风险优先于情报：额度有限时先投 SIGMET / 台风 / 风暴 / 气象，再投新闻。
             // 这几类都有时效（下一报覆盖上一报），额度不足就丢弃、不补投。
@@ -530,7 +534,13 @@ namespace AirlineCEO.Systems
             if (ev.inferred)
                 body += InboxLetter.Bullet("研判依据：" + InferNote(ev));
             // 转呈人落款：放在最后一行，回答「这封信是谁递的」；原文机关落款仍在原文里，不动。
-            body += "\n\n" + PressDesk.ForwardSign(officer, date);
+            //
+            // ★2026-11-04 报障：左侧归在「11月3日」的信，落款却写着 11 月 4 日。
+            //   病根是把 `date`（来文的**文日 / 生效日**，可以是未来的日子）直接当成转呈日期 ——
+            //   而转呈日期是「这封信递到 CEO 桌上那天」。两者本就不同：一封 11 月 4 日生效的
+            //   航行警告，完全可能 11 月 3 日就送到。所以这里写占位符，由落箱时刻兑现成到件日；
+            //   抬头那格（ForwardHead）仍写来文文日，那是**原文**的日期，不该跟着改。
+            body += "\n\n" + PressDesk.ForwardSign(officer, InboxLetter.DateToken);
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_r_" + ev.id + "_" + ev.gameReceivedTicks,
@@ -569,7 +579,8 @@ namespace AirlineCEO.Systems
             body.Append(InboxLetter.Bullet(ImpactLine(ev, forecast: false)));
             if (ev.inferred) body.Append(InboxLetter.Bullet("研判依据：" + InferNote(ev)));
             // 转呈人落款：放在最后一行，回答「这封信是谁递的」；原文机关落款仍在原文里，不动。
-            body.Append('\n').Append(PressDesk.ForwardSign(officer, date)).Append('\n');
+            // 日期写占位符，落箱时兑现成到件日（同 PushReceiveMail 的说明：文日 ≠ 转呈日）。
+            body.Append('\n').Append(PressDesk.ForwardSign(officer, InboxLetter.DateToken)).Append('\n');
             InboxManager.Add(gs, new InboxMail
             {
                 id = "ext_t_" + ev.id + "_" + ev.gameEffectiveTicks,

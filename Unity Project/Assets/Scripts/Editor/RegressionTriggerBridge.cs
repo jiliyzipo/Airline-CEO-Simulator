@@ -72,10 +72,20 @@ namespace AirlineCEO.EditorTools
             new Dictionary<string, Func<bool>>(StringComparer.OrdinalIgnoreCase)
             {
                 { "accounting-scenario", AccountingScenarioRegression.Run },
+                { "add-flight-command", AddFlightCommandRegression.Run },
                 { "airline-tier", AirlineTierRegression.Run },
                 { "airport-catalog", AirportCatalogRegression.Run },
                 { "command-log", CommandLogRegression.Run },
+                // ★2026-11-04：REV-20261104042149-25327e 的 1 号失败（运力调令「已下达」False）
+                //   就藏在命令台这一套里，却因为没有白名单入口、只能靠整包 EditMode 才发现。
+                //   补进来，改命令台口径时能单跑、单看。
+                { "ceo-command", CeoCommandRegression.Run },
+                { "capacity-study-cadence", CapacityStudyCadenceRegression.Run },
+                // ★2026-11-04：后台取数在线程池上碰引擎 API → 编辑器退出崩溃（exit=1073741845）。
+                //   这条同时锁「派发语义」和「Task.Run 体内只许下载」的结构约束。
+                { "main-thread-dispatch", MainThreadDispatchRegression.Run },
                 { "inbox-status", InboxStatusRegression.Run },
+                { "inbox-arrival", InboxArrivalRegression.Run },
                 { "inbox-row-layout", InboxRowLayoutRegression.Run },
                 { "route-console-merge", RouteConsoleMergeRegression.Run },
                 { "network-pool", NetworkPoolVisibilityRegression.Run },
@@ -83,15 +93,21 @@ namespace AirlineCEO.EditorTools
                 { "overhaul-maintenance", OverhaulMaintenanceRegression.Run },
                 { "press-desk", PressDeskRegression.Run },
                 { "quarterly-one-off", QuarterlyOneOffRegression.Run },
+                { "right-pipeline", RightPipelineRegression.Run },
+                { "route-lifecycle", RouteLifecycleRegression.Run },
                 { "runway-debt", RunwayDebtRegression.Run },
                 { "scenario-fixture", ScenarioFixtureRegression.Run },
                 { "schedule-page", SchedulePageRegression.Run },
                 { "short-haul", ShortHaulRegression.Run },
                 { "slot-cash-hint", SlotCashHintRegression.Run },
                 { "slot-candidate", SlotCandidateRegression.Run },
+                { "slot-channel", SlotChannelRegression.Run },
+                { "slot-deal-command", SlotDealCommandRegression.Run },
+                { "slot-market", SlotMarketRegression.Run },
                 { "status-bar-reconcile", StatusBarReconcileRegression.Run },
                 { "takeover-cost-ledger", TakeoverCostLedgerRegression.Run },
                 { "tutorial-copy", TutorialCopyRegression.Run },
+                { "transition-unlock-cadence", TransitionUnlockCadenceRegression.Run },
                 { "write-command", WriteCommandRegression.Run },
             };
 

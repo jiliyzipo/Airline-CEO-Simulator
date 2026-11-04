@@ -118,31 +118,40 @@ namespace AirlineCEO.Logic
             string url = BuildUrl(codes);
             Task.Run(async () =>
             {
-                List<ExternalEventPayload> items = null;
-                string note = "不可达";
-                try
-                {
-                    string text = await DownloadTextAsync(url).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        items = Parse(text, codes);
-                        note = items == null ? "无法识别返回" : $"{items.Count} 条异常";
-                    }
-                }
+                string text = null;
+                try { text = await DownloadTextAsync(url).ConfigureAwait(false); }
                 catch
                 {
                     // 静默：气象源失败不影响任何其它管道
                 }
-                finally
-                {
-                    lock (Gate)
-                    {
-                        _inFlight = false;
-                        if (items != null && items.Count > 0) Inbox.AddRange(items);
-                        _status = $"{DateTime.Now:MM-dd HH:mm} {codes.Count} 场站 · {note}";
-                    }
-                }
+                // ★ 后台只下载。`Parse` 用 JsonUtility 解析 —— 引擎 API 只能在主线程调。
+                MainThreadDispatch.Post(() => AdoptDownloaded(text, codes));
             });
+        }
+
+        /// <summary>把一轮下载回来的气象原文解析入箱（**主线程**）。</summary>
+        static void AdoptDownloaded(string text, List<string> codes)
+        {
+            List<ExternalEventPayload> items = null;
+            string note = "不可达";
+            try
+            {
+                if (!string.IsNullOrEmpty(text))
+                {
+                    items = Parse(text, codes);
+                    note = items == null ? "无法识别返回" : $"{items.Count} 条异常";
+                }
+            }
+            catch
+            {
+                // 解析失败同样静默
+            }
+            lock (Gate)
+            {
+                _inFlight = false;
+                if (items != null && items.Count > 0) Inbox.AddRange(items);
+                _status = $"{DateTime.Now:MM-dd HH:mm} {codes.Count} 场站 · {note}";
+            }
         }
 
         static List<string> PickAirports(GameState gs) => NetworkAirports.Pick(gs, MaxAirports);
@@ -305,7 +314,7 @@ namespace AirlineCEO.Logic
                 {
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36");
-                    using (var resp = await http.GetAsync(url).ConfigureAwait(false))
+                    using (var resp = await http.GetAsync(url, MainThreadDispatch.ShutdownToken).ConfigureAwait(false))
                     {
                         if (!resp.IsSuccessStatusCode) return null;
                         string text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
