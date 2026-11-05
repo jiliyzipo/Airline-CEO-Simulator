@@ -245,6 +245,60 @@ namespace AirlineCEO.EditorTools
                 if (!withdrawn || !offerClosed)
                     Debug.LogError("R47 ⑦ 撤回挂牌后仍有未处理意向（CEO 会点出一封无结果的邮件）。");
 
+                // ———— ⑦b 运营部代挂牌（2026-11-05）：挂牌按钮删除后「我司挂牌」的唯一来源 ————
+                // 挂牌按钮随「挑机场×时刻不是 CEO 的事」一并删除；若没人挂牌，
+                // 卖出闭环（他航出价 → 收件箱批过户）与只读页右栏全是死内容。
+                // 钉三条：闲置槽按季被代挂（至多 AutoListPerQuarter 条、按建议价）、
+                // 使用中的槽绝不代挂、已在架上的不重复挂。
+                mkt.mine.Clear();
+                mkt.offers.Clear();
+                int idleIdx2 = FindHolding(gs, inUse: false);
+                int usedIdx2 = FindHolding(gs, inUse: true);
+                if (idleIdx2 < 0)
+                {
+                    // 夹具兜底：把一条持仓置闲，保证有可挂对象
+                    idleIdx2 = 0;
+                    gs.stg.slots[0].inUse = false;
+                    gs.stg.slots[0].usedByFlightNo = "";
+                }
+                if (usedIdx2 >= 0 && usedIdx2 == idleIdx2) usedIdx2 = -1;
+                string usedApt = usedIdx2 >= 0 ? gs.stg.slots[usedIdx2].airport : null;
+                string usedClk = usedIdx2 >= 0
+                    ? RoutePermitLogic.SlotRequestClock(gs.stg.slots[usedIdx2].slotTime) : null;
+
+                SlotMarketLogic.TickQuarter(gs);
+
+                bool autoListed = mkt.mine.Count > 0 && mkt.mine.Count <= SlotMarketLogic.AutoListPerQuarter;
+                bool askRight = true;
+                bool usedNeverListed = true;
+                for (int i = 0; i < mkt.mine.Count; i++)
+                {
+                    var al = mkt.mine[i];
+                    if (al == null) continue;
+                    if (Mathf.Abs(al.askWan - SlotMarketLogic.SuggestedAskWan(al.airport, al.clock)) > 0.01f)
+                        askRight = false;
+                    if (usedApt != null && string.Equals(al.airport, usedApt, System.StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(al.clock, usedClk, System.StringComparison.Ordinal))
+                        usedNeverListed = false;
+                }
+                if (!autoListed || !askRight || !usedNeverListed)
+                    Debug.LogError($"R47 ⑦b 运营部代挂牌不对：挂出 {mkt.mine.Count} 条（应 1..{SlotMarketLogic.AutoListPerQuarter}）"
+                                   + $" 建议价={askRight} 使用中未挂={usedNeverListed}"
+                                   + " —— 挂牌按钮删除后这是「我司挂牌」的唯一来源，断了卖出闭环就死。");
+
+                // 重复挂挡：再跑一季，已在架上的闲置槽不得二次挂出
+                int mineBefore = mkt.mine.Count;
+                SlotMarketLogic.TickQuarter(gs);
+                bool noDup = mkt.mine.Count <= mineBefore + SlotMarketLogic.AutoListPerQuarter;
+                for (int i = 0; i < mkt.mine.Count; i++)
+                    for (int k = i + 1; k < mkt.mine.Count; k++)
+                        if (mkt.mine[i] != null && mkt.mine[k] != null
+                            && string.Equals(mkt.mine[i].airport, mkt.mine[k].airport, System.StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(mkt.mine[i].clock, mkt.mine[k].clock, System.StringComparison.Ordinal))
+                            noDup = false;
+                if (!noDup)
+                    Debug.LogError("R47 ⑦b 同一条闲置槽被代挂两次（会一次成交、一次挂空）。");
+
                 // ———— ⑧ 稀缺度：池越满叫价越高 ————
                 float multFull = SlotMarketLogic.ScarcityMultiplier(gs, apt, band);
                 var gs2 = new GameObject("__slot_market_empty__").AddComponent<GameState>();

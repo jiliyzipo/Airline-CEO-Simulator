@@ -564,93 +564,6 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
-        /// 时刻槽买卖 / 申请（2026-11-03）：命令台说「购买 SIN 12:00 时刻槽」。
-        ///
-        /// 与页面同一套渠道，绝不新开第三条结算：
-        /// <list type="bullet">
-        /// <item>**购买**（二级市场）：找到同机场同时刻的他航挂牌 → 当场过户扣款
-        /// （<see cref="AirlineCEO.Logic.SlotMarketLogic.Buy"/>）；没有挂牌就**如实说不成**，
-        /// 并指出两条正路（等挂牌 / 走协调池）。</item>
-        /// <item>**申请**（协调池）：免费、排队，<see cref="InboxManager.QueueApplySlots"/> 递提案，
-        /// CEO 在收件箱批一次 → 按天交割。</item>
-        /// </list>
-        ///
-        /// 为什么要单独一条：这句话原先只命中「时刻槽」这个词，被派给运营部回了
-        /// 一封「8 条航线 · 周 112 班」的总账 —— 槽没买、账没动，却像受理了一样（用户报障）。
-        /// </summary>
-        static DeptAnswer SlotDealDirective(GameState gs, CeoCommandRouter.CeoAsk ask)
-        {
-            string apt = ask.origin ?? "";
-            string clk = ask.clock ?? "";
-            if (string.IsNullOrEmpty(apt) || string.IsNullOrEmpty(clk))
-                return Fail("时刻槽要说清「机场 + 时刻」。例：购买 SIN 12:00 时刻槽。");
-
-            var airport = AirportCatalog.FindByCode(apt);
-            string aptName = string.IsNullOrEmpty(airport.nameZh) ? apt : $"{airport.nameZh} {apt}";
-
-            if (ask.slotBuy)
-            {
-                if (!AirlineCEO.Logic.SlotMarketLogic.TryFindOnShelf(gs, apt, clk, out var listing))
-                {
-                    // 没有挂牌 ≠ 没听懂：给出两条正路，并声明**没有**发生任何事。
-                    string free = "";
-                    string pool = RoutePermitLogic.SlotPoolLineAt(gs, apt, clk);
-                    if (!string.IsNullOrEmpty(pool)) free = $"（当前 {pool}）";
-                    return Fail($"{aptName} {clk} 此刻没有他航挂牌，二级市场买不到{free}。"
-                                + "可改说「申请 " + apt + " " + clk + " 时刻槽」（协调池，免费、排队，批准后按天交割），"
-                                + "或到「航线 → 航权与时刻槽 → 时刻二级市场」看本季货架。本次**未成交、未扣款、未改台账**。");
-                }
-
-                float ask0 = listing.askWan;
-                if (gs.cash < ask0)
-                {
-                    return Fail($"{aptName} {clk} 挂牌叫价 {ask0:F0} 万，现有现金 {gs.cash:F0} 万"
-                                + $"（差 {ask0 - gs.cash:F0} 万）。可先融资或改走协调池申请（免费）。"
-                                + "本次**未成交、未扣款**。");
-                }
-            }
-
-            return new DeptAnswer
-            {
-                ok = true,
-                needsRun = true,
-                ask = ask,
-                deptCode = "STG",
-                sender = "战略发展部",
-                role = ask.slotBuy ? "时刻槽购置" : "时刻槽申请",
-                glyph = "战",
-                subject = $"{(ask.slotBuy ? "购置" : "申请")}时刻槽 {apt} {clk}",
-                oneLine = $"{apt} {clk}"
-            };
-        }
-
-        static bool RunSlotDeal(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
-        {
-            receipt = "";
-            if (gs == null) { receipt = "游戏尚未就绪。"; return false; }
-
-            string apt = ask.origin ?? "";
-            string clk = ask.clock ?? "";
-            if (ask.slotBuy)
-            {
-                if (!AirlineCEO.Logic.SlotMarketLogic.TryFindOnShelf(gs, apt, clk, out var listing))
-                {
-                    receipt = $"二级市场此刻没有 {apt} {clk} 的挂牌，未成交、未扣款。";
-                    return false;
-                }
-                bool bought = AirlineCEO.Logic.SlotMarketLogic.Buy(gs, listing.id, out string msg);
-                receipt = msg;
-                return bought;
-            }
-
-            bool applied = InboxManager.QueueApplySlots(gs, apt, clk, 1, null, out string applyMsg);
-            receipt = string.IsNullOrEmpty(applyMsg)
-                ? $"战略发展部已递交 {apt} {clk} 时刻槽的协调池申请，批准后按天交割。"
-                : applyMsg;
-            return applied;
-        }
-
-        /// <summary>
         /// 真正下达：解析原话 → 交 <see cref="CapacityDirectiveLogic"/> 既有管线 → 呈报件进收件箱。
         ///
         /// 三条必须照抄页面侧的做法（否则命令台会变成「第三套结算」）：
@@ -794,8 +707,6 @@ namespace AirlineCEO.Logic
                     return RunCapacityDirective(gs, ans.routeKey, raw, out receipt);
                 case CeoCommandRouter.TopicAddFlight:
                     return RunAddFlight(gs, ans.routeKey, ans.ask.clock, raw, out receipt);
-                case CeoCommandRouter.TopicSlotDeal:
-                    return RunSlotDeal(gs, ans.ask, out receipt);
                 case CeoCommandRouter.TopicOpenRoute:
                     return RunOpenRoute(gs, ans.ask, out receipt);
                 case CeoCommandRouter.TopicFleetBuy:

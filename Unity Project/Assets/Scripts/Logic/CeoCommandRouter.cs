@@ -1022,12 +1022,14 @@ namespace AirlineCEO.Logic
         /// <summary>
         /// 「购买 / 申请 <b>某一个时刻</b>的时刻槽」的意图判定。
         ///
+        /// ★2026-11-04（用户裁定）：挑具体机场×时刻不再是 CEO 的指令 —— 买卖时刻是运营部的事。
+        /// 命令台不再递这类写指令，但**仍要认得这句话**（ok=false + 引导），
+        /// 否则它会落回部门词表、换来一封不相干的汇报（2026-11-03 报障的原病）。
+        /// 取得时刻槽的正路：开航准入 / 运力调令缺槽时，运营部自动把 apply_slot / buy_slot
+        /// 提案递进收件箱，CEO 只批不挑。
+        ///
         /// 三个条件：① 句中真的在说时刻槽（「时刻槽 / 槽位」）；② 有买入或申请的说法；
         /// ③ 不是问句（「为什么缺时刻槽」归运营部答，那是读）。
-        ///
-        /// 参数不全（没机场 / 没时刻）**仍然返回 true**，只是 `ok=false` 并附上引导 ——
-        /// 这一点与「加一班」的判据不同，是刻意的：句子已经点明是买卖时刻槽，
-        /// 落到部门词表只会换来一封不相干的汇报。宁可说「请补机场和时刻」，也不能装作受理。
         /// </summary>
         static bool TryReadSlotDeal(string text, out CeoAsk ask)
         {
@@ -1046,15 +1048,9 @@ namespace AirlineCEO.Logic
             ask.slotBuy = wantsBuy;
             ask.origin = ReadSlotAirport(text);
             ask.clock = ReadAddClock(text);
-
-            if (string.IsNullOrEmpty(ask.origin) || string.IsNullOrEmpty(ask.clock))
-            {
-                ask.ok = false;
-                ask.note = "时刻槽要说清「机场 + 时刻」。例：购买 SIN 12:00 时刻槽（二级市场，付费当场成交）；"
-                         + "申请 SIN 12:00 时刻槽（协调池，免费，批准后按天交割）。本次未向任何部门派件。";
-                return true;
-            }
-            ask.ok = true;
+            ask.ok = false;
+            ask.note = "挑具体机场与时刻不是 CEO 的指令：缺槽时运营部会把协调池申请（免费）或"
+                       + "二级市场购入提案递进收件箱，你只批「买不买」。本次未向任何部门派件、未动账。";
             return true;
         }
 

@@ -106,7 +106,7 @@ namespace AirlineCEO.Systems
             {
                 message = $"现金不足，{airport} {clock} 时刻槽 {n} 条需 {cost:F0} 万"
                           + $"（{AirportCatalog.TierLabel(AirportCatalog.TierOfCode(airport))}价，单价 {unit:F0} 万）。"
-                          + "若走协调池申请则不收费，可在收件箱提「申请时刻槽」。";
+                          + "若走协调池申请则不收费，该提案由运营部按需另递。";
                 return false;
             }
             if (!free) gs.cash -= cost;

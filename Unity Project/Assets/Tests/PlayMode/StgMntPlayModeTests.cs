@@ -43,93 +43,100 @@ namespace AirlineCEO.Tests.PlayMode
             yield return null;
         }
 
-        // —— n77：航权不再由本页发起，时刻槽两条渠道保留 ——
+    // —— n77：航权不再由本页发起；2026-11-04 起 CEO 也不再手动挑时刻 ——
 
-        /// <summary>
-        /// 「航权与时刻槽」页（2026-11-01 用户裁定）。
-        ///
-        /// 撤掉「申请航权」「提交航权竞标」两颗按钮：它们是同一个硬编码 PEK—SIN 的重复 stub，
-        /// 而航权真正的来源是准入流水线（递件 → 许可审查发现缺额度 → 运营部自动请示收件箱）。
-        /// 本用例钉住「撤干净了、也没误伤时刻槽渠道」——
-        /// 撤按钮最容易的翻车方式是把旁边那两颗也一起删掉。
-        /// </summary>
-        [UnityTest]
-        public IEnumerator RightsPage_HasNoRightButtons_ButKeepsSlotChannels()
-        {
-            var host = new GameObject("RightsPageHost", typeof(RectTransform));
-            // 页面渲染直接读 GameState.Instance；夹具默认不起 GameState，
-            // 不起就等于「页面什么都没画」——那样「按钮不存在」的断言会假绿。
-            var gsHost = new GameObject("RightsPageGs");
-            var gs = gsHost.AddComponent<GameState>();
-            gs.inbox = new System.Collections.Generic.List<InboxMail>();
-            gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
-            gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
-            gs.fleet = new System.Collections.Generic.List<Aircraft>();
-            StrategyManager.EnsureState(gs);
+    /// <summary>
+    /// 「航权与时刻槽」页（2026-11-01 撤航权按钮；**2026-11-04 撤时刻选择器**）。
+    ///
+    /// 撤掉「申请航权」「提交航权竞标」两颗按钮：它们是同一个硬编码 PEK—SIN 的重复 stub，
+    /// 而航权真正的来源是准入流水线（递件 → 许可审查发现缺额度 → 运营部自动请示收件箱）。
+    ///
+    /// ★2026-11-04 用户裁定：底部「协调池申请 + ◀机场▶ + ◀时刻▶ + 池况」整条删除 ——
+    /// 「买卖具体哪个机场的哪个时刻，不是 CEO 的工作，是运营部的工作」。缺槽时运营部
+    /// 按航线自动递 apply_slot / buy_slot 提案进收件箱，CEO 只批不挑。
+    /// 本用例钉住「撤干净了、页面其余部分还在」：SlotHeld 持仓卡是渲染哨兵，
+    /// 它不在则「按钮不存在」的断言全是假绿。
+    /// </summary>
+    [UnityTest]
+    public IEnumerator RightsPage_HasNoRightButtons_AndNoManualSlotPicker()
+    {
+        var host = new GameObject("RightsPageHost", typeof(RectTransform));
+        // 页面渲染直接读 GameState.Instance；夹具默认不起 GameState，
+        // 不起就等于「页面什么都没画」——那样「按钮不存在」的断言会假绿。
+        var gsHost = new GameObject("RightsPageGs");
+        var gs = gsHost.AddComponent<GameState>();
+        gs.inbox = new System.Collections.Generic.List<InboxMail>();
+        gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+        gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+        gs.fleet = new System.Collections.Generic.List<Aircraft>();
+        StrategyManager.EnsureState(gs);
 
-            var go = StrategyRuntimeFactory.TryCreate("n77_航权与时刻槽", host.transform);
-            Assert.IsNotNull(go, "应能构建 n77 航权与时刻槽");
-            yield return null;
+        var go = StrategyRuntimeFactory.TryCreate("n77_航权与时刻槽", host.transform);
+        Assert.IsNotNull(go, "应能构建 n77 航权与时刻槽");
+        yield return null;
 
-            // 先确认这一页真的画出来了（否则下面「按钮消失」的断言毫无意义）
-            Assert.IsNotNull(FindChild(go.transform, "SlotFree"),
-                "「协调池申请」必须保留 —— 若它都没有，说明页面根本没渲染，本用例不成立");
-            Assert.IsNull(FindChild(go.transform, "Slot"),
-                "「购入时刻槽」应从本页移除：付费插队是二级市场的事（受池容量约束的免费渠道才留在这里）");
+        // 渲染哨兵：持仓卡还在，说明这一页真的画出来了。
+        Assert.IsNotNull(FindChild(go.transform, "SlotHeld"),
+            "「已入账时刻槽」持仓卡必须保留 —— 若它都没有，说明页面根本没渲染，本用例不成立");
 
-            Assert.IsNull(FindChild(go.transform, "Apply"),
-                "「申请航权」按钮必须消失：航权由准入流水线自动请示，页面上不再手动发起");
-            Assert.IsNull(FindChild(go.transform, "Bid"),
-                "「提交航权竞标」按钮必须消失：它原本与「申请航权」是同一个硬编码 stub");
+        Assert.IsNull(FindChild(go.transform, "Apply"),
+            "「申请航权」按钮必须消失：航权由准入流水线自动请示，页面上不再手动发起");
+        Assert.IsNull(FindChild(go.transform, "Bid"),
+            "「提交航权竞标」按钮必须消失：它原本与「申请航权」是同一个硬编码 stub");
 
-            // ★2026-11-02：目标选择改成两层（机场 / 时刻各自一对 ◀▶）。
-            // 钉住这两层都存在 —— 只留时钟那一对就成了「在哪个机场都看不出来」的老问题。
-            Assert.IsNotNull(FindChild(go.transform, "SlotAptPrev"), "缺机场选择层：找不到「上一个机场」");
-            Assert.IsNotNull(FindChild(go.transform, "SlotAptNext"), "缺机场选择层：找不到「下一个机场」");
-            Assert.IsNotNull(FindChild(go.transform, "SlotAirport"), "缺机场读数：看不出当前选中哪个机场");
-            Assert.IsNotNull(FindChild(go.transform, "SlotTarget"), "缺时刻读数：看不出当前选中哪一刻");
-            Assert.IsNotNull(FindChild(go.transform, "SlotPool"), "缺池况读数：看不出该时段还剩几条");
+        // ★2026-11-04：手动挑时刻的整条底栏必须消失（按钮 + 两层选择器 + 池况读数）。
+        Assert.IsNull(FindChild(go.transform, "SlotFree"),
+            "「协调池申请」按钮必须消失：挑机场×时刻是运营部的事，CEO 只批收件箱提案");
+        Assert.IsNull(FindChild(go.transform, "SlotBar"), "时刻选择器底栏必须整条消失");
+        Assert.IsNull(FindChild(go.transform, "SlotAptPrev"), "机场选择层必须消失");
+        Assert.IsNull(FindChild(go.transform, "SlotAptNext"), "机场选择层必须消失");
+        Assert.IsNull(FindChild(go.transform, "SlotAirport"), "机场读数必须消失");
+        Assert.IsNull(FindChild(go.transform, "SlotTarget"), "时刻读数必须消失");
+        Assert.IsNull(FindChild(go.transform, "SlotPool"), "池况读数必须消失");
 
-            Object.Destroy(host);
-            Object.Destroy(gsHost);
-            yield return null;
-        }
+        Object.Destroy(host);
+        Object.Destroy(gsHost);
+        yield return null;
+    }
 
-        [UnityTest]
-        public IEnumerator SlotMarketPage_HasBothSidesAndActions()
-        {
-            var host = new GameObject("SlotMarketHost", typeof(RectTransform));
-            var gsHost = new GameObject("SlotMarketGs");
-            var gs = gsHost.AddComponent<GameState>();
-            gs.inbox = new System.Collections.Generic.List<InboxMail>();
-            gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
-            gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
-            gs.fleet = new System.Collections.Generic.List<Aircraft>();
-            gs.cash = 3000f;
-            StrategyManager.EnsureState(gs);
+    [UnityTest]
+    public IEnumerator SlotMarketPage_IsReadOnly()
+    {
+        var host = new GameObject("SlotMarketHost", typeof(RectTransform));
+        var gsHost = new GameObject("SlotMarketGs");
+        var gs = gsHost.AddComponent<GameState>();
+        gs.inbox = new System.Collections.Generic.List<InboxMail>();
+        gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+        gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+        gs.fleet = new System.Collections.Generic.List<Aircraft>();
+        gs.cash = 3000f;
+        StrategyManager.EnsureState(gs);
 
-            var go = StrategyRuntimeFactory.TryCreate("n111_时刻二级市场", host.transform);
-            Assert.IsNotNull(go, "应能构建 n111 时刻二级市场");
-            yield return null;
+        var go = StrategyRuntimeFactory.TryCreate("n111_时刻二级市场", host.transform);
+        Assert.IsNotNull(go, "应能构建 n111 时刻二级市场");
+        yield return null;
 
-            // 两侧列表 + 三个动作都在 —— 少一侧就成了「只能买不能卖」或反之，与需求不符。
-            Assert.IsNotNull(FindChild(go.transform, "MkShelf"), "缺左侧「他航待售」列表");
-            Assert.IsNotNull(FindChild(go.transform, "MkMine"), "缺右侧「我司待售」列表");
-            Assert.IsNotNull(FindChild(go.transform, "MkBuy"), "缺「购买时刻槽」");
-            Assert.IsNotNull(FindChild(go.transform, "MkList"), "缺「挂牌时刻槽」");
-            Assert.IsNotNull(FindChild(go.transform, "MkWithdraw"), "缺「撤回挂牌」");
-            Assert.IsNotNull(FindChild(go.transform, "Cash"), "缺现金读数 —— 买不起时玩家无从判断");
+        // 行情与家底仍是一等情报：两侧列表必须在。
+        Assert.IsNotNull(FindChild(go.transform, "MkShelf"), "缺左侧「他航待售」列表");
+        Assert.IsNotNull(FindChild(go.transform, "MkMine"), "缺右侧「我司持仓」列表");
+        Assert.IsNotNull(FindChild(go.transform, "Cash"), "缺现金读数");
+        Assert.IsNotNull(FindChild(go.transform, "MkReadOnly"),
+            "缺只读口径说明：玩家得知道为什么这一页不能下单了");
 
-            // 二级市场页不能反过来长出 n77 的协调池按钮：两条渠道必须分页。
-            Assert.IsNull(FindChild(go.transform, "SlotFree"), "协调池申请不该出现在二级市场页");
-            // 2026-11-02 用户裁定：同排那颗「去协调池申请（免费）」也已删除，本页只做买卖。
-            Assert.IsNull(FindChild(go.transform, "MkGoPool"),
-                "「去协调池申请」按钮已按用户要求删除 —— 取得时刻槽的入口留在「持仓与在办」页签");
+        // ★2026-11-04：三颗动作按钮必须消失 —— 本页只读，下单走运营部提案。
+        Assert.IsNull(FindChild(go.transform, "MkBuy"), "「购买时刻槽」必须消失：买哪一刻是运营部的事");
+        Assert.IsNull(FindChild(go.transform, "MkList"), "「挂牌时刻槽」必须消失：卖哪一刻同样不是 CEO 挑");
+        Assert.IsNull(FindChild(go.transform, "MkWithdraw"), "「撤回挂牌」必须消失");
 
-            Object.Destroy(host);
-            Object.Destroy(gsHost);
-            yield return null;
-        }
+        // 二级市场页不能反过来长出 n77 的协调池按钮：两条渠道都不该手动点。
+        Assert.IsNull(FindChild(go.transform, "SlotFree"), "协调池申请不该出现在二级市场页");
+        Assert.IsNull(FindChild(go.transform, "MkGoPool"),
+            "「去协调池申请」按钮已按用户要求删除 —— 取得时刻槽只剩运营部提案一条路");
+
+        Object.Destroy(host);
+        Object.Destroy(gsHost);
+        yield return null;
+    }
 
         /// <summary>
         /// 2026-11-02 用户裁定：
@@ -178,12 +185,14 @@ namespace AirlineCEO.Tests.PlayMode
         }
 
         /// <summary>
-        /// 二级标签必须真的能切换：默认停在「持仓与在办」（有协调池申请条、无市场货架），
-        /// 点「时刻二级市场」后换成货架 + 买卖按钮，且协调池按钮同时消失 ——
-        /// 两条渠道仍在同一面板里分屏，不能同时出现（否则「池满也能买」与「池满不能申请」互相拆台）。
+        /// 二级标签必须真的能切换；且**两个标签下都没有手动买卖时刻的控件**
+        /// （2026-11-04 用户裁定：挑机场×时刻是运营部的事，CEO 只批收件箱提案）。
+        /// 默认「持仓与在办」：持仓/在办四卡在、协调池申请条与选择器不在；
+        /// 点「时刻二级市场」：两侧只读货架 + 只读口径说明在、三颗动作按钮不在；
+        /// 切回：货架撤掉、持仓卡回来。
         /// </summary>
         [UnityTest]
-        public IEnumerator RightsPage_SubTabSwitchesPoolAndMarket()
+        public IEnumerator RightsPage_SubTabSwitchesWithoutManualSlotControls()
         {
             var gsHost = new GameObject("SubTabSwitchGs");
             var gs = gsHost.AddComponent<GameState>();
@@ -202,7 +211,9 @@ namespace AirlineCEO.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             yield return null;
 
-            Assert.IsNotNull(FindChild(go.transform, "SlotFree"), "默认标签应停在「持仓与在办」：缺协调池申请条");
+            Assert.IsNotNull(FindChild(go.transform, "SlotHeld"), "默认标签应停在「持仓与在办」：缺持仓卡");
+            Assert.IsNull(FindChild(go.transform, "SlotFree"), "协调池申请条必须消失：挑时刻不是 CEO 的事");
+            Assert.IsNull(FindChild(go.transform, "SlotBar"), "时刻选择器底栏必须整条消失");
             Assert.IsNull(FindChild(go.transform, "MkShelf"), "默认标签不该画出市场货架");
 
             ClickChild(go.transform, "RightsTab1");
@@ -211,15 +222,18 @@ namespace AirlineCEO.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
 
             Assert.IsNotNull(FindChild(go.transform, "MkShelf"), "点「时刻二级市场」后应出现他航待售货架");
-            Assert.IsNotNull(FindChild(go.transform, "MkBuy"), "点「时刻二级市场」后应出现购买按钮");
-            Assert.IsNull(FindChild(go.transform, "SlotFree"), "市场标签下不该同时出现协调池申请 —— 两条渠道分屏");
+            Assert.IsNotNull(FindChild(go.transform, "MkReadOnly"), "市场页应带只读口径说明");
+            Assert.IsNull(FindChild(go.transform, "MkBuy"), "市场页不得再有「购买时刻槽」");
+            Assert.IsNull(FindChild(go.transform, "MkList"), "市场页不得再有「挂牌时刻槽」");
+            Assert.IsNull(FindChild(go.transform, "MkWithdraw"), "市场页不得再有「撤回挂牌」");
+            Assert.IsNull(FindChild(go.transform, "SlotFree"), "市场标签下同样不该有协调池申请条");
 
             ClickChild(go.transform, "RightsTab0");
             yield return null;
             yield return null;
             Canvas.ForceUpdateCanvases();
 
-            Assert.IsNotNull(FindChild(go.transform, "SlotFree"), "切回「持仓与在办」后协调池申请条应回来");
+            Assert.IsNotNull(FindChild(go.transform, "SlotHeld"), "切回「持仓与在办」后持仓卡应回来");
             Assert.IsNull(FindChild(go.transform, "MkShelf"), "切回后市场货架应撤掉");
 
             Object.Destroy(host);
@@ -269,13 +283,11 @@ namespace AirlineCEO.Tests.PlayMode
             Assert.Greater(r.width, 1280f * 0.95f, $"内容区宽 {r.width:F0}px 未铺满 1280px 宿主（应 ≥ 95%）");
             Assert.Greater(r.height, 720f * 0.95f, $"内容区高 {r.height:F0}px 未铺满 720px 宿主（应 ≥ 95%）");
 
-            // 顶部二级标签条与底部协调池条不得互相侵占。
+            // 顶部二级标签条必须在；底部协调池条已随 2026-11-04 裁定整条删除，不得复活。
             var tabs = FindChild(panel.transform, "RightsTabs") as RectTransform;
-            var slotBar = FindChild(panel.transform, "SlotBar") as RectTransform;
             Assert.IsNotNull(tabs, "缺二级标签条");
-            Assert.IsNotNull(slotBar, "缺底部协调池条");
-            Assert.IsFalse(RectOf(tabs).Overlaps(RectOf(slotBar)),
-                "二级标签条与协调池条重叠");
+            Assert.IsNull(FindChild(panel.transform, "SlotBar"),
+                "底部协调池条必须整条消失：挑机场×时刻是运营部的事");
 
             Object.Destroy(host);
             Object.Destroy(gsHost);

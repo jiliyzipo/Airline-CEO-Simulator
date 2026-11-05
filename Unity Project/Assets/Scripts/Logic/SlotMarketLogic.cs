@@ -33,6 +33,14 @@ namespace AirlineCEO.Logic
         /// <summary>每季最多收到几份购买意向（防止收件箱被同一件事堆满）。</summary>
         public const int MaxOffersPerQuarter = 3;
 
+        /// <summary>
+        /// 运营部每季代挂几条闲置槽（2026-11-05）。
+        /// 挂牌按钮随「挑机场×时刻不是 CEO 的事」一并删除后，「我司挂牌」若无来源，
+        /// 整条卖出闭环（他航出价 → 收件箱批过户）与只读页右栏就全是死内容。
+        /// 挂牌由运营部按需代劳，卖不卖仍由 CEO 在出价邮件里批。
+        /// </summary>
+        public const int AutoListPerQuarter = 1;
+
         /// <summary>我司挂牌的定价基准：市价上浮一成半（留出让价空间，也解释「为什么没人理」）。</summary>
         public const float AskPremium = 1.15f;
 
@@ -416,6 +424,11 @@ namespace AirlineCEO.Logic
             var mkt = Ensure(gs, refresh: true);
             if (mkt == null) return;
 
+            // ★2026-11-05：挂牌按钮随「挑机场×时刻不是 CEO 的事」删除后，「我司挂牌」
+            //   若无来源，卖出闭环（他航出价 → 收件箱批过户）与只读页右栏全是死内容。
+            //   改由运营部每季代挂闲置槽；卖不卖仍由 CEO 在出价邮件里批。
+            AutoListIdleSlots(gs, mkt);
+
             var rng = new System.Random(gs.year * 29 + gs.quarter * 41 + 7717);
             int made = 0;
             for (int i = 0; i < mkt.mine.Count && made < MaxOffersPerQuarter; i++)
@@ -464,6 +477,25 @@ namespace AirlineCEO.Logic
                 if (o != null && o.open && o.listingId == listingId) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// 运营部每季代挂闲置槽：按持仓顺序挑**闲置且未挂牌**的，按建议价挂出，
+        /// 每季至多 <see cref="AutoListPerQuarter"/> 条。只挂不卖 ——
+        /// 成交仍走 <see cref="AcceptOffer"/>（CEO 在出价邮件里批）。
+        /// </summary>
+        static void AutoListIdleSlots(GameState gs, SlotMarketState mkt)
+        {
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null || mkt == null) return;
+            int made = 0;
+            for (int i = 0; i < stg.slots.Count && made < AutoListPerQuarter; i++)
+            {
+                var h = stg.slots[i];
+                if (h == null || h.inUse) continue;
+                if (IsListed(mkt, h.airport, h.slotTime)) continue;
+                if (ListOwn(gs, i, out _)) made++;
+            }
         }
 
         public static SlotBuyerOffer FindOffer(GameState gs, string offerId)

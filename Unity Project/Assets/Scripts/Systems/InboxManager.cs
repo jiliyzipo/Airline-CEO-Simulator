@@ -3657,7 +3657,7 @@ namespace AirlineCEO.Systems
                     InboxLetter.Section("时点与影响") +
                     InboxLetter.Bullet("批准：当场过户、即时扣款；扣款后可按该时刻加密班次") +
                     InboxLetter.Bullet("拒绝：该时刻不扩容，该时刻的班次排不进去") +
-                    InboxLetter.Bullet("若不愿付费：改走**协调池申请**（收件箱「申请时刻槽」，不收费、按序分配）") +
+                    InboxLetter.Bullet("若不愿付费：驳回本提案。协调池申请（不收费、按序分配）是另一条渠道，由运营部按需另递") +
                     InboxLetter.Bullet("两端持槽：往返班次在两个离港机场各占 1 条**对应时刻**的槽") +
                     InboxLetter.Bullet("持仓与进度见「航权与时刻槽」页") +
                     (string.IsNullOrEmpty(permitId) ? "" :
@@ -3668,7 +3668,7 @@ namespace AirlineCEO.Systems
                         InboxLetter.Bullet("取舍　抢黄金时刻要靠资金换时间；如果许可把握不大，就别在这一步花钱。")) +
                     (affordable && runwayAfter < 3f
                         ? InboxLetter.Bullet($"风险　交割后跑道 {runwayAfter:F1} 个月，已跌破 3 个月危机线 —— "
-                                             + "先安排融资，或改用不收费的协调池申请")
+                                             + "先安排融资，或驳回本提案改走不收费的协调池渠道")
                         : ""),
                 tag = "提案",
                 receivedYear = gs.year,
