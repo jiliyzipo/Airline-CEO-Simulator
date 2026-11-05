@@ -116,8 +116,17 @@ namespace AirlineCEO.Logic
         {
             if (freedom <= 0) return "无需双边航权";
             if (freedom == 3) return "第三/第四航权";
-            return $"第{freedom}航权";
+            // ★2026-11-05：改成中文数字。此前拼的是 `第5航权`，同一屏里
+            // 「第三/第四航权」与「第5航权」两种写法并列，读起来像两个人写的。
+            return $"第{CnNumeral(freedom)}航权";
         }
+
+        static string CnNumeral(int n) => n switch
+        {
+            1 => "一", 2 => "二", 3 => "三", 4 => "四", 5 => "五",
+            6 => "六", 7 => "七", 8 => "八", 9 => "九",
+            _ => n.ToString()
+        };
 
         /// <summary>
         /// 端点是否在中国内地以外（港澳台算境外）。**纯函数**，供 `tools/balance` 离线使用。

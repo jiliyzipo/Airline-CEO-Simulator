@@ -34,8 +34,19 @@ namespace AirlineCEO.UI
         TextMeshProUGUI _toast;
         float _rpmFreq = 7f;
 
-        /// <summary>n77 的二级标签：0 = 持仓与在办，1 = 时刻二级市场。</summary>
+        /// <summary>n77 的二级标签：0 = 持仓与在办，1 = 时刻二级市场，2 = 航权全景，3 = 机场时刻。</summary>
         public int SubTab { get; set; }
+
+        // —— 「机场时刻」卡片视图的视图状态（★2026-11-05 二次改版）——
+        // 放在组件字段上而不是重建时清零：翻到第 5 页、筛了「只看枢纽」之后去别的页签
+        // 再回来，视图应当还在原处。CEO 记住的是「我刚才看到哪」，不是「页面默认值」。
+        int _slotFilter;
+        int _slotPage;
+        bool _slotSortByOpen;
+        string _slotQuery = "";
+        Transform _slotCardsHost;
+        RectTransform _slotCardsRect;
+        TextMeshProUGUI _slotPageLabel;
 
         /// <summary>
         /// 构建子页。
@@ -318,25 +329,38 @@ namespace AirlineCEO.UI
             var barImg = bar.GetComponent<Image>();
             if (barImg != null) barImg.raycastTarget = false;
 
-            // 两个二级标签各占一条，选中态用强调色 —— 与模块页签的配色规则一致。
-            // 三个区域从左到右：标签（0–0.40）/ 当前位置说明（0.41–0.72）/ 操作回执 Toast（0.735–0.995，见 Build）。
+            // 四个二级标签各占一条，选中态用强调色 —— 与模块页签的配色规则一致。
+            // 三个区域从左到右：标签（0–0.525）/ 当前位置说明（0.53–0.725）/ 操作回执 Toast（0.735–0.995，见 Build）。
+            // ★2026-11-05：从两个标签扩展到四个（航权全景 / 机场时刻）—— 用户要求把
+            // 「所有航司的航权」「所有机场的时刻」两张行业表放进 n77。标签宽度压到 0.125，
+            // 字号降到 12，仍在 0.195 的旧宽度下能容下六个汉字。
             UIFactory.Button(bar.transform, "RightsTab0", heldLabel,
-                new UIFactory.Anchor(new Vector2(0.0f, 0.12f), new Vector2(0.195f, 0.88f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.000f, 0.12f), new Vector2(0.125f, 0.88f), Vector2.zero, Vector2.zero),
                 SubTab == 0 ? UITheme.NavActive : UITheme.NavIdle,
-                () => { SubTab = 0; RefreshBody(); }, 13);
+                () => { SubTab = 0; RefreshBody(); }, 12);
             UIFactory.Button(bar.transform, "RightsTab1", marketLabel,
-                new UIFactory.Anchor(new Vector2(0.205f, 0.12f), new Vector2(0.400f, 0.88f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.132f, 0.12f), new Vector2(0.257f, 0.88f), Vector2.zero, Vector2.zero),
                 SubTab == 1 ? UITheme.NavActive : UITheme.NavIdle,
-                () => { SubTab = 1; RefreshBody(); }, 13);
+                () => { SubTab = 1; RefreshBody(); }, 12);
+            UIFactory.Button(bar.transform, "RightsTab2", "航权全景",
+                new UIFactory.Anchor(new Vector2(0.264f, 0.12f), new Vector2(0.389f, 0.88f), Vector2.zero, Vector2.zero),
+                SubTab == 2 ? UITheme.NavActive : UITheme.NavIdle,
+                () => { SubTab = 2; RefreshBody(); }, 12);
+            UIFactory.Button(bar.transform, "RightsTab3", "机场时刻",
+                new UIFactory.Anchor(new Vector2(0.396f, 0.12f), new Vector2(0.521f, 0.88f), Vector2.zero, Vector2.zero),
+                SubTab == 3 ? UITheme.NavActive : UITheme.NavIdle,
+                () => { SubTab = 3; RefreshBody(); }, 12);
 
             // 右侧补一句当前位置说明 —— 二级标签把导航藏了一层，玩家需要知道自己在哪。
             // ★2026-11-05：手动取得渠道删除后，面包屑不再写「取得时刻槽：某渠道」，
             // 改说清「这一屏是看什么、动手的事归谁」。
             UIFactory.ClampSingleLine(UIFactory.Label(bar.transform, "RightsCrumb",
                 SubTab == 0 ? "持仓与在办：取槽与挂牌都由运营部办，你只批收件箱"
-                            : "二级市场：行情只读 · 买卖走运营部提案与出价邮件",
+                : SubTab == 1 ? "二级市场：行情只读 · 买卖走运营部提案与出价邮件"
+                : SubTab == 2 ? "航权全景：全行业航权持有（他航为行业口径）"
+                              : "机场时刻：谁占着这个时刻，空闲即可申请",
                 11, TextAlignmentOptions.MidlineRight,
-                new UIFactory.Anchor(new Vector2(0.410f, 0.12f), new Vector2(0.725f, 0.88f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.530f, 0.12f), new Vector2(0.725f, 0.88f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted));
 
             var body = UIFactory.Panel(_content, "RightsBody",
@@ -346,7 +370,329 @@ namespace AirlineCEO.UI
             if (bodyImg != null) bodyImg.raycastTarget = false;
 
             _bodyHost = body.transform;
-            if (SubTab == 1) RenderSlotMarket(); else RenderRouteRight();
+            if (SubTab == 1) RenderSlotMarket();
+            else if (SubTab == 2) RenderRightsAtlas();
+            else if (SubTab == 3) RenderAirportSlots();
+            else RenderRouteRight();
+        }
+
+        /// <summary>
+        /// 「航权全景」：全行业航权的持有者一览（★2026-11-05 用户要求）。
+        ///
+        /// 用户原话：「增加表，列出所有航司所拥有的航权」。
+        /// 我司那条用**真实持仓**（与「已入账航权」卡同源，数字必须对得上）；
+        /// 他航那条是行业口径推导（见 <c>IndustryAirlineLogic.RightsOf</c>），表头注明，
+        /// 免得 CEO 把推导值当成存档事实去质问运营部。
+        /// </summary>
+        void RenderRightsAtlas()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+
+            L("AtlasStat", IndustryAirlineLogic.RightsSummary(gs), 0f, 0.940f, 1f, 1f,
+                13, UITheme.Success, true);
+            L("AtlasHint", "我司条目为真实入账；他航条目为行业口径 —— 同一对航点可由多家承运人同时持有，不代表我司申请不到。",
+                0f, 0.900f, 1f, 0.938f, 11, UITheme.TextMuted);
+
+            var body = UIFactory.ScrollableLabel(_bodyHost, "AtlasBody",
+                new UIFactory.Anchor(new Vector2(0.005f, 0.005f), new Vector2(0.995f, 0.892f),
+                    Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, 10, TextAlignmentOptions.TopLeft, showScrollbar: true);
+            body.text = IndustryAirlineLogic.RightsTableText(gs);
+        }
+
+        /// <summary>
+        /// 「机场时刻」：所有协调机场的时刻占用，**卡片视图**（★2026-11-05 二次改版）。
+        ///
+        /// 首版是把整张表拼成一段 700 行的等宽文本塞进滚动区，用户反馈「太乱了」。
+        /// 问题不在数据而在排版：机场、时段、航司名挤在同一段文字里，眼睛没有落点。
+        /// 改版按参考稿走「顶部统计 + 工具栏 + 机场卡片」：
+        /// 一机场一卡、卡内四个时段各一行、每个时刻一个小方块
+        /// （我司蓝 / 空闲绿 / 他航灰）。空闲块写「可申请」——用户要求
+        /// 「空闲的时刻不标航司名」，但必须看得出它是能申请的。
+        ///
+        /// 只渲染当前页（<see cref="_slotPageSize"/> 张卡），其余靠翻页：
+        /// 80 个机场 × 约 33 个物件一次全建出来是 2600 多个 GameObject，
+        /// 打开这一页会明显卡一下，而这页一年也未必翻到底。
+        /// </summary>
+        void RenderAirportSlots()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return;
+
+            L("SlotStat", IndustryAirlineLogic.SlotsSummary(gs), 0f, 0.940f, 0.62f, 1f,
+                13, UITheme.Success, true);
+            UIFactory.ClampSingleLine(L("SlotHint",
+                "* 绿块＝该刻整段无人占用；「×N」＝该刻有 N 个系列；段末「余 N」＝本段仍可申请 N 条。",
+                0.58f, 0.940f, 1f, 1f, 10, UITheme.TextMuted, false, TextAlignmentOptions.MidlineRight));
+
+            // ———— 工具栏：搜索 + 筛选 + 排序 + 翻页 ————
+            var search = UIFactory.Input(Host, "SlotSearch", "搜索机场代码或城市（如 AMS）",
+                new UIFactory.Anchor(new Vector2(0.000f, 0.878f), new Vector2(0.150f, 0.938f),
+                    Vector2.zero, Vector2.zero));
+            search.text = _slotQuery ?? "";
+            // ★ 只重建卡片区，不重建整页：重建整页会把正在输入的这个输入框一起销毁，
+            //   每敲一个字就丢焦点（并且 RefreshBody 还会把键盘输入吞掉）。
+            search.onValueChanged.AddListener(v =>
+            {
+                _slotQuery = v ?? "";
+                _slotPage = 0;
+                RebuildSlotCards();
+            });
+
+            for (int f = 0; f < IndustryAirlineLogic.FilterLabels.Length; f++)
+            {
+                int idx = f;
+                float x0 = 0.158f + f * 0.062f;
+                UIFactory.Button(Host, "SlotFilter" + f, IndustryAirlineLogic.FilterLabels[f],
+                    new UIFactory.Anchor(new Vector2(x0, 0.878f), new Vector2(x0 + 0.057f, 0.938f),
+                        Vector2.zero, Vector2.zero),
+                    _slotFilter == idx ? UITheme.NavActive : UITheme.NavIdle,
+                    () => { _slotFilter = idx; _slotPage = 0; RebuildSlotCards(); }, 11);
+            }
+
+            UIFactory.Button(Host, "SlotSort", _slotSortByOpen ? "余量 ↓" : "我司 ↓",
+                new UIFactory.Anchor(new Vector2(0.408f, 0.878f), new Vector2(0.478f, 0.938f),
+                    Vector2.zero, Vector2.zero),
+                _slotSortByOpen ? UITheme.Accent : UITheme.NavIdle,
+                () => { _slotSortByOpen = !_slotSortByOpen; _slotPage = 0; RebuildSlotCards(); }, 11);
+
+            UIFactory.Button(Host, "SlotPrev", "◀",
+                new UIFactory.Anchor(new Vector2(0.760f, 0.878f), new Vector2(0.790f, 0.938f),
+                    Vector2.zero, Vector2.zero), UITheme.NavIdle,
+                () => { if (_slotPage > 0) { _slotPage--; RebuildSlotCards(); } }, 12);
+            _slotPageLabel = L("SlotPage", "", 0.793f, 0.878f, 0.958f, 0.938f,
+                11, UITheme.TextPrimary, false, TextAlignmentOptions.MidlineRight);
+            UIFactory.Button(Host, "SlotNext", "▶",
+                new UIFactory.Anchor(new Vector2(0.961f, 0.878f), new Vector2(0.991f, 0.938f),
+                    Vector2.zero, Vector2.zero), UITheme.NavIdle,
+                () => { _slotPage++; RebuildSlotCards(); }, 12);
+
+            _slotCardsRect = UIFactory.VerticalScrollArea(Host, "SlotCards",
+                new UIFactory.Anchor(new Vector2(0.000f, 0.006f), new Vector2(1f, 0.866f),
+                    Vector2.zero, Vector2.zero));
+            _slotCardsHost = _slotCardsRect;
+            RebuildSlotCards();
+        }
+
+        /// <summary>每页机场数。8 张 ≈ 一屏多，翻页成本低，单页物件数也在可接受范围。</summary>
+        const int SlotPageSize = 8;
+
+        /// <summary>
+        /// 重建卡片区（筛选 / 排序 / 翻页 / 搜索都走这里，不动工具栏本身）。
+        /// </summary>
+        void RebuildSlotCards()
+        {
+            var host = _slotCardsRect;
+            if (host == null) return;
+            var gs = GameState.Instance;
+            if (gs == null) return;
+
+            ClearSlotCards(host);
+
+            var rows = IndustryAirlineLogic.FilteredAirports(gs, _slotFilter, _slotSortByOpen, _slotQuery);
+            int pages = rows.Count <= 0 ? 1 : (rows.Count + SlotPageSize - 1) / SlotPageSize;
+            if (_slotPage < 0) _slotPage = 0;
+            if (_slotPage > pages - 1) _slotPage = pages - 1;
+
+            if (_slotPageLabel != null)
+                _slotPageLabel.text = $"第 {_slotPage + 1}/{pages} 页 · {rows.Count} 个机场";
+
+            if (rows.Count == 0)
+            {
+                var empty = UIFactory.Label(host, "SlotEmpty",
+                    "没有符合条件的机场。\n换个筛选条件，或清空搜索框 —— 支线机场为非协调机场，本来就不设时刻槽。",
+                    12, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
+                UIFactory.PinFromTop(empty.gameObject, 12f, 60f, 0.02f, 0.98f);
+                UIFactory.SetScrollContentHeight(host, 96f);
+                return;
+            }
+
+            float y = 4f;
+            int start = _slotPage * SlotPageSize;
+            for (int i = start; i < rows.Count && i < start + SlotPageSize; i++)
+            {
+                BuildSlotCard(host, gs, rows[i], y);
+                y += SlotCardHeight + 8f;
+            }
+            UIFactory.SetScrollContentHeight(host, y + 6f);
+        }
+
+        const float SlotCardHeight = 152f;
+
+        /// <summary>时段行在卡片内的高度比例（卡片 152px → 每行 30px）。</summary>
+        const float SlotBandRowH = 0.197f;
+        /// <summary>头部下沿：卡片内 y = 0.789 以上是头部（32px）。</summary>
+        const float SlotHeaderBottom = 0.789f;
+        /// <summary>方块列：起点 / 步长 / 宽度（最多 8 个时刻，排在时段名与「余 N」之间）。</summary>
+        const float SlotChipX0 = 0.078f, SlotChipStep = 0.1005f, SlotChipW = 0.096f;
+
+        /// <summary>
+        /// 一张机场卡：头部（代码 / 名 / 等级 / 池况 / 占用条）+ 四个时段行。
+        ///
+        /// 占用条刻意只画**已占用比例**：留白部分就是还能申请的余量 ——
+        /// 比再读一个「余 17」更快，也让「这机场挤不挤」在一屏内可比。
+        /// </summary>
+        void BuildSlotCard(Transform host, GameState gs, AirportInfo ap, float yTop)
+        {
+            var t = IndustryAirlineLogic.TotalsOf(gs, ap.code);
+            var card = UIFactory.Panel(host, "SlotCard_" + ap.code, UIFactory.Fill,
+                new Color(0.075f, 0.145f, 0.247f, 0.96f));
+            UIFactory.PinFromTop(card, yTop, SlotCardHeight, 0.004f, 0.996f);
+
+            // —— 头部 ——
+            UIFactory.Label(card.transform, "Code", ap.code, 16, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.012f, SlotHeaderBottom), new Vector2(0.056f, 0.985f),
+                    Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+            UIFactory.ClampSingleLine(UIFactory.Label(card.transform, "Name", ap.nameZh, 11,
+                TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.058f, SlotHeaderBottom), new Vector2(0.230f, 0.985f),
+                    Vector2.zero, Vector2.zero),
+                UITheme.TextMuted));
+
+            var tierGo = UIFactory.Panel(card.transform, "Tier",
+                new UIFactory.Anchor(new Vector2(0.234f, 0.832f), new Vector2(0.286f, 0.962f), Vector2.zero, Vector2.zero),
+                ap.tier == 0 ? new Color(0.18f, 0.42f, 0.72f, 0.55f) : new Color(0.16f, 0.26f, 0.40f, 0.55f));
+            UIFactory.Label(tierGo.transform, "L", AirportCatalog.TierLabel(ap.tier), 9,
+                TextAlignmentOptions.Center, UIFactory.Fill, UITheme.TextPrimary);
+            var tierImg = tierGo.GetComponent<Image>();
+            if (tierImg != null) tierImg.raycastTarget = false;
+
+            string curfew = AirportCatalog.CurfewLabel(ap.code);
+            if (!string.IsNullOrEmpty(curfew))
+                UIFactory.ClampSingleLine(UIFactory.Label(card.transform, "Curfew", curfew, 9,
+                    TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(0.290f, SlotHeaderBottom), new Vector2(0.420f, 0.985f),
+                        Vector2.zero, Vector2.zero),
+                    UITheme.Warning));
+
+            UIFactory.ClampSingleLine(UIFactory.Label(card.transform, "Pool",
+                $"池 {t.own + t.other}/{t.cap}　我司 {t.own} · 他航 {t.other} · 余 {t.open}",
+                10, TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(0.560f, SlotHeaderBottom), new Vector2(0.790f, 0.985f),
+                    Vector2.zero, Vector2.zero),
+                t.own > 0 ? UITheme.TextPrimary : UITheme.TextMuted));
+
+            // 占用条：底槽 + 我司段（蓝）+ 他航段（灰）；剩下的空白就是余量。
+            var barBg = UIFactory.Panel(card.transform, "BarBg",
+                new UIFactory.Anchor(new Vector2(0.798f, 0.852f), new Vector2(0.988f, 0.920f), Vector2.zero, Vector2.zero),
+                new Color(0.04f, 0.08f, 0.14f, 0.95f), rounded: true);
+            var barBgImg = barBg.GetComponent<Image>();
+            if (barBgImg != null) barBgImg.raycastTarget = false;
+            if (t.cap > 0)
+            {
+                float ownW = Mathf.Clamp01(t.own / (float)t.cap);
+                float otherW = Mathf.Clamp01(t.other / (float)t.cap);
+                if (ownW > 0f)
+                    Seg(card.transform, "BarOwn", 0.798f, 0.988f, 0f, ownW, new Color(0.30f, 0.62f, 1f, 0.95f));
+                if (otherW > 0f)
+                {
+                    float bx = 0.798f + (0.988f - 0.798f) * ownW;
+                    Seg(card.transform, "BarOther", bx, 0.988f, 0f, otherW,
+                        new Color(0.42f, 0.52f, 0.64f, 0.85f));
+                }
+            }
+
+            // —— 四个时段 ——
+            for (int b = 0; b < 4; b++)
+            {
+                float y1 = SlotHeaderBottom - b * SlotBandRowH;
+                float y0 = y1 - SlotBandRowH;
+                float cy = (y0 + y1) * 0.5f;
+
+                UIFactory.Label(card.transform, "BandName" + b,
+                    $"<b>{ScheduleSlots.SlotBandName(b)}班</b>\n"
+                    + $"{ScheduleSlots.FormatClock(ScheduleSlots.WindowStartOf(b))}–"
+                    + $"{ScheduleSlots.FormatClock(ScheduleSlots.WindowEndOf(b))}",
+                    8, TextAlignmentOptions.MidlineLeft,
+                    new UIFactory.Anchor(new Vector2(0.012f, y0 + 0.010f), new Vector2(0.074f, y1 - 0.010f),
+                        Vector2.zero, Vector2.zero),
+                    UITheme.TextMuted);
+
+                int open = IndustryAirlineLogic.OpenSlots(gs, ap.code, b);
+                var chips = IndustryAirlineLogic.ChipsOf(gs, ap.code, b);
+                for (int k = 0; k < chips.Count && k < 8; k++)
+                    BuildChip(card.transform, "C" + b + "_" + k, chips[k],
+                        SlotChipX0 + k * SlotChipStep, cy);
+
+                UIFactory.Label(card.transform, "BandOpen" + b, $"余 {open}",
+                    9, TextAlignmentOptions.MidlineRight,
+                    new UIFactory.Anchor(new Vector2(0.888f, y0), new Vector2(0.988f, y1), Vector2.zero, Vector2.zero),
+                    open > 0 ? UITheme.Success : UITheme.TextMuted,
+                    open > 0 ? FontStyles.Bold : FontStyles.Normal);
+            }
+        }
+
+        /// <summary>占用条里的一段（宽度按比例，放在卡片坐标里）。</summary>
+        static void Seg(Transform card, string name, float x0, float x1, float frac0, float frac1, Color color)
+        {
+            float a = x0 + (x1 - x0) * frac0;
+            float bnd = x0 + (x1 - x0) * frac1;
+            var go = UIFactory.Panel(card, name,
+                new UIFactory.Anchor(new Vector2(a, 0.845f), new Vector2(bnd, 0.912f), Vector2.zero, Vector2.zero),
+                color, rounded: false);
+            var img = go.GetComponent<Image>();
+            if (img != null) img.raycastTarget = false;
+        }
+
+        /// <summary>
+        /// 一个时刻小方块：上排时刻、下排持有者（我司 / 航司短名 / 可申请）。
+        ///
+        /// 为什么两排而不是一排：中文航司名最短也是两个汉字（「国航」），
+        /// 一排「06:30 国航」在 110px 的方块里必然被截断 —— 而截断的航司名
+        /// 等于没有名字。两排后每排可用整块宽度，8 个时刻也排得下。
+        ///
+        /// 三态配色是这页唯一需要「一眼分辨」的信息，故写在最外层：
+        /// 蓝=我司持有、绿=空闲可申请、灰=他航持有。
+        /// </summary>
+        static void BuildChip(Transform card, string name, IndustryAirlineLogic.SlotChip chip, float x0, float cy)
+        {
+            Color bg, fg;
+            if (chip.free) { bg = new Color(0.12f, 0.34f, 0.24f, 0.55f); fg = UITheme.Success; }
+            else if (chip.vacant) { bg = new Color(0.045f, 0.075f, 0.12f, 0.55f); fg = new Color(0.45f, 0.55f, 0.66f, 0.75f); }
+            else if (chip.mine) { bg = new Color(0.10f, 0.26f, 0.50f, 0.70f); fg = new Color(0.52f, 0.76f, 1f); }
+            else { bg = new Color(0.055f, 0.115f, 0.19f, 0.95f); fg = UITheme.TextMuted; }
+
+            var go = UIFactory.Panel(card, name,
+                new UIFactory.Anchor(new Vector2(x0, cy - 0.077f), new Vector2(x0 + SlotChipW, cy + 0.077f),
+                    Vector2.zero, Vector2.zero), bg);
+            var img = go.GetComponent<Image>();
+            if (img != null) img.raycastTarget = false;
+
+            UIFactory.Label(go.transform, "T", chip.time, 8, TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.02f, 0.48f), new Vector2(0.98f, 0.99f), Vector2.zero, Vector2.zero),
+                chip.free ? UITheme.Success : chip.vacant ? fg : UITheme.TextPrimary,
+                chip.free || chip.mine ? FontStyles.Bold : FontStyles.Normal);
+
+            string owner;
+            if (chip.free) owner = "可申请";
+            else if (chip.vacant) owner = "—";
+            else if (chip.others > 0) owner = $"{chip.owner}+{chip.others}";
+            else if (chip.series > 1) owner = $"{chip.owner}×{chip.series}";
+            else owner = chip.owner;
+
+            UIFactory.ClampSingleLine(UIFactory.Label(go.transform, "O", owner, 8,
+                TextAlignmentOptions.Center,
+                new UIFactory.Anchor(new Vector2(0.02f, 0.01f), new Vector2(0.98f, 0.52f), Vector2.zero, Vector2.zero),
+                fg));
+        }
+
+        /// <summary>
+        /// 清空卡片区。与通用 <see cref="Clear"/> 的区别：先 <c>SetActive(false)</c> 再 Destroy。
+        ///
+        /// <c>Destroy</c> 要到帧末才真正移除，而搜索框每敲一个字就会重建一次 ——
+        /// 同一帧内重建两次时，上一批卡片还在 transform 里（只是「待销毁」），
+        /// 会和新卡片叠着画一帧。先失活就彻底没有这层重影。
+        /// </summary>
+        static void ClearSlotCards(Transform host)
+        {
+            for (int i = host.childCount - 1; i >= 0; i--)
+            {
+                var go = host.GetChild(i).gameObject;
+                go.SetActive(false);
+                Destroy(go);
+            }
         }
 
         void RenderRouteRight()
@@ -693,7 +1039,8 @@ namespace AirlineCEO.UI
                     var r = stg.rights[i];
                     if (i > 0) sb.Append('\n');
                     sb.Append(r.origin).Append('—').Append(r.destination)
-                        .Append("  第").Append(r.freedom).Append("航权  · ").Append(r.status);
+                        .Append("  ").Append(AirportRegions.FreedomLabel(r.freedom))
+                        .Append("  · ").Append(r.status);
                 }
             }
             if (!string.IsNullOrEmpty(legacy))

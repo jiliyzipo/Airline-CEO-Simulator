@@ -371,6 +371,89 @@ namespace AirlineCEO.Tests.PlayMode
         }
 
         /// <summary>
+        /// ★2026-11-05（用户要求）：n77 增加两张行业情报表 ——
+        /// 「航权全景」（所有航司的航权）与「机场时刻」（每个时刻的持有航司，空闲不标）。
+        ///
+        /// 钉住的是**入口与内容真的画出来了**：两个标签存在、点进去有表体，
+        /// 且表体里能看到我司名与「—」（空闲标记）。数据口径由 R48 的 EditMode 回归兜底，
+        /// 这里只管「页面上有没有这张表、点了会不会出来」。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator RightsPage_IndustryAtlasTabsRenderTables()
+        {
+            var gsHost = new GameObject("AtlasTabsGs");
+            var gs = gsHost.AddComponent<GameState>();
+            gs.inbox = new System.Collections.Generic.List<InboxMail>();
+            gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+            gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+            gs.fleet = new System.Collections.Generic.List<Aircraft>();
+            gs.cash = 5000f;
+            gs.companyNameZh = "测试航空";
+            StrategyManager.EnsureState(gs);
+
+            var host = new GameObject("AtlasTabsHost", typeof(RectTransform));
+            host.GetComponent<RectTransform>().sizeDelta = new Vector2(1280f, 720f);
+            var go = StrategyRuntimeFactory.TryCreate("n77_航权与时刻槽", host.transform);
+            Assert.IsNotNull(go, "应能构建 n77 航权与时刻槽");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+
+            Assert.IsNotNull(FindChild(go.transform, "RightsTab2"), "缺二级标签「航权全景」");
+            Assert.IsNotNull(FindChild(go.transform, "RightsTab3"), "缺二级标签「机场时刻」");
+
+            ClickChild(go.transform, "RightsTab2");
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Assert.IsNotNull(FindChild(go.transform, "AtlasBody_Viewport"), "「航权全景」应画出表体");
+            Assert.IsNotNull(TextContaining(go.transform, "测试航空"),
+                "航权全景表里应能看到我司这一组（我司条目必须用真实持仓）");
+            Assert.IsNotNull(TextContaining(go.transform, "基地 PEK"),
+                "航权全景表里应能看到他航及其基地 —— 否则这张表只有我司，等于没做");
+
+            ClickChild(go.transform, "RightsTab3");
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            // ★2026-11-05 二次改版：整页从「一段长文本」改为「统计栏 + 工具栏 + 机场卡片」。
+            // 断言因此从「表体里有没有 —」改成「卡片/方块/翻页/筛选是否真的在」，
+            // 数据口径（空闲块数 == 余量）由 R48 的 EditMode 回归兜底。
+            var cardsHost = FindChild(go.transform, "SlotCards");
+            Assert.IsNotNull(cardsHost, "「机场时刻」应画出卡片滚动区");
+            bool hasCard = false;
+            var all = cardsHost.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < all.Length; i++)
+                if (all[i].name.StartsWith("SlotCard_")) { hasCard = true; break; }
+            Assert.IsTrue(hasCard, "机场卡片没画出来 —— 卡片视图是本页的核心，不能退化成空列表");
+            Assert.IsNull(FindChild(go.transform, "SlotEmpty"), "默认筛选下不应是空态");
+            Assert.IsNotNull(FindChild(go.transform, "SlotSearch"), "缺搜索框");
+            Assert.IsNotNull(FindChild(go.transform, "SlotFilter0"), "缺筛选按钮「全部机场」");
+            Assert.IsNotNull(FindChild(go.transform, "SlotFilter3"), "缺筛选按钮「只看满池」");
+            Assert.IsNotNull(FindChild(go.transform, "SlotSort"), "缺排序切换按钮");
+            Assert.IsNotNull(FindChild(go.transform, "SlotPrev"), "缺上一页按钮");
+            Assert.IsNotNull(FindChild(go.transform, "SlotNext"), "缺下一页按钮");
+
+            Assert.IsNotNull(TextContaining(go.transform, "可申请"),
+                "空闲时刻必须看得出能申请 —— 用户要求空闲位不标航司名，但不是不标记");
+            Assert.IsNotNull(TextContaining(go.transform, "第 1/"),
+                "翻页信息应写明当前是第几页");
+
+            // 上一页在首页按下去不该动（不能出现「第 0 页」或空卡区）。
+            ClickChild(go.transform, "SlotPrev");
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsNotNull(TextContaining(go.transform, "第 1/"), "首页按上一页不应跳页");
+
+            Object.Destroy(host);
+            Object.Destroy(gsHost);
+            yield return null;
+        }
+
+        /// <summary>
         /// 2026-11-02 用户裁定：「将航权与时刻槽框架放大到最大的红框」。
         /// 旧版内嵌时套了两层内边距（模块宿 1% + 面板自己的卡片 6%/8%），
         /// 等于把模块页签已有的边框又画一遍，四周白白空掉约 15%。

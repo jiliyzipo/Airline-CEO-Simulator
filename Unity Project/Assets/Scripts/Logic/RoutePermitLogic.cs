@@ -609,10 +609,18 @@ namespace AirlineCEO.Logic
             return n;
         }
 
-        /// <summary>该机场该时段还能取得多少个时刻槽（池容量 − 已持有，下限 0）。</summary>
+        /// <summary>
+        /// 该机场该时段还能取得多少个时刻槽（池容量 − 我司持有 − 他航持有，下限 0）。
+        ///
+        /// ★2026-11-05：扣掉他航持有量。此前只扣我司，等于「池子里除了我司再没别人」——
+        /// 于是「机场时刻」表上写着国航占了 3 条，游戏却让我司把 12 条全拿走，两边对不上。
+        /// 他航占用量由 <see cref="IndustryAirlineLogic.IndustryHeld"/> 确定性推导，
+        /// 且**永不把池子占满**（至少留 1 条），所以这个改动只会让余量变小，不会把路堵死。
+        /// </summary>
         public static int SlotsAvailable(GameState gs, string airport, int band)
         {
             int left = SlotPoolCapacity(airport, band) - SlotsHeld(gs, airport, band);
+            left -= IndustryAirlineLogic.IndustryHeld(gs, airport, band);
             return left < 0 ? 0 : left;
         }
 
@@ -630,13 +638,16 @@ namespace AirlineCEO.Logic
             int b = band < 0 ? 0 : band > 3 ? 3 : band;
             int cap = SlotPoolCapacity(airport, b);
             int held = SlotsHeld(gs, airport, b);
-            int free = cap - held; if (free < 0) free = 0;
+            int other = IndustryAirlineLogic.IndustryHeld(gs, airport, b);
+            int free = SlotsAvailable(gs, airport, b);
             string curfew = AirlineCEO.Data.AirportCatalog.CurfewLabel(airport);
             string tail = string.IsNullOrEmpty(curfew) ? "24 小时" : curfew;
             string coord = AirlineCEO.Data.AirportCatalog.IsCoordinated(airport) ? "协调机场" : "非协调";
+            // ★2026-11-05：把他航占用写进池况。CEO 在邮件里看到的「余 3」必须能对上
+            // 「机场时刻」表上那三个「—」，否则他会以为表是摆设。
             return $"{airport} {ScheduleSlots.FormatClock(ScheduleSlots.WindowStartOf(b))}–"
                    + $"{ScheduleSlots.FormatClock(ScheduleSlots.WindowEndOf(b))}（{StrategyManager.SlotBandName(b)}班池）"
-                   + $" · 池 {held}/{cap}（余 {free}）· {coord} · {tail}";
+                   + $" · 池 {held + other}/{cap}（我司 {held} · 他航 {other} · 余 {free}）· {coord} · {tail}";
         }
 
         /// <summary>某个**具体时刻**的时刻池占用一行式（n77 与申请/购入邮件用）。</summary>
@@ -647,9 +658,11 @@ namespace AirlineCEO.Logic
             int cap = SlotPoolCapacity(airport, b);
             int heldBand = SlotsHeld(gs, airport, b);
             int heldAt = SlotsHeldAt(gs, airport, clock);
+            int other = IndustryAirlineLogic.IndustryHeld(gs, airport, b);
             string coord = AirlineCEO.Data.AirportCatalog.IsCoordinated(airport) ? "协调机场" : "非协调";
             return $"{airport} {ScheduleSlots.FormatClock(m)} · 该时刻已持 {heldAt} 条；"
-                   + $"所在{StrategyManager.SlotBandName(b)}班池 {heldBand}/{cap}（余 {Math.Max(0, cap - heldBand)}）· {coord}";
+                   + $"所在{StrategyManager.SlotBandName(b)}班池 {heldBand + other}/{cap}"
+                   + $"（我司 {heldBand} · 他航 {other} · 余 {SlotsAvailable(gs, airport, b)}）· {coord}";
         }
 
         /// <summary>

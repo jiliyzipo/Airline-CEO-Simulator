@@ -87,6 +87,10 @@ namespace AirlineCEO.EditorTools
                 { "inbox-status", InboxStatusRegression.Run },
                 { "inbox-arrival", InboxArrivalRegression.Run },
                 { "inbox-row-layout", InboxRowLayoutRegression.Run },
+                // ★2026-11-05：n77 新增「航权全景 / 机场时刻」两张表。单跑入口存在的意义：
+                //   改时刻池口径（SlotsAvailable / 池容量 / 他航占用）时，这张表比整包 EditMode
+                //   更快指出「表上的余量」与玩法分家了。
+                { "industry-atlas", IndustryAtlasRegression.Run },
                 // ★2026-11-04：邮件点机号 → 飞机详情 → < 多停一站（落在借来的部门页上）。
                 //   纯函数 + 正反例 + 「只认标记」旧口径的 canary，改返回判据时单跑。
                 { "nav-back-unwind", NavBackUnwindRegression.Run },
