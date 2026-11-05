@@ -5,7 +5,7 @@
   "title": "阶段 S53-InboxRowBackNav：Editor/Assets-Tests/UI",
   "revision": 1,
   "devStatus": "ready_for_review",
-  "reviewStatus": "running",
+  "reviewStatus": "passed",
   "freshness": "current",
   "holder": null,
   "scope": [
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-04T12:33:05.020Z",
-  "updatedAt": "2026-11-04T12:40:32.320Z",
+  "updatedAt": "2026-11-04T12:44:01.221Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
+  "freshnessNote": "Review REV-20261104124030-9c37f2 still applies to delivery DEL-20261104123522-e90c14.",
   "staleForReviewId": null
 }

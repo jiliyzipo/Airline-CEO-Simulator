@@ -5,7 +5,7 @@
   "taskId": "S53-InboxRowBackNav",
   "taskRevision": 1,
   "actor": "codex",
-  "status": "running",
+  "status": "passed",
   "profile": "unity-editmode",
   "profileDefinition": {
     "kind": "powershell",
@@ -37,11 +37,165 @@
   },
   "snapshotPath": "out/collab/DEL-20261104123522-e90c14",
   "createdAt": "2026-11-04T12:40:30.981Z",
-  "updatedAt": "2026-11-04T12:40:32.313Z",
-  "runs": [],
-  "coverage": [],
+  "updatedAt": "2026-11-04T12:43:06.915Z",
+  "runs": [
+    {
+      "at": "2026-11-04T12:40:32.327Z",
+      "finishedAt": "2026-11-04T12:42:25.899Z",
+      "runToken": "17d47831cf013ab2",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261104123522-e90c14",
+      "subjectImplementationFingerprint": "a1f0e555a407f4315f3cf21519e03cf64cd393242ed5c537e4a6dd8447cdb4b6",
+      "subjectFingerprints": {
+        "implementation": "a1f0e555a407f4315f3cf21519e03cf64cd393242ed5c537e4a6dd8447cdb4b6",
+        "verification": "09f850b79b91257ac3aa84e42af731414fd4b3901a09d2a9301af7068ee8110b",
+        "contract": "0cb3feeae0ef7343079b5980c0405a1896219cfad7a779cdad690ade030f1495"
+      },
+      "command": [
+        "powershell.exe",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "tools/regression/RunUnityTests.ps1",
+        "-ProjectPath",
+        "Unity Project",
+        "-Platform",
+        "EditMode",
+        "-RunName",
+        "17d47831cf013ab2"
+      ],
+      "cwd": "C:\\Users\\jiliy\\Airline-CEO-Simulator\\out\\collab\\DEL-20261104123522-e90c14",
+      "exitCode": 0,
+      "stdoutPath": ".collab-local/logs/REV-20261104124030-9c37f2/run-17d47831cf013ab2/stdout.txt",
+      "stderrPath": ".collab-local/logs/REV-20261104124030-9c37f2/run-17d47831cf013ab2/stderr.txt",
+      "stdout": {
+        "path": ".collab-local/logs/REV-20261104124030-9c37f2/run-17d47831cf013ab2/stdout.txt",
+        "sha256": "65c8ed1d4f6ff62e8ceac8085c39942e053fb6462cc7fc45554bb67c6a005a5c",
+        "bytes": 65,
+        "runToken": "17d47831cf013ab2"
+      },
+      "stderr": {
+        "path": ".collab-local/logs/REV-20261104124030-9c37f2/run-17d47831cf013ab2/stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "runToken": "17d47831cf013ab2"
+      },
+      "signal": null,
+      "resultFile": {
+        "path": "Unity Project/Logs/Tasks20261017_17d47831cf013ab2.xml",
+        "runToken": "17d47831cf013ab2",
+        "profile": "unity-editmode",
+        "deliveryId": "DEL-20261104123522-e90c14",
+        "before": {
+          "exists": false,
+          "sha256": null,
+          "bytes": 0,
+          "mtimeMs": 0
+        },
+        "after": {
+          "exists": true,
+          "sha256": "58bfbd1d76eb7ce53087cf777e683830a9a8102640a49b53c4d5d83072fcaa6e",
+          "bytes": 132419,
+          "mtimeMs": 1793796143781.8938
+        },
+        "producedByRun": true,
+        "sha256": "58bfbd1d76eb7ce53087cf777e683830a9a8102640a49b53c4d5d83072fcaa6e"
+      },
+      "postSnapshot": {
+        "ok": true,
+        "reason": null
+      },
+      "snapshotPruned": {
+        "freedBytes": 1972053166,
+        "removedFiles": 35149,
+        "keptFiles": 1,
+        "removedDirs": 2654
+      },
+      "snapshotPrunePolicy": "success"
+    }
+  ],
+  "coverage": [
+    {
+      "id": "AC1",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=17d47831cf013ab2 counters={\"total\":136,\"failed\":0,\"skipped\":0,\"passed\":136} | machine-mapped"
+    },
+    {
+      "id": "AC2",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=17d47831cf013ab2 counters={\"total\":136,\"failed\":0,\"skipped\":0,\"passed\":136} | machine-mapped"
+    },
+    {
+      "id": "AC3",
+      "result": "passed",
+      "evidence": "profile=unity-editmode runToken=17d47831cf013ab2 counters={\"total\":136,\"failed\":0,\"skipped\":0,\"passed\":136} | machine-mapped"
+    }
+  ],
   "issues": [],
-  "workerPid": 52148,
-  "activeRunToken": "17d47831cf013ab2",
-  "activeRunStartedAt": "2026-11-04T12:40:32.313Z"
+  "workerPid": null,
+  "activeRunToken": null,
+  "activeRunStartedAt": "2026-11-04T12:40:32.313Z",
+  "assertions": {
+    "total": 136,
+    "failed": 0,
+    "skipped": 0
+  },
+  "machineResult": {
+    "parsed": {
+      "file": "Unity Project/Logs/Tasks20261017_17d47831cf013ab2.xml",
+      "sha256": "58bfbd1d76eb7ce53087cf777e683830a9a8102640a49b53c4d5d83072fcaa6e",
+      "total": 136,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 136
+    },
+    "counters": {
+      "total": 136,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 136
+    },
+    "unverified": false,
+    "reason": null
+  },
+  "evidencePath": ".collab-local/evidence/REV-20261104124030-9c37f2-1793796185885.json",
+  "finishedAt": "2026-11-04T12:43:06.915Z",
+  "cleanGitCheckoutVerified": false,
+  "finishApplicability": {
+    "workspaceMatchesDelivery": true,
+    "change": {
+      "implementationChanged": false,
+      "verificationChanged": false,
+      "contractChanged": false,
+      "staleForCurrentCode": false,
+      "verificationBaselineChanged": false,
+      "needsReverification": false
+    }
+  },
+  "resultEvidence": {
+    "runToken": "17d47831cf013ab2",
+    "resultFile": {
+      "path": "Unity Project/Logs/Tasks20261017_17d47831cf013ab2.xml",
+      "runToken": "17d47831cf013ab2",
+      "profile": "unity-editmode",
+      "deliveryId": "DEL-20261104123522-e90c14",
+      "before": {
+        "exists": false,
+        "sha256": null,
+        "bytes": 0,
+        "mtimeMs": 0
+      },
+      "after": {
+        "exists": true,
+        "sha256": "58bfbd1d76eb7ce53087cf777e683830a9a8102640a49b53c4d5d83072fcaa6e",
+        "bytes": 132419,
+        "mtimeMs": 1793796143781.8938
+      },
+      "producedByRun": true,
+      "sha256": "58bfbd1d76eb7ce53087cf777e683830a9a8102640a49b53c4d5d83072fcaa6e"
+    },
+    "postSnapshotOk": true,
+    "snapshotPath": "out/collab/DEL-20261104123522-e90c14"
+  }
 }

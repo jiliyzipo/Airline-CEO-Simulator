@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T01:30:02.214Z",
-  "updatedAt": "2026-11-04T12:29:03.470Z",
+  "updatedAt": "2026-11-04T12:44:00.445Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 56 taken over by later passed deliveries, 5 still uncovered (Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs, Unity Project/Assets/Scripts/UI/Navigation/NavHistory.cs, Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs …).",
+  "freshnessNote": "Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 60 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs).",
   "staleForReviewId": "REV-20261022025040-a46f56",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -95,14 +95,10 @@
   "scopeDrift": {
     "basis": 113,
     "intact": 52,
-    "covered": 56,
+    "covered": 60,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Logic/TransitionBusinessLogic.cs",
-      "Unity Project/Assets/Scripts/UI/Navigation/NavHistory.cs",
-      "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs",
-      "Unity Project/Assets/Scripts/UI/PrefabNavIntegration.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
+      "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs"
     ],
-    "uncoveredCount": 5
+    "uncoveredCount": 1
   }
 }
