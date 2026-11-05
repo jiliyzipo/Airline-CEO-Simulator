@@ -669,6 +669,9 @@ namespace AirlineCEO.Logic
                 var h = stg.slots[i];
                 if (h == null) { stg.slots.RemoveAt(i); continue; }
                 if (h.inUse) continue;                 // 绑了班次的走系列考核，不在这里收
+                // ★2026-11-05：出租中的槽不得收回 —— 承租方正在飞它，使用权虽让出但所有权仍归我司，
+                // 收回等于把别人的班次砍掉，也等于白丢一份租金。
+                if (Logic.SlotMarketLogic.IsLeasedOut(gs, h)) continue;
                 if (h.expiresTurn < 0 || h.expiresTurn > turn) continue;
                 lostWan += h.acquisitionCostWan;
                 notes.Add($"{ScheduleSlots.SlotLabel(h.airport, h.slotTime)}：整个航季未投运，按 use-it-or-lose-it 退回时刻池");

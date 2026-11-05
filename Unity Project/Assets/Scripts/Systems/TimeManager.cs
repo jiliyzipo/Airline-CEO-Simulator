@@ -341,6 +341,9 @@ namespace AirlineCEO.Systems
             StrategyManager.TickQuarter(gs);
             // 时刻二级市场：本季货架换新 + 为我司挂牌摇购买意向（★2026-11-02）
             AirlineCEO.Logic.SlotMarketLogic.TickQuarter(gs);
+            // ★2026-11-05：独立航权购置提案（不定期航班/代码共享/储备占坑/置换），
+            // 与开航联动递单同一种 apply_right 邮件，CEO 只批收件箱。
+            AirlineCEO.Logic.RightAcquisitionLogic.TickQuarter(gs);
 
             // 过渡业务（开局三架飞机）：季末刷新报价板并结清本季报告计数
             TransitionBusinessLogic.OnQuarterTick(gs);

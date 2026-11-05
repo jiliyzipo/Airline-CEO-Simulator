@@ -266,6 +266,18 @@ namespace AirlineCEO.EditorTools
                 string usedClk = usedIdx2 >= 0
                     ? RoutePermitLogic.SlotRequestClock(gs.stg.slots[usedIdx2].slotTime) : null;
 
+                // ★2026-11-05：可售判定新增「已过期」硬闸（过期槽无可卖）。本用例的核心是
+                // 「代挂牌有没有把干净的闲置槽挂出去」，不是考核回收，故先把未被绑定的持仓
+                // 续到有效期内 —— 否则这些在测试里被反复推进季度、早已越过 expiresTurn 的持仓
+                // 会被正确判为「已过期」，用例就会为了一个无关的原因红掉。
+                int keepTurn = RoutePermitLogic.Turn(gs.year, gs.quarter) + 8;
+                for (int i = 0; i < gs.stg.slots.Count; i++)
+                {
+                    var sh = gs.stg.slots[i];
+                    if (sh == null || sh.inUse) continue;
+                    if (sh.expiresTurn >= 0 && sh.expiresTurn <= keepTurn) sh.expiresTurn = keepTurn;
+                }
+
                 SlotMarketLogic.TickQuarter(gs);
 
                 bool autoListed = mkt.mine.Count > 0 && mkt.mine.Count <= SlotMarketLogic.AutoListPerQuarter;
@@ -337,13 +349,108 @@ namespace AirlineCEO.EditorTools
                 if (!noRefill)
                     Debug.LogError($"R47 ⑨ 同一季度买空后又补了 {mkt.listings.Count} 条 —— 货架被当成无限货源。");
 
+                // ———— ⑩ 可售判定（★2026-11-05 四条硬闸）与「租一季」 ————
+                gs.inbox.Clear();
+                gs.year = 3; gs.quarter = 1;
+                mkt.mine.Clear();
+                mkt.offers.Clear();
+                // 造一条干净的闲置槽：用市场现成的机场+时刻（已在系列格点上，免得被吸附干扰），
+                // 并先清掉同键持仓，免得 HoldingIndexOf 命中前面段落留下的同键槽。
+                string leaseApt = apt;
+                string leaseClk = clock;
+                for (int i = gs.stg.slots.Count - 1; i >= 0; i--)
+                {
+                    var s0 = gs.stg.slots[i];
+                    if (s0 == null) continue;
+                    if (!string.Equals(s0.airport, leaseApt, System.StringComparison.OrdinalIgnoreCase)) continue;
+                    if (ScheduleSlots.ClockDiff(ScheduleSlots.BandNameToClock(s0.slotTime), leaseClk)
+                        > ScheduleSlots.SlotToleranceMinutes) continue;
+                    gs.stg.slots.RemoveAt(i);
+                }
+                var hold = new SlotHolding { airport = leaseApt, slotTime = leaseClk, inUse = false };
+                gs.stg.slots.Add(hold);
+                int hi = gs.stg.slots.Count - 1;
+                int SlotIdx() => gs.stg.slots.IndexOf(hold);
+
+                bool sellableIdle = SlotMarketLogic.EvaluateSale(gs, hi).state == SlotMarketLogic.SaleState.Sellable;
+
+                gs.stg.slots[hi].inUse = true;
+                bool gateInUse = SlotMarketLogic.EvaluateSale(gs, hi).state == SlotMarketLogic.SaleState.InUse;
+                gs.stg.slots[hi].inUse = false;
+
+                // 「在办预留」的证据必须是**这条航线还在办**（在办准入许可），
+                // 而不是持仓上残留的一个 routeId —— 否则撤线留下的脏字段会把干净的闲置槽永久判死。
+                gs.stg.slots[hi].usedByRouteId = "R-CHECK";
+                bool staleBindingSellable = SlotMarketLogic.EvaluateSale(gs, hi).state
+                                            == SlotMarketLogic.SaleState.Sellable;
+                if (gs.activeRoutes == null) gs.activeRoutes = new List<RouteData>();
+                gs.activeRoutes.Add(new RouteData { routeId = "R-CHECK" });
+                gs.inbox.Add(new InboxMail
+                {
+                    id = "m_perm_check",
+                    action = "open_route",
+                    status = "pending",
+                    permitStage = RoutePermitLogic.StageReview,
+                    slotRouteId = "R-CHECK"
+                });
+                bool gateReserved = SlotMarketLogic.EvaluateSale(gs, hi).state == SlotMarketLogic.SaleState.Reserved;
+                gs.inbox.RemoveAll(x => x != null && x.id == "m_perm_check");
+                gs.activeRoutes.RemoveAll(x => x != null && x.routeId == "R-CHECK");
+                gs.stg.slots[hi].usedByRouteId = "";
+
+                int turnNow = RoutePermitLogic.Turn(gs.year, gs.quarter);
+                gs.stg.slots[hi].expiresTurn = turnNow;
+                bool gateExpired = SlotMarketLogic.EvaluateSale(gs, hi).state == SlotMarketLogic.SaleState.Expired;
+                gs.stg.slots[hi].expiresTurn = -1;
+
+                bool listedBlocked = SlotMarketLogic.ListOwn(gs, hi, out _);
+                bool gateListed = SlotMarketLogic.EvaluateSale(gs, hi).state == SlotMarketLogic.SaleState.Listed;
+                mkt.mine.Clear();
+
+                if (!sellableIdle || !gateInUse || !gateReserved || !staleBindingSellable
+                    || !gateExpired || !listedBlocked || !gateListed)
+                    Debug.LogError($"R47 ⑩ 可售判定不符：闲置可售={sellableIdle} 在飞={gateInUse}"
+                                   + $" 在办预留={gateReserved} 陈旧绑定不拦={staleBindingSellable}"
+                                   + $" 已过期={gateExpired} 可挂牌={listedBlocked} 已挂牌={gateListed}");
+
+                // 租一季：收租、持仓不移除、季末收回、租期内不可售
+                float cashBeforeLease = gs.cash;
+                bool rented = SlotMarketLogic.AcceptLease(gs, leaseApt, leaseClk, "测试航司", 120f, out string leaseMsg);
+                bool rentPaid = Mathf.Abs(gs.cash - (cashBeforeLease + 120f)) < 0.01f;
+                bool holdingKept = gs.stg.slots.Contains(hold);
+                bool leasedState = SlotMarketLogic.EvaluateSale(gs, SlotIdx()).state
+                                   == SlotMarketLogic.SaleState.Leased;
+                bool leaseSellBlocked = !SlotMarketLogic.ListOwn(gs, SlotIdx(), out _);
+                // 出租中的槽不得被 use-it-or-lose-it 收回
+                hold.expiresTurn = turnNow;      // 已到收回时点
+                SlotUsageLogic.ReleaseIdleHoldings(gs, turnNow, out _, out _);
+                bool leaseSurvives = gs.stg.slots.Contains(hold);
+                hold.expiresTurn = turnNow + 5;  // 收回后恢复有效期，才谈得上「可售」
+                // 季末收回
+                gs.quarter = 2;
+                SlotMarketLogic.ReleaseExpiredLeases(gs);
+                bool leaseReturned = hold.leasedUntilTurn < 0 && string.IsNullOrEmpty(hold.leasedTo);
+                bool sellableAgain = gs.stg.slots.Contains(hold)
+                                     && SlotMarketLogic.EvaluateSale(gs, SlotIdx()).state
+                                        == SlotMarketLogic.SaleState.Sellable;
+                if (!rented || !rentPaid || !holdingKept || !leasedState || !leaseSellBlocked
+                    || !leaseSurvives || !leaseReturned || !sellableAgain)
+                    Debug.LogError($"R47 ⑩ 租一季不符：出租={rented}（{leaseMsg}） 收租={rentPaid}"
+                                   + $" 持仓保留={holdingKept} 租期不可售={leasedState && leaseSellBlocked}"
+                                   + $" 不被 UOL 收回={leaseSurvives} 季末收回={leaseReturned} 收回后可售={sellableAgain}");
+
+                bool saleOk = sellableIdle && gateInUse && gateReserved && staleBindingSellable && gateExpired
+                              && listedBlocked && gateListed
+                              && rented && rentPaid && holdingKept && leasedState && leaseSellBlocked
+                              && leaseSurvives && leaseReturned && sellableAgain;
+
                 bool all = rollOk && listingShapeOk && poolFull && bought && cashCharged && heldAdded
                            && availAfter >= 0 && expiresOk
                            && !brokeBought && brokeMessaged && brokeIntact
                            && listedOk && dupBlocked && inUseBlocked
                            && anyOffer && mailCount > 0 && declined && stillListed
                            && sold && paidIn && holdingGone && delisted && ghostBlocked
-                           && withdrawn && offerClosed && noRefill;
+                           && withdrawn && offerClosed && noRefill && saleOk;
 
                 Debug.Log($"R47 时刻二级市场（{apt} {clock}·市价 {fair:F0} 万）→ "
                           + $"货架 {mkt.listings.Count} 条 roll={rollOk}"

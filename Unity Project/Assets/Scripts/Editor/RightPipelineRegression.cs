@@ -193,13 +193,55 @@ namespace AirlineCEO.EditorTools
                                    + $"（余 {stg.governmentRelation:F1}，应为 {60f - localCost:F1}）");
                 gs.hubIata = "PEK";
 
+                // ⑦ 独立购置（★2026-11-05 用户裁定）：除开航联动外，运营部每季可为
+                //   不定期航班/代码共享/储备占坑/置换单独递购权提案。钉四件事：
+                //   递的是同一种 apply_right 邮件（id 带 m_right_stg_ 前缀）、同对判重、
+                //   已持有不递、季钩每季至多 MaxPerQuarter 份且不抛异常。
+                Reset(gs);
+                stg = StrategyManager.EnsureState(gs);
+                gs.hubIata = "PEK";
+                bool stgQueued = RightAcquisitionLogic.TryQueueStandalone(gs, "PEK", "SIN", out string stgMsg);
+                InboxMail stgMail = null;
+                for (int i = 0; i < gs.inbox.Count; i++)
+                    if (RightAcquisitionLogic.IsStandalone(gs.inbox[i])) stgMail = gs.inbox[i];
+                bool stgMarked = stgMail != null && stgMail.action == "apply_right";
+                bool stgDup = !RightAcquisitionLogic.TryQueueStandalone(gs, "PEK", "SIN", out _);
+                stg.rights.Add(new RouteRight { origin = "PEK", destination = "SIN", freedom = 5, status = "approved" });
+                bool stgHeld = !RightAcquisitionLogic.TryQueueStandalone(gs, "PEK", "SIN", out _);
+                Reset(gs);
+                gs.hubIata = "PEK";
+                bool hookOk = true;
+                int totalStg = 0;
+                for (int q = 0; q < 12; q++)
+                {
+                    int before = CountStandalone(gs);
+                    try { RightAcquisitionLogic.TickQuarter(gs); }
+                    catch (System.Exception e)
+                    {
+                        hookOk = false;
+                        Debug.LogError("R46 ⑦ 独立购置季钩抛异常：" + e);
+                    }
+                    int added = CountStandalone(gs) - before;
+                    if (added > RightAcquisitionLogic.MaxPerQuarter) hookOk = false;
+                    totalStg += added;
+                    gs.quarter++;
+                    if (gs.quarter > 4) { gs.quarter = 1; gs.year++; }
+                }
+                bool stgOk = stgQueued && stgMarked && stgDup && stgHeld && hookOk;
+                if (!stgOk)
+                    Debug.LogError($"R46 ⑦ 独立购置不符：首递={stgQueued}（{stgMsg}）　同种邮件={stgMarked}"
+                                   + $"　同对被挡={stgDup}　已持有不递={stgHeld}　季钩={hookOk}"
+                                   + $"（12 季共 {totalStg} 份，每季上限 {RightAcquisitionLogic.MaxPerQuarter}）");
+
                 bool all = costOk && deducted && lowRejected && up && capped && fixedNegative
-                           && queuedOnce && requeued && noEmptyAsk && q1 && q2 && dupBlocked && freedomOk;
+                           && queuedOnce && requeued && noEmptyAsk && q1 && q2 && dupBlocked && freedomOk && stgOk;
 
                 Debug.Log($"R46 航权办理链路 → 成本 {cost:F0} 点同源={costOk && deducted}　点数不足拒绝={lowRejected}"
                           + $"\n　政府关系：每季+{per:F0}={up}　封顶={capped}　负值回正={fixedNegative}"
                           + $"\n　死锁：首次递单={queuedOnce}　被拒后再递={requeued}（{secondId ?? "无"}）　点数不足不递空单={noEmptyAsk}"
                           + $"\n　按对判重：同对重复被挡={dupBlocked}"
+                          + $"\n　⑦ 独立购置：首递={stgQueued}　同种邮件={stgMarked}　同对被挡={stgDup}"
+                          + $"　已持有不递={stgHeld}　季钩12季={hookOk}（共 {totalStg} 份）"
                           + $"\n　档位（巴黎基地）：CDG—SIN={fLocal}（应 3）　PEK—SIN={fBeyond}（应 5）"
                           + $"　PEK—PVG={fCabotage}（应 -1）　PEK—SHA={fDomestic}（应 0）"
                           + $"\n　{all.ToString().Replace("True", "✓").Replace("False", "✗")}");
@@ -209,6 +251,16 @@ namespace AirlineCEO.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(go);
             }
+        }
+
+        /// <summary>收件箱里独立购置递的 apply_right 份数（⑦ 用）。</summary>
+        static int CountStandalone(GameState gs)
+        {
+            int n = 0;
+            if (gs?.inbox == null) return 0;
+            for (int i = 0; i < gs.inbox.Count; i++)
+                if (RightAcquisitionLogic.IsStandalone(gs.inbox[i])) n++;
+            return n;
         }
 
         /// <summary>各段之间复位：清空收件箱/航权持仓、点数归位，避免上一段的状态污染下一段。</summary>

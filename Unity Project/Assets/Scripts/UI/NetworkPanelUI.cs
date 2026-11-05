@@ -29,6 +29,10 @@ namespace AirlineCEO.UI
         StrategySubpagePanel _rightsPanel;
         GameObject _routeRoot;
         OpenRouteModalUI _routeEmbed;
+        // ★2026-11-05：原 n77「航权准入办理进度」卡搬入本页，改名「待开通航线办理进度」。
+        GameObject _permitRoot;
+        RectTransform _permitList;
+        TextMeshProUGUI _permitCount;
         bool _showAllCities = true;
         string _expandedContinent = "";
         string _expandedCountry = "";
@@ -76,18 +80,39 @@ namespace AirlineCEO.UI
             var ovImg = _overviewRoot.GetComponent<Image>();
             if (ovImg != null) { ovImg.color = new Color(0, 0, 0, 0); ovImg.raycastTarget = false; }
 
+            // ———— 2026-11-05 重排（用户裁定）————
+            // 「航权准入办理进度」从 n77 搬进本页并改名「待开通航线办理进度」：
+            // 在办开航本就是航线的事，看航线时顺手就能看到哪几条在办、办到第几关。
+            // 版式自上而下四段：KPI 两行 / 办理进度卡（定高）/ 列表标题 / 在营航线列表。
             _kpiText = UIFactory.Label(_overviewRoot.transform, "Kpi", "统计加载中…", 14, TextAlignmentOptions.TopLeft,
-                new UIFactory.Anchor(new Vector2(0.02f, 0.86f), new Vector2(0.98f, 0.99f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.02f, 0.885f), new Vector2(0.98f, 0.995f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
             _kpiText.textWrappingMode = TextWrappingModes.Normal;
 
+            _permitRoot = UIFactory.Panel(_overviewRoot.transform, "PermitProg",
+                new UIFactory.Anchor(new Vector2(0.02f, 0.545f), new Vector2(0.98f, 0.875f), Vector2.zero, Vector2.zero),
+                UITheme.PanelDeep);
+            var permitImg = _permitRoot.GetComponent<Image>();
+            if (permitImg != null) permitImg.raycastTarget = false;
+            var permitTitle = UIFactory.Label(_permitRoot.transform, "T", "待开通航线办理进度", 13,
+                TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.02f, 0.82f), new Vector2(0.70f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary, FontStyles.Bold);
+            UIFactory.ClampSingleLine(permitTitle);
+            _permitCount = UIFactory.Label(_permitRoot.transform, "N", "无", 12,
+                TextAlignmentOptions.MidlineRight,
+                new UIFactory.Anchor(new Vector2(0.70f, 0.82f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero),
+                UITheme.TextMuted, FontStyles.Bold);
+            _permitList = UIFactory.VerticalScrollArea(_permitRoot.transform, "Scroll",
+                new UIFactory.Anchor(new Vector2(0.01f, 0.03f), new Vector2(0.99f, 0.80f), Vector2.zero, Vector2.zero));
+
             UIFactory.Label(_overviewRoot.transform, "ListTitle", "已开通航线（点击查看详情）", 15,
                 TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.02f, 0.78f), new Vector2(0.6f, 0.85f), Vector2.zero, Vector2.zero),
+                new UIFactory.Anchor(new Vector2(0.02f, 0.485f), new Vector2(0.6f, 0.535f), Vector2.zero, Vector2.zero),
                 UITheme.TextMuted);
 
             _listRoot = UIFactory.VerticalScrollArea(_overviewRoot.transform, "RouteList",
-                new UIFactory.Anchor(new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.78f), Vector2.zero, Vector2.zero));
+                new UIFactory.Anchor(new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.475f), Vector2.zero, Vector2.zero));
             var vlg = _listRoot.gameObject.AddComponent<VerticalLayoutGroup>();
             vlg.padding = new RectOffset(12, 28, 12, 12);
             vlg.spacing = 10;
@@ -286,7 +311,82 @@ namespace AirlineCEO.UI
                     $"准点率 {gs.onTimePercent:F0}% · 客座率 {gs.loadFactorPercent:F0}% · 平均航距见单航线详情";
             }
 
+            RebuildPermitProgress(gs);
             RebuildCards(gs);
+        }
+
+        /// <summary>
+        /// 「待开通航线办理进度」卡（★2026-11-05 用户裁定：自 n77「航权准入办理进度」搬入本页并改名）。
+        /// 行式与旧卡一致：每条在办一行（进度文案 + 九关分段条）；空态讲清航权从哪来，
+        /// 免得搬走入口后玩家找不到「那航权去哪办」。
+        /// </summary>
+        void RebuildPermitProgress(GameState gs)
+        {
+            if (_permitList == null) return;
+            for (int i = _permitList.childCount - 1; i >= 0; i--)
+                DestroyImmediate(_permitList.GetChild(i).gameObject);
+
+            var permits = RoutePermitLogic.InFlightPermits(gs);
+            if (_permitCount != null)
+            {
+                _permitCount.text = permits.Count > 0 ? $"{permits.Count} 项" : "无";
+                _permitCount.color = permits.Count > 0 ? UITheme.Warning : UITheme.TextMuted;
+            }
+
+            float y = 4f;
+            for (int i = 0; i < permits.Count; i++)
+            {
+                PermitProgressRow(_permitList, permits[i], y, 72f);
+                y += 80f;
+            }
+            if (permits.Count == 0)
+            {
+                var empty = UIFactory.Label(_permitList, "Empty",
+                    "暂无在办。把国际线递进「航线 → 开通新航线」，许可审查缺那一对额度时，运营部会自动把申请送进收件箱；办妥发证后自动开航并计入下方「已开通航线」。\n"
+                    + $"第三/第四航权（本国 ↔ 对方）约 {StrategyManager.RightCost(3):F0} 点政府关系，"
+                    + $"第五航权（他国 ↔ 他国）约 {StrategyManager.RightCost(5):F0} 点；每季回升 "
+                    + $"{StrategyManager.GovernmentRelationPerQuarter:F0} 点（上限 {StrategyManager.GovernmentRelationCap:F0}）。",
+                    11, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
+                UIFactory.PinFromTop(empty.gameObject, 4f, 60f, 0.02f, 0.98f);
+                y = 72f;
+            }
+            UIFactory.SetScrollContentHeight(_permitList, y + 8f);
+        }
+
+        static void PermitProgressRow(RectTransform host, InboxMail mail, float y, float h)
+        {
+            var row = UIFactory.Panel(host, "P" + (mail != null ? mail.id : "x"), UIFactory.Fill,
+                new Color(0.04f, 0.10f, 0.18f, 0.85f));
+            UIFactory.PinFromTop(row, y, h, 0.01f, 0.99f);
+
+            string line = RoutePermitLogic.ProgressLine(mail,
+                AirlineCEO.Systems.GameState.Instance != null
+                    ? AirlineCEO.Systems.GameState.Instance.SimUtc
+                    : System.DateTime.UtcNow);
+            UIFactory.Label(row.transform, "L", line, 12, TextAlignmentOptions.MidlineLeft,
+                new UIFactory.Anchor(new Vector2(0.02f, 0.58f), new Vector2(0.98f, 0.96f), Vector2.zero, Vector2.zero),
+                UITheme.TextPrimary);
+
+            int node = RoutePermitLogic.DisplayNode(mail);
+            bool denied = mail != null && mail.permitStage == RoutePermitLogic.StageDenied;
+            Color fill = denied ? UITheme.Danger : UITheme.Accent;
+            // 九关（原为六关），段宽按关数均分 —— 写死步长会让第 7~9 段溢出右边界。
+            int steps = RoutePermitLogic.NodeLast;
+            float segW = 0.96f / steps;
+            for (int s = 1; s <= steps; s++)
+            {
+                float x0 = 0.02f + (s - 1) * segW;
+                float x1 = x0 + segW * 0.92f;
+                bool on = s <= node;
+                var seg = UIFactory.Panel(row.transform, "S" + s,
+                    new UIFactory.Anchor(new Vector2(x0, 0.14f), new Vector2(x1, 0.42f), Vector2.zero, Vector2.zero),
+                    on ? fill : UITheme.NavIdle);
+                var img = seg.GetComponent<Image>();
+                if (img != null) img.raycastTarget = false;
+                UIFactory.Label(seg.transform, "N", RoutePermitLogic.NodeShort(s), 10,
+                    TextAlignmentOptions.Center,
+                    UIFactory.Fill, on ? UITheme.TextPrimary : UITheme.TextMuted);
+            }
         }
 
         void RebuildEconomy(GameState gs)
@@ -469,33 +569,12 @@ namespace AirlineCEO.UI
                 return;
             }
 
-            var permits = RoutePermitLogic.InFlightPermits(gs);
-            for (int i = 0; i < permits.Count; i++)
-            {
-                string line = "拟开航 · 准入办理中 · " + RoutePermitLogic.ProgressLine(permits[i],
-                    AirlineCEO.Systems.GameState.Instance != null
-                        ? AirlineCEO.Systems.GameState.Instance.SimUtc
-                        : System.DateTime.UtcNow)
-                    + "\n进度见「航权与时刻槽」；异议或重申在收件箱处理";
-                var pl = UIFactory.Label(_listRoot, "Permit" + i, line, 13,
-                    TextAlignmentOptions.TopLeft,
-                    new UIFactory.Anchor(new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, Vector2.zero),
-                    UITheme.Warning);
-                pl.textWrappingMode = TextWrappingModes.Normal;
-                pl.overflowMode = TextOverflowModes.Truncate;
-                pl.lineSpacing = 2f;
-                var ple = pl.gameObject.AddComponent<LayoutElement>();
-                ple.minHeight = 56f;
-                ple.preferredHeight = 56f;
-                _cards.Add(pl.gameObject);
-            }
-
+            // ★2026-11-05：在办许可不再以文本行混进本列表 —— 上方「待开通航线办理进度」卡
+            // 已给出同一批条目（带九关分段条），列表只放真正在营的航线卡。
             if (gs.activeRoutes.Count == 0)
             {
                 var empty = UIFactory.Label(_listRoot, "Empty",
-                    permits.Count > 0
-                        ? "暂无在营航线 — 上方为在办准入许可，办妥发证后自动开航"
-                        : "暂无航线 — 点「开通新航线」进行 RPM 评估与开线决策",
+                    "暂无航线 — 点「开通新航线」进行 RPM 评估与开线决策；在办开航见上方「待开通航线办理进度」",
                     15, TextAlignmentOptions.Center,
                     new UIFactory.Anchor(new Vector2(0, 0.6f), new Vector2(1, 1), Vector2.zero, Vector2.zero),
                     UITheme.TextMuted);

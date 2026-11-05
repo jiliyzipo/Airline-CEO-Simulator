@@ -156,7 +156,8 @@ namespace AirlineCEO.UI
                 "·→—…【】（）：，。！？Q¥$%≥≤" +
                 "埃里克索尔伯格陈慧玲卡洛斯费尔南德斯娜奥米坦纳伊万索科洛夫玛丽亚桑托斯" +
                 "乔纳森布莱克伊莎贝拉罗西阿米特辛格金秀贤马库斯温特穆罕默德拉希德" +
-                "拟开航准入办理进度航权时刻槽异议重申材料运力审查节点通过率预计受阻公示批复发证核准";
+                "拟开航准入办理进度航权时刻槽异议重申材料运力审查节点通过率预计受阻公示批复发证核准" +
+                "待开通航线办理进度";
             fa.TryAddCharacters(sample);
             fa.TryAddCharacters(EssentialChinese);
             EnsureSymbolFallback(fa);

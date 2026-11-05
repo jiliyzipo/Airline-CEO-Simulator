@@ -44,6 +44,126 @@ namespace AirlineCEO.Logic
         /// <summary>我司挂牌的定价基准：市价上浮一成半（留出让价空间，也解释「为什么没人理」）。</summary>
         public const float AskPremium = 1.15f;
 
+        /// <summary>
+        /// 每季最多收到几份「租一季」询价（★2026-11-05）。
+        /// 与购买意向分开计：租是「变现但保权」，卖断是「变现但丢权」，两种报价可同季到达。
+        /// </summary>
+        public const int MaxLeaseOffersPerQuarter = 1;
+
+        /// <summary>租一季的租金区间（占市价的百分比）：现实里远低于卖断价，因为租期只有一个航季。</summary>
+        public const float LeaseRentMin = 0.18f;
+        public const float LeaseRentMax = 0.32f;
+
+        /// <summary>
+        /// 一条持仓的「可售判断」（★2026-11-05 用户裁定：只上四条硬闸）。
+        ///
+        /// 现实依据：时刻是航季内的使用许可，不是产权 —— 在飞的槽卖不掉（必须先停/减班腾出来），
+        /// 过期的槽无权利可卖，被在办流程预占的槽卖了会把流程打回「缺槽」。
+        /// 出租中的槽也不能卖：标的还在租约里，产权虽归我司但本季不可交割。
+        /// </summary>
+        public enum SaleState
+        {
+            Sellable = 0,
+            InUse = 1,
+            Listed = 2,
+            Expired = 3,
+            Reserved = 4,
+            Leased = 5
+        }
+
+        public struct SaleVerdict
+        {
+            public SaleState state;
+            public string label;     // 状态标签（页面直接用）
+            public string reason;    // 一句为什么（不可售时写清怎么才能卖）
+            public bool sellable => state == SaleState.Sellable;
+        }
+
+        /// <summary>判定某条持仓能不能卖（四条硬闸 + 租约占用）。</summary>
+        public static SaleVerdict EvaluateSale(GameState gs, int holdingIndex)
+        {
+            var v = new SaleVerdict { state = SaleState.Expired, label = "不可售", reason = "该时刻槽不存在。" };
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null) return v;
+            if (holdingIndex < 0 || holdingIndex >= stg.slots.Count) return v;
+            var h = stg.slots[holdingIndex];
+            if (h == null) return v;
+
+            var mkt = Ensure(gs);
+            int turn = RoutePermitLogic.Turn(gs.year, gs.quarter);
+
+            if (h.inUse)
+            {
+                v.state = SaleState.InUse;
+                v.label = "在飞·不可售";
+                v.reason = "正在被班次占用。现实里卖槽前必须先停飞或减班把槽腾出来 —— 请先在「周计划及航班环」调开该班次。";
+                return v;
+            }
+            if (IsListed(mkt, h.airport, RoutePermitLogic.SlotRequestClock(h.slotTime)))
+            {
+                v.state = SaleState.Listed;
+                v.label = "已挂牌";
+                v.reason = "已在二级市场挂牌，等买家出价；批复在收件箱。";
+                return v;
+            }
+            if (h.expiresTurn >= 0 && h.expiresTurn <= turn)
+            {
+                v.state = SaleState.Expired;
+                v.label = "已过期";
+                v.reason = "已过 use-it-or-lose-it 收回时点，权利灭失，无可出售。";
+                return v;
+            }
+            if (h.leasedUntilTurn >= 0 && h.leasedUntilTurn > turn)
+            {
+                v.state = SaleState.Leased;
+                v.label = "出租中";
+                v.reason = $"本季租给{LeaseTenant(h)}，季末收回；租约期内不可出售或改绑班次。";
+                return v;
+            }
+            if (!string.IsNullOrEmpty(h.usedByRouteId) && RouteAwaitingSlot(gs, h.usedByRouteId))
+            {
+                v.state = SaleState.Reserved;
+                v.label = "在办预留";
+                v.reason = "已被在办航线预占（尚未投运）。卖掉会把该流程打回「缺槽」，先办完或撤件。";
+                return v;
+            }
+
+            v.state = SaleState.Sellable;
+            v.label = "可售";
+            v.reason = $"运营部可代挂二级市场；参考价约 {SuggestedAskWan(h.airport, h.slotTime):F0} 万。";
+            return v;
+        }
+
+        /// <summary>
+        /// 这条航线是否**还在办**（准入许可未结）。
+        ///
+        /// ★2026-11-05：判「在办预留」不能只看 <see cref="SlotHolding.usedByRouteId"/> 是否非空 ——
+        /// 航线撤线时该字段可能残留（旧档、异常路径），拿它当判据会把一堆干净的闲置槽永久判成不可售。
+        /// 真正的证据是**收件箱里还有这张准入许可在办**：只有那时卖掉槽才会把流程打回「缺槽」。
+        /// </summary>
+        static bool RouteAwaitingSlot(GameState gs, string routeId)
+        {
+            if (string.IsNullOrEmpty(routeId) || gs == null) return false;
+            var permits = RoutePermitLogic.InFlightPermits(gs);
+            for (int i = 0; i < permits.Count; i++)
+            {
+                if (string.Equals(InboxManager.RouteIdOf(gs, permits[i]), routeId,
+                                  System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        static string LeaseTenant(SlotHolding h)
+            => string.IsNullOrEmpty(h?.leasedTo) ? "他航" : h.leasedTo;
+
+        /// <summary>这条持仓当前是否在租约期内（其它模块判断可用性时用）。</summary>
+        public static bool IsLeasedOut(GameState gs, SlotHolding h)
+        {
+            if (gs == null || h == null) return false;
+            return h.leasedUntilTurn >= 0 && h.leasedUntilTurn > RoutePermitLogic.Turn(gs.year, gs.quarter);
+        }
+
         /// <summary>挂牌在货架上最多挂几个季度，逾期自动下架（避免陈旧叫价长期占用名额）。</summary>
         public const int ListingShelfQuarters = 3;
 
@@ -299,15 +419,12 @@ namespace AirlineCEO.Logic
             var mkt = Ensure(gs);
             var h = stg.slots[holdingIndex];
             if (h == null) { message = "该时刻槽不存在。"; return false; }
-            if (h.inUse)
+            // 统一走可售判定：四条硬闸 + 租约占用，口径只此一处，
+            // 免得「页面说可售、点了却说不行」这种两套判据的老毛病。
+            var verdict = EvaluateSale(gs, holdingIndex);
+            if (!verdict.sellable)
             {
-                message = $"{h.airport} {ScheduleSlots.BandNameToClock(h.slotTime)} 正在被班次占用，不能挂牌；"
-                          + "请先在「周计划及航班环」把该班次调开。";
-                return false;
-            }
-            if (IsListed(mkt, h.airport, h.slotTime))
-            {
-                message = "这条槽已经在挂牌中。";
+                message = $"{h.airport} {ScheduleSlots.BandNameToClock(h.slotTime)} 不可挂牌（{verdict.label}）：{verdict.reason}";
                 return false;
             }
             if (mkt.mine.Count >= MaxOwnListings)
@@ -376,19 +493,7 @@ namespace AirlineCEO.Logic
 
         /// <summary>挂牌对应的持仓下标（−1 = 找不到，说明槽已被考核收回或卖了）。</summary>
         public static int HoldingIndexOf(GameState gs, SlotMarketListing listing)
-        {
-            var stg = StrategyManager.EnsureState(gs);
-            if (stg?.slots == null || listing == null) return -1;
-            for (int i = 0; i < stg.slots.Count; i++)
-            {
-                var h = stg.slots[i];
-                if (h == null) continue;
-                if (!string.Equals(h.airport, listing.airport, System.StringComparison.OrdinalIgnoreCase)) continue;
-                if (ScheduleSlots.ClockDiff(h.slotTime, listing.clock) > ScheduleSlots.SlotToleranceMinutes) continue;
-                return i;
-            }
-            return -1;
-        }
+            => listing == null ? -1 : HoldingIndexOf(gs, listing.airport, listing.clock);
 
         static void PruneExpired(GameState gs)
         {
@@ -427,6 +532,7 @@ namespace AirlineCEO.Logic
             // ★2026-11-05：挂牌按钮随「挑机场×时刻不是 CEO 的事」删除后，「我司挂牌」
             //   若无来源，卖出闭环（他航出价 → 收件箱批过户）与只读页右栏全是死内容。
             //   改由运营部每季代挂闲置槽；卖不卖仍由 CEO 在出价邮件里批。
+            ReleaseExpiredLeases(gs, mkt);
             AutoListIdleSlots(gs, mkt);
 
             var rng = new System.Random(gs.year * 29 + gs.quarter * 41 + 7717);
@@ -466,6 +572,109 @@ namespace AirlineCEO.Logic
                 InboxManager.QueueSlotSaleOffer(gs, offer);
                 made++;
             }
+
+            TryQueueLeaseOffer(gs, mkt, rng);
+        }
+
+        /// <summary>
+        /// 每季对他航「租一季」询价（★2026-11-05 用户裁定）。
+        ///
+        /// 现实依据：航司更常**租**不**卖** —— 卖断永久失去祖父条款，租一季收租金、季末收回、
+        /// 历史优先权仍归我司。故这里只向「可售」状态的槽摇询价（出租与挂牌互斥），
+        /// 租金按市价 18%~32%（一个航季的使用权，远低于卖断）。
+        /// 批准 = <see cref="AcceptLease"/>，本季该槽不再可售、不可绑班次，季末自动收回。
+        /// </summary>
+        static void TryQueueLeaseOffer(GameState gs, SlotMarketState mkt, System.Random rng)
+        {
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null || mkt == null) return;
+            if ((float)rng.NextDouble() > 0.55f) return;
+
+            for (int i = 0; i < stg.slots.Count; i++)
+            {
+                if (!EvaluateSale(gs, i).sellable) continue;
+                var h = stg.slots[i];
+                if (InboxManager.HasOpenLeaseOffer(gs, h.airport, h.slotTime)) continue;
+
+                string tenant = SellerPool[rng.Next(SellerPool.Length)];
+                float fair = FairValueWan(h.airport, h.slotTime);
+                if (fair <= 0f) fair = 1f;
+                float rent = RoundAsk(fair * (LeaseRentMin + (float)rng.NextDouble() * (LeaseRentMax - LeaseRentMin)));
+                // 询价是一次性的：同一条槽一季只问一次，拒绝后下季另摇。
+                InboxManager.QueueSlotLeaseOffer(gs, h.airport, h.slotTime, tenant, rent);
+                return;
+            }
+        }
+
+        /// <summary>季末收回到期租约：承租方飞完这个航季，槽回到我司名下可再处置。</summary>
+        public static void ReleaseExpiredLeases(GameState gs, SlotMarketState mkt = null)
+        {
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null) return;
+            int turn = RoutePermitLogic.Turn(gs.year, gs.quarter);
+            for (int i = 0; i < stg.slots.Count; i++)
+            {
+                var h = stg.slots[i];
+                if (h == null || h.leasedUntilTurn < 0) continue;
+                if (h.leasedUntilTurn > turn) continue;
+                string who = string.IsNullOrEmpty(h.leasedTo) ? "他航" : h.leasedTo;
+                h.leasedUntilTurn = -1;
+                h.leasedTo = "";
+                gs.AddDecisionLog($"战略：{ScheduleSlots.SlotLabel(h.airport, h.slotTime)} 租约到期收回（承租方 {who}），"
+                                  + "该槽回到我司名下，历史优先权保留。");
+            }
+        }
+
+        /// <summary>
+        /// 接受「租一季」询价：收租金，槽标记为出租至本季末。
+        /// **不从持仓移除** —— 这正是它与卖断的区别（卖断丢权，租一季保权）。
+        /// </summary>
+        public static bool AcceptLease(GameState gs, string airport, string clock, string tenant, float rentWan,
+            out string message)
+        {
+            message = "";
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null) { message = "游戏未就绪"; return false; }
+            int idx = HoldingIndexOf(gs, airport, clock);
+            if (idx < 0) { message = $"{airport} {clock} 已不在持仓里，无法出租。"; return false; }
+
+            var verdict = EvaluateSale(gs, idx);
+            if (!verdict.sellable)
+            {
+                message = $"{airport} {clock} 无法出租（{verdict.label}）：{verdict.reason}";
+                return false;
+            }
+
+            var h = stg.slots[idx];
+            h.leasedUntilTurn = RoutePermitLogic.Turn(gs.year, gs.quarter) + 1;
+            h.leasedTo = tenant;
+            float cashBefore = gs.cash;
+            gs.cash += rentWan;
+            message = $"已出租：{airport} {clock} 给 {tenant} 一个航季，收租 {rentWan:F0} 万"
+                      + $" · 现金 {cashBefore:F0} → {gs.cash:F0} 万 · 季末收回，历史优先权保留";
+            gs.AddDecisionLog("战略：" + message);
+            gs.NotifyChanged();
+            return true;
+        }
+
+        /// <summary>按机场 + 时刻在持仓里找下标（-1 = 没有）。</summary>
+        public static int HoldingIndexOf(GameState gs, string airport, string clock)
+        {
+            var stg = StrategyManager.EnsureState(gs);
+            if (stg?.slots == null) return -1;
+            for (int i = 0; i < stg.slots.Count; i++)
+            {
+                var h = stg.slots[i];
+                if (h == null) continue;
+                if (!string.Equals(h.airport, airport, System.StringComparison.OrdinalIgnoreCase)) continue;
+                // ★2026-11-05：用与挂牌同一套容差口径。`SlotRequestClock` 会把请求时刻吸附到
+                // 最近的系列格点（ScheduleSlots.NearestSeries），严格字符串比对会让「吸附过的挂牌时刻」
+                // 找不到原持仓 —— 表现为「挂上去立刻被当孤儿剪掉」「租不出去」。
+                if (ScheduleSlots.ClockDiff(ScheduleSlots.BandNameToClock(h.slotTime), clock)
+                    <= ScheduleSlots.SlotToleranceMinutes)
+                    return i;
+            }
+            return -1;
         }
 
         static bool HasOpenOffer(SlotMarketState mkt, string listingId)
@@ -530,9 +739,16 @@ namespace AirlineCEO.Logic
 
             var stg = StrategyManager.EnsureState(gs);
             var h = stg.slots[idx];
-            if (h.inUse)
+            // 成交前再判一次可售：挂牌期间槽可能被绑上班次、进入租约或已过期。
+            var verdict = EvaluateSale(gs, idx);
+            if (!verdict.sellable && verdict.state != SaleState.Listed)
             {
-                message = $"{offer.airport} {offer.clock} 的槽正在被班次占用，无法过户；请先调开该班次。";
+                message = $"{offer.airport} {offer.clock} 无法过户（{verdict.label}）：{verdict.reason}";
+                return false;
+            }
+            if (IsLeasedOut(gs, h))
+            {
+                message = $"{offer.airport} {offer.clock} 正在租约期内，季末收回后才能过户。";
                 return false;
             }
 

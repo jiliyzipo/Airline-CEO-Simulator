@@ -49,6 +49,14 @@ namespace AirlineCEO.Systems
         public const string SellSlotAction = "sell_slot";
 
         /// <summary>
+        /// **他航求租一季**（★2026-11-05 用户裁定）。
+        ///
+        /// 现实依据：航司更常**租**不**卖** —— 卖断永久失去该槽的祖父条款，下一航季要重新排队入池；
+        /// 租一季只收租金，季末收回，历史优先权仍归我司（承租方按 80/20 飞满即可）。
+        /// 批准 = 收租并把该槽标记为出租至本季末（**不从持仓移除**）；拒绝 = 婉拒，下季另摇。
+        /// </summary>
+        public const string LeaseSlotAction = "lease_slot";
+        /// <summary>
         /// **许可加急**（2026-11-02，C 批）：花政府关系点数把许可工期压到六成。
         ///
         /// 现实依据：加急从来不是「排队靠前一点」，是动用人情与资源去推动（催办、边审边补件）。
@@ -584,6 +592,10 @@ namespace AirlineCEO.Systems
             if (mail.action == SellSlotAction)
                 return ApproveSlotSale(gs, mail, out message);
 
+            // 他航求租一季（★2026-11-05）：批准 = 收租并标记出租至季末，持仓不移除。
+            if (mail.action == LeaseSlotAction)
+                return ApproveSlotLease(gs, mail, out message);
+
             if (mail.action == CapacityDirectiveAction)
                 return ApproveCapacityDirective(gs, mail, out message);
 
@@ -1116,7 +1128,7 @@ namespace AirlineCEO.Systems
             sb.Append(InboxLetter.Section("进度汇报与提示"));
             sb.Append(InboxLetter.Bullet("每到一个节点，运营部会发一封进度汇报邮件（含最新流程节点图、通过率与下一步）。"));
             sb.Append(InboxLetter.Bullet("许可未发证前不得售票开航，本邮件即该航线的「许可办理单」。"));
-            sb.Append(InboxLetter.Bullet("办理进度见「航权与时刻槽」页；公示异议与不予许可的应对在本收件箱处理。"));
+            sb.Append(InboxLetter.Bullet("办理进度见「航线 → 航线总览 · 待开通航线办理进度」；公示异议与不予许可的应对在本收件箱处理。"));
             return sb.ToString();
         }
 
@@ -3989,7 +4001,71 @@ namespace AirlineCEO.Systems
         }
 
         /// <summary>
-        /// 这封邮件批准时是否必须**真的成交**（过户 / 扣款 / 划转）。
+        /// 本季是否已有针对这条槽的「租一季」询价在待批（防同一季对同一条槽重复发信）。
+        /// </summary>
+        public static bool HasOpenLeaseOffer(GameState gs, string airport, string clock)
+        {
+            if (gs?.inbox == null) return false;
+            string c = Logic.RoutePermitLogic.SlotRequestClock(clock);
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || m.action != LeaseSlotAction) continue;
+                if (!IsOpen(m)) continue;
+                if (!string.Equals(m.origin, airport, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!string.Equals(Logic.RoutePermitLogic.SlotRequestClock(m.slotClock), c, StringComparison.Ordinal)) continue;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 递一封「他航求租一季」询价。租金与承租方由调用方摇定（见 <c>SlotMarketLogic</c>），
+        /// 本函数只负责成信；批准走 <see cref="ApproveSlotLease"/>。
+        /// </summary>
+        public static bool QueueSlotLeaseOffer(GameState gs, string airport, string clock, string tenant, float rentWan)
+        {
+            if (gs == null) return false;
+            if (gs.inbox == null) gs.inbox = new List<InboxMail>();
+            string c = Logic.RoutePermitLogic.SlotRequestClock(clock);
+            string mailId = $"m_lease_{airport}_{c.Replace(":", "")}_{gs.year}q{gs.quarter}";
+            if (HasMailId(gs, mailId)) return false;
+
+            float fair = Logic.SlotMarketLogic.FairValueWan(airport, c);
+            float ratio = fair > 0f ? rentWan / fair : 0f;
+
+            Add(gs, new InboxMail
+            {
+                id = mailId,
+                sender = tenant,
+                role = "时刻租用询价",
+                glyph = "租",
+                kind = "report",
+                action = LeaseSlotAction,
+                origin = airport,
+                slotClock = c,
+                payloadCsv = rentWan.ToString("F0", System.Globalization.CultureInfo.InvariantCulture),
+                subject = $"{tenant} 愿以 {rentWan:F0} 万租用 {airport} {c} 时刻槽一个航季",
+                body =
+                    InboxLetter.Section("询价要点") +
+                    InboxLetter.Bullet($"标的　{airport} {c}（该时刻的时刻槽 1 条）") +
+                    InboxLetter.Bullet($"租金　{rentWan:F0} 万美元 / 一个航季"
+                                       + (fair > 0f ? $"（约为市价 {fair:F0} 万的 {ratio:P0}）" : "")) +
+                    InboxLetter.Bullet($"承租方　{tenant}") +
+                    InboxLetter.Section("时点与影响") +
+                    InboxLetter.Bullet("批准：**只出租、不出售** —— 现金立即入账，该槽季末收回") +
+                    InboxLetter.Bullet("历史优先权仍归我司：承租方按 80/20 飞满，下季该槽照旧归我司") +
+                    InboxLetter.Bullet("租约期内该槽不可出售、不可绑新班次") +
+                    InboxLetter.Bullet("拒绝：婉拒本次询价，槽继续闲置待用（闲置过久仍会按 use-it-or-lose-it 收回）") +
+                    InboxLetter.Bullet("租与卖的区别见「航线 → 航权与时刻槽 → 时刻二级市场」"),
+                tag = "提案",
+                receivedYear = gs.year,
+                receivedQuarter = gs.quarter,
+                time = gs.DateLabel,
+                deadlineQuarters = DefaultDeadlineQuarters
+            });
+            return true;
+        }
         ///
         /// 用途：收件箱的「批准」在处理器返回 false 时有一条兜底 —— 直接结案标 approved，
         /// 免得决策按钮永久挂着。那条兜底对请示件无害，但对**过户类**邮件是撒谎：
@@ -4003,7 +4079,8 @@ namespace AirlineCEO.Systems
             //   报障「12月2日批准，17日既没扣款也没有入库邮件」正是这条兜底在撒谎：
             //   订单找不到时 handler 返回 false，UI 却把邮件写成「已批准」，玩家以为办完了，
             //   而扣款与入库永远不会发生。失败就把原因留在提示条上、案子继续挂着，让 CEO 能拒绝或补条件。
-            return action == SellSlotAction || action == "parts_order";
+            // ★2026-11-05：租一季同样是「收钱换使用权」，批准失败（槽已挂牌/在飞/过期）不许被兜底标成已批准。
+            return action == SellSlotAction || action == LeaseSlotAction || action == "parts_order";
         }
 
         public static bool ApproveSlotSale(GameState gs, InboxMail mail, out string message)        {
@@ -4020,6 +4097,32 @@ namespace AirlineCEO.Systems
             if (mail == null) { message = "邮件无效。"; return false; }
             Logic.SlotMarketLogic.DeclineOffer(gs, mail.payloadCsv, out message);
             Mark(gs, mail.id, "rejected");
+            return true;
+        }
+
+        /// <summary>批准「租一季」：收租金、标记出租至本季末；持仓**不移除**。</summary>
+        public static bool ApproveSlotLease(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            if (mail == null) { message = "邮件无效。"; return false; }
+            float rent = 0f;
+            try
+            {
+                rent = float.Parse(mail.payloadCsv ?? "0",
+                    System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch { rent = 0f; }
+            bool ok = Logic.SlotMarketLogic.AcceptLease(gs, mail.origin, mail.slotClock, mail.sender, rent, out message);
+            if (ok) Mark(gs, mail.id, "approved");
+            return ok;
+        }
+
+        public static bool RejectSlotLease(GameState gs, InboxMail mail, out string message)
+        {
+            message = "";
+            if (mail == null) { message = "邮件无效。"; return false; }
+            Mark(gs, mail.id, "rejected");
+            message = "已婉拒本次租用询价；该槽继续闲置待用。";
             return true;
         }
 
@@ -7083,6 +7186,7 @@ namespace AirlineCEO.Systems
                 case AssignAircraftAction:
                 case "buy_slot":
                 case "apply_right":
+                case LeaseSlotAction:
                 case "ops_schedule":
                 case SeasonReviewAction:
                     return true;

@@ -1941,6 +1941,15 @@ namespace AirlineCEO.UI.Shell
                 RefreshDecisionButtons();
                 return;
             }
+            if (status == "rejected" && _selected.action == InboxManager.LeaseSlotAction)
+            {
+                // 租一季询价：拒绝 = 婉拒，槽继续闲置待用（不是出售也不是下架）。
+                InboxManager.RejectSlotLease(GameState.Instance, _selected, out string lsm);
+                if (_hint != null) _hint.text = lsm ?? "";
+                RebuildList();
+                RefreshDecisionButtons();
+                return;
+            }
             if (_selected.action == "reg_inspect")
             {
                 int choice = status == "deferred" ? 1 : 2;

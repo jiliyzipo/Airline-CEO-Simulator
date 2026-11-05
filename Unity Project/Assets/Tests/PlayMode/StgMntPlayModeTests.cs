@@ -94,6 +94,71 @@ namespace AirlineCEO.Tests.PlayMode
         Assert.IsNull(FindChild(go.transform, "SlotTarget"), "时刻读数必须消失");
         Assert.IsNull(FindChild(go.transform, "SlotPool"), "池况读数必须消失");
 
+        // ★2026-11-05（二次裁定）：左下是「航权办理进度」（apply_right 在办：开航联动+独立购置），
+        // 不是旧名「航权准入办理进度」——旧卡（带九关条的开航许可进度）已搬去「航线总览」。
+        var rightProg = FindChild(go.transform, "RightProg");
+        Assert.IsNotNull(rightProg, "「航权办理进度」卡必须在 n77 左下（已入账航权正下方）");
+        var rpTitle = FindChild(rightProg, "T");
+        Assert.IsNotNull(rpTitle, "航权进度卡缺标题");
+        StringAssert.Contains("航权办理进度", rpTitle.GetComponent<TMPro.TextMeshProUGUI>().text);
+        Assert.AreEqual("航权办理进度", rpTitle.GetComponent<TMPro.TextMeshProUGUI>().text,
+            "旧名「航权准入办理进度」已废止：开航许可进度在「航线总览」，本卡只列航权申请在办");
+        Assert.IsNotNull(FindChild(go.transform, "SlotProg"),
+            "「时刻槽办理进度」卡必须在 n77 右下（已入账时刻槽正下方，也是本页渲染哨兵）");
+
+        Object.Destroy(host);
+        Object.Destroy(gsHost);
+        yield return null;
+    }
+
+    /// <summary>
+    /// 右栏「我司持仓与可售判断」（★2026-11-05 用户裁定）：
+    /// 每条持仓给出状态标签，且**在飞与闲置分得开** —— 这是 CEO 判断「哪些能变现」的唯一依据。
+    /// 同时保证它仍是只读：这一栏不许长出任何下单/挂牌按钮。
+    /// </summary>
+    [UnityTest]
+    public IEnumerator SlotMarketPage_ShowsSellabilityVerdicts()
+    {
+        var host = new GameObject("SlotSellHost", typeof(RectTransform));
+        var gsHost = new GameObject("SlotSellGs");
+        var gs = gsHost.AddComponent<GameState>();
+        gs.inbox = new System.Collections.Generic.List<InboxMail>();
+        gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+        gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+        gs.fleet = new System.Collections.Generic.List<Aircraft>();
+        gs.cash = 3000f;
+        var stg = StrategyManager.EnsureState(gs);
+        stg.slots = new System.Collections.Generic.List<SlotHolding>
+        {
+            new SlotHolding { airport = "PEK", slotTime = "08:00", inUse = false },
+            new SlotHolding { airport = "PEK", slotTime = "12:00", inUse = true,
+                              usedByFlightNo = "CA1001", usedByRouteId = "PEK-PVG-1" },
+        };
+
+        var go = StrategyRuntimeFactory.TryCreate("n111_时刻二级市场", host.transform);
+        Assert.IsNotNull(go, "应能构建 n111 时刻二级市场");
+        yield return null;
+
+        var mine = FindChild(go.transform, "MkMine");
+        Assert.IsNotNull(mine, "缺右侧「我司持仓与可售判断」列表");
+
+        var texts = mine.GetComponentsInChildren<TMPro.TextMeshProUGUI>();
+        string Joined()
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < texts.Length; i++) sb.Append(texts[i].text).Append('\n');
+            return sb.ToString();
+        }
+        string all = Joined();
+
+        StringAssert.Contains("[可售]", all, "闲置槽必须标「可售」——不然 CEO 不知道哪些能变现");
+        StringAssert.Contains("[在飞·不可售]", all, "在飞槽必须标不可售：卖之前得先停/减班腾出来");
+        StringAssert.Contains("可售 1", all, "计数条应给出可售条数");
+
+        // 只读边界不变：这一栏不许长出下单/挂牌按钮。
+        Assert.IsNull(FindChild(go.transform, "MkBuy"), "可售判断不等于买入按钮");
+        Assert.IsNull(FindChild(go.transform, "MkList"), "可售判断不等于挂牌按钮");
+
         Object.Destroy(host);
         Object.Destroy(gsHost);
         yield return null;
@@ -132,6 +197,70 @@ namespace AirlineCEO.Tests.PlayMode
         Assert.IsNull(FindChild(go.transform, "SlotFree"), "协调池申请不该出现在二级市场页");
         Assert.IsNull(FindChild(go.transform, "MkGoPool"),
             "「去协调池申请」按钮已按用户要求删除 —— 取得时刻槽只剩运营部提案一条路");
+
+        Object.Destroy(host);
+        Object.Destroy(gsHost);
+        yield return null;
+    }
+
+    /// <summary>
+    /// ★2026-11-05 用户裁定：「航权准入办理进度」自 n77 搬入「航线总览」并改名
+    /// 「待开通航线办理进度」。这里钉三件事：
+    /// ① 总览页有这张卡（PermitProg），标题是新名字，计数与在办条目对得上；
+    /// ② 在办许可以行式（P&lt;mailId&gt;）出现在卡内，旧版混在航线列表里的
+    ///    「拟开航 · 准入办理中」文本行不再出现；
+    /// ③ 清空在办后计数回「无」并给出空态指路（玩家得知道航权从哪来）。
+    /// </summary>
+    [UnityTest]
+    public IEnumerator NetworkOverview_CarriesPermitProgressCard_RenamedAndMoved()
+    {
+        var host = new GameObject("NetOverviewHost", typeof(RectTransform));
+        var rt = host.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(1280f, 720f);
+        var gsHost = new GameObject("NetOverviewGs");
+        var gs = gsHost.AddComponent<GameState>();
+        gs.inbox = new System.Collections.Generic.List<InboxMail>();
+        gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+        gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+        gs.fleet = new System.Collections.Generic.List<Aircraft>();
+        StrategyManager.EnsureState(gs);
+
+        var mail = new InboxMail
+        {
+            id = "pm-t01", sender = "运营部", role = "运营", glyph = "运",
+            subject = "开航许可办理中", body = "LHR—BKK 准入办理中。",
+            action = "open_route", kind = "report", status = "pending",
+            receivedYear = 1, receivedQuarter = 1,
+            origin = "LHR", dest = "BKK",
+            permitStage = RoutePermitLogic.StageReview, permitNode = 1, permitChance = 0.58f
+        };
+        gs.inbox.Add(mail);
+
+        var go = NetworkPanelUI.Build(host.transform);
+        Assert.IsNotNull(go, "应能构建 n12 航线网络");
+        yield return null;
+
+        var card = FindChild(go.transform, "PermitProg");
+        Assert.IsNotNull(card, "航线总览缺「待开通航线办理进度」卡：它已从 n77 搬来本页");
+        var title = FindChild(card, "T");
+        Assert.IsNotNull(title, "卡内缺标题标签");
+        StringAssert.Contains("待开通航线办理进度", title.GetComponent<TMPro.TextMeshProUGUI>().text,
+            "标题必须改名：旧名「航权准入办理进度」已废止");
+        var count = FindChild(card, "N");
+        Assert.IsNotNull(count, "卡内缺计数标签");
+        StringAssert.Contains("1 项", count.GetComponent<TMPro.TextMeshProUGUI>().text);
+        Assert.IsNotNull(FindChild(card, "Ppm-t01"), "在办许可必须以行式出现在卡内");
+
+        Assert.IsNull(TextContaining(go.transform, "拟开航 · 准入办理中"),
+            "旧版混在航线列表里的文本行必须删除：同一批条目已由上方新卡承载");
+
+        // 空态：清空在办 → 计数回「无」，且给出「航权从哪来」的指路
+        gs.inbox.Clear();
+        go.GetComponent<NetworkPanelUI>().Refresh();
+        yield return null;
+        StringAssert.Contains("无", count.GetComponent<TMPro.TextMeshProUGUI>().text);
+        Assert.IsNotNull(TextContaining(card, "开通新航线"),
+            "空态必须讲清航权来源：搬走入口后这里是指路处");
 
         Object.Destroy(host);
         Object.Destroy(gsHost);
@@ -323,6 +452,20 @@ namespace AirlineCEO.Tests.PlayMode
                 var c = parent.GetChild(i);
                 if (c.name == name) return c;
                 var deep = FindChild(c, name);
+                if (deep != null) return deep;
+            }
+            return null;
+        }
+
+        /// <summary>深度优先找第一个文本含 <paramref name="frag"/> 的 TMP 标签；没有返回 null。</summary>
+        static Transform TextContaining(Transform parent, string frag)
+        {
+            if (parent == null) return null;
+            var t = parent.GetComponent<TMPro.TextMeshProUGUI>();
+            if (t != null && t.text != null && t.text.Contains(frag)) return parent;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var deep = TextContaining(parent.GetChild(i), frag);
                 if (deep != null) return deep;
             }
             return null;

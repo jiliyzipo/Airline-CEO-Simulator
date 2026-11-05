@@ -1583,7 +1583,7 @@ namespace AirlineCEO.Logic
             return sb.ToString();
         }
 
-        /// <summary>在办准入许可（CEO 已批准、尚未开航结案）——供 n77 展示办理进度。</summary>
+        /// <summary>在办准入许可（CEO 已批准、尚未开航结案）——供「航线总览 · 待开通航线办理进度」卡展示（2026-11-05 自 n77 搬入）。</summary>
         public static System.Collections.Generic.List<InboxMail> InFlightPermits(GameState gs)
         {
             var list = new System.Collections.Generic.List<InboxMail>();
@@ -1682,7 +1682,7 @@ namespace AirlineCEO.Logic
             _ => "—"
         };
 
-        /// <summary>一行式办理进度（供 n77 与邮件复用）。</summary>
+        /// <summary>一行式办理进度（供「航线总览 · 待开通航线办理进度」与邮件复用）。</summary>
         public static string ProgressLine(InboxMail m) => ProgressLine(m, DateTime.UtcNow);
 
         /// <summary>

@@ -38,6 +38,17 @@ namespace AirlineCEO.Data
             public string usedByRouteId = "";
             /// <summary>P3：被哪个离港航班号占用。</summary>
             public string usedByFlightNo = "";
+            /// <summary>
+            /// 出租给外航的收回时点（turn 口径，见 <see cref="RoutePermitLogic.Turn"/>）；-1 = 未出租。
+            ///
+            /// ★2026-11-05（用户裁定「租一季」）：现实里航司更常**租**不**卖** ——
+            /// 卖断永久失去该槽的祖父条款（下季要重新排队入池），租一季只收租金、季末收回、
+            /// 历史优先权仍归我司（承租方按 80/20 飞满即可）。故出租期间该槽：
+            /// 不可再挂牌出售、不可绑班次、use-it-or-lose-it 清算**不得收回**（它在被飞）。
+            /// </summary>
+            public int leasedUntilTurn = -1;
+            /// <summary>承租方名称（仅展示用）。</summary>
+            public string leasedTo = "";
         }
 
     /// <summary>

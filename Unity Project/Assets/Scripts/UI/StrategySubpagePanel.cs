@@ -354,7 +354,6 @@ namespace AirlineCEO.UI
             var gs = GameState.Instance;
             if (gs == null) return;
             var stg = StrategyManager.EnsureState(gs);
-            var permits = RoutePermitLogic.InFlightPermits(gs);
             var pendingSlots = InboxManager.PendingSlotSettlements(gs);
             var pendingRights = InboxManager.PendingRightSettlements(gs);
             var openSlots = OpenMails(gs, "buy_slot", InboxManager.ApplySlotAction, InboxManager.ChangeSlotAction);
@@ -366,8 +365,12 @@ namespace AirlineCEO.UI
             int slotPend = 0;
             for (int i = 0; i < pendingSlots.Count; i++)
                 slotPend += InboxManager.SlotQtyOf(pendingSlots[i]);
-            int rightProg = permits.Count + pendingRights.Count + openRights.Count;
             int slotProg = openSlots.Count + pendingSlots.Count;
+            // ★2026-11-05（用户裁定）：航权在办回到本页左下「航权办理进度」。
+            // 它含**两类来源**：开航联动（许可审查缺额度自动递）与独立购置
+            // （RightAcquisitionLogic 每季摇提案：不定期航班/代码共享/储备占坑/置换）。
+            // 两类都是 apply_right 邮件，天然同列；按用户要求**不在栏里标原因**。
+            int rightProg = openRights.Count + pendingRights.Count;
 
             // ———— 纵向节奏（2026-11-02 二次重排）————
             // 用户裁定：删掉「先证后槽」说明窗（多此一举），正文区因此整块回收到四段：
@@ -386,10 +389,12 @@ namespace AirlineCEO.UI
             HoldingCard("SlotHeld", 0.52f, 0.505f, 1f, 0.925f, "已入账时刻槽",
                 $"{slotN + legacySlotN} 个", slotN + legacySlotN > 0, HeldSlotsText(stg, legacySlots));
 
-            ProgressCard("RightProg", 0f, 0.135f, 0.48f, 0.485f, "航权准入办理进度",
+            // ★2026-11-05（用户裁定·二次）：开航在办进度在「航线总览 · 待开通航线办理进度」，
+            // 本页左下这张是**航权申请**的在办进度（开航联动 + 独立购置两类同列，不标原因）。
+            ProgressCard("RightProg", 0f, 0.135f, 0.48f, 0.485f, "航权办理进度",
                 rightProg > 0 ? $"{rightProg} 项" : "无",
                 rightProg > 0,
-                list => FillRightProgress(list, permits, pendingRights, openRights));
+                list => FillRightProgress(list, pendingRights, openRights));
             ProgressCard("SlotProg", 0.52f, 0.135f, 1f, 0.485f, "时刻槽办理进度",
                 slotProg > 0 ? $"{slotPend} 个待交割" + (openSlots.Count > 0 ? $" · {openSlots.Count} 待批复" : "") : "无",
                 slotProg > 0,
@@ -435,16 +440,29 @@ namespace AirlineCEO.UI
             for (int i = 0; i < mkt.offers.Count; i++)
                 if (mkt.offers[i] != null && mkt.offers[i].open) openOffers++;
 
+            int sellableCount = 0, leasedCount = 0;
+            if (stg.slots != null)
+            {
+                for (int i = 0; i < stg.slots.Count; i++)
+                {
+                    var vv = SlotMarketLogic.EvaluateSale(gs, i);
+                    if (vv.state == SlotMarketLogic.SaleState.Sellable) sellableCount++;
+                    else if (vv.state == SlotMarketLogic.SaleState.Leased) leasedCount++;
+                }
+            }
+
             // ———— 顶部摘要（不再重复标题：二级标签已写着「时刻二级市场」）————
             L("Stat", $"现金 {gs.cash:F0} 万", 0f, 0.930f, 0.22f, 1f, 16, UITheme.Success, true);
-            L("Counts", $"他航挂牌 {mkt.listings.Count} 条 · 我司挂牌 {mkt.mine.Count} 条 · 待答复意向 {openOffers}",
+            L("Counts", $"他航挂牌 {mkt.listings.Count} 条 · 我司可售 {sellableCount} 条 · 我司挂牌 {mkt.mine.Count} 条"
+                        + (leasedCount > 0 ? $" · 出租中 {leasedCount} 条" : "")
+                        + $" · 待答复意向 {openOffers}",
                 0.23f, 0.935f, 0.72f, 1f, 12, UITheme.TextPrimary);
             L("Cash", openOffers > 0 ? $"有 {openOffers} 条购买意向待处理 → 收件箱" : "他航有意向会以邮件送达",
                 0.72f, 0.935f, 1f, 1f, 12, openOffers > 0 ? UITheme.Warning : UITheme.TextMuted,
                 openOffers > 0, TextAlignmentOptions.MidlineRight);
 
             L("ColL", "他航待售（行情只读 · 购槽由运营部提案）", 0f, 0.872f, 0.47f, 0.925f, 12, UITheme.TextPrimary, true);
-            L("ColR", "我司持仓与挂牌（只读）", 0.52f, 0.872f, 1f, 0.925f, 12, UITheme.TextPrimary, true);
+            L("ColR", "我司持仓与可售判断（只读）", 0.52f, 0.872f, 1f, 0.925f, 12, UITheme.TextPrimary, true);
 
             // 动作行删除后，两侧货架从 0.200 下探到 0.075，底部留一条只读口径说明。
             var left = UIFactory.VerticalScrollArea(Host, "MkShelf",
@@ -455,7 +473,8 @@ namespace AirlineCEO.UI
             FillOwnSlots(right, mkt, stg);
 
             UIFactory.ClampSingleLine(L("MkReadOnly",
-                "只读行情：挑哪个机场哪个时刻是运营部的事 —— 缺槽他们递申请/购入提案，闲置槽他们按季代挂；你只批「买不买、卖不卖」。",
+                "只读行情：挑哪个机场哪个时刻是运营部的事 —— 缺槽他们递申请/购入提案，闲置槽他们按季代挂；"
+                + "卖断丢历史优先权、租一季只让出一个航季，两种报价都在收件箱里批。",
                 0f, 0.010f, 1f, 0.065f, 11, UITheme.TextMuted, false, TextAlignmentOptions.MidlineLeft));
         }
 
@@ -482,32 +501,64 @@ namespace AirlineCEO.UI
             UIFactory.SetScrollContentHeight(list, y + 8f);
         }
 
+        /// <summary>
+        /// 右栏「我司持仓 · 可售判断」（★2026-11-05 用户裁定升级）。
+        ///
+        /// 这一栏回答的是一个 CEO 会真问的问题：「我手上哪些槽能卖？哪些不能，为什么？」
+        /// 每条给出状态标签（可售 / 在飞·不可售 / 已挂牌 / 已过期 / 在办预留 / 出租中）、
+        /// 参考价与剩余季数；顶部计数给一眼总量。
+        /// **纯只读**：挂牌仍由运营部按季代挂（挑机场×时刻不是 CEO 的活），
+        /// 成交/出租都在收件箱里批。
+        /// </summary>
         void FillOwnSlots(RectTransform list, SlotMarketState mkt, StrategyState stg)
         {
+            var gs = GameState.Instance;
             float y = 4f;
             int shown = 0;
-            if (stg?.slots != null)
+            int sellable = 0, listed = 0, inUse = 0;
+            if (stg?.slots != null && gs != null)
             {
+                int turn = RoutePermitLogic.Turn(gs.year, gs.quarter);
                 for (int i = 0; i < stg.slots.Count; i++)
                 {
                     var h = stg.slots[i];
                     if (h == null) continue;
                     string clock = RoutePermitLogic.SlotRequestClock(h.slotTime);
-                    var listed = FindMyListing(mkt, h.airport, clock);
-                    string line;
-                    if (listed != null)
+                    var v = SlotMarketLogic.EvaluateSale(gs, i);
+                    if (v.state == SlotMarketLogic.SaleState.Sellable) sellable++;
+                    else if (v.state == SlotMarketLogic.SaleState.Listed) listed++;
+                    else if (v.state == SlotMarketLogic.SaleState.InUse) inUse++;
+
+                    string tail;
+                    if (v.state == SlotMarketLogic.SaleState.Listed)
                     {
-                        int offers = CountOpenOffers(mkt, listed.id);
-                        line = $"{h.airport} {clock}　已挂牌 {listed.askWan:F0} 万"
-                               + (offers > 0 ? $"　· {offers} 份意向待批复" : "　· 等待询价");
+                        var l = FindMyListing(mkt, h.airport, clock);
+                        int offers = l != null ? CountOpenOffers(mkt, l.id) : 0;
+                        tail = $"叫价 {l?.askWan ?? 0f:F0} 万"
+                               + (offers > 0 ? $"　· {offers} 份意向待批" : "");
+                    }
+                    else if (v.state == SlotMarketLogic.SaleState.Leased)
+                    {
+                        int left = Mathf.Max(0, h.leasedUntilTurn - turn);
+                        tail = $"{h.leasedTo} 承租　季末收回（剩 {left} 季）";
+                    }
+                    else if (v.state == SlotMarketLogic.SaleState.Sellable)
+                    {
+                        tail = $"市价约 {SlotMarketLogic.SuggestedAskWan(h.airport, clock):F0} 万"
+                               + (h.expiresTurn >= 0 ? $"　剩 {Mathf.Max(0, h.expiresTurn - turn)} 季" : "");
                     }
                     else
                     {
-                        float ask = SlotMarketLogic.SuggestedAskWan(h.airport, clock);
-                        line = $"{h.airport} {clock}　{(h.inUse ? "使用中（不可挂牌）" : "闲置")}"
-                               + $"　市价约 {ask:F0} 万";
+                        tail = v.state == SlotMarketLogic.SaleState.InUse
+                            ? "先调开班次才能卖"
+                            : v.state == SlotMarketLogic.SaleState.Expired
+                                ? "权利已灭失"
+                                : "在办流程预占";
                     }
-                    MkRow(list, "MY" + i, y, 24f, line);
+
+                    string line = $"{h.airport} {clock}　[{v.label}]　{tail}";
+                    // 可售用强调色、不可售用弱色：一眼分得出「哪些能变现」。
+                    MkRow(list, "MY" + i, y, 24f, line, v.sellable ? UITheme.Success : UITheme.TextMuted);
                     y += 26f;
                     shown++;
                 }
@@ -519,6 +570,14 @@ namespace AirlineCEO.UI
                     12, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
                 UIFactory.PinFromTop(empty.gameObject, 8f, 64f, 0.02f, 0.98f);
                 y = 84f;
+            }
+            else
+            {
+                var summary = UIFactory.Label(list, "SaleSummary",
+                    $"可售 {sellable} · 已挂牌 {listed} · 在飞 {inUse} · 共 {shown} 条",
+                    11, TextAlignmentOptions.MidlineLeft, UIFactory.Fill, UITheme.TextMuted, FontStyles.Bold);
+                UIFactory.PinFromTop(summary.gameObject, y + 4f, 20f, 0.02f, 0.98f);
+                y += 26f;
             }
             UIFactory.SetScrollContentHeight(list, y + 8f);
         }
@@ -550,14 +609,16 @@ namespace AirlineCEO.UI
         }
 
         /// <summary>只读的一行（二级市场两侧共用）：2026-11-04 市场改只读后不再挂按钮。</summary>
-        static void MkRow(RectTransform host, string name, float y, float h, string text)
+        /// <summary>只读列表行；<paramref name="textColor"/> 可传 null 用默认主色。</summary>
+        static void MkRow(RectTransform host, string name, float y, float h, string text,
+            Color? textColor = null)
         {
             var row = UIFactory.Panel(host, name, UIFactory.Fill,
                 new Color(0.04f, 0.10f, 0.18f, 0.85f));
             UIFactory.PinFromTop(row, y, h, 0.01f, 0.99f);
             var lab = UIFactory.Label(row.transform, "L", text, 12, TextAlignmentOptions.MidlineLeft,
                 new UIFactory.Anchor(new Vector2(0.02f, 0f), new Vector2(0.98f, 1f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary);
+                textColor ?? UITheme.TextPrimary);
             lab.raycastTarget = false;
             var img = row.GetComponent<Image>();
             if (img != null) img.raycastTarget = false;   // 只读：整行不接点击
@@ -822,46 +883,36 @@ namespace AirlineCEO.UI
             return order.Count;
         }
 
-        void FillRightProgress(RectTransform list, List<InboxMail> permits,
-            List<InboxMail> pending, List<InboxMail> open)
+        /// <summary>
+        /// 「航权办理进度」列表（★2026-11-05 用户裁定·二次）。
+        /// 只列 <c>apply_right</c> 在办：待批复（提案在收件箱）+ 待交割（已批、10 天办结中）。
+        /// 开航联动与独立购置两类来源同列、**不标原因**（用户明确要求）。
+        /// 开航许可的九关进度不在这里 —— 那在「航线总览 · 待开通航线办理进度」。
+        /// </summary>
+        void FillRightProgress(RectTransform list, List<InboxMail> pending, List<InboxMail> open)
         {
             float y = 4f;
             int shown = 0;
-            if (permits != null)
-            {
-                for (int i = 0; i < permits.Count; i++)
-                {
-                    PermitProgressRow(list, permits[i], y, 72f);
-                    y += 80f;
-                    shown++;
-                }
-            }
-            y = AppendLineBlock(list, y, "待交割", pending, InboxManager.FormatPendingRight, ref shown);
             y = AppendLineBlock(list, y, "待批复", open, m =>
             {
                 string o = string.IsNullOrEmpty(m.origin) ? "—" : m.origin;
                 string d = string.IsNullOrEmpty(m.dest) ? "—" : m.dest;
                 // 档位按这一对重算（本国 ↔ 对方 = 第三/第四；他国 ↔ 他国 = 第五），
-                // 别在持仓列表里把所有申请都写成「第五航权」。
+                // 别把所有申请都写成「第五航权」。
                 int fd = RoutePermitLogic.FreedomFor(GameState.Instance, o, d);
                 if (fd <= 0) fd = 3;
                 return $"{o}—{d}  {AirportRegions.FreedomLabel(fd)}　待批复";
             }, ref shown);
+            y = AppendLineBlock(list, y, "待交割", pending, InboxManager.FormatPendingRight, ref shown);
             if (shown == 0)
             {
-                // ★2026-11-01：撤掉本页两颗「申请航权」按钮后，这里是玩家唯一会问
-                // 「那航权去哪办」的地方 —— 空态必须把来源讲清楚，否则就是拆了入口不给指路。
-                // ★2026-11-02：文案收成三行 —— 进度卡本季改成 0.29 高，五行的空态在
-                // 86px 的视口里会被裁掉一半，「指路」反而看不见。
                 var empty = UIFactory.Label(list, "Empty",
-                    "暂无在办。航权不在这里点：\n"
-                    + "把国际线递进「航线 → 开通新航线」，许可审查缺那一对额度时，运营部会自动把申请送进收件箱。\n"
-                    + $"第三/第四航权（本国 ↔ 对方）约 {StrategyManager.RightCost(3):F0} 点政府关系，"
-                    + $"第五航权（他国 ↔ 他国）约 {StrategyManager.RightCost(5):F0} 点；每季回升 "
-                    + $"{StrategyManager.GovernmentRelationPerQuarter:F0} 点（上限 {StrategyManager.GovernmentRelationCap:F0}）。",
+                    "暂无在办。航权有两个来源：开航联动（国际线许可审查缺额度时运营部自动递）"
+                    + "与独立购置（不定期航班、代码共享与联营、战略储备、航权置换 —— 运营部按季递提案）；"
+                    + "两类都进收件箱，你只批「买不买」。",
                     11, TextAlignmentOptions.TopLeft, UIFactory.Fill, UITheme.TextMuted);
-                UIFactory.PinFromTop(empty.gameObject, 4f, 82f, 0.02f, 0.98f);
-                y = 92f;
+                UIFactory.PinFromTop(empty.gameObject, 4f, 66f, 0.02f, 0.98f);
+                y = 76f;
             }
             UIFactory.SetScrollContentHeight(list, y + 8f);
         }
@@ -906,42 +957,6 @@ namespace AirlineCEO.UI
                 shown++;
             }
             return y;
-        }
-
-        static void PermitProgressRow(RectTransform host, InboxMail mail, float y, float h)
-        {
-            var row = UIFactory.Panel(host, "P" + (mail != null ? mail.id : "x"), UIFactory.Fill,
-                new Color(0.04f, 0.10f, 0.18f, 0.85f));
-            UIFactory.PinFromTop(row, y, h, 0.01f, 0.99f);
-
-            string line = RoutePermitLogic.ProgressLine(mail,
-                AirlineCEO.Systems.GameState.Instance != null
-                    ? AirlineCEO.Systems.GameState.Instance.SimUtc
-                    : System.DateTime.UtcNow);
-            UIFactory.Label(row.transform, "L", line, 12, TextAlignmentOptions.MidlineLeft,
-                new UIFactory.Anchor(new Vector2(0.02f, 0.58f), new Vector2(0.98f, 0.96f), Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary);
-
-            int node = RoutePermitLogic.DisplayNode(mail);
-            bool denied = mail != null && mail.permitStage == RoutePermitLogic.StageDenied;
-            Color fill = denied ? UITheme.Danger : UITheme.Accent;
-            // ★2026-11-04：九关（原为六关），段宽按关数均分 —— 写死 0.16 步长会让第 7~9 段溢出右边界。
-            int steps = RoutePermitLogic.NodeLast;
-            float segW = 0.96f / steps;
-            for (int s = 1; s <= steps; s++)
-            {
-                float x0 = 0.02f + (s - 1) * segW;
-                float x1 = x0 + segW * 0.92f;
-                bool on = s <= node;
-                var seg = UIFactory.Panel(row.transform, "S" + s,
-                    new UIFactory.Anchor(new Vector2(x0, 0.14f), new Vector2(x1, 0.42f), Vector2.zero, Vector2.zero),
-                    on ? fill : UITheme.NavIdle);
-                var img = seg.GetComponent<Image>();
-                if (img != null) img.raycastTarget = false;
-                UIFactory.Label(seg.transform, "N", RoutePermitLogic.NodeShort(s), 10,
-                    TextAlignmentOptions.Center,
-                    UIFactory.Fill, on ? UITheme.TextPrimary : UITheme.TextMuted);
-            }
         }
 
         // ================= n78 联盟与战略合作 =================
