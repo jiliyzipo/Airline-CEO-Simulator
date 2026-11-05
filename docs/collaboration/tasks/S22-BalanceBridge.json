@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T04:34:40.494Z",
-  "updatedAt": "2026-11-04T12:44:00.748Z",
+  "updatedAt": "2026-11-05T04:42:50.339Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 29 taken over by later passed deliveries, 4 still uncovered (tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …).",
+  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 24 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …).",
   "staleForReviewId": "REV-20261027043857-e4c054",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -99,13 +99,18 @@
   "scopeDrift": {
     "basis": 80,
     "intact": 47,
-    "covered": 29,
+    "covered": 24,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
       "tools/collab/tests/run-all.mjs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 9
   }
 }

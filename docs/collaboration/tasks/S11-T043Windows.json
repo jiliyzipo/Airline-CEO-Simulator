@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Assets-Tests、Editor、Logic、Balance、Systems、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-25T09:46:31.963Z",
-  "updatedAt": "2026-11-04T12:44:00.558Z",
+  "updatedAt": "2026-11-05T04:42:50.157Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 26 were edited later and are now owned by passed deliveries DEL-20261031130233-d734b9, DEL-20261104074739-592c9d, DEL-20261028002145-55518e 等 6 个.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 22 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
+  "staleForReviewId": "REV-20261025103525-a76682",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:26.643Z",
@@ -68,8 +68,13 @@
   "scopeDrift": {
     "basis": 66,
     "intact": 40,
-    "covered": 26,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 22,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
+    ],
+    "uncoveredCount": 4
   }
 }

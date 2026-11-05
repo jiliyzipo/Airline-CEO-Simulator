@@ -6,24 +6,34 @@
 - C-ENG-SLOT: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - C-ENG-UNITY: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - C-ENG: 按缺陷修复后重新 deliver。
-- D2-TierLadder: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- D2-TierLadder: 10 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S01-COLLAB: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs, tools/collab/tests/reverse-review.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S02-Collab: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
-- S05-P2Close: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
-- S06-BatchB: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
-- S12-CommandConsole: 6 个本任务改动过的文件已被后续改动但无人复验（docs/handoff/Baseline_2026-10-17.json, docs/handoff/P21_命令台历史_开发记录_2026-10-25.md, docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md …），需按当前代码复验；不要自行勾选独立验收通过。
+- S04-UI: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S05-P2Close: 10 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S06-BatchB: 10 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S07-Balance: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Systems/TimeManager.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S10-PressDesk: 4 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S11-T043Windows: 4 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S12-CommandConsole: 11 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S16-CollabFidelity: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S17-ScopeBaseline: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S18-ScopeVerdictFix: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S19-ScenarioFixture: 5 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S20-SnapshotHygiene: 18 个本任务改动过的文件已被后续改动但无人复验（docs/handoff/Baseline_2026-10-17.json, tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S21-FreshnessVerdict: 18 个本任务改动过的文件已被后续改动但无人复验（docs/handoff/Baseline_2026-10-17.json, tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
-- S22-BalanceBridge: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S22-BalanceBridge: 9 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S23-RouteAblation: 历史检测已通过，但工作区已变（freshness=unknown），需按当前代码复验；不要自行勾选独立验收通过。
-- S24-UtilizationAudit: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
-- S25-StatusPrompts: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
-- S27-MapBandLegibility: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
-- S28-PressDeskSign: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S24-UtilizationAudit: 9 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S25-StatusPrompts: 11 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S27-MapBandLegibility: 11 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
+- S28-PressDeskSign: 11 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S29-CollabPendingFilter: 25 个本任务改动过的文件已被后续改动但无人复验（docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …），需按当前代码复验；不要自行勾选独立验收通过。
+- S30-InboxRowLayout: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S31-RouteConsoleMerge: 3 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S33-Assets-Tests: 1 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Systems/InboxManager.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S34-Logic: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S39-UI: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
 - S40-UI: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S41-CollabFpCache: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S42-Docs: 已交付，等待 Codex；不要自行勾选独立验收通过。
@@ -35,3 +45,4 @@
 - S49-PreflightDefault: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S51-PlanRingFleetDetail: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S52-RouteLifecycle: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
+- S53-InboxRowBackNav: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
