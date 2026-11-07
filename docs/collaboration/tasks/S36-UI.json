@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：UI、Logic、Slotcheck、Assets-Tests",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-30T00:06:00.292Z",
-  "updatedAt": "2026-11-04T12:44:01.005Z",
+  "updatedAt": "2026-11-07T14:02:58.362Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261030001502-59e457 covered 9 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261031045140-2cd3d8, DEL-20261104123522-e90c14, DEL-20261104074739-592c9d.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261030001502-59e457 covered 9 changed files; 3 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/MapWidget.cs, Unity Project/Assets/Scripts/UI/UIFactory.cs).",
+  "staleForReviewId": "REV-20261030001502-59e457",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:07.489Z",
@@ -70,8 +70,11 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 4,
-    "covered": 5,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 3,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
+      "Unity Project/Assets/Scripts/UI/UIFactory.cs"
+    ],
+    "uncoveredCount": 2
   }
 }

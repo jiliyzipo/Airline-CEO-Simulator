@@ -40,6 +40,20 @@ namespace AirlineCEO.Systems
         static int _level = L1;
         static int _resumeLevel = L1;
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 上一局按了暂停或 DevDay，<c>_level</c> 会留在那里 —— 不清的话新局一进来就
+        /// 「时间是停的」或「一天一现实秒」，而且没有任何 UI 提示你它为什么这样。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _level = L1;
+            _resumeLevel = L1;
+            Time.timeScale = 1f;
+            OnLevelChanged = null;
+        }
+
         public static int Level => _level;
         public static int ResumeLevel => _resumeLevel;
         public static bool IsPaused => _level == Paused;

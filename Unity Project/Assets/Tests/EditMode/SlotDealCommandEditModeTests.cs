@@ -12,12 +12,15 @@ namespace AirlineCEO.Tests.EditMode
     /// 历史报障（2026-11-03）：这句话曾被派成部门汇报，槽没买、账没动，
     /// 却回了一封「8 条航线 · 周 112 班」的网络总账 —— 比「没听懂」更糟。
     ///
-    /// 2026-11-05 设计裁决：挑具体机场的具体时刻是**运营部**的工作，不是 CEO 指令。
-    /// CEO 只在收件箱批「买不买」。故命令台对这类句子的新口径是：
+    /// ★2026-11-06 用户改判（**推翻 11-04 的「一律拒办」**）：
+    /// 「取消浮窗里的按钮，所有申请时刻命令，都在命令台下达。」
+    /// 机场时刻页那颗「只申请到港时刻」按钮已删，于是 ——
     /// <list type="number">
-    /// <item>仍必须**认出来**是时刻槽事务（不能退回部门汇报的假受理）；</item>
-    /// <item>但 <c>ok=false</c>，命令条如实说明「转运营部提案、你只批收件箱」；</item>
-    /// <item><b>零副作用</b>：不扣款、不入持仓、不下架挂牌、不递提案、不发任何邮件。</item>
+    /// <item><b>购买</b>：认得出，但 <c>ok=false</c>。买入要动钱，只走二级市场或运营部提案（落收件箱）。
+    ///       零副作用：不扣款、不入持仓、不下架挂牌、不递提案、不发邮件。</item>
+    /// <item><b>申请</b>：认得出，且 <c>ok=true</c> —— 真递一张 <c>apply_slot</c> 提案进收件箱，
+    ///       仍需 CEO 批准；现金与持仓当场不动（协调池是免费渠道，成交在交割日）。</item>
+    /// <item><b>问句</b>（「为什么…没有时刻槽」）仍归运营部答，不落到这张分派表上。</item>
     /// </list>
     /// 成交与挂牌管线本身由 <see cref="SlotMarketRegression"/>（收件箱审批流）覆盖。
     /// </summary>
@@ -54,14 +57,15 @@ namespace AirlineCEO.Tests.EditMode
         static CeoCommandRouter.CeoAsk Route(string raw)
             => CeoCommandRouter.Route("n77_航权与时刻槽", raw);
 
-        /// <summary>认出来、但不执行：ok=false + 引导文案 + 零副作用，三样一次钉死。</summary>
+        /// <summary>认出来、但不执行：ok=false + 引导文案 + 零副作用，三样一次钉死（买入专用）。</summary>
         void AssertRefusedWithNoSideEffects(CeoCommandRouter.CeoAsk ask, string raw)
         {
             Assert.AreEqual(CeoCommandRouter.TopicSlotDeal, ask.topic,
                 "「" + raw + "」被派成了别的事务 —— 当年就是这样混进部门汇报的");
-            Assert.IsFalse(ask.ok, "挑具体时刻是运营部的活，命令台不该放行执行");
+            Assert.IsFalse(ask.ok, "买具体槽要动钱，命令台不该直接成交");
             StringAssert.Contains("运营部", ask.note ?? "");
             StringAssert.Contains("收件箱", ask.note ?? "");
+            StringAssert.Contains("二级市场", ask.note ?? "");
 
             float cashBefore = _gs.cash;
             int inboxBefore = _gs.inbox.Count;
@@ -93,12 +97,19 @@ namespace AirlineCEO.Tests.EditMode
         }
 
         [Test]
-        public void ApplySlotSentence_IsAlsoRefusedAsOpsWork()
+        public void ApplySlotSentence_IsRecognized_AndQueuesProposal()
         {
-            // 协调池申请与二级市场购入一样是运营部的活：认出来、不执行
+            // ★2026-11-06 用户改判：浮窗里的「只申请到港时刻」按钮已删，命令台是唯一的申请入口。
+            // 所以这句话不许再被拒 —— 必须认得出、且能交出一张可执行的答复。
             var ask = Route("申请SIN 12:00时刻槽");
             Assert.AreEqual(CeoCommandRouter.TopicSlotDeal, ask.topic);
-            Assert.IsFalse(ask.ok, "协调池申请也不该由命令台直办");
+            Assert.IsTrue(ask.ok, "协调池申请必须由命令台真办（浮窗按钮已删）");
+            Assert.AreEqual("SIN", ask.origin);
+            Assert.AreEqual("12:00", ask.clock);
+            Assert.IsFalse(ask.slotBuy, "「申请」不是「购买」");
+
+            var ans = DeptReportLogic.Build(_gs, ask, "申请SIN 12:00时刻槽");
+            Assert.IsTrue(ans.ok && ans.needsRun, "申请应当有可执行的管线");
         }
 
         [Test]
@@ -148,13 +159,28 @@ namespace AirlineCEO.Tests.EditMode
         }
 
         [Test]
-        public void ApplySlot_DeliversNothing_AndChargesNothing()
+        public void ApplySlot_QueuesProposal_ChargesNothing_AndGrantsNothing()
         {
+            // 命令台申请 = 递单，不是过户：收件箱多一张 apply_slot，现金与持仓当场都不动。
             const string raw = "申请SIN 12:00时刻槽";
-            AssertRefusedWithNoSideEffects(Route(raw), raw);
+            float cashBefore = _gs.cash;
+            int heldBefore = _gs.stg.slots.Count;
+            int listingsBefore = _mkt.listings.Count;
+            int inboxBefore = _gs.inbox.Count;
+
+            var ans = DeptReportLogic.Build(_gs, Route(raw), raw);
+            Assert.IsTrue(ans.ok && ans.needsRun, $"命令台申请应当可执行：{ans.oneLine}");
+            Assert.IsTrue(DeptReportLogic.RunPending(_gs, ans, raw, out string receipt), receipt);
+
+            int proposals = 0;
             for (int i = 0; i < _gs.inbox.Count; i++)
-                Assert.AreNotEqual(InboxManager.ApplySlotAction, _gs.inbox[i]?.action,
-                    "命令台直办的申请提案不该再出现 —— 申请由运营部按缺口发起");
+                if (_gs.inbox[i] != null && _gs.inbox[i].action == InboxManager.ApplySlotAction) proposals++;
+
+            Assert.AreEqual(1, proposals, "应当递出一张 apply_slot 提案（仍需 CEO 批准）");
+            Assert.AreEqual(inboxBefore + 1, _gs.inbox.Count, "收件箱应多一封提案信");
+            Assert.AreEqual(cashBefore, _gs.cash, 0.01f, "协调池是免费渠道，提案阶段不该扣款");
+            Assert.AreEqual(heldBefore, _gs.stg.slots.Count, "提案阶段不该直接入持仓");
+            Assert.AreEqual(listingsBefore, _mkt.listings.Count, "申请不该动二级市场挂牌");
         }
     }
 }

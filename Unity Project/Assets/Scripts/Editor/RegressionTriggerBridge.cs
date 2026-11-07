@@ -109,6 +109,8 @@ namespace AirlineCEO.EditorTools
                 { "slot-cash-hint", SlotCashHintRegression.Run },
                 { "slot-candidate", SlotCandidateRegression.Run },
                 { "slot-channel", SlotChannelRegression.Run },
+                // ★2026-11-06：到港/离港分池（G1）与两端校验（G2）。
+                { "arrival-pair", ArrivalPairRegression.Run },
                 { "slot-deal-command", SlotDealCommandRegression.Run },
                 { "slot-market", SlotMarketRegression.Run },
                 { "status-bar-reconcile", StatusBarReconcileRegression.Run },

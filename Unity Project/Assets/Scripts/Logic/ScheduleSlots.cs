@@ -36,8 +36,15 @@ namespace AirlineCEO.Logic
         // 排班可在窗口内生成其它时刻（见 WindowStart/WindowEnd 与 SnapIntoWindow）。
         //   早高峰 06:30–09:30（峰点 08:00）· 午高峰 11:30–14:00（峰点 12:00）
         //   晚高峰 16:30–20:00（峰点 18:00，全天最旺）· 夜间 20:00–23:00（峰点 22:00）
+        //
+        // ★2026-11-05（用户裁决）：**需求波只管需求系数与定价**，不再决定「槽存不存在」。
+        // 槽的存在范围改由「机场协调时段」决定（见 AirportCatalog.CoordWindowOf），
+        // 现实依据：《民航航班时刻管理办法》—— 主协调机场 24 小时全时段协调。
+        // 因此晚班窗口末刻从 20:00 收到 **19:45**：20:00 在 15 分钟网格上只能有一个身份，
+        // 而 BandOfDep("20:00") 判给夜班，若晚班仍含 20:00，晚班那张表会印出一个
+        // 属于夜班池的槽（改动前就存在这个错，只是被 30 分钟粒度掩盖着）。
         public static readonly int[] WindowStart = { 6 * 60 + 30, 11 * 60 + 30, 16 * 60 + 30, 20 * 60 };
-        public static readonly int[] WindowEnd = { 9 * 60 + 30, 14 * 60, 20 * 60, 23 * 60 };
+        public static readonly int[] WindowEnd = { 9 * 60 + 30, 14 * 60, 19 * 60 + 45, 23 * 60 };
 
         public static int IndexOf(string label)
         {
@@ -69,23 +76,43 @@ namespace AirlineCEO.Logic
         public static int WindowStartOf(int band) => WindowStart[Clamp(band)];
         public static int WindowEndOf(int band) => WindowEnd[Clamp(band)];
 
-        // ————————————————— 时刻槽的时间网格（★2026-10-15）—————————————————
+        // ————————————————— 时刻槽的时间网格（★2026-10-15，★2026-11-05 改 15 分钟）—————————————————
         //
         // 现实锚点：WASG 1.7.2(d)「航司不得故意在明显不同于获批时刻的时间运行」；1.7.2(e)
         // 「一个系列 = 同一（或约同一）时刻、同一星期几、整季规律分布的 ≥5 个时刻」。
         // 所以「买哪个时段」这种问法在现实里根本不存在 —— 协调人分配的是**具体时刻**。
-        // 本作把它落成一张 30 分钟步长、落在需求波窗口内的网格：早班即
-        // 06:30 / 07:00 / 07:30 / 08:00 / 08:30 / 09:00 / 09:30。
+        //
+        // ★2026-11-05（用户裁决）粒度由 30 分钟改为 **15 分钟**：
+        // 《民航航班时刻管理办法》第七条把协调参数定义为「机场特定 1 小时或者 15 分钟内
+        // 可提供的航班时刻数量」—— 官方申请单位就是 15 分钟。30 分钟在国际语境里是
+        // **运行偏离宽容度**（见 SlotOffsetToleranceMinutes），不是申请单位，此前把两个
+        // 概念揉在同一个常量里了。
 
-        /// <summary>时刻槽网格的步长（分钟）。</summary>
-        public const int SlotGridStepMinutes = 30;
+        /// <summary>时刻槽网格的步长（分钟）。★2026-11-05 由 30 改为 15。</summary>
+        public const int SlotGridStepMinutes = 15;
 
         /// <summary>
         /// 一条持仓可服务的班次，其离港时刻与持仓时刻的最大偏差（分钟）。
-        /// 排班器按 5 分钟向上取整产出时刻，故容差要能吃掉这点抖动；取 15 分钟同时保证
-        /// 「06:30 的槽接不了 07:00 的班」——这正是「一槽一班」在时刻上的量化。
+        ///
+        /// ★2026-11-05：由 15 改为 **10**。硬约束：**必须小于 <see cref="SlotGridStepMinutes"/>(15)**，
+        /// 否则网格上相邻两刻互为「同一刻」—— 玩家拿了两条相邻的 15 分钟槽，排班器却认为
+        /// 它们是一条（`ClockNear` 会把后一刻的班判成「本线已在那一刻飞着一班」而跳过）。
+        /// 为什么不是 7（= 半步长）：推导出来的离港时刻要四舍五入到最近的刻钟，
+        /// 最大误差 7 分钟，而部分调用点用 `SnapUpToGrid`（向上取整），误差可达 8 分钟 ——
+        /// 取 7 会让「刚买到的槽」在临近判据里差一分钟匹配不上（实测令 3 条 PlayMode 用例红）。
+        /// 取 10 既覆盖取整误差，又小于步长。该约束由回归 R52 钉住。
         /// </summary>
-        public const int SlotToleranceMinutes = 15;
+        public const int SlotToleranceMinutes = 10;
+
+        /// <summary>
+        /// 运行**偏离宽容度**（分钟）—— 与申请粒度是两件事。
+        ///
+        /// 现实口径（IATA WASG 与欧洲协调惯例）：航班实际运行时刻偏离获批时刻 30 分钟以内
+        /// 通常不判违规。本作据此只做**记账与提示**（准点率），不做处罚：
+        /// 排班实际离港与持仓时刻差在 (SlotToleranceMinutes, 30] 之间时，
+        /// 仍可用这条槽，但记为「偏离」。
+        /// </summary>
+        public const int SlotOffsetToleranceMinutes = 30;
 
         /// <summary>该需求波窗口内的全部可选时刻（分钟数，升序，含窗口末刻）。</summary>
         public static List<int> SlotGrid(int band)
@@ -100,6 +127,20 @@ namespace AirlineCEO.Logic
             return list;
         }
 
+        /// <summary>
+        /// 全天 15 分钟网格（96 个点，00:00–23:45）。
+        ///
+        /// ★2026-11-05 新增：槽的存在范围不再由 4 个需求波决定，而由**机场协调时段**决定，
+        /// 而主协调机场是 24 小时全时段协调。故槽的身份一律落在这张全天网格上；
+        /// 某机场能用哪些点，由 <c>RoutePermitLogic.QuartersOf</c> 按协调时段裁剪。
+        /// </summary>
+        public static List<int> SlotGrid24()
+        {
+            var list = new List<int>(96);
+            for (int m = 0; m < 1440; m += SlotGridStepMinutes) list.Add(m);
+            return list;
+        }
+
         /// <summary>该窗口内的全部可选时刻（字符串 "HH:mm"）。</summary>
         public static List<string> SlotGridLabels(int band)
         {
@@ -109,17 +150,119 @@ namespace AirlineCEO.Logic
             return list;
         }
 
+        // ——————————— 时段（池口径）覆盖的整点区间（★2026-11-06 用户裁决）———————————
+        //
+        // 「需求波窗口」与「时段池的覆盖范围」是两件事，此前被当成了同一件：
+        // 池容量按需求波窗口（早 06:30–09:30 等）算，于是**窗口外、但机场确实公布了容量**的刻
+        // （06:00 / 06:15 / 09:45 / 10:00–11:15 / 14:15–16:15 …）既不显示、也取不到，
+        // 而日容量把它们算在内 —— 枢纽 56 条日容量里只有 46 条拿得着。
+        //
+        // 用户原话：「只要能申请的时刻都要显示出来。」所以池的覆盖范围改按
+        // **BandOfDep 的整点归属**（早 = 0–9 时、中 = 10–14 时、晚 = 15–19 时、夜 = 20–23 时），
+        // 与 `BandOfClock` 完全同源：凡是能归到某个时段的刻，就在那个时段的池里，也就该显示。
+        // 需求波窗口仍只用于排班偏好与需求系数（见类头注释）。
+
+        /// <summary>该时段的起始小时（含）。</summary>
+        /// <remarks>
+        /// 早段写 06 而不是 0：00–05 时的小时容量在全网恒为 0（枢纽/干线表都是 0），
+        /// 那里既没有公布槽也取不到，写成「早班 00:00–09:45」会让玩家以为半夜的刻被藏起来了。
+        /// 时段归属仍由 <see cref="BandOfDep"/> 判（00–05 归早段，只是容量为 0、不出块），
+        /// 本函数只负责**文案上的区间**。
+        /// </remarks>
+        public static int BandHourStart(int band)
+            => band <= 0 ? 6 : band == 1 ? 10 : band == 2 ? 15 : 20;
+
+        /// <summary>该时段的结束小时（含）。</summary>
+        public static int BandHourEnd(int band)
+            => band <= 0 ? 9 : band == 1 ? 14 : band == 2 ? 19 : 23;
+
         /// <summary>
-        /// 把任意时刻吸附到**最近的系列时刻**：四个需求波窗口 30 分钟网格的并集
-        /// （06:30/07:00/…/09:30、11:30/…/14:00、16:30/…/20:00、20:00/…/23:00）。
+        /// 全天网格里属于该时段的时刻（分钟数，升序）。
+        /// 判据与 <see cref="BandOfDep"/> 同源，因此「这一块属于哪个时段」与「它从哪个池扣量」必然一致。
+        /// </summary>
+        public static List<int> BandGrid(int band)
+        {
+            int b = Clamp(band);
+            // ★2026-11-07 性能：网格只取决于 band（常量表），旧版每次调用都要遍历
+            // 96 个 15 分钟刻度、每格 FormatClock 拼一个字符串再比时段 ——
+            // 「机场时刻」页一次刷新要调上千次，纯属重复劳动。这里按 band 缓存一份，
+            // 返回**副本**以保证调用方可以随意改（既有语义不变）。
+            var cache = _bandGridCache;
+            if (cache == null) cache = BuildBandGridCache();
+            return new List<int>(cache[b]);
+        }
+
+        static List<int>[] _bandGridCache;
+
+        static List<int>[] BuildBandGridCache()
+        {
+            var cache = new List<int>[4];
+            for (int b = 0; b < 4; b++)
+            {
+                var list = new List<int>();
+                for (int m = 0; m < 1440; m += SlotGridStepMinutes)
+                    if (BandOfDep(FormatClock(m)) == b) list.Add(m);
+                cache[b] = list;
+            }
+            _bandGridCache = cache;
+            return cache;
+        }
+
+        /// <summary>同上，字符串口径。</summary>
+        public static List<string> BandGridLabels(int band)
+        {
+            int b = Clamp(band);
+            var cache = _bandLabelCache;
+            if (cache == null) cache = BuildBandLabelCache();
+            return new List<string>(cache[b]);
+        }
+
+        static List<string>[] _bandLabelCache;
+
+        static List<string>[] BuildBandLabelCache()
+        {
+            var cache = new List<string>[4];
+            for (int b = 0; b < 4; b++)
+            {
+                var minutes = BandGrid(b);
+                var list = new List<string>(minutes.Count);
+                for (int i = 0; i < minutes.Count; i++) list.Add(FormatClock(minutes[i]));
+                cache[b] = list;
+            }
+            _bandLabelCache = cache;
+            return cache;
+        }
+
+        /// <summary>
+        /// 该时段里**这个机场确实公布了容量**的时刻（`AirportCatalog.QuarterCapacity &gt; 0`）。
         ///
-        /// 为什么需要它：**经停端/对端的离场时刻是推导出来的**（去程 + 轮挡 + 过站），例如 12:00
-        /// 去程落回后回程是 17:33 —— 17:33 不在任何网格点上，而时刻槽的身份必须是网格上的
-        /// 系列时刻（机场从不公布 17:33 的系列）。现实里航司是把过站时刻按获批槽时刻**排定**
-        /// （槽批的是 17:30，回程就排 17:30），本函数即这件事的算法：吸附到 17:30 只需延后 3 分钟。
+        /// 全天网格含 00:00–05:45，而容量表在这些小时恒为 0（不出槽）。夹具若拿 `grid[0]`
+        /// 当「随便找一个时刻」，就会挑到 00:00：递单时池里有余量所以能过，交割时却取不到那条槽 ——
+        /// 报出来像玩法坏了，其实是夹具挑了一个根本不存在的时刻。
+        /// 卡片侧不用这个（`IndustryAirlineLogic.ChipsOf` 自己按容量过滤）；这是给夹具用的。
+        /// </summary>
+        public static List<string> BandGridClaimableLabels(string airport, int band)
+        {
+            var grid = BandGrid(band);
+            var list = new List<string>(grid.Count);
+            for (int i = 0; i < grid.Count; i++)
+                if (AirlineCEO.Data.AirportCatalog.QuarterCapacity(airport, grid[i]) > 0)
+                    list.Add(FormatClock(grid[i]));
+            return list;
+        }
+
+        /// <summary>
+        /// 把任意时刻吸附到**最近的系列时刻**。
         ///
-        /// 落在需求波之间的低谷（如 15:00）时取最近的窗口边缘 —— 旧口径是把整个时段并进
-        /// 该时段池（粒度更粗），吸附后粒度细到 30 分钟，仍是同一件事，只是不再含糊。
+        /// ★2026-11-05：口径改为**全天 15 分钟网格的最近点**（即四舍五入到最近的刻钟）。
+        /// 改动前是「四个需求波窗口网格的并集里最近的」—— 于是 10:00 这种落在波间低谷的
+        /// 时刻会被吸到 09:30，而 10:05 会被吸到 11:30（跨了一个半小时）。现实里主协调机场
+        /// 24 小时全时段协调，10:00 本来就是一条合法系列时刻，没有理由被搬走。
+        ///
+        /// 为什么需要吸附：**经停端/对端的离场时刻是推导出来的**（去程 + 轮挡 + 过站），
+        /// 例如 12:00 去程落回后回程是 17:33 —— 17:33 不在网格上，而时刻槽的身份必须是
+        /// 网格上的系列时刻（机场从不公布 17:33 的系列）。现实里航司是把过站时刻按获批槽
+        /// 时刻**排定**（槽批的是 17:30，回程就排 17:30），本函数即这件事的算法。
         /// 入参已是网格点则原样返回（幂等）。
         /// </summary>
         public static string NearestSeries(string clock)
@@ -128,22 +271,18 @@ namespace AirlineCEO.Logic
             return m < 0 ? clock : FormatClock(NearestSeriesOf(m));
         }
 
-        /// <summary>同上，返回分钟数。</summary>
+        /// <summary>同上，返回分钟数（四舍五入到最近的 15 分钟点，24 小时内环状取近）。</summary>
         public static int NearestSeriesOf(int minutes)
         {
             int m = ((minutes % 1440) + 1440) % 1440;
-            int best = -1, bestD = int.MaxValue;
-            for (int b = 0; b < SlotBands.Length; b++)
-            {
-                var grid = SlotGrid(b);
-                for (int k = 0; k < grid.Count; k++)
-                {
-                    int d = grid[k] > m ? grid[k] - m : m - grid[k];
-                    if (d > 720) d = 1440 - d;
-                    if (d < bestD) { bestD = d; best = grid[k]; }
-                }
-            }
-            return best < 0 ? m : best;
+            int step = SlotGridStepMinutes;
+            int down = m / step * step;
+            int up = down + step;
+            int dDown = m - down;
+            int dUp = up - m;
+            // up 到了 1440 表示次日 00:00，环状距离与 down 比
+            if (up >= 1440) return dDown <= 1440 - up ? down : 0;
+            return dUp < dDown ? up : down;
         }
 
         /// <summary>`"HH:mm"` → 分钟数；解析不出返回 −1（不抛异常，脏存档不炸）。</summary>
@@ -152,16 +291,52 @@ namespace AirlineCEO.Logic
             if (string.IsNullOrEmpty(clock)) return -1;
             int colon = clock.IndexOf(':');
             if (colon < 1) return -1;
-            if (!int.TryParse(clock.Substring(0, colon), out int h)) return -1;
-            if (!int.TryParse(clock.Substring(colon + 1), out int m)) return -1;
-            if (h < 0 || h > 23 || m < 0 || m > 59) return -1;
+            // ★2026-11-07 性能：旧版 `int.TryParse(clock.Substring(...))` 每次调用分配两个子串。
+            // 这个函数在「机场时刻」页一次刷新里要被调上百万次（逐刻 × 逐条持仓），
+            // 光是子串分配就是几百 MB 的垃圾。改为原地解析，语义与 TryParse 一致：
+            // 允许前导空白与正负号，尾部出现非空白非数字即判失败。
+            int h = ParseIntRange(clock, 0, colon);
+            if (h < 0) return -1;
+            int m = ParseIntRange(clock, colon + 1, clock.Length);
+            if (m < 0) return -1;
+            if (h > 23 || m > 59) return -1;
             return h * 60 + m;
+        }
+
+        /// <summary>解析 <c>s</c> 的 [from, to) 区间为整数；不合法返回 −1。不分配任何中间字符串。</summary>
+        static int ParseIntRange(string s, int from, int to)
+        {
+            int i = from;
+            while (i < to && (s[i] == ' ' || s[i] == '\t')) i++;
+            int sign = 1;
+            if (i < to && (s[i] == '+' || s[i] == '-'))
+            {
+                if (s[i] == '-') sign = -1;
+                i++;
+            }
+            if (i >= to) return -1;
+            long v = 0;
+            int digits = 0;
+            while (i < to)
+            {
+                char c = s[i];
+                if (c < '0' || c > '9') break;
+                v = v * 10 + (c - '0');
+                if (v > int.MaxValue) return -1;
+                digits++;
+                i++;
+            }
+            if (digits == 0) return -1;
+            while (i < to && (s[i] == ' ' || s[i] == '\t')) i++;
+            if (i < to) return -1;          // 尾部有杂质：与 TryParse 一样判失败
+            return (int)(v * sign);
         }
 
         /// <summary>网格中**最接近** minutes 的时刻（用于把实际离港时刻归到某个系列）。</summary>
         public static int SnapToGrid(int band, int minutes)
         {
-            var grid = SlotGrid(band);
+            // ★2026-11-06：网格与卡片、池容量同源（`BandGrid`，按整点归属铺满全天）。
+            var grid = BandGrid(band);
             if (grid.Count == 0) return minutes;
             int m = ((minutes % 1440) + 1440) % 1440;
             int best = grid[0], bestD = int.MaxValue;
@@ -173,10 +348,11 @@ namespace AirlineCEO.Logic
             return best;
         }
 
-        /// <summary>网格中**不小于** minutes 的最早时刻；窗口内没有则返回 −1。</summary>
+        /// <summary>网格中**不小于** minutes 的最早时刻；时段内没有则返回 −1。</summary>
         public static int SnapUpToGrid(int band, int minutes)
         {
-            var grid = SlotGrid(band);
+            // ★2026-11-06：同上，`BandGrid`。
+            var grid = BandGrid(band);
             int m = ((minutes % 1440) + 1440) % 1440;
             for (int i = 0; i < grid.Count; i++)
                 if (grid[i] >= m) return grid[i];
@@ -275,7 +451,22 @@ namespace AirlineCEO.Logic
         public static string FormatClock(int minutes)
         {
             int m = ((minutes % 1440) + 1440) % 1440;
-            return $"{m / 60:00}:{m % 60:00}";
+            // ★2026-11-07 性能：旧版用插值字符串格式化，每次调用分配两个装箱 + 一个 string。
+            // 「机场时刻」页（4 段 × 13 刻 × 80 机场，还要乘上排班/闸门里的调用）把它推到
+            // 十万级调用量。1440 个刻度是有限的常量集合，直接查表，零分配。
+            var table = _clockText;
+            if (table == null) table = BuildClockText();
+            return table[m];
+        }
+
+        static string[] _clockText;
+
+        static string[] BuildClockText()
+        {
+            var table = new string[1440];
+            for (int i = 0; i < 1440; i++) table[i] = $"{i / 60:00}:{i % 60:00}";
+            _clockText = table;
+            return table;
         }
 
         static int Clamp(int band) => band < 0 ? 0 : band > 3 ? 3 : band;

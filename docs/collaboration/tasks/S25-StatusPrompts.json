@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T11:19:23.780Z",
-  "updatedAt": "2026-11-05T04:42:50.420Z",
+  "updatedAt": "2026-11-07T02:04:26.593Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 27 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …).",
+  "freshnessNote": "Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 24 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
   "staleForReviewId": "REV-20261027113125-429ba1",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -95,9 +95,10 @@
   },
   "scopeDrift": {
     "basis": 108,
-    "intact": 70,
-    "covered": 27,
+    "intact": 69,
+    "covered": 24,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
       "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
       "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
@@ -106,9 +107,8 @@
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "Unity Project/Assets/Scripts/UI/StrategySubpagePanel.cs",
       "tools/collab/tests/cleancheckout.test.mjs",
-      "tools/collab/tests/collab.test.mjs",
-      "tools/collab/tests/daily.test.mjs"
+      "tools/collab/tests/collab.test.mjs"
     ],
-    "uncoveredCount": 11
+    "uncoveredCount": 15
   }
 }

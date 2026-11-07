@@ -87,7 +87,15 @@ namespace AirlineCEO.UI
         /// 但这个图形本身和 <see cref="MapWidget"/> 里的大圆弧是同一个概念，
         /// 画在同一处、改配色时一起变，不必再多一个图片资源 + meta。
         /// </summary>
-        public static Sprite RouteSprite => _routeSprite ??= BuildRouteSprite(64);
+        public static Sprite RouteSprite
+        {
+            get
+            {
+                if (_routeSprite == null) _routeSprite = BuildRouteSprite(64);
+                return _routeSprite;
+            }
+        }
+
         static Sprite _gearSprite;
         static Sprite _searchSprite;
         static Sprite _chatSprite;
@@ -99,38 +107,120 @@ namespace AirlineCEO.UI
         static Sprite _playSprite;
 
         /// <summary>齿轮（设置）。</summary>
-        public static Sprite GearSprite => _gearSprite ??= BuildGearSprite(64);
+        public static Sprite GearSprite
+        {
+            get
+            {
+                if (_gearSprite == null) _gearSprite = BuildGearSprite(64);
+                return _gearSprite;
+            }
+        }
 
         /// <summary>放大镜（搜索）。</summary>
-        public static Sprite SearchSprite => _searchSprite ??= BuildSearchSprite(64);
+        public static Sprite SearchSprite
+        {
+            get
+            {
+                if (_searchSprite == null) _searchSprite = BuildSearchSprite(64);
+                return _searchSprite;
+            }
+        }
 
         /// <summary>对话气泡（顾问）。</summary>
-        public static Sprite ChatSprite => _chatSprite ??= BuildChatSprite(64);
+        public static Sprite ChatSprite
+        {
+            get
+            {
+                if (_chatSprite == null) _chatSprite = BuildChatSprite(64);
+                return _chatSprite;
+            }
+        }
 
         /// <summary>
         /// 对话尾巴：尖端朝下的实心三角，底边贴满上沿。
         /// 贴到面板下沿并把尖端对准气泡图标，形成「从中弹出」的连接。
         /// </summary>
-        public static Sprite TailDownSprite => _tailDownSprite ??= BuildTailDownSprite(64);
+        public static Sprite TailDownSprite
+        {
+            get
+            {
+                if (_tailDownSprite == null) _tailDownSprite = BuildTailDownSprite(64);
+                return _tailDownSprite;
+            }
+        }
 
         /// <summary>时钟（日期时间）。</summary>
-        public static Sprite ClockSprite => _clockSprite ??= BuildClockSprite(64);
+        public static Sprite ClockSprite
+        {
+            get
+            {
+                if (_clockSprite == null) _clockSprite = BuildClockSprite(64);
+                return _clockSprite;
+            }
+        }
 
         /// <summary>速度键：1×/2×/3× 快进箭头（n 个三角 + 数量小标）。</summary>
         public static Sprite FastForwardSprite(int arrows)
         {
             int i = Mathf.Clamp(arrows, 1, 3) - 1;
-            return _ffSprites[i] ??= BuildFastForwardSprite(64, i + 1);
+            if (_ffSprites[i] == null) _ffSprites[i] = BuildFastForwardSprite(64, i + 1);
+            return _ffSprites[i];
         }
 
         /// <summary>暂停（两条竖线）。</summary>
-        public static Sprite PauseSprite => _pauseSprite ??= BuildPauseSprite(64);
+        public static Sprite PauseSprite
+        {
+            get
+            {
+                if (_pauseSprite == null) _pauseSprite = BuildPauseSprite(64);
+                return _pauseSprite;
+            }
+        }
 
         /// <summary>帮助（圆环 + ?，用文字叠加由调用方处理；此处为圆环底）。</summary>
-        public static Sprite HelpSprite => _helpSprite ??= BuildHelpSprite(64);
+        public static Sprite HelpSprite
+        {
+            get
+            {
+                if (_helpSprite == null) _helpSprite = BuildHelpSprite(64);
+                return _helpSprite;
+            }
+        }
 
         /// <summary>播放（单三角）。</summary>
-        public static Sprite PlaySprite => _playSprite ??= BuildFastForwardSprite(64, 1);
+        public static Sprite PlaySprite
+        {
+            get
+            {
+                if (_playSprite == null) _playSprite = BuildFastForwardSprite(64, 1);
+                return _playSprite;
+            }
+        }
+
+        /// <summary>
+        /// 关闭域重载后，这些程序化精灵是**运行时**创建的贴图，退出 Play 时会被 Unity 销毁，
+        /// 而静态字段仍指向那个「已销毁对象」——它不是 C# null，`??=` 会把它当成有效缓存返回，
+        /// Image 拿到它就画成一块纯色实心方块（齿轮 / 倍速 / 顾问气泡 / 航线图标消失的根因）。
+        /// 双重保险：① getter 改用 Unity 重载的 `== null` 判等；② 每局开始把缓存清空。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetSpriteCaches()
+        {
+            _roundedSprite = null;
+            _circleSprite = null;
+            _globeSprite = null;
+            _cloudSprite = null;
+            _routeSprite = null;
+            _gearSprite = null;
+            _searchSprite = null;
+            _chatSprite = null;
+            _tailDownSprite = null;
+            _clockSprite = null;
+            _pauseSprite = null;
+            _helpSprite = null;
+            _playSprite = null;
+            for (int i = 0; i < _ffSprites.Length; i++) _ffSprites[i] = null;
+        }
 
         /// <summary>从 Resources 加载 PNG 并转 Sprite；缺失时回退 CircleSprite 并警告。</summary>
         public static Sprite LoadSprite(string resourcesPath)
@@ -551,6 +641,30 @@ namespace AirlineCEO.UI
             return Resources.Load<GameObject>(resourcesPath);
         }
 
+        /// <summary>
+        /// 预制体存不下运行时精灵：圆角是 <see cref="RoundedSprite"/> 这种运行时生成的贴图，不是资产，
+        /// 保存 Prefab 时 `m_Sprite` 会变成 `{fileID: 0}`，但 `m_Type: Sliced` 与
+        /// `m_PixelsPerUnitMultiplier: 1.2` 都会留着 —— 于是从 Prefab 建出来的底栏和页面**全是直角**，
+        /// 和在代码里现建的同类面板长得不一样（2026-11-07 探针报出 `Panel_Shell_n0` 上挂着一块已销毁精灵，
+        /// 就是这个历史遗留）。
+        ///
+        /// 判据只用「Sliced 且没有精灵」：有精灵的不动（可能是别的九宫格图），
+        /// Simple 的也不动（那些本来就是实色块）。
+        /// </summary>
+        public static void RehydrateRoundedSprites(GameObject root)
+        {
+            if (root == null) return;
+            var sprite = RoundedSprite;
+            if (sprite == null) return; // 资源缺失时宁可保持现状，也不要抛一个假精灵进去
+
+            foreach (var img in root.GetComponentsInChildren<Image>(true))
+            {
+                if (img.type != Image.Type.Sliced) continue;
+                if (img.sprite != null) continue;
+                img.sprite = sprite;
+            }
+        }
+
         /// <summary>实例化 Prefab 并铺满父级；无资产时返回 null。</summary>
         public static GameObject TryInstantiatePrefab(Transform parent, string resourcesPath, string name = null)
         {
@@ -558,6 +672,7 @@ namespace AirlineCEO.UI
             if (prefab == null) return null;
             var go = UnityEngine.Object.Instantiate(prefab, parent, false);
             if (!string.IsNullOrEmpty(name)) go.name = name;
+            RehydrateRoundedSprites(go);
             var rt = go.GetComponent<RectTransform>();
             if (rt != null)
             {

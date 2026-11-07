@@ -41,7 +41,11 @@ namespace AirlineCEO.EditorTools
 
         static readonly NewAirport[] BatchA =
         {
-            new NewAirport { code = "ZUH", nameZh = "珠海金湾", pax = 12.97f, cargo = 3.43f, tier = 2, distanceFromPekMinKm = 1900f, distanceFromPekMaxKm = 2200f },
+            // ★2026-11-05：ZUH 期望等级由 2 改 **1**（用户裁决）。客流 1297 万按客货公式推导仍是支线，
+            // 而支线非协调 —— 于是「珠海 07:00–23:00 限时协调」那条例外永远不生效（死配置）。
+            // 本作对 ZUH 走 `AirportCatalog.PromotedAirports` 人工提级，故此处期望值随之改写；
+            // 其余三座仍是纯推导得到的支线。
+            new NewAirport { code = "ZUH", nameZh = "珠海金湾", pax = 12.97f, cargo = 3.43f, tier = 1, distanceFromPekMinKm = 1900f, distanceFromPekMaxKm = 2200f },
             new NewAirport { code = "WUX", nameZh = "无锡硕放", pax = 10.50f, cargo = 17.35f, tier = 2, distanceFromPekMinKm = 900f, distanceFromPekMaxKm = 1200f },
             new NewAirport { code = "NGB", nameZh = "宁波栎社", pax = 14.73f, cargo = 16.86f, tier = 2, distanceFromPekMinKm = 1100f, distanceFromPekMaxKm = 1400f },
             new NewAirport { code = "WNZ", nameZh = "温州龙湾", pax = 12.53f, cargo = 12.93f, tier = 2, distanceFromPekMinKm = 1250f, distanceFromPekMaxKm = 1600f },
@@ -53,7 +57,8 @@ namespace AirlineCEO.EditorTools
         /// 再加新的假短程线。原候选里的拉萨 LXA 实测会把孟买 / 伊斯坦布尔吸成目的地并顶掉
         /// BOM→SIN、IST→BOS，已撤出（见任务书 K06）。
         /// KWE / TNA 客流已过 2000 万，按 <see cref="AirportCatalog.TierOf"/> 推导为**干线 / 协调机场**；
-        /// 批次 A 全是支线，所以这两座是第一次让「枢纽航司的基地本身是协调机场」，
+        /// 批次 A 里除 ZUH（2026-11-05 人工提为干线，为让「珠海 07:00–23:00」限时协调真正生效）外全是支线，
+        /// 所以这两座是第一次让「枢纽航司的基地本身是协调机场」，
         /// 时刻槽走祖父条款（见 ⑦ 的基站协调断言与手测项）。
         /// </summary>
         static readonly NewAirport[] BatchB =
@@ -311,9 +316,49 @@ namespace AirlineCEO.EditorTools
                                && RouteGeography.IsPlausiblePassengerOd("LOS", "LHR", 5000f);
             bool gatewayOk = gatewayRuleOk && intlBlocked && domesticKept && noOvershoot;
 
+            // ⑨ 时刻容量规模（★2026-11-07）：用户报「不论枢纽还是干线，早中晚夜班前三分之二的刻容量
+            //    都只有 1 条」。根因是旧口径日总量只有 56 / 33 条，摊到四个 15 分钟刻必然一刻 1 条。
+            //    现在改按「真实全天曲线 × 1/3.5」（见 AirportCatalog.AirportHourRates），
+            //    这里把三件事钉死，免得日后有人再把容量表改回两档死表：
+            //      ① 日容量与对照表一致；② 峰值刻 > 1；③ 每个协调机场的日容量 > 0。
+            bool capacityOk = true;
+            var capCases = new[]
+            {
+                // code, 日容量（对照表 §10.5 / §5.2）, 峰值刻, 该刻期望容量
+                ("PEK", 169, 9 * 60, 3),
+                ("PVG", 205, 9 * 60, 3),
+                ("ATL", 313, 8 * 60, 6),
+                ("XMN", 74, 12 * 60, 2),
+            };
+            var capLog = new StringBuilder();
+            for (int i = 0; i < capCases.Length; i++)
+            {
+                var (code, day, peakMin, peakCap) = capCases[i];
+                int gotDay = AirportCatalog.DayCapacity(code);
+                int gotPeak = AirportCatalog.QuarterCapacity(code, peakMin);
+                int sum = 0;
+                for (int m = 0; m < 1440; m += ScheduleSlots.SlotGridStepMinutes)
+                    sum += AirportCatalog.QuarterCapacity(code, m);
+                if (gotDay != day || gotPeak != peakCap || sum != gotDay)
+                {
+                    capacityOk = false;
+                    capLog.Append($"{code} 日={gotDay}(应{day}) 峰刻={gotPeak}(应{peakCap}) 刻合计={sum}; ");
+                }
+            }
+            for (int i = 0; i < airports.Count; i++)
+            {
+                var a = airports[i];
+                if (!a.coordinated) continue;
+                if (AirportCatalog.DayCapacity(a.code) <= 0)
+                {
+                    capacityOk = false;
+                    capLog.Append($"{a.code} 是协调机场却日容量 0; ");
+                }
+            }
+
             bool all = apNoDup && ecoNoDup && sameSet && geoUsable && batchAOk && batchBOk && batchBPrimeOk
                        && offCatalog && takeoverCount && codeUnique && hubExists && searchOk
-                       && noUltraShort && gatewayOk;
+                       && noUltraShort && gatewayOk && capacityOk;
 
             string tail = all ? "✓" : "✗";
             if (!all)
@@ -326,7 +371,8 @@ namespace AirlineCEO.EditorTools
                         + $" 搜索匹配={searchOk}(NGB首位={ngbOnly} 无CKG={noCkg} 英文词首={wordPrefixOk}"
                         + $" 中文前缀={zhPrefixOk} 新城市={newCityOk} 码前缀={codePrefixOk} 解析一致={resolveSame})"
                         + $" 批次B无超短={noUltraShort}({ultra.ToString().Trim()})"
-                        + $" 跨境门户={gatewayOk}(够格判定={gatewayRuleOk} 支线被拦={intlBlocked} 国内照常={domesticKept} 未连坐真实门户={noOvershoot})）{batch}";
+                        + $" 跨境门户={gatewayOk}(够格判定={gatewayRuleOk} 支线被拦={intlBlocked} 国内照常={domesticKept} 未连坐真实门户={noOvershoot})"
+                        + $" 时刻容量={capacityOk}({capLog.ToString().Trim()})）{batch}";
             }
 
             Debug.Log($"机场底表三表贯通 → 机场={airports.Count} 城市经济={ecoList.Length} 坐标={geoList.Length}"

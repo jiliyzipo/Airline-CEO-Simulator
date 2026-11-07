@@ -418,39 +418,99 @@ namespace AirlineCEO.Tests.PlayMode
             yield return null;
             Canvas.ForceUpdateCanvases();
 
-            // ★2026-11-05 二次改版：整页从「一段长文本」改为「统计栏 + 工具栏 + 机场卡片」。
-            // 断言因此从「表体里有没有 —」改成「卡片/方块/翻页/筛选是否真的在」，
-            // 数据口径（空闲块数 == 余量）由 R48 的 EditMode 回归兜底。
-            var cardsHost = FindChild(go.transform, "SlotCards");
-            Assert.IsNotNull(cardsHost, "「机场时刻」应画出卡片滚动区");
-            bool hasCard = false;
-            var all = cardsHost.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < all.Length; i++)
-                if (all[i].name.StartsWith("SlotCard_")) { hasCard = true; break; }
-            Assert.IsTrue(hasCard, "机场卡片没画出来 —— 卡片视图是本页的核心，不能退化成空列表");
-            Assert.IsNull(FindChild(go.transform, "SlotEmpty"), "默认筛选下不应是空态");
-            Assert.IsNotNull(FindChild(go.transform, "SlotSearch"), "缺搜索框");
-            Assert.IsNotNull(FindChild(go.transform, "SlotFilter0"), "缺筛选按钮「全部机场」");
-            Assert.IsNotNull(FindChild(go.transform, "SlotFilter3"), "缺筛选按钮「只看满池」");
-            Assert.IsNotNull(FindChild(go.transform, "SlotSort"), "缺排序切换按钮");
-            Assert.IsNotNull(FindChild(go.transform, "SlotPrev"), "缺上一页按钮");
-            Assert.IsNotNull(FindChild(go.transform, "SlotNext"), "缺下一页按钮");
-
-            Assert.IsNotNull(TextContaining(go.transform, "可申请"),
-                "空闲时刻必须看得出能申请 —— 用户要求空闲位不标航司名，但不是不标记");
-            Assert.IsNotNull(TextContaining(go.transform, "第 1/"),
-                "翻页信息应写明当前是第几页");
-
-            // 上一页在首页按下去不该动（不能出现「第 0 页」或空卡区）。
-            ClickChild(go.transform, "SlotPrev");
-            yield return null;
-            yield return null;
-            Canvas.ForceUpdateCanvases();
-            Assert.IsNotNull(TextContaining(go.transform, "第 1/"), "首页按上一页不应跳页");
+            // ★2026-11-07 用户裁决：机场时刻页的卡片 UI 全部删除，版式回到纯文字，
+            // 等新的 UI 设计稿。故这里钉两件事：
+            // ① 文字表在，且写得出每段的离港 / 到港余量；
+            // ② 旧的卡片 / 搜索 / 筛选 / 方块 / 浮窗一律不许残留 —— 留着就等于 UI 没删干净。
+            // 数据口径（空闲块数 == 余量）仍由 R48 的 EditMode 回归兜底。
+            var slotsBody = FindChild(go.transform, "SlotsBody_Content");
+            Assert.IsNotNull(slotsBody, "「机场时刻」应画出纯文字表（SlotsBody）");
+            var slotsText = slotsBody.GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.IsNotNull(slotsText, "SlotsBody_Content 应是文本节点");
+            StringAssert.Contains("离港余", slotsText.text, "文字表必须写出每段的离港余量");
+            StringAssert.Contains("到港余", slotsText.text, "文字表必须写出每段的到港余量");
+            Assert.IsNull(FindChild(go.transform, "SlotCards"), "卡片区已删除，不应再建出来");
+            Assert.IsNull(FindChild(go.transform, "SlotSearch"), "搜索框属已删除的卡片 UI");
+            Assert.IsNull(FindChild(go.transform, "SlotFilterBtn"), "过滤器菜单属已删除的卡片 UI");
+            Assert.IsNull(FindChild(go.transform, "SlotCount"), "筛选摘要属已删除的卡片 UI");
+            Assert.IsNull(FindChild(go.transform, "SlotTip"), "浮窗属已删除的卡片 UI");
 
             Object.Destroy(host);
             Object.Destroy(gsHost);
             yield return null;
+        }
+
+        /// <summary>
+        /// ★2026-11-07 用户报障护栏：「点航线—航权与时刻槽—机场时刻，卡了 40 秒」。
+        ///
+        /// 根因是**数量级错误**而不是某个慢函数：`ChipsOf` 把 `SlotsAvailable`（它内部要跑一次
+        /// 完整的他航铺排）写在逐刻循环里，一段 13 个刻就重算 13 次、离港到港各一遍 = 26 次，
+        /// 再乘 80 个协调机场 × 4 段。修法是把「整段的量」提到循环外、复用同一份铺排。
+        ///
+        /// 本用例直接把整张文字表算一遍并卡预算：旧实现是数十秒量级，新实现应在数百毫秒。
+        /// 预算给到 3 秒 —— 只拦「又退回数量级错误」，不拦正常的机器差异。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator SlotsTable_ComputesWithinBudget()
+        {
+            var gsHost = new GameObject("SlotsPerfGs");
+            var gs = gsHost.AddComponent<GameState>();
+            gs.inbox = new System.Collections.Generic.List<InboxMail>();
+            gs.pendingInbox = new System.Collections.Generic.List<PendingInboxMail>();
+            gs.activeRoutes = new System.Collections.Generic.List<RouteData>();
+            gs.fleet = new System.Collections.Generic.List<Aircraft>();
+            gs.cash = 5000f;
+            gs.companyNameZh = "测试航空";
+            StrategyManager.EnsureState(gs);
+            yield return null;
+
+            // 预热一次，避免把 JIT / 静态初始化算进被测时间。
+            HotelDummy(gs);
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            string text = IndustryAirlineLogic.SlotsTableText(gs);
+            sw.Stop();
+
+            Assert.IsNotNull(text, "文字表不该是 null");
+            StringAssert.Contains("离港余", text, "文字表必须写出每段的离港余量");
+            UnityEngine.Debug.Log($"[perf] SlotsTableText 全表 {sw.ElapsedMilliseconds} ms · {text.Length} 字符");
+
+            Assert.Less(sw.ElapsedMilliseconds, 1500,
+                $"整张时刻表耗时 {sw.ElapsedMilliseconds} ms —— 数量级又退化了："
+                + "检查是否有「逐刻重算整段统计」的写法（SlotsAvailable / IndustryClockCounts 不许进逐刻循环）"
+                + "，或 PickAirline 的权重缓存是否被绕过。实测基线 121 ms（12 万字符），预算 1500 ms。");
+
+            // ———— 再量一次**用户真正感知的那一段**：从建面板到文字表排进 TMP ————
+            // 数据层（上面那条）与渲染层（这条）要分开看：若数据只要几十毫秒、而这一条仍是几秒，
+            // 那瓶颈就在「一次性把八万多字符塞进同一个 TMP」，只能靠版式的分页 / 折叠解决。
+            var host = new GameObject("SlotsPerfHost", typeof(RectTransform));
+            var hostRt = host.GetComponent<RectTransform>();
+            hostRt.sizeDelta = new Vector2(1280f, 720f);
+            var go = StrategyRuntimeFactory.TryCreate("n77_航权与时刻槽", host.transform);
+            Assert.IsNotNull(go, "应能构建 n77 航权与时刻槽");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            var build = System.Diagnostics.Stopwatch.StartNew();
+            ClickChild(go.transform, "RightsTab3");
+            Canvas.ForceUpdateCanvases();    // 把 TMP 生成网格的时间也算进去
+            build.Stop();
+            UnityEngine.Debug.Log($"[perf] 进入机场时刻页（含 TMP 排版）{build.ElapsedMilliseconds} ms");
+            Assert.Less(build.ElapsedMilliseconds, 2500,
+                $"进入机场时刻页耗时 {build.ElapsedMilliseconds} ms（数据 + TMP 排版）。"
+                + "数据层实测 121 ms，其余是「一次性把 12 万字符塞进同一个 TMP」；"
+                + "若这一项掉回数秒，先看数据层，再看是否又把全表塞回一个 Text 组件。");
+
+            Object.Destroy(host);
+            Object.Destroy(gsHost);
+            yield return null;
+        }
+
+        /// <summary>预热：跑一小段同样的代码路径，让 JIT 先完成。</summary>
+        static void HotelDummy(GameState gs)
+        {
+            IndustryAirlineLogic.SlotsSummary(gs);
+            IndustryAirlineLogic.ChipsOf(gs, "PEK", 0);
         }
 
         /// <summary>
@@ -604,8 +664,20 @@ namespace AirlineCEO.Tests.PlayMode
             var mgrGo = new GameObject("StgManager");
             var mgr = mgrGo.AddComponent<StrategyManager>();
 
-            // 时刻槽购买回写
-            Assert.IsTrue(mgr.AcquireSlot("PEK", 1, out _));
+            // 时刻槽购买回写（★2026-11-07：band 1 的峰点 12:00 已被他航占满，
+            // 旧写法 `AcquireSlot("PEK", 1)` 恒失败。本用例验的是「买到并写进台账」，
+            // 故按当天余量挑一个真能办的时刻 —— 判据用生产闸门，不另立一套。）
+            string slotClock = null;
+            foreach (int m in ScheduleSlots.SlotGrid24())
+            {
+                string c = ScheduleSlots.FormatClock(m);
+                if (RoutePermitLogic.SlotsAvailableAt(gs, "PEK", c) <= 0) continue;
+                if (RoutePermitLogic.SlotsAvailable(gs, "PEK", ScheduleSlots.BandOfClock(c)) <= 0) continue;
+                slotClock = c;
+                break;
+            }
+            Assert.IsNotNull(slotClock, "PEK 全天没有一条可购时刻：容量表与玩法可能已不相容。");
+            Assert.IsTrue(StrategyManager.AcquireSlotsAt(gs, "PEK", slotClock, 1, true, out string slotWhy), slotWhy);
             Assert.AreEqual(1, gs.stg.slots.Count);
 
             // 航权申请回写（消耗政府关系）

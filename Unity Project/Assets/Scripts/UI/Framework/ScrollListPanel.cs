@@ -28,6 +28,7 @@ namespace AirlineCEO.UI.Framework
         {
             if (contentRoot == null || template == null) return null;
             var go = Instantiate(template, contentRoot, false);
+            UIFactory.RehydrateRoundedSprites(go);   // 模板里的圆角同样是运行时精灵，Prefab 存不下
             go.SetActive(true);
             return go.transform;
         }

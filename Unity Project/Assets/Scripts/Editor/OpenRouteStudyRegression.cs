@@ -97,13 +97,28 @@ namespace AirlineCEO.EditorTools
                     && typeof(OpenRouteDecisionFlow).GetMethod("FormatPath", any) == null;
                 bool stillHasEntry = typeof(OpenRouteDecisionFlow).GetMethod("SubmitStudy", any) != null;
 
-                // ⑥ 最优时刻：四时段都空时，必须挑「又旺又便宜」的晚高峰 18:00（需求 1.10 / 0.85 倍价），
-                //    而不是旧口径钉死的 12:00；也不能被最便宜的夜航 22:00 抢走 ——
-                //    夜航需求 0.80 最淡，用「省钱」换来一条不赚钱的班次不是最优。
+                // ⑥ 最优时刻：时段必须挑「又旺又便宜」的晚高峰（需求 1.10），而不是旧口径钉死的 12:00；
+                //    也不能被最便宜的夜航 22:00 抢走 —— 夜航需求 0.80 最淡，用「省钱」换来一条
+                //    不赚钱的班次不是最优。
+                //
+                //    ★2026-11-07 修订：不能再钉死「推荐时刻 == 18:00」。他航逐刻占用计入容量后，
+                //    晚高峰峰点 18:00 在 PEK 常年被他航占满（此时「可申请 0 条」），
+                //    部门若仍报 18:00，CEO 批准后交割必然失败 —— 那正是用户报障的那类错。
+                //    现在部门会**换刻**到本段最近的空刻，并在理由里写明为什么换。
+                //    故这里改为钉三条更硬的约束：
+                //      ① 推荐时刻此刻**真的能申请**（SlotsAvailableAt ≥ 1）——旧口径不查这一条；
+                //      ② 仍落在晚高峰（最旺、且不是最便宜的夜航）；
+                //      ③ 若离开峰点，理由必须把「峰点已满、改报某刻」写出来，不许悄悄换。
                 var pick = RoutePermitLogic.TryBestSlotClock(gs, "PEK", 5000f);
-                bool pickOk = pick.ok && pick.best && pick.band == 2 && pick.clock == "18:00"
+                bool pickClaimable = pick.ok
+                                     && RoutePermitLogic.SlotsAvailableAt(gs, "PEK", pick.clock) >= 1;
+                bool pickMovedExplained = string.Equals(pick.clock, "18:00", System.StringComparison.Ordinal)
+                                          || (pick.reason.Contains("已被他航占满")
+                                              && pick.reason.Contains(pick.clock));
+                bool pickOk = pickClaimable && pick.best && pick.band == 2
                               && pick.demand > 1f && pick.price > 0f
-                              && pick.reason.Contains("需求系数");
+                              && pick.reason.Contains("需求系数")
+                              && pickMovedExplained;
 
                 // ⑦ 「最优」必须是**买得起的**最优：现金 1 万时仍推荐同一时段，
                 //    但正文必须把「钱不够」写出来，不许把买不起的方案当可行方案递上去。

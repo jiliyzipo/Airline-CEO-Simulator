@@ -1706,6 +1706,7 @@ namespace AirlineCEO.EditorTools
                     string buyMsg = "";
                     var buyLog = new System.Text.StringBuilder();
                     var boughtKeys = new List<string>();
+                    var boughtOkKeys = new List<string>();   // 真买到（闸门放行）的端；被驳回的不算
                     var wantBuy = new List<RoutePermitLogic.SlotNeed>();
                     if (repP3.shortages != null)
                         for (int si = 0; si < repP3.shortages.Count; si++)
@@ -1717,6 +1718,20 @@ namespace AirlineCEO.EditorTools
                             {
                                 if (!RoutePermitLogic.NeedsDepartureSlot(eB[k].airport)) continue;
                                 string keyB = eB[k].airport.ToUpperInvariant() + "|" + RoutePermitLogic.TimeOf(eB[k]);
+                                // ★2026-11-06：该刻机场**不开放**（小时容量 0，如红眼落地后的 00:00）时
+                                //   没有任何可购的槽 —— 记「免」而不是「✗」：这一波本就被宵禁/不开放
+                                //   挡住（shortage kind=curfew），购槽清单不该把它当漏办。
+                                int mB = ScheduleSlots.ParseClock(RoutePermitLogic.TimeOf(eB[k]));
+                                if (AirlineCEO.Data.AirportCatalog.QuarterState(eB[k].airport, mB)
+                                    == AirlineCEO.Data.AirportCatalog.QuarterClosed)
+                                {
+                                    if (!boughtKeys.Contains(keyB))
+                                    {
+                                        boughtKeys.Add(keyB);
+                                        buyLog.Append($"{eB[k].airport}{RoutePermitLogic.TimeOf(eB[k])}=免 ");
+                                    }
+                                    continue;
+                                }
                                 if (boughtKeys.Contains(keyB)) continue;
                                 boughtKeys.Add(keyB);
                                 wantBuy.Add(eB[k]);
@@ -1729,6 +1744,10 @@ namespace AirlineCEO.EditorTools
                         //   （容差 ±15 分）—— 这正是旧版「两端都买了槽却仍排不进去」的成因。
                         string clkB = RoutePermitLogic.TimeOf(wantBuy[k]);
                         bool ok = StrategyManager.AcquireSlotsAt(gsP3, wantBuy[k].airport, clkB, 1, false, out buyMsg);
+                        // ★2026-11-06 三次：该刻**已被他航占满**时买不到（浮窗如实写 0 可申请，
+                        //   闸门同口径），这属于「要换刻 / 走二级市场」的另一档缺口，不是漏办一端。
+                        // 故只有**真买到**的端才登记为「按此端购过」—— 没有的槽不能算买过。
+                        if (ok) boughtOkKeys.Add(wantBuy[k].airport.ToUpperInvariant() + "|" + clkB);
                         buyLog.Append($"{wantBuy[k].airport}{clkB}={((ok) ? "✓" : "✗")} ");
                     }
                     Debug.Log($"P3 购槽（逐端）→ 该买 {wantBuy.Count} 条 [{buyLog}]　{buyMsg}");
@@ -1762,13 +1781,18 @@ namespace AirlineCEO.EditorTools
                             var eS = RoutePermitLogic.WaveEndNeeds(rcP3, swS.dep);
                             for (int k = 0; k < eS.Count; k++)
                             {
-                                bool bought = boughtKeys.Contains(
+                                bool bought = boughtOkKeys.Contains(
                                     eS[k].airport.ToUpperInvariant() + "|" + RoutePermitLogic.TimeOf(eS[k]));
                                 // 只有「这一端自己过不了闸门」才算口径问题；同波另一端缺槽把整波拖住不算。
                                 bool endOk = RoutePermitLogic.CanScheduleEnd(gsP3, rcP3, eS[k], true);
-                                if (bought && !endOk) boughtButShort++;
+                                // ★2026-11-06：不开放刻（小时容量 0）本就没有可购的槽，
+                                //   记「免」不算「买过却仍缺」—— 该波被宵禁/不开放挡住是另一档缺口。
+                                int mS = ScheduleSlots.ParseClock(RoutePermitLogic.TimeOf(eS[k]));
+                                bool closedS = AirlineCEO.Data.AirportCatalog.QuarterState(eS[k].airport, mS)
+                                               == AirlineCEO.Data.AirportCatalog.QuarterClosed;
+                                if (bought && !endOk && !closedS) boughtButShort++;
                                 shortLog.Append($"[{swS.dep} 端={eS[k].airport} {RoutePermitLogic.TimeOf(eS[k])}"
-                                                + $" 按此端购过={bought} 本端放行={endOk}]");
+                                                + $" 按此端购过={(closedS ? "免" : (bought ? "True" : "False"))} 本端放行={endOk}]");
                             }
                         }
                     Debug.Log($"P3 有槽加密 → 实排 {rcP3.FlightCount} 班 　绑定 {bound} 条 　仍缺槽波 {stillShort}"
@@ -1798,7 +1822,10 @@ namespace AirlineCEO.EditorTools
                     if (changeOk)
                     {
                         InboxManager.Approve(gsP3, changeMail, out string apMsg);
-                        // 测试免等一季：把交割季设成本季，直接推一次待办效果
+                        // 测试免等一季：新档单子按 `dueUtcTicks`（改时 7 天）到期，**只改季度无效** ——
+                        // 结算先看绝对时刻（SettleDueEffects 的优先级 1），故这里退回「旧档」口径：
+                        // 清掉绝对到期时刻，再按季度判到期（★过去只改 quarter，单子永远不结算 → 假失败）。
+                        changeMail.dueUtcTicks = 0;
                         changeMail.effectYear = gsP3.year;
                         changeMail.effectQuarter = gsP3.quarter;
                         InboxManager.ProcessPendingEffects(gsP3);
@@ -1810,8 +1837,32 @@ namespace AirlineCEO.EditorTools
                             if (ScheduleSlots.ClockDiff(s.slotTime, chTo) <= ScheduleSlots.SlotToleranceMinutes)
                                 holdOk = true;
                         }
-                        var dirP3c = CapacityDirectiveLogic.Parse("增加到每日4段往返");
-                        CapacityDirectiveLogic.Execute(gsP3, rcP3, dirP3c);
+                        // ★2026-11-06：这一波要**两端**都齐才能排进去 —— 本场端改时批了只办完一半，
+                        //   落地端的时刻滑点由运营部在交割回执里自动开出第二张改时单（见
+                        //   RescheduleAfterSlotSettle）。故按真实节奏逐轮「批改时单 → 重排」，直到补进一班。
+                        var passLog = new System.Text.StringBuilder();
+                        for (int pass = 0; pass < 3 && rcP3.FlightCount <= flBefore; pass++)
+                        {
+                            // 改时单在**批准时**才挂 effectPending（ScheduleDays），故这里按「待批」捞。
+                            var pendingChg = gsP3.inbox.FindAll(x => x != null
+                                && x.action == InboxManager.ChangeSlotAction
+                                && (x.effectPending || x.status == "pending"));
+                            for (int ci = 0; ci < pendingChg.Count; ci++)
+                            {
+                                InboxManager.Approve(gsP3, pendingChg[ci], out _);
+                                pendingChg[ci].dueUtcTicks = 0;
+                                pendingChg[ci].effectYear = gsP3.year;
+                                pendingChg[ci].effectQuarter = gsP3.quarter;
+                                passLog.Append($"[{pendingChg[ci].origin} {pendingChg[ci].slotFromClock}"
+                                               + $"→{InboxManager.SlotMailClock(pendingChg[ci])}]");
+                            }
+                            if (pendingChg.Count == 0) break;
+                            InboxManager.ProcessPendingEffects(gsP3);
+                            var dirPass = CapacityDirectiveLogic.Parse("增加到每日4段往返");
+                            CapacityDirectiveLogic.Execute(gsP3, rcP3, dirPass);
+                        }
+                        if (passLog.Length > 0)
+                            Debug.Log($"P3 改时·续办对端 → {passLog}　班数={rcP3.FlightCount}");
                     }
                     Debug.Log($"P3 改时（持槽后时刻滑点）→ 单={((changeMail != null) ? $"{changeMail.origin} {chFrom} → {chTo}" : "无")}"
                               + $"　协调人批后持仓已改为目标刻={holdOk}　实排 {flBefore} → {rcP3.FlightCount} 班"
@@ -3115,7 +3166,7 @@ namespace AirlineCEO.EditorTools
                 //    06:30 / 07:00 / 17:30 各是各的槽，旧写法「一条早班槽通吃整个早班」已不成立）。
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    var grid = ScheduleSlots.BandGridLabels(b);
                     for (int k = 0; k < grid.Count; k++)
                     {
                         SeedSlotAt(gsA, "PEK", grid[k]);
@@ -4477,7 +4528,7 @@ namespace AirlineCEO.EditorTools
                 rCy.SyncFlightsFromPrimary();
                 gsCy.activeRoutes.Add(rCy);
 
-                // 时刻槽：两端把整张 30 分钟系列网格铺满（本段考的是机组闸门，不该被槽卡住）。
+                // 时刻槽：两端把整张 15 分钟系列网格铺满（本段考的是机组闸门，不该被槽卡住）。
                 SeedFullSeries(gsCy, "FRA");
                 SeedFullSeries(gsCy, "ATL");
 
@@ -4618,7 +4669,7 @@ namespace AirlineCEO.EditorTools
                 };
                 rCg.SyncFlightsFromPrimary();
                 gsCg.activeRoutes.Add(rCg);
-                // 时刻槽：两端把整张 30 分钟系列网格铺满（本段考的是机组闸门，不该被槽卡住）。
+                // 时刻槽：两端把整张 15 分钟系列网格铺满（本段考的是机组闸门，不该被槽卡住）。
                 SeedFullSeries(gsCg, "FRA");
                 SeedFullSeries(gsCg, "ATL");
 
@@ -5403,20 +5454,22 @@ namespace AirlineCEO.EditorTools
 
         /// <summary>
         /// R21：把某机场某波次的**每个时刻**都填满（模拟池已无余量、连申请都无门）。
-        /// ★2026-10-15：由「填一条时段名持仓」改为「填满该波 30 分钟网格上的每个时刻」——
+        /// ★2026-10-15：由「填一条时段名持仓」改为「填满该波 15 分钟网格上的每个时刻」——
         /// 池满的判据是**时刻**缺槽（`FreeSlotsAt`），只填一条代表时刻已经拦不住别的时刻了。
         /// </summary>
         static void FillPool(GameState gs, string airport, int band)
         {
             if (gs?.stg == null) return;
             if (gs.stg.slots == null) gs.stg.slots = new List<SlotHolding>();
-            var grid = ScheduleSlots.SlotGridLabels(band);
+            // ★2026-11-06：网格改用 `BandGridClaimableLabels` —— 池的覆盖面已按「整点归属」扩到全天，
+            // 与卡片上真正出现的刻同源；00:00–05:45 没有公布容量，不应拿来做持仓。
+            var grid = ScheduleSlots.BandGridClaimableLabels(airport, band);
             for (int guard = 0, k = 0; guard < 128 && RoutePermitLogic.SlotsAvailable(gs, airport, band) > 0; guard++, k++)
                 gs.stg.slots.Add(new SlotHolding { airport = airport, slotTime = grid[k % grid.Count], inUse = true });
         }
 
         /// <summary>
-        /// 两端各填**整张 30 分钟系列网格**的空闲持仓（模拟真实存档里「这条线两端各时刻的槽都在手」）。
+        /// 两端各填**整张 15 分钟系列网格**的空闲持仓（模拟真实存档里「这条线两端各时刻的槽都在手」）。
         /// ★2026-10-15：由「每时段 2 条代表时刻」改为「网格全铺」—— 时刻槽精确到时刻之后，
         /// 一条 18:00 的持仓接不了 17:30 的回程班（差 30 分 > 容差 15 分），
         /// 夹具若还按旧时段口径只铺峰点，会把「槽不够」误当成「机组/运力不够」。
@@ -5427,7 +5480,8 @@ namespace AirlineCEO.EditorTools
             if (gs.stg.slots == null) gs.stg.slots = new List<SlotHolding>();
             for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
             {
-                var grid = ScheduleSlots.SlotGridLabels(b);
+                // ★2026-11-06：同 FillPool —— 网格与卡片同源（只取该机场真公布了容量的刻）。
+                var grid = ScheduleSlots.BandGridClaimableLabels(airport, b);
                 for (int k = 0; k < grid.Count; k++)
                 {
                     if (RoutePermitLogic.FreeSlotsAt(gs, airport, grid[k]) > 0) continue;

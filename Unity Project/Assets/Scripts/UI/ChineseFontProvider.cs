@@ -21,6 +21,23 @@ namespace AirlineCEO.UI
         private static bool _loggedFallback;
         private static bool _airplaneReady;
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 两个 TMP 字体资源是运行时 <c>CreateFontAsset</c> 生成的，退出播放模式即销毁；
+        /// 引用留着就是「假 null」——属性里的 <c>if (_fontAsset != null)</c> 能认出假 null 并重建，
+        /// 但 <c>_airplaneReady</c> 这个 bool 认不出：它会一直是 true，于是底栏在符号字体
+        /// 还没挂上时就去用 ✈，显示成方框。所以这里把三个 bool 一起清掉。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _fontAsset = null;
+            _symbolFallback = null;
+            _loggedLoad = false;
+            _loggedFallback = false;
+            _airplaneReady = false;
+        }
+
         /// <summary>底栏/机队高频缺字。静态 SDF 常含「度」却不含这些字，探针必须覆盖它们。</summary>
         const string EssentialChinese = "维护财务愿景机队适航租赁折旧选择注册总部基地";
 

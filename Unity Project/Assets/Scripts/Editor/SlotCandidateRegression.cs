@@ -60,7 +60,30 @@ namespace AirlineCEO.EditorTools
                 gs.activeRoutes.Add(route);
                 gs.fleet.Add(new Aircraft { registration = "B-2006", type = "A320neo", isActive = true });
 
-                const string pegClock = "17:30";
+                // ★2026-11-07：peg 不再钉死 17:30 —— 他航逐刻占用计入容量后，晚高峰可能整段
+                // 一条都办不下来（段内公布的刻被占满），钉死一个时刻会让夹具时红时绿。
+                // 夹具要的是「本该缺槽、但同段还有备选」这一刻：在晚班网格里找第一个
+                // CanScheduleClock=false 且 Options ≥ 2 的时刻。
+                string pegClock = null;
+                int sched = 0, maxOpts = 0;
+                string maxAt = "—";
+                foreach (string c in ScheduleSlots.BandGridLabels(2))
+                {
+                    if (RoutePermitLogic.CanScheduleClock(gs, route, c, true)) { sched++; continue; }
+                    int n = SlotCandidateLogic.Options(gs, route, c).Count;
+                    if (n > maxOpts) { maxOpts = n; maxAt = c; }
+                    if (n < 2) continue;
+                    pegClock = c;
+                    break;
+                }
+                if (pegClock == null)
+                {
+                    Debug.LogError("T05.6 夹具失败：晚班整段找不到「缺槽且有多条备选」的时刻。"
+                                   + $"（晚班网格 {ScheduleSlots.BandGridLabels(2).Count} 刻里，"
+                                   + $"{sched} 刻两端齐备（不缺槽）、其余刻最多只有 {maxOpts} 条备选（{maxAt}）。"
+                                   + "缺槽时若无备选，运营部应发「受阻汇报件」—— 别把夹具失效当成通过。）");
+                    return false;
+                }
                 InboxManager.QueueAssignFlight(gs, route, "B-2006", pegClock, out _);
 
                 var mail = FindMail(gs, InboxManager.SlotSelectAction);
@@ -147,10 +170,15 @@ namespace AirlineCEO.EditorTools
                 //    取第一条「需申请」的备选（本夹具里必然存在：无任何持仓），把它写成「已有持仓 + 即刻可排 + 免费」。
                 bool tamperCaught = false;
                 string tamperWhy = "（本夹具没有需申请的备选，无法做反例）";
+                // ★2026-11-07：本夹具在晚班（高峰、他航占满）里跑，此刻多数的端是「需购入」
+                // 而不是「需申请」—— 反例照样成立：把「需购入/需申请」伪造成「已有持仓 + 即刻可排 + 免费」，
+                // 复检必须判伪。旧写法只认 EndApply，夹具换段之后就变成「没有可篡改的备选」而静默漏测。
                 for (int i = 0; i < claimed.Count; i++)
                 {
                     if (claimed[i].outState != SlotCandidateLogic.EndApply
-                        && claimed[i].inState != SlotCandidateLogic.EndApply) continue;
+                        && claimed[i].inState != SlotCandidateLogic.EndApply
+                        && claimed[i].outState != SlotCandidateLogic.EndBuy
+                        && claimed[i].inState != SlotCandidateLogic.EndBuy) continue;
                     var forged = Clone(claimed[i]);
                     forged.outState = SlotCandidateLogic.EndReady;
                     forged.inState = SlotCandidateLogic.EndReady;
@@ -242,7 +270,13 @@ namespace AirlineCEO.EditorTools
                 if (st == SlotCandidateLogic.EndBlocked) viable = false;
                 if (st == SlotCandidateLogic.EndReady || st == SlotCandidateLogic.EndNone) continue;
                 readyNow = false;
-                price += StrategyEconomics.SlotValueWan(need.airport, need.band);
+                // ★2026-11-07：走二级市场的那一端按**实际问价**计（与生成侧、扣款侧同一个数）
+                if (st == SlotCandidateLogic.EndBuy
+                    && SlotMarketLogic.TryQuote(gs, need.airport, RoutePermitLogic.TimeOf(need), need.kind,
+                        out float ask, out _))
+                    price += ask;
+                else
+                    price += StrategyEconomics.SlotValueWanAt(need.airport, need.time);
             }
             readyNow = readyNow && viable;
 

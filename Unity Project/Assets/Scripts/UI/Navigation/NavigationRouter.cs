@@ -209,6 +209,7 @@ namespace AirlineCEO.UI.Navigation
             if (go == null && cfg.prefab != null)
             {
                 go = Instantiate(cfg.prefab, parent, false);
+                UIFactory.RehydrateRoundedSprites(go);   // Prefab 存不下运行时圆角精灵
             }
 
             if (go == null)

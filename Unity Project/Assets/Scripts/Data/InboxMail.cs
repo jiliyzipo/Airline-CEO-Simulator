@@ -181,11 +181,30 @@ namespace AirlineCEO.Data
         public bool slotExtra;
 
         /// <summary>
+        /// 本单是**二级市场点名购入**（★2026-11-07，来自机场时刻页浮窗的快捷按钮）。
+        ///
+        /// 与运营部自动递的 buy_slot 提案有两点不同：
+        /// ① 不改刻 —— CEO 点的就是这一刻，被占满才有可买的东西，绝不能「就近换一个」；
+        /// ② 交割不占协调池 —— 航司之间的转让不增加机场总起降，批准后走
+        ///    <c>SlotMarketLogic.BuyClock</c> 当场过户，而不是 <c>AcquireSlotsAt</c> 抢免费池。
+        /// 存成布尔而不是靠正文文案判断，理由同 <see cref="slotExtra"/>。
+        /// </summary>
+        public bool slotExactMarket;
+
+        /// <summary>
         /// 本函涉及的时刻槽**具体时刻**（`"HH:mm"`，★2026-10-15）。
         /// 时刻槽的身份就是「机场 × 时刻 × 星期」，买卖/申请/交割单必须写死这一刻；
         /// 旧档此字段为空，读取时由 `InboxManager.SlotMailClock` 回退到 `dest` 再回退到时段峰点。
         /// </summary>
         public string slotClock = "";
+
+        public string slotArrClock = "";
+
+        /// <summary>
+        /// 本单要申请的是**哪一类**时刻：`DEP`（离港，默认）/ `ARR`（只到港）。
+        /// ★2026-11-06：到港与离港拆成两个池之后，交割时必须知道该往哪个池里落账。
+        /// </summary>
+        public string slotKind = "";
 
         /// <summary>
         /// 「时刻变更（改时）」申请单的**原时刻**（`"HH:mm"`）：本线在该站**已有**的那条槽。

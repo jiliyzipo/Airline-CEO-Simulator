@@ -91,7 +91,7 @@ namespace AirlineCEO.EditorTools
                 gs.fleet.Add(new Aircraft { registration = "B-3002", type = "A320neo" });
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    var grid = ScheduleSlots.BandGridLabels(b);
                     for (int k = 0; k < grid.Count; k++)
                     {
                         SeedSlotAt(gs, "PEK", grid[k]);

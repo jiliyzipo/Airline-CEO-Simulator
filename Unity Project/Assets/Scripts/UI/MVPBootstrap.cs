@@ -140,19 +140,28 @@ namespace AirlineCEO.UI
 
         private void Awake()
         {
+            // ★2026-11-07 启动耗时探针（仅编辑器/开发版输出一行 [boot]）。
+            // 用户报「点 Play 到进游戏 13 秒」，需要先知道这 13 秒落在哪一段。
+            AirlineCEO.Systems.BootProbe.Reset();
             EnsureCoreSystems();
+            AirlineCEO.Systems.BootProbe.Mark("core");
             AppSettings.Load();
             ModManager.LoadAll();
+            AirlineCEO.Systems.BootProbe.Mark("settings+mods");
             if (gameObject.GetComponent<KeyboardNav>() == null)
                 gameObject.AddComponent<KeyboardNav>();
             EnsureEventSystem();
+            AirlineCEO.Systems.BootProbe.Mark("input");
             ChineseFontProvider.WarmupSampleChinese();
+            AirlineCEO.Systems.BootProbe.Mark("font");
             BuildUI();
+            AirlineCEO.Systems.BootProbe.Mark("ui");
             if (GetComponent<PrefabNavIntegration>() == null)
                 gameObject.AddComponent<PrefabNavIntegration>();
             // Phase 1.4：不再默认进市场；由 SetupFlow 闸门后进主页
             HideAllLegacyCenterPanels();
             RefreshHud();
+            AirlineCEO.Systems.BootProbe.Mark("hud");
 
             if (GameState.Instance != null)
                 GameState.Instance.OnStateChanged += RefreshHud;
@@ -169,10 +178,13 @@ namespace AirlineCEO.UI
 
             StartCoroutine(ClockLoop());
             RefreshClock();
+            AirlineCEO.Systems.BootProbe.Mark("clock");
 
             var setup = GetComponent<AirlineCEO.UI.Setup.SetupFlowController>()
                         ?? gameObject.AddComponent<AirlineCEO.UI.Setup.SetupFlowController>();
             setup.Begin();
+            AirlineCEO.Systems.BootProbe.Mark("setup");
+            AirlineCEO.Systems.BootProbe.Flush("MVPBootstrap.Awake");
         }
 
         /// <summary>开局流完成后：刷新顶栏公司名，显示壳层，启动游戏时钟。</summary>
@@ -767,25 +779,36 @@ namespace AirlineCEO.UI
             center.GetComponent<Image>().raycastTarget = false;
 
             _panelOps = BuildOpsPanel(center.transform);
+            AirlineCEO.Systems.BootProbe.Mark("ui:ops");
             _panelMarket = BuildMarketPanel(center.transform);
+            AirlineCEO.Systems.BootProbe.Mark("ui:market");
             _boardTargetUi = BoardTargetUI.Build(center.transform);
             _panelBoard = _boardTargetUi.gameObject;
+            AirlineCEO.Systems.BootProbe.Mark("ui:board");
             _hrPanelUi = HrPanelUI.Build(center.transform);
             _panelHr = _hrPanelUi.gameObject;
+            AirlineCEO.Systems.BootProbe.Mark("ui:hr");
             _safetyPanelUi = SafetyPanelUI.Build(center.transform);
             _panelSafety = _safetyPanelUi.gameObject;
+            AirlineCEO.Systems.BootProbe.Mark("ui:safety");
             _financeUi = FinancePanelUI.Build(center.transform);
             _panelFinance = _financeUi.gameObject;
+            AirlineCEO.Systems.BootProbe.Mark("ui:finance");
             _fleetUi = FleetUI.Build(center.transform);
             _panelFleet = _fleetUi.gameObject;
+            AirlineCEO.Systems.BootProbe.Mark("ui:fleet");
             _panelAi = BuildAiHelpPanel(center.transform);
+            AirlineCEO.Systems.BootProbe.Mark("ui:aihelp");
             _panelStrategy = BuildStrategyPanel(center.transform);
+            AirlineCEO.Systems.BootProbe.Mark("ui:strategy");
             _panelMaintenance = BuildMaintenancePanel(center.transform);
+            AirlineCEO.Systems.BootProbe.Mark("ui:maintenance");
 
             _eventLogUi = EventLogUI.Build(center.transform,
                 new UIFactory.Anchor(new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.88f), Vector2.zero, Vector2.zero));
             if (_eventLogUi != null)
                 _eventLogUi.gameObject.SetActive(false);
+            AirlineCEO.Systems.BootProbe.Mark("ui:eventlog");
         }
 
         private GameObject BuildOpsPanel(Transform parent)

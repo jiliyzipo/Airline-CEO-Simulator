@@ -32,6 +32,17 @@ namespace AirlineCEO.Systems
             GlobalStormFeed.Reset();
         }
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 直接复用新开局口径，外加把事件订阅清掉（上一局订阅者已随场景销毁）。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            ResetForNewGame();
+            Changed = null;
+        }
+
         public static List<ExternalEvent> Ensure(GameState gs)
         {
             if (gs == null) return null;

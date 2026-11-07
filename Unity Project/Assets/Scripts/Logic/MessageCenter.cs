@@ -24,6 +24,20 @@ namespace AirlineCEO.Logic
         static long _stamp;
         static int _nextId = 1;
 
+        /// <summary>
+        /// 进入 Play 时清空（★2026-11-07，为「禁用域重载」准备）。
+        /// 不清的话上一局的消息会带进新一局：铃铛角标一开局就是几十条、
+        /// 而且历史会超过 200 条上限。域重载开着时这段等于白写，没有任何副作用。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _items.Clear();
+            _stamp = 0;
+            _nextId = 1;
+            Changed = null;      // 旧局的订阅方已经随场景销毁
+        }
+
         public static IReadOnlyList<GameMessage> All => _items;
         public static int Count => _items.Count;
         public static long CurrentStamp => _stamp;

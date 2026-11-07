@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "EVT-20261107143645-54a242",
+  "projectId": "Airline-CEO-Simulator",
+  "revision": 1000,
+  "at": "2026-11-07T14:36:45.336Z",
+  "actor": "cursor",
+  "action": "delivery-withdrawn",
+  "taskId": null,
+  "deliveryId": null,
+  "reviewId": null,
+  "parentEventId": null,
+  "summary": "withdrawn: DEL-20261107143041-b27e5d",
+  "data": {
+    "deliveryId": "DEL-20261107143041-b27e5d",
+    "taskId": "S50-BootPerf",
+    "reason": "提交后生成，对比基准退化为工作区（仅 7 个文档文件），漏掉 146 个真实改动；按未提交改动重新交付"
+  }
+}

@@ -51,7 +51,15 @@ namespace AirlineCEO.Logic
         /// → 走**时刻变更申请**（改时），不是新申请。依据见 <see cref="RoutePermitLogic.TryTimeChange"/>。
         /// </summary>
         public const string EndChange = "change";
-        /// <summary>该端此刻无空闲持仓、且时段池已满 → 申请与购入都无门，只能等别的航线释放。</summary>
+        /// <summary>该端此刻无空闲持仓、且时段池已满，但**二级市场有人愿意出让** → 花钱当场买入。</summary>
+        /// <remarks>
+        /// ★2026-11-07（用户裁决 A 方案）：他航占用 85–92% 之后，一份「四个端」的时刻几乎
+        /// 不可能同时落在免费池的空刻上。现实里这正是 LHR / PEK 的常态 —— 想进来只能买。
+        /// 于是「池满」不再等于「没门」：只要那一刻确实有他航持有，就存在一个可买的价格。
+        /// 仍与 <see cref="EndBlocked"/> 分开：买不到（无人持有 / 钱不够）才叫拿不到。
+        /// </remarks>
+        public const string EndBuy = "buy";
+        /// <summary>该端此刻无空闲持仓、时段池已满、且二级市场也无人出让 → 只能等别的航线释放。</summary>
         public const string EndBlocked = "blocked";
 
         public static string EndStateName(string state)
@@ -61,6 +69,7 @@ namespace AirlineCEO.Logic
                 case EndReady: return "即刻可排";
                 case EndApply: return "需申请";
                 case EndChange: return "需改时";
+                case EndBuy: return "需购入";
                 case EndBlocked: return "拿不到";
                 default: return "无需槽";
             }
@@ -96,6 +105,9 @@ namespace AirlineCEO.Logic
 
             bool apply = HasEndState(o, EndApply);
             bool change = HasEndState(o, EndChange);
+            bool buy = HasEndState(o, EndBuy);
+            if (buy && !apply && !change)
+                return $"批准即买入（当场过户），不占协调池、不必等 {nextQ}；现金当场扣除";
             if (apply && change)
                 return gs == null
                     ? "改时部分批准即用；新申请部分协调池下季交割（二级市场同期）"
@@ -162,7 +174,7 @@ namespace AirlineCEO.Logic
         // ———————————————————————— 备选生成 ————————————————————————
 
         /// <summary>
-        /// 在 <paramref name="pegClock"/> 所属需求波窗口的**整张 30 分钟网格**上生成备选，
+        /// 在 <paramref name="pegClock"/> 所属需求波窗口的**整张 15 分钟网格**上生成备选，
         /// 含**早于**峰点的时刻（这是与旧口径的关键差别：手上握着 07:30 的槽、却因为
         /// 调令写的是 08:00 而报「缺槽要去买」，正是旧排班器「只向后搜」逼出来的假缺口）。
         ///
@@ -298,11 +310,34 @@ namespace AirlineCEO.Logic
                     endNotes.Add($"{RoutePermitLogic.LegName(need)} {need.airport} {RoutePermitLogic.LegClocks(need)}　{EndStateName(st)}"
                                  + (st == EndChange ? $"（{RoutePermitLogic.SlotChangeNote(gs, route, need)}）" : ""));
                 }
-                if (st == EndBlocked) viable = false;
+                if (st == EndBlocked)
+                {
+                    // ★2026-11-06：受阻要指明**是哪一端**、哪一刻，并给两条出路（资料 M11）。
+                    // 只说「拿不到」会让玩家去改机场，而真正紧张的往往只是落地那一刻。
+                    string gap = RoutePermitLogic.StopGapText(gs, route, need);
+                    if (!string.IsNullOrEmpty(gap))
+                        endNotes.Add($"{RoutePermitLogic.LegName(need)} {need.airport} "
+                                     + $"{RoutePermitLogic.LegClocks(need)}\n{gap}");
+                    viable = false;
+                }
                 if (st == EndReady || st == EndNone) continue;
                 readyNow = false;
-                // 需取得的那一端才计价：协调池申请免费，二级市场按机场等级 × 时段计价
-                opt.priceWan += StrategyEconomics.SlotValueWan(need.airport, need.band);
+                // 需取得的那一端才计价：协调池申请免费，二级市场按机场等级 × 时段计价。
+                // ★2026-11-07：走二级市场的那一端按**实际问价**计（含稀缺乘数与议价），
+                // 与「批准即买、现金当场扣」是同一个数 —— 报价与扣款不许两套。
+                if (st == EndBuy
+                    && SlotMarketLogic.TryQuote(gs, need.airport, RoutePermitLogic.TimeOf(need), need.kind,
+                        out float ask, out _))
+                {
+                    opt.priceWan += ask;
+                    endNotes.Add($"{RoutePermitLogic.LegName(need)} {need.airport} "
+                                 + $"{RoutePermitLogic.LegClocks(need)}　{EndStateName(st)}"
+                                 + $"（二级市场约 {ask:F0} 万，批准即买、当场过户）");
+                }
+                else
+                {
+                    opt.priceWan += StrategyEconomics.SlotValueWanAt(need.airport, need.time);
+                }
             }
             opt.viable = viable;
             opt.readyNow = viable && readyNow;
@@ -342,7 +377,9 @@ namespace AirlineCEO.Logic
         /// </summary>
         public static string EndStateOf(GameState gs, RouteData route, RoutePermitLogic.SlotNeed need)
         {
-            if (string.IsNullOrEmpty(need.airport) || !RoutePermitLogic.NeedsDepartureSlot(need.airport)) return EndNone;
+            if (string.IsNullOrEmpty(need.airport)
+                || !RoutePermitLogic.NeedsDepartureSlot(need.airport, RoutePermitLogic.TimeOf(need)))
+                return EndNone;
             switch (RoutePermitLogic.EndStatusKey(gs, route, need))
             {
                 case "bound":
@@ -356,11 +393,24 @@ namespace AirlineCEO.Logic
                     //   现实里走的是「时刻变更申请」（WASG 9.1.3），比新申请快且不占新容量 ——
                     //   但协调人仍按**系列余量**批驳：目标系列已满 → 与「拿不到」同档。
                     if (RoutePermitLogic.TryTimeChange(gs, route, need, out _, out _, out _, out bool room))
-                        return room ? EndChange : EndBlocked;
-                    return RoutePermitLogic.CanApplyEnd(gs, route, need) ? EndApply : EndBlocked;
+                        return room ? EndChange : BuyOrBlocked(gs, need, SlotCandidateLogic.EndChange);
+                    return RoutePermitLogic.CanApplyEnd(gs, route, need)
+                        ? EndApply : BuyOrBlocked(gs, need, EndApply);
                 default:
                     return EndNone;
             }
+        }
+
+        /// <summary>
+        /// 「池满」之后还能不能买：有人持有那一刻 → <see cref="EndBuy"/>，否则 <see cref="EndBlocked"/>。
+        /// ★2026-11-07 A 方案：免费池走不通不等于航线开不了 —— 枢纽的现实就是花钱买路。
+        /// </summary>
+        static string BuyOrBlocked(GameState gs, RoutePermitLogic.SlotNeed need, string applyState)
+        {
+            _ = applyState;
+            return SlotMarketLogic.TryQuote(gs, need.airport, RoutePermitLogic.TimeOf(need), need.kind,
+                out _, out _)
+                ? EndBuy : EndBlocked;
         }
 
         /// <summary>离该时刻最近的现有班次间隔（分钟）；本线尚未开飞返回 −1。</summary>
@@ -412,6 +462,10 @@ namespace AirlineCEO.Logic
                 if (opt.inState == EndChange)
                     cons.Add($"对端 {opt.inAirport} {opt.inClock} 缺槽，但本线在该站已有一条槽 —— "
                              + $"需向协调人提**时刻变更申请**（改时，免费），批准即用（{thisQ} 内），不必等新槽");
+                if (opt.outState == EndBuy)
+                    cons.Add($"本场端 {opt.outAirport} {opt.depClock} 免费池已满 —— 只能走二级市场购入，批准即买、当场过户");
+                if (opt.inState == EndBuy)
+                    cons.Add($"对端 {opt.inAirport} {opt.inClock} 免费池已满 —— 只能走二级市场购入，批准即买、当场过户");
                 // ★2026-10-16：经停端两条（去程/回程各一次停留）也逐条进利弊 —— 它们同样要办、同样要花钱
                 for (int i = 0; i < (opt.endNotes == null ? 0 : opt.endNotes.Count); i++)
                 {
@@ -422,8 +476,8 @@ namespace AirlineCEO.Logic
                         cons.Add($"经停端 {note} —— 该站已有槽但时刻滑点，需提时刻变更申请（改时）");
                     else if (note.IndexOf(EndStateName(EndReady), StringComparison.Ordinal) >= 0)
                         pros.Add($"经停端 {note}");
-                    else if (note.IndexOf(EndStateName(EndBlocked), StringComparison.Ordinal) >= 0)
-                        cons.Add($"经停端 {note}");
+                    else if (note.IndexOf(EndStateName(EndBuy), StringComparison.Ordinal) >= 0)
+                        cons.Add($"经停端 {note} —— 免费池已满，需走二级市场购入");
                 }
                 if (opt.priceWan > 0.01f)
                     cons.Add($"若不愿排队，走二级市场购入约 {opt.priceWan:F0} 万（协调池申请不收费）");

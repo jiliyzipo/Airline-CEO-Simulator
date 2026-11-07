@@ -66,6 +66,17 @@ namespace AirlineCEO.Logic
         static readonly object Gate = new object();
         static readonly List<ExternalEventPayload> Inbox = new List<ExternalEventPayload>();
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 复用 <see cref="Reset"/>，再把 <c>_loaded</c> 归 false 以重新读取配置。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _loaded = false;
+            Reset();
+        }
+
         public static bool Enabled
         {
             get { EnsureLoaded(); return _enabled; }

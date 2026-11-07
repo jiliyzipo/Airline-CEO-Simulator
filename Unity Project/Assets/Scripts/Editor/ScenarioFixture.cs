@@ -174,7 +174,7 @@ namespace AirlineCEO.EditorTools
                 report = $"{airport} 波次{band} 的协调池已经没有余量了，无需再填。";
                 return false;
             }
-            var grid = ScheduleSlots.SlotGridLabels(band);
+            var grid = ScheduleSlots.BandGridClaimableLabels(airport, band);
             if (grid == null || grid.Count == 0) return Refuse($"波次{band} 的网格为空。", out report);
 
             int added = 0;

@@ -328,7 +328,7 @@ namespace AirlineCEO.Logic
                 {
                     var need = needs[k];
                     if (RoutePermitLogic.ReserveSlot(gs, need.airport, RoutePermitLogic.TimeOf(need),
-                        need.routeId, need.flightNo) >= 0)
+                        need.routeId, need.flightNo, need.arrTime, need.kind) >= 0)
                         slotsBound++;
                 }
             }

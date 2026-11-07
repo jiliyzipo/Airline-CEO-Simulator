@@ -30,10 +30,22 @@ namespace AirlineCEO.Editor
 
         static void OnBeforeReload()
         {
+            // ★2026-11-07：这一步在用户的机器上被观测到能卡 10 秒（`Editor.log` 里
+            // `BeginReloadAssembly` 10805ms），于是分段记时，定位到底是谁在等。
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             WebRequestGuard.AbortAll();             // RealWeatherService / MapTileLayer / AIChatManager 的在飞请求
+            long abort = sw.ElapsedMilliseconds;
             RealWeatherService.ReleaseDomainResources();
+            long weather = sw.ElapsedMilliseconds;
             MapTileLayer.ReleaseDomainResources();
+            long map = sw.ElapsedMilliseconds;
             MapWeatherTileLayer.ReleaseDomainResources();
+            long weatherLayer = sw.ElapsedMilliseconds;
+            UnityEngine.Debug.Log("[reload] beforeAssemblyReload abort=" + abort
+                + "ms weather=" + (weather - abort)
+                + "ms map=" + (map - weather)
+                + "ms weatherTile=" + (weatherLayer - map)
+                + "ms total=" + weatherLayer + "ms");
         }
     }
 }

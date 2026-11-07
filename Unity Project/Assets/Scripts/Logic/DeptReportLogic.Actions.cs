@@ -686,6 +686,60 @@ namespace AirlineCEO.Logic
         static DeptAnswer FinanceDirective(CeoCommandRouter.CeoAsk ask)
             => Directive(ask, "FIN", FinanceKindName(ask.financeKind));
 
+        /// <summary>
+        /// 命令台「申请 &lt;机场&gt; &lt;时刻&gt; [到港] 时刻槽」（★2026-11-06 用户裁决）。
+        ///
+        /// 用户原话：「取消浮窗里的按钮，所有申请时刻命令，都在命令台下达。」
+        /// 机场时刻页浮窗里那颗「只申请到港时刻」按钮已删除，于是命令台必须真的能办这件事，
+        /// 而不是像 2026-11-04 那样只会回一句「这不是 CEO 的指令」——那等于把入口删掉了却没补新的。
+        ///
+        /// 产物仍是**提案**（<c>apply_slot</c>，收件箱待批），与运营部自己递单走同一条管线：
+        /// 协调池是免费的、要排队，CEO 点一句话只是把单子递出去，成交与否看协调人。
+        /// </summary>
+        static DeptAnswer SlotDealDirective(CeoCommandRouter.CeoAsk ask)
+        {
+            if (ask.slotBuy)
+                return Fail("买入时刻要走二级市场（或让运营部递购入提案、由你批「买不买」，提案落在收件箱），"
+                            + "命令台不直接扣款成交通。本次未向任何部门派件、未动账。");
+
+            bool arr = string.Equals(ask.slotKind, SlotHolding.SlotKindArrival, StringComparison.OrdinalIgnoreCase);
+            string end = arr ? "到港" : "离港";
+            int n = ask.count < 1 ? 1 : ask.count;
+            return new DeptAnswer
+            {
+                ok = true,
+                needsRun = true,
+                ask = ask,
+                deptCode = "STG",
+                sender = "战略发展部",
+                role = "航权提案",
+                glyph = "战",
+                subject = $"向协调池申请 {ask.origin} {ask.clock} {end}时刻槽",
+                oneLine = $"{ask.origin} {ask.clock} {end} {n} 条"
+            };
+        }
+
+        /// <summary>
+        /// 真正递单：交 <c>InboxManager.QueueApplySlots</c>（与运营部自动申请同一入口，
+        /// 池满 / 该刻无槽 / 同一时刻已在申报时如实驳回，不静默挪到别的刻）。
+        /// </summary>
+        public static bool RunSlotApply(GameState gs, CeoCommandRouter.CeoAsk ask, out string receipt)
+        {
+            receipt = "";
+            if (gs == null) { receipt = "游戏尚未就绪。"; return false; }
+            bool arr = string.Equals(ask.slotKind, SlotHolding.SlotKindArrival, StringComparison.OrdinalIgnoreCase);
+            string kind = arr ? SlotHolding.SlotKindArrival : SlotHolding.SlotKindDeparture;
+            int n = ask.count < 1 ? 1 : ask.count;
+            bool ok = InboxManager.QueueApplySlots(gs, ask.origin, ask.clock, n, null, out string msg,
+                arr ? "CEO 在命令台点名申请的到港时刻" : "CEO 在命令台点名申请的离港时刻",
+                null, null, 0, false, null, kind);
+            receipt = ok
+                ? $"已就 {ask.origin} {ask.clock} 的{(arr ? "到港" : "离港")}时刻向协调池递单 {n} 条"
+                  + "（免费渠道；提案在收件箱待批，批准后按天交割）"
+                : msg;
+            return ok;
+        }
+
         static string FinanceKindName(int kind)
             => kind == 3 ? "股东增资" : kind == 2 ? "高息过桥" : "银行贷款";
 
@@ -715,6 +769,8 @@ namespace AirlineCEO.Logic
                     return RunHrRecruit(gs, ans.ask, out receipt);
                 case CeoCommandRouter.TopicFinance:
                     return RunFinanceRequest(gs, ans.ask, out receipt);
+                case CeoCommandRouter.TopicSlotDeal:
+                    return RunSlotApply(gs, ans.ask, out receipt);
             }
             receipt = "这条指令没有可执行的管线。";
             return false;

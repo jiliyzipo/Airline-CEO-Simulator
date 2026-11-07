@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 989,
-  "updatedAt": "2026-11-05T04:42:50.832Z",
+  "revision": 1003,
+  "updatedAt": "2026-11-07T14:38:44.328Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -135,7 +135,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.212Z"
     },
@@ -144,7 +144,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.671Z"
     },
@@ -378,7 +378,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:07.495Z"
     },
@@ -534,9 +534,27 @@
       "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-11-04T12:33:05.020Z"
+    },
+    "S50-BootPerf": {
+      "title": "阶段 S50-BootPerf：Docs",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-07T14:30:30.208Z"
+    },
+    "S51-BootPerf": {
+      "title": "阶段 S51-BootPerf：Editor/Logic/UI",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
+      "holder": null,
+      "freshness": "current",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-07T14:38:00.189Z"
     }
   },
-  "lastDeliveryId": "DEL-20261104123522-e90c14",
+  "lastDeliveryId": "DEL-20261107143823-54ca1d",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",
@@ -891,6 +909,14 @@
       "actor": "cursor",
       "note": "预检失败（快照多出未列入清单的 .meta），补 .meta 后由 S44 重新交付",
       "at": "2026-10-31T07:36:05.340Z"
+    },
+    "DEL-20261107143041-b27e5d": {
+      "status": "withdrawn",
+      "supersededBy": null,
+      "taskId": "S50-BootPerf",
+      "actor": "cursor",
+      "note": "提交后生成，对比基准退化为工作区（仅 7 个文档文件），漏掉 146 个真实改动；按未提交改动重新交付",
+      "at": "2026-11-07T14:36:45.319Z"
     }
   }
 }

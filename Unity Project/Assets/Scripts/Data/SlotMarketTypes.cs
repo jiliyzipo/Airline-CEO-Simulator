@@ -21,7 +21,14 @@ namespace AirlineCEO.Data
     {
         public string id;            // 挂牌号（MK-2Q1-3）
         public string airport;       // 机场 IATA
-        public string clock;         // 具体离港时刻 "HH:mm"（时刻槽精确到时刻）
+        public string clock;         // 具体时刻 "HH:mm"（离港；kind=ARR 时为到港）
+        /// <summary>
+        /// 这一对的**到港时刻**（★2026-11-06「一槽一对」）。
+        /// 空 = 卖家没登记（旧档 / 只到港挂牌）；买入后原样入账，于是「几点落地」跟着资产走。
+        /// </summary>
+        public string arrClock = "";
+        /// <summary>挂牌类型：`DEP` = 离港对（默认）/ `ARR` = 只到港（only-landing）。</summary>
+        public string kind = "";
         public string seller;        // 出让方（他航名；我司挂牌时为「我司」）
         public float askWan;         // 叫价（万美元）
         public bool mine;            // true = 我司挂牌（false = 他航待售）

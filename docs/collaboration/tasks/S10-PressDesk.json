@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-24T12:45:41.908Z",
-  "updatedAt": "2026-11-05T04:42:50.121Z",
+  "updatedAt": "2026-11-07T14:02:51.074Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 22 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
+  "freshnessNote": "Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 16 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs …).",
   "staleForReviewId": "REV-20261024132317-f6bf86",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -72,14 +72,20 @@
   },
   "scopeDrift": {
     "basis": 56,
-    "intact": 30,
-    "covered": 22,
+    "intact": 29,
+    "covered": 16,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
       "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
+      "Unity Project/Assets/Scripts/Logic/SlotCandidateLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
       "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
+      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 11
   }
 }

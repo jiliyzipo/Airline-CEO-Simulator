@@ -46,7 +46,8 @@ namespace AirlineCEO.EditorTools
                     return false;
                 }
                 int band = ScheduleSlots.BandOfClock(clock);
-                float fair = StrategyEconomics.SlotValueWan(apt, band);
+                // ★2026-11-05：价格改为按小时取（同一波内不同刻不同价），回归必须与生产同口径。
+                float fair = StrategyEconomics.SlotValueWanAt(apt, clock);
 
                 // ———— ① 货架：每季换新，条数在区间内，条目可读 ————
                 var mkt = SlotMarketLogic.Ensure(gs, refresh: true);
@@ -225,10 +226,20 @@ namespace AirlineCEO.EditorTools
                 if (!ghostBlocked) Debug.LogError("R47 ⑥ 挂牌已消失仍能成交（会凭空多出一笔钱）。");
 
                 // ———— ⑦ 撤回：未处理意向一并作废 ————
+                // ★2026-11-05：⑥ 把「idle」那条持仓卖掉了，而 15 分钟粒度下每条时刻只有
+                // 0/1/2 条容量，同一刻不再有多条重复持仓兜底 —— 必须重新取一条还活着的闲置槽，
+                // 否则挂牌一开始就会被 PruneExpired 当孤儿剪掉（撤回自然返回 false）。
+                int idleIdx3 = FindHolding(gs, inUse: false);
+                if (idleIdx3 < 0)
+                {
+                    Debug.LogError("R47 ⑦ 夹具失败：手上没有闲置持仓可挂 —— 撤回场景没测到。");
+                    return false;
+                }
+                var idle3 = gs.stg.slots[idleIdx3];
                 var list2 = new SlotMarketListing
                 {
-                    id = "MY-TEST-2", airport = idle.airport,
-                    clock = RoutePermitLogic.SlotRequestClock(idle.slotTime),
+                    id = "MY-TEST-2", airport = idle3.airport,
+                    clock = RoutePermitLogic.SlotRequestClock(idle3.slotTime),
                     seller = "我司", askWan = 500f, fairWan = fair, mine = true,
                     listedYear = gs.year, listedQuarter = gs.quarter
                 };
@@ -243,7 +254,9 @@ namespace AirlineCEO.EditorTools
                 bool withdrawn = SlotMarketLogic.Withdraw(gs, list2.id, out _);
                 bool offerClosed = !offer3.open;
                 if (!withdrawn || !offerClosed)
-                    Debug.LogError("R47 ⑦ 撤回挂牌后仍有未处理意向（CEO 会点出一封无结果的邮件）。");
+                    Debug.LogError($"R47 ⑦ 撤回挂牌后仍有未处理意向（withdrawn={withdrawn} offerClosed={offerClosed}；"
+                                   + $"挂牌 {list2.airport} {list2.clock}，持仓下标 "
+                                   + $"{SlotMarketLogic.HoldingIndexOf(gs, list2.airport, list2.clock)}）。");
 
                 // ———— ⑦b 运营部代挂牌（2026-11-05）：挂牌按钮删除后「我司挂牌」的唯一来源 ————
                 // 挂牌按钮随「挑机场×时刻不是 CEO 的事」一并删除；若没人挂牌，
@@ -496,7 +509,7 @@ namespace AirlineCEO.EditorTools
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
                     if (RoutePermitLogic.SlotsAvailable(gs, a, b) < 2) continue;
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    var grid = ScheduleSlots.BandGridClaimableLabels(a, b);
                     if (grid == null || grid.Count == 0) continue;
                     airport = a;
                     clock = grid[0];

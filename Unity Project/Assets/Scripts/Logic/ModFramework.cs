@@ -62,6 +62,14 @@ namespace AirlineCEO.Logic
             _conflicts.Clear();
         }
 
+        /// <summary>
+        /// 进入 Play 时清空（★2026-11-07，为「禁用域重载」准备）。
+        /// `ModManager.LoadAll()` 每局都会重新 Register，不清会累积上一局的 Mod 清单
+        /// （id 去重挡得住重复，但上一局已删除的 Mod 仍会留在列表里）。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession() => Clear();
+
         static int Weight(string type)
         {
             switch (type)

@@ -123,6 +123,7 @@ namespace AirlineCEO.UI
             {
                 var shellGo = Instantiate(shellPrefab, canvasTf, false);
                 shellGo.name = UIPrefabCatalog.ShellN0;
+                UIFactory.RehydrateRoundedSprites(shellGo);   // Prefab 存不下运行时圆角精灵，实例化后补回
                 var srt = shellGo.GetComponent<RectTransform>();
                 if (srt != null)
                 {

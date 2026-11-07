@@ -52,12 +52,12 @@ namespace AirlineCEO.EditorTools
 
                 if (!FindTarget(gs, out string apt, out string clock))
                 {
-                    Debug.LogError("R45 夹具失败：找不到池内余量 ≥3 条的协调机场时刻，无法做渠道对照。"
+                    Debug.LogError("R45 夹具失败：找不到池内还有余量的协调机场时刻，无法做渠道对照。"
                                    + "（先确认 RoutePermitLogic.SlotPoolCapacity / 机场目录没变，别把夹具失效当成通过。）");
                     return false;
                 }
                 int band = ScheduleSlots.BandOfClock(clock);
-                float price = StrategyEconomics.SlotValueWan(apt, band);
+                float price = StrategyEconomics.SlotValueWanAt(apt, clock);   // 按具体时刻定价（2026-11-05）
 
                 // ———— ① 免费渠道：落在 apply_slot 上，信里写明不收费 ————
                 float cash0 = gs.cash;
@@ -100,45 +100,83 @@ namespace AirlineCEO.EditorTools
                     Debug.LogError($"R45 ③ 提案阶段就扣了钱：{cash0:F0} → {gs.cash:F0} 万（应在交割季才扣）。");
 
                 // ———— ④ 交割计费分野：免费不动现金，付费按价扣款 ————
+                //
+                // ★2026-11-06：不能再假设「同一刻能连放三条」。容量改由小时容量派生后，
+                //   每个 15 分钟窗口最多 2 条（容量 1 的刻只放 1 条），而本用例要连续交割
+                //   免费 → 付费 → 免费三次。旧写法三次都打同一个刻，第三条必然被「该刻已被占满」
+                //   驳回，误报成「免费渠道被现金挡住」（见下文 ⑤）。现在每次交割前现找一刻。
                 int slots0 = gs.stg.slots.Count;
                 float beforeFree = gs.cash;
-                bool freeSettle = StrategyManager.AcquireSlotsAt(gs, apt, clock, 1, true, out string freeSettleMsg);
+                bool freeFound = FindFreeClock(gs, apt, null, null, out string clockFree);
+                string freeSettleMsg = "";
+                bool freeSettle = freeFound
+                                  && StrategyManager.AcquireSlotsAt(gs, apt, clockFree, 1, true, out freeSettleMsg);
                 bool freeFree = freeSettle && Mathf.Abs(gs.cash - beforeFree) < 0.01f
                                 && gs.stg.slots.Count == slots0 + 1;
                 if (!freeFree)
                     Debug.LogError($"R45 ④ 协调池交割应不收费：成功={freeSettle} 现金 {beforeFree:F0}→{gs.cash:F0} "
-                                   + $"槽 {slots0}→{gs.stg.slots.Count}（{freeSettleMsg}）");
+                                   + $"槽 {slots0}→{gs.stg.slots.Count}"
+                                   + $"（{(freeFound ? clockFree + "：" : "夹具找不到可交割时刻：")}"
+                                   + $"{(freeFound ? freeSettleMsg : "池全程无余量")}）");
+
+                // 付费那一笔优先落在**同一刻**（同刻对照才说明「渠道分野」而不是「时刻不同」）；
+                // 该刻只有 1 条容量时只能换刻，如实记进日志。
+                bool sameClockPaid = freeFound && RoutePermitLogic.SlotsAvailableAt(gs, apt, clockFree) > 0;
+                string clockPaid = sameClockPaid ? clockFree : null;
+                bool paidFound = sameClockPaid || FindFreeClock(gs, apt, clockFree, null, out clockPaid);
+                price = paidFound ? StrategyEconomics.SlotValueWanAt(apt, clockPaid) : price;
 
                 float beforePaid = gs.cash;
                 int slotsBeforePaid = gs.stg.slots.Count;
-                bool paidSettle = StrategyManager.AcquireSlotsAt(gs, apt, clock, 1, false, out string paidSettleMsg);
+                string paidSettleMsg = "";
+                bool paidSettle = paidFound
+                                  && StrategyManager.AcquireSlotsAt(gs, apt, clockPaid, 1, false, out paidSettleMsg);
                 bool paidCharged = paidSettle
                                    && Mathf.Abs((beforePaid - gs.cash) - price) < 0.51f
                                    && gs.stg.slots.Count == slotsBeforePaid + 1;
                 if (!paidCharged)
                     Debug.LogError($"R45 ④ 二级市场交割应按价扣 {price:F0} 万：成功={paidSettle} "
                                    + $"现金 {beforePaid:F0}→{gs.cash:F0} 槽 {slotsBeforePaid}→{gs.stg.slots.Count}"
-                                   + $"（{paidSettleMsg}）");
+                                   + $"（{(paidFound ? clockPaid + "：" : "夹具找不到可交割时刻：")}"
+                                   + $"{(paidFound ? paidSettleMsg : "池全程无余量")}）");
 
                 // ———— ⑤ 反例：现金不足时付费渠道必须失败且不扣款 ————
                 float saved = gs.cash;
                 gs.cash = 1f;
-                bool brokeOk = !StrategyManager.AcquireSlotsAt(gs, apt, clock, 1, false, out string brokeMsg)
-                               && Mathf.Abs(gs.cash - 1f) < 0.01f;
+                string brokeMsg = "";
+                bool brokePaid = paidFound
+                                 && StrategyManager.AcquireSlotsAt(gs, apt, clockPaid, 1, false, out brokeMsg);
+                bool brokeOk = !brokePaid && Mathf.Abs(gs.cash - 1f) < 0.01f;
                 // 免费渠道在同样条件下不受现金影响（这正是它存在的意义）
                 int slotsBroke = gs.stg.slots.Count;
-                bool brokeStillFree = StrategyManager.AcquireSlotsAt(gs, apt, clock, 1, true, out _)
+                string clockBroke = null;
+                bool brokeFound = FindFreeClock(gs, apt, clockFree, clockPaid, out clockBroke);
+                bool brokeStillFree = brokeFound
+                                      && StrategyManager.AcquireSlotsAt(gs, apt, clockBroke, 1, true, out _)
                                       && gs.stg.slots.Count == slotsBroke + 1
                                       && Mathf.Abs(gs.cash - 1f) < 0.01f;
                 gs.cash = saved;
                 if (!brokeOk)
                     Debug.LogError($"R45 ⑤ 现金不足时付费渠道竟成功了，或失败却扣了款（现金={gs.cash:F0}，{brokeMsg}）");
                 if (!brokeStillFree)
-                    Debug.LogError("R45 ⑤ 协调池渠道被现金挡住了 —— 免费渠道不该看现金。");
+                    Debug.LogError($"R45 ⑤ 协调池渠道被现金挡住了（或夹具找不到第三个空刻）："
+                                   + $"现金={gs.cash:F0} 找到空刻={brokeFound} 槽 {slotsBroke}→{gs.stg.slots.Count}。"
+                                   + "免费渠道不该看现金。");
 
                 // ———— ⑥ 反例：池满时免费渠道同样要拒（免费 ≠ 无限） ————
-                while (RoutePermitLogic.SlotsAvailable(gs, apt, band) > 0)
-                    StrategyManager.AcquireSlotsAt(gs, apt, clock, 1, true, out _);
+                //
+                // ★2026-11-06：旧写法 `while (余量 > 0) AcquireSlotsAt(…, clock, …)` 是把同一刻
+                //   反复买 —— 该刻一满就返回 false，循环再也不会推进，**要么空转要么卡死**。
+                //   现在每轮现找一刻还有余量的刻，并加次数上限兜底。
+                for (int guard = 0; guard < 64 && RoutePermitLogic.SlotsAvailable(gs, apt, band) > 0; guard++)
+                {
+                    var fillGrid = ScheduleSlots.BandGridLabels(band);
+                    string fillClock = null;
+                    for (int g = 0; g < fillGrid.Count; g++)
+                        if (RoutePermitLogic.SlotsAvailableAt(gs, apt, fillGrid[g]) > 0) { fillClock = fillGrid[g]; break; }
+                    if (fillClock == null) break;   // 池有余量但逐刻无空位 → 无法再填，交给断言暴露
+                    if (!StrategyManager.AcquireSlotsAt(gs, apt, fillClock, 1, true, out _)) break;
+                }
                 bool poolFull = RoutePermitLogic.SlotPoolFull(gs, apt, band);
                 bool freeBlockedOnFull = !InboxManager.QueueApplySlots(gs, apt, clock, 1, null, out string fullMsg)
                                          && !string.IsNullOrEmpty(fullMsg);
@@ -151,6 +189,7 @@ namespace AirlineCEO.EditorTools
 
                 Debug.Log($"R45 时刻槽双渠道（{apt} {clock}·池价 {price:F0} 万）→ "
                           + $"免费单落 apply_slot={freeOk}　付费单落 buy_slot={paidOk}"
+                          + $"\n　交割实位：免费 {clockFree}　付费 {clockPaid}（同刻={sameClockPaid}）　免费③ {clockBroke}"
                           + $"\n　按件事判重：同刻重复被挡={sameBlocked}　跨机场不被挡={otherQueued}（{apt2} {clock2}）"
                           + $"　提案不扣款={noChargeAtProposal}"
                           + $"\n　交割：免费不动现金={freeFree}　付费按价扣款={paidCharged}"
@@ -167,7 +206,9 @@ namespace AirlineCEO.EditorTools
 
         /// <summary>
         /// 找一个「协调机场 + 池内余量 ≥3 条」的机场时刻，作为两条渠道的对照对象。
-        /// 余量要 ≥3：本回归先后要交割免费、付费、再交割免费三次，余量不足会把夹具本身跑挂。
+        /// 余量要 ≥1，且**该刻容量要 ≥2**：本回归先后要交割免费、付费两次，
+        /// 若挑中的刻每刻只有 1 条容量，免费那条一落位，同刻就再无位置可给付费渠道 ——
+        /// 那不是「付费渠道失效」，是夹具把自己堵死了（2026-11-06 曾因此误报 R45 ④/⑤）。
         /// </summary>
         static bool FindTarget(GameState gs, out string airport, out string clock)
         {
@@ -184,11 +225,57 @@ namespace AirlineCEO.EditorTools
                 if (!RoutePermitLogic.NeedsDepartureSlot(codes[c])) continue;
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
-                    if (RoutePermitLogic.SlotsAvailable(gs, codes[c], b) < 3) continue;
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    // ★2026-11-06：门槛从 ≥3 降到 ≥1。用户裁决把他航占用率抬到 85%~92% 后，
+                    // 任何波段都只剩 1~2 条免费槽（`MustLeaveOpen` 硬留 1），≥3 会让夹具恒失效；
+                    // 而本用例实际只需要「能申请到一条、并能把池填满」这两件事，≥1 就够。
+                    if (RoutePermitLogic.SlotsAvailable(gs, codes[c], b) < 1) continue;
+                    // ★2026-11-06：只在该机场**确实公布了容量**的刻里挑（网格第 0 个是 00:00，没有槽）。
+                    var grid = ScheduleSlots.BandGridClaimableLabels(codes[c], b);
                     if (grid == null || grid.Count == 0) continue;
+
+                    // 逐刻找「容量 ≥2 且此刻还没被我司占」的刻：免费 + 付费两次交割要落在同一刻，
+                    // 容量 1 的刻放不下第二笔。找不到就退化为首刻（至少池满场景仍能测）。
+                    string pick = grid[0];
+                    for (int g = 0; g < grid.Count; g++)
+                    {
+                        int m = ScheduleSlots.ParseClock(grid[g]);
+                        if (m < 0) continue;
+                        if (AirlineCEO.Data.AirportCatalog.QuarterCapacity(codes[c], m) < 2) continue;
+                        if (RoutePermitLogic.SlotsAvailableAt(gs, codes[c], grid[g]) < 1) continue;
+                        pick = grid[g];
+                        break;
+                    }
                     airport = codes[c];
-                    clock = grid[0];
+                    clock = pick;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 现找一刻「该刻还有余量」的公布时刻（可排除若干已用掉的刻）。
+        ///
+        /// ★2026-11-06 新增：本回归要连续交割 3 次，而每 15 分钟窗口最多 2 条容量，
+        /// 三次不可能打同一刻。旧写法靠「某波段余量 ≥3」间接保证，`IndustryHeld` 抬到
+        /// 85%~92% 后那个前提不再成立，于是误报成渠道判据错了。
+        /// 改为**每次交割前现找**，与池子有多紧无关。
+        /// </summary>
+        static bool FindFreeClock(GameState gs, string airport, string exclude1, string exclude2,
+            out string clock)
+        {
+            clock = null;
+            for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
+            {
+                if (RoutePermitLogic.SlotsAvailable(gs, airport, b) <= 0) continue;
+                var grid = ScheduleSlots.BandGridLabels(b);
+                if (grid == null || grid.Count == 0) continue;
+                for (int g = 0; g < grid.Count; g++)
+                {
+                    string c = grid[g];
+                    if (c == exclude1 || c == exclude2) continue;
+                    if (RoutePermitLogic.SlotsAvailableAt(gs, airport, c) <= 0) continue;
+                    clock = c;
                     return true;
                 }
             }
@@ -212,7 +299,7 @@ namespace AirlineCEO.EditorTools
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
                     if (RoutePermitLogic.SlotsAvailable(gs, a, b) < 1) continue;
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    var grid = ScheduleSlots.BandGridClaimableLabels(a, b);
                     if (grid == null || grid.Count == 0) continue;
                     airport = a;
                     clock = grid[0];

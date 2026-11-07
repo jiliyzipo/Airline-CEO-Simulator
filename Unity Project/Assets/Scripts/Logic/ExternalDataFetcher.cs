@@ -173,6 +173,19 @@ namespace AirlineCEO.Logic
         static DateTime _lastAttemptUtc = DateTime.MinValue;
         static string _lastStatus = "";
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 复用 <see cref="Reset"/>（新开局同款口径），再补两件它不管的事：
+        /// <c>_loaded</c> 归 false 让 <c>EnsureLoaded()</c> 重新从 PlayerPrefs 读配置
+        /// ——不清的话上一局改过的 URL / 间隔会静默带进新一局。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _loaded = false;
+            Reset();
+        }
+
         // ———— 配置读写 ————
 
         public static bool Enabled

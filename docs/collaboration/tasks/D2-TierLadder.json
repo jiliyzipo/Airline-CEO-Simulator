@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-22T09:28:39.536Z",
-  "updatedAt": "2026-11-05T04:42:49.814Z",
+  "updatedAt": "2026-11-07T14:02:45.750Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 50 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs …).",
+  "freshnessNote": "Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 39 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/AirportCatalog.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/AirportRegions.cs …).",
   "staleForReviewId": "REV-20261022093922-eb9aad",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -91,20 +91,20 @@
   },
   "scopeDrift": {
     "basis": 117,
-    "intact": 57,
-    "covered": 50,
+    "intact": 55,
+    "covered": 39,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Data/AirportCatalog.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Logic/AirportRegions.cs",
+      "Unity Project/Assets/Scripts/Logic/ExternalDataFetcher.cs",
       "Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs",
+      "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
       "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
-      "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/StrategyPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/StrategySubpagePanel.cs",
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
+      "Unity Project/Assets/Scripts/UI/MVPBootstrap.cs",
+      "Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs"
     ],
-    "uncoveredCount": 10
+    "uncoveredCount": 23
   }
 }

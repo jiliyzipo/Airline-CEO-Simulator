@@ -30,6 +30,18 @@ namespace AirlineCEO.UI.Navigation
 
         static readonly List<Entry> _entries = new List<Entry>();
 
+        /// <summary>
+        /// 进入 Play 时清空（★2026-11-07，为「禁用域重载」准备）。
+        /// 不清会留下上一局那些已销毁弹窗的关闭委托：进新局后按 &lt; 会去关一个不存在的弹窗，
+        /// 于是「返回键没反应」——而这正是上一轮刚修好的那个 bug 的另一个入口。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _entries.Clear();
+            Changed = null;
+        }
+
         /// <summary>栈内容变化（登记 / 注销 / 被返回键消费）。底栏据此刷新 &lt; 的可用态。</summary>
         public static event Action Changed;
 

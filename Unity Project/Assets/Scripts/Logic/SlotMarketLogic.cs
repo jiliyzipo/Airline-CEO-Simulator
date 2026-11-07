@@ -231,11 +231,17 @@ namespace AirlineCEO.Logic
 
                 if (FindOnShelf(mkt, apt, clock) != null) continue;
 
-                float fair = StrategyEconomics.SlotValueWan(apt, band);
+                float fair = StrategyEconomics.SlotValueWanAt(apt, clock);
                 // 稀缺度：该机场该时段我司持仓越满，说明这一档越紧，叫价越高。
                 float mult = ScarcityMultiplier(gs, apt, band);
                 float wobble = 0.85f + (float)rng.NextDouble() * 0.75f;   // 0.85 ~ 1.60
                 float ask = fair * mult * wobble;
+
+                // ★2026-11-06：约每 7 条里有 1 条是「只到港」挂牌 —— 现实里的 only-landing 时刻
+                // 确实存在（红眼回程、宵禁前早到波），且用户明确要求「也可以单独购买到港」。
+                // 用确定性随机决定，保证同一季度反复打开页面看到的是同一张货架。
+                bool arrOnly = rng.Next(0, 7) == 0;
+                string arrClock = arrOnly ? "" : grid[rng.Next(grid.Count)];
 
                 mkt.seq++;
                 mkt.listings.Add(new SlotMarketListing
@@ -243,6 +249,8 @@ namespace AirlineCEO.Logic
                     id = $"MK-{gs.year}Q{gs.quarter}-{mkt.seq}",
                     airport = apt,
                     clock = clock,
+                    arrClock = arrClock,
+                    kind = arrOnly ? SlotHolding.SlotKindArrival : "",
                     seller = SellerPool[rng.Next(SellerPool.Length)],
                     askWan = RoundAsk(ask),
                     fairWan = RoundAsk(fair * mult),
@@ -302,8 +310,8 @@ namespace AirlineCEO.Logic
         public static float FairValueWan(string airport, string clock)
         {
             int m = ScheduleSlots.ParseClock(clock);
-            int band = m < 0 ? 0 : ScheduleSlots.BandOfDep(ScheduleSlots.FormatClock(m));
-            return StrategyEconomics.SlotValueWan(airport, band);
+            if (m >= 0) return StrategyEconomics.SlotValueWanAt(airport, ScheduleSlots.FormatClock(m));
+            return StrategyEconomics.SlotValueWan(airport, 1);
         }
 
         static float RoundAsk(float wan)
@@ -331,6 +339,91 @@ namespace AirlineCEO.Logic
         {
             listing = FindOnShelf(StrategyManager.EnsureState(gs)?.slotMarket, airport, clock);
             return listing != null;
+        }
+
+        /// <summary>
+        /// **按需报价**：问「某机场某刻现在有没有人愿意出让、要多少钱」。
+        ///
+        /// ★2026-11-07（用户裁决 A 方案）：他航占用提到 85–92% 之后，一条往返要的
+        /// **四个端**几乎不可能同时有空刻，于是新开航线/加班在免费协调池里彻底走不通。
+        /// 现实里这正是 LHR / PEK 这类枢纽的常态 —— 想进来只能**买**。
+        /// 货架上那 5–9 条是「这一季恰好公开挂出来」的现券，数量远不够凑一对四端；
+        /// 本函数回答的是「私下问价」：只要那一刻**确实被他航占着**（有人持有），
+        /// 就存在一个确定性的卖家与叫价（越黄金越贵，与 <see cref="StrategyEconomics.SlotValueWanAt"/>
+        /// 的小时系数一致：晚高峰最贵、红眼最便宜）。
+        ///
+        /// 不落盘、不改台账，纯问价 —— 运营部算备选时可以先问、不必成交。
+        /// </summary>
+        public static bool TryQuote(GameState gs, string airport, string clock, string kind,
+            out float askWan, out string seller)
+        {
+            askWan = 0f;
+            seller = null;
+            int m = ScheduleSlots.ParseClock(clock);
+            if (gs == null || m < 0) return false;
+            string at = ScheduleSlots.FormatClock(m);
+            if (RoutePermitLogic.QuarterCapacityAt(airport, at) <= 0) return false;
+
+            // 我司已经持着 → 没什么可买；那一刻没人占 → 该走免费协调池，不该开价
+            if (RoutePermitLogic.PoolUseAt(gs, airport, at, kind)
+                + IndustryAirlineLogic.IndustryAtClock(gs, airport, at, kind) <= 0) return false;
+
+            int band = ScheduleSlots.BandOfClock(at);
+            float fair = StrategyEconomics.SlotValueWanAt(airport, at);
+            float mult = ScarcityMultiplier(gs, airport, band);
+            // 卖家与议价幅度都由「年 + 季 + 机场 + 时刻」确定性推导：同一季反复问价，
+            // 运营部给 CEO 的数字不会变来变去（否则等于老虎机）。
+            float wobble = 0.90f + 0.40f * IndustryAirlineLogic.Unit(airport, at, kind ?? "",
+                "ask", gs.year.ToString(), gs.quarter.ToString());
+            askWan = RoundAsk(fair * mult * wobble);
+            seller = IndustryAirlineLogic.SellerAt(gs, airport, at, gs.year, gs.quarter);
+            return askWan > 0f;
+        }
+
+        /// <summary>
+        /// **按需买入**：为某机场某刻当场买一条（不进货架、当场过户、当场扣款）。
+        ///
+        /// 与 <see cref="Buy"/> 同一套成交语义（现券交易、不查池容量、当场入账），
+        /// 区别只是标的不在公开货架上，而是按 <see cref="TryQuote"/> 问来的私下出价。
+        /// </summary>
+        public static bool BuyClock(GameState gs, string airport, string clock, string kind,
+            string arrClock, out string message)
+        {
+            message = "";
+            if (gs == null) { message = "游戏未就绪"; return false; }
+            string k = RoutePermitLogic.NormalizeKind(kind);
+            if (!TryQuote(gs, airport, clock, k, out float ask, out string seller))
+            {
+                message = $"{airport} {clock} 此刻没有他航持有，无从买入（可改走协调池申请）。";
+                return false;
+            }
+            if (gs.cash < ask)
+            {
+                message = $"现金不足：{airport} {clock} 叫价 {ask:F0} 万，现有 {gs.cash:F0} 万"
+                          + $"（差 {ask - gs.cash:F0} 万）。";
+                return false;
+            }
+
+            var stg = StrategyManager.EnsureState(gs);
+            float before = gs.cash;
+            gs.cash -= ask;
+            bool arrOnly = string.Equals(k, SlotHolding.SlotKindArrival, System.StringComparison.Ordinal);
+            stg.slots.Add(new SlotHolding
+            {
+                airport = airport,
+                slotTime = ScheduleSlots.FormatClock(ScheduleSlots.ParseClock(clock)),
+                arrTime = arrOnly ? "" : (arrClock ?? ""),
+                kind = arrOnly ? SlotHolding.SlotKindArrival : "",
+                inUse = false,
+                acquisitionCostWan = ask,
+                expiresQuarter = gs.quarter + 2,
+                expiresTurn = RoutePermitLogic.Turn(gs.year, gs.quarter) + 2
+            });
+            message = $"已成交：{airport} {clock} {(arrOnly ? "到港" : "时刻")}槽（{seller} 出让），"
+                      + $"付 {ask:F0} 万（当场入账）· 现金 {before:F0} → {gs.cash:F0} 万";
+            gs.AddDecisionLog("战略：" + message);
+            gs.NotifyChanged();
+            return true;
         }
 
         static SlotMarketListing FindOnShelf(SlotMarketState mkt, string airport, string clock)
@@ -382,6 +475,12 @@ namespace AirlineCEO.Logic
             {
                 airport = hit.airport,
                 slotTime = hit.clock,
+                // ★2026-11-06：一槽一对 —— 买来的那一刻如果登记了到港，跟着一起入账；
+                // 「只到港」挂牌把 slotTime 直接当作到港时刻，用 kind 区分。
+                arrTime = RoutePermitLogic.NormalizeKind(hit.kind) == SlotHolding.SlotKindArrival
+                    ? "" : (hit.arrClock ?? ""),
+                kind = RoutePermitLogic.NormalizeKind(hit.kind) == SlotHolding.SlotKindArrival
+                    ? SlotHolding.SlotKindArrival : "",
                 inUse = false,
                 acquisitionCostWan = hit.askWan,
                 expiresQuarter = gs.quarter + 2,

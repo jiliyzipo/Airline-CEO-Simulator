@@ -13,6 +13,30 @@ namespace AirlineCEO.Data
         [Serializable]
         public class SlotHolding
         {
+            /// <summary>离港时刻持仓（默认）。</summary>
+            public const string SlotKindDeparture = "DEP";
+            /// <summary>只到港的持仓（现实里的 only-landing 时刻）。</summary>
+            public const string SlotKindArrival = "ARR";
+
+            /// <summary>规范化类型：空串 / 未知值一律按 <see cref="SlotKindDeparture"/>（旧档兼容）。</summary>
+            public static string KindOf(SlotHolding h)
+            {
+                if (h == null || string.IsNullOrEmpty(h.kind)) return SlotKindDeparture;
+                return string.Equals(h.kind, SlotKindArrival, StringComparison.OrdinalIgnoreCase)
+                    ? SlotKindArrival : SlotKindDeparture;
+            }
+
+            /// <summary>是否是「只到港」持仓。</summary>
+            public bool IsArrivalOnly => KindOf(this) == SlotKindArrival;
+
+            /// <summary>
+            /// 该持仓在**某类时刻池**里占用的那个钟点：离港持仓看 <see cref="slotTime"/>，
+            /// 只到港持仓也看 <see cref="slotTime"/>（此时它表示到港时刻）。
+            /// 单独立一个访问器，是为了让所有按时刻分桶的逻辑不必各自判 kind。
+            /// </summary>
+            public string ClockOf(string kindWanted)
+                => string.Equals(KindOf(this), kindWanted, StringComparison.OrdinalIgnoreCase) ? slotTime : null;
+
             public string airport;        // 机场 IATA
             /// <summary>
             /// 该持仓的**具体离港时刻** `"HH:mm"`（★2026-10-15：此前是「早/中/晚/夜」）。
@@ -23,6 +47,30 @@ namespace AirlineCEO.Data
             /// 可持有的标的。旧档里的时段名由 SlotUsageLogic.MigrateSlotTimes 一次性折成峰点。
             /// </summary>
             public string slotTime = "";
+            /// <summary>
+            /// 该持仓的**到港时刻** `"HH:mm"`（★2026-11-06）。
+            ///
+            /// 为什么加这个字段：现实里跨机场的一次飞行要两端的时刻 ——
+            /// 起飞机场的离港时刻、落地机场的到港时刻。旧模型只把离港时刻存进持仓，
+            /// 到港时刻由「离港 + 轮挡」临时推算、**既不落盘也不校验**，
+            /// 于是「本场这条槽对应几点落地」在数据里根本不存在，
+            /// 界面也就无从显示它（见 docs/handoff 第 11.2 / 12 节的对照）。
+            ///
+            /// 口径：
+            /// <item>空串 = 旧档或未指定 —— 按「离港时刻推算」处理，不参与匹配（向后兼容）。</item>
+            /// <item>非空 = 与 <see cref="slotTime"/> 构成**一对**（WASG 的 slot pair）。</item>
+            /// </summary>
+            public string arrTime = "";
+            /// <summary>
+            /// 该持仓的类型：<see cref="SlotKindDeparture"/>（默认）或 <see cref="SlotKindArrival"/>。
+            ///
+            /// - `DEP`：<see cref="slotTime"/> 是**离港**时刻，可带一个配对的 <see cref="arrTime"/>；
+            /// - `ARR`：**只到港**的持仓（现实里的「only-landing」时刻，红眼回程 / 宵禁前的早到波常用），
+            ///   此时 <see cref="slotTime"/> 表示**到港**时刻。
+            ///
+            /// 旧档没有这个字段，读出来是空串 —— 一律按 `DEP` 处理（<see cref="KindOf"/>）。
+            /// </summary>
+            public string kind = "";
             public bool inUse;            // 是否已用于航班环
             public float acquisitionCostWan; // 取得成本（万美元）；协调池分配为 0
             public int expiresQuarter;    // 到期季度（use-it-or-lose-it，旧口径）

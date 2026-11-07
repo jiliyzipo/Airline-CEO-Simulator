@@ -18,6 +18,19 @@ namespace AirlineCEO.UI
         static Sprite _spiralSprite;
         static readonly List<MapWeatherLayer> _live = new List<MapWeatherLayer>();
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// <c>_live</c> 存着上一局的实例（已销毁）；<c>_spiralSprite</c> 是运行时生成的贴图
+        /// （退出播放模式即销毁，留着就是假 null，天气层会画不出台风圈）。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _live.Clear();
+            _spiralSprite = null;
+            _enabled = false;
+        }
+
         Transform _trackRoot;
         TextMeshProUGUI _label;
         bool _hasTrack;

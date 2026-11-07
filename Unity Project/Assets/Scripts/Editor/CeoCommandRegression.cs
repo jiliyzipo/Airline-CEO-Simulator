@@ -375,7 +375,13 @@ namespace AirlineCEO.EditorTools
                                      && laterRoute.FlightCount >= laterWaves;
                 // 「需要获得时刻槽后，再重新排班」—— 缺槽单是**批准后**才向协调人提的，
                 // 研究期一张都没有（见 laterStaged 的最后一项）。
-                bool laterSlotQueued = HasAnySlotMailFor(gs, "R-CAP-3") || HasPendingSlotMailFor(gs, "R-CAP-3");
+                // ★2026-11-07：他航逐刻占用计入容量后，本波要的那一刻可能**一分余量都没有**，
+                // 这时运营部按规则**不开单**（开了也批不下来），改发一封「受阻汇报件」讲清
+                // 两端池况与三条出路。故这里接受两种合法结果：开得出申请单，或受阻汇报件在箱；
+                // 两者都没有才是缺陷（CEO 批了指令、收件箱却什么都没有）。
+                bool laterSlotQueued = HasAnySlotMailFor(gs, "R-CAP-3")
+                                       || HasPendingSlotMailFor(gs, "R-CAP-3")
+                                       || HasBlockedSlotReportFor(gs, "R-CAP-3");
                 Debug.Log($"⑪b2 研究期/批准才排班 → 拟定不落账={laterStaged}（班次 {laterWaves}→{laterRoute.FlightCount}"
                           + $" · rev {laterRev}→{laterRoute.opsPlanRevision}）　研究期未满不进箱={laterHeld}"
                           + $"　期满进箱且仍未排班={laterArrived}　批准才排班={laterApproved}"
@@ -633,6 +639,22 @@ namespace AirlineCEO.EditorTools
             {
                 var m = gs.pendingInbox[i]?.mail;
                 if (m != null && m.action == InboxManager.CapacityDirectiveAction && m.origin == routeId) return true;
+            }
+            return false;
+        }
+
+        /// <summary>收件箱里这条航线的「缺槽受阻」汇报件（action 留空，讲两端池况与三条出路）。</summary>
+        static bool HasBlockedSlotReportFor(GameState gs, string routeId)
+        {
+            if (gs?.inbox == null) return false;
+            string prefix = "m_slot_blocked_" + routeId + "_";
+            for (int i = 0; i < gs.inbox.Count; i++)
+            {
+                var m = gs.inbox[i];
+                if (m == null || string.IsNullOrEmpty(m.id)) continue;
+                if (!m.id.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                if (string.IsNullOrEmpty(m.body)) continue;
+                return true;
             }
             return false;
         }

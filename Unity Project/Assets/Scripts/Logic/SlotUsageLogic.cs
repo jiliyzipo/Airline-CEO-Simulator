@@ -101,16 +101,16 @@ namespace AirlineCEO.Logic
             => SeriesLabel(airport, ScheduleSlots.DepTimes[band < 0 ? 0 : band > 3 ? 3 : band], weekday);
 
         /// <summary>
-        /// 把任意离港时刻归一到它所属需求波窗口内的**网格时刻**（★2026-10-15）。
-        /// 系列与持仓都在 30 分钟网格上，实际离港（排班器按 5 分钟取整）必须先归到网格，
-        /// 否则「06:35 飞的班」会自成一个永远集不齐的系列。
+        /// 把任意离港时刻归一到**全天 15 分钟网格**上的系列时刻（★2026-11-05）。
+        ///
+        /// 改动前是「先按需求波 clamp 进窗口，再在该波网格上取最近点」——
+        /// 于是 10:00 会被算成 **11:30 的系列**（钳到波起点，跨了 90 分钟），
+        /// 09:30–11:30 的航班使用率全部记错位置。
+        /// 现在主协调机场 24 小时全时段协调，10:00 本来就是一条合法系列，
+        /// 只需四舍五入到最近的刻钟。
         /// </summary>
         public static string SeriesTimeOf(int rawMinutes)
-        {
-            int band = ScheduleSlots.BandOfDep(ScheduleSlots.FormatClock(rawMinutes));
-            int m = ScheduleSlots.SnapIntoWindow(band, ((rawMinutes % 1440) + 1440) % 1440);
-            return ScheduleSlots.FormatClock(ScheduleSlots.SnapToGrid(band, m));
-        }
+            => ScheduleSlots.NearestSeries(ScheduleSlots.FormatClock(rawMinutes));
 
         /// <summary>系列时刻的归一（字符串入口，幂等）。</summary>
         public static string SeriesTimeOf(string clock)
@@ -271,9 +271,11 @@ namespace AirlineCEO.Logic
             for (int i = 0; i < calls.Count; i++)
             {
                 var c = calls[i];
-                if (!RoutePermitLogic.NeedsDepartureSlot(c.airport)) continue;
+                // ★2026-11-05：按**该停站的离场时刻**判是否需要槽（限时协调机场时段外免槽）
+                string series = SeriesTimeOf(ScheduleSlots.FormatClock(Mod24(c.dep)));
+                if (!RoutePermitLogic.NeedsDepartureSlot(c.airport, series)) continue;
                 int callWd = (wd + c.dep / (24 * 60)) % 7;
-                NoteDue(gs, c.airport, SeriesTimeOf(ScheduleSlots.FormatClock(Mod24(c.dep))), callWd,
+                NoteDue(gs, c.airport, series, callWd,
                     ReasonAt(gs, c.airport, reason));
             }
         }
@@ -299,9 +301,10 @@ namespace AirlineCEO.Logic
             {
                 var c = calls[i];
                 if (c.inbound != inbound) continue;
-                if (!RoutePermitLogic.NeedsDepartureSlot(c.airport)) continue;
+                string series = SeriesTimeOf(ScheduleSlots.FormatClock(Mod24(c.dep)));
+                if (!RoutePermitLogic.NeedsDepartureSlot(c.airport, series)) continue;
                 int callWd = (wd + (c.dep - baseDep) / (24 * 60)) % 7;
-                NoteOperated(gs, c.airport, SeriesTimeOf(ScheduleSlots.FormatClock(Mod24(c.dep))), callWd);
+                NoteOperated(gs, c.airport, series, callWd);
             }
         }
 

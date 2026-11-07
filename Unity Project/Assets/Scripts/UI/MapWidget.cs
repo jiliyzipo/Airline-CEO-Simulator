@@ -96,6 +96,28 @@ namespace AirlineCEO.UI
         static bool _geoBuilt;
         static readonly List<GameObject> _roots = new List<GameObject>();
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        /// 关键的一条是 <c>_roots</c>：它存着上一局画在地图上的全部图元，
+        /// 不清就会一直指着已销毁的物体（新版往上加会越堆越多）。
+        /// <c>_geo</c> 是纯经纬度常量表，留着只会更快，但为了保证第 2 局与第 1 局
+        /// 完全同构（审计口径），这里一并重建；建一次约几十微秒。
+        /// <c>_radialSprite</c> / <c>_glowMat</c> 是上一局运行时生成的贴图与材质，
+        /// 退出播放模式时已销毁，必须置空让它们重建。
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _roots.Clear();
+            _geo.Clear();
+            _geoBuilt = false;
+            _radialSprite = null;
+            _glowMat = null;
+            _lastSig = string.Empty;
+            _lastLivePlaneAt = -10f;
+            RoutesVisible = false;
+        }
+
         static Sprite _radialSprite;
         static Material _glowMat;
         static string _lastSig = string.Empty;

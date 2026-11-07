@@ -103,6 +103,15 @@ namespace AirlineCEO.Logic
             public bool slotBuy;
 
             /// <summary>
+            /// 时刻槽事务的**端**：`DEP` = 离港时刻（默认）/ `ARR` = 到港时刻。
+            ///
+            /// ★2026-11-06 用户要求：「所有申请时刻命令，都在命令台下达」——
+            /// 机场时刻页浮窗里那颗「只申请到港时刻」按钮已删，改由命令台一句话下达，
+            /// 于是「申请的是哪一端」必须从句子里读出来（「申请 ATL 08:00 到港时刻槽」）。
+            /// </summary>
+            public string slotKind;
+
+            /// <summary>
             /// 原话里带「加急」一类的字眼（开航）：研究会当日会商，纪要几小时内进收件箱。
             ///
             /// ★2026-11-03 报障：「在命令台输入『开通 PEK-SZX 的加急航线』，当天没收到邮件，
@@ -1028,6 +1037,14 @@ namespace AirlineCEO.Logic
         /// 取得时刻槽的正路：开航准入 / 运力调令缺槽时，运营部自动把 apply_slot / buy_slot
         /// 提案递进收件箱，CEO 只批不挑。
         ///
+        /// ★2026-11-06（用户裁决，推翻 11-04 的「一律拒办」）：
+        /// 「取消浮窗里的按钮，所有申请时刻命令，都在命令台下达。」
+        /// 机场时刻页那颗「只申请到港时刻」按钮已删，**申请**（协调池、免费）改由命令台真正执行：
+        /// 走到 <c>InboxManager.QueueApplySlots</c>，与运营部自己递单是同一条管线 ——
+        /// 递出来的仍是需要 CEO 批准的一张提案，不是直接过户。
+        /// **买入**（二级市场、当场付费成交）仍然拒办：那要动钱，且现成的入口是二级市场页与运营部提案，
+        /// 让一句话直接扣款，与「CEO 只批不挑」的现金纪律冲突。
+        ///
         /// 三个条件：① 句中真的在说时刻槽（「时刻槽 / 槽位」）；② 有买入或申请的说法；
         /// ③ 不是问句（「为什么缺时刻槽」归运营部答，那是读）。
         /// </summary>
@@ -1035,7 +1052,12 @@ namespace AirlineCEO.Logic
         {
             ask = default;
             if (string.IsNullOrEmpty(text)) return false;
-            if (!Has(text, "时刻槽") && !Has(text, "槽位")) return false;
+            // 「时刻槽 / 槽位」是正名；「到港时刻 / 离港时刻 / 进场时刻」也视为在说槽 ——
+            // 浮窗按钮删掉后，玩家会照着浮窗上的字面写「申请 ATL 08:00 的到港时刻」。
+            bool slotContext = Has(text, "时刻槽") || Has(text, "槽位")
+                               || Has(text, "到港时刻") || Has(text, "离港时刻")
+                               || Has(text, "进场时刻") || Has(text, "起飞时刻");
+            if (!slotContext) return false;
             if (CapacityDirectiveLogic.LooksLikeQuestion(text)) return false;
 
             bool wantsBuy = HasAny(text, SlotBuyWords);
@@ -1046,12 +1068,59 @@ namespace AirlineCEO.Logic
             ask.kind = CeoAskKind.Act;
             ask.topic = TopicSlotDeal;
             ask.slotBuy = wantsBuy;
+            ask.slotKind = ReadSlotKind(text);
             ask.origin = ReadSlotAirport(text);
             ask.clock = ReadAddClock(text);
-            ask.ok = false;
-            ask.note = "挑具体机场与时刻不是 CEO 的指令：缺槽时运营部会把协调池申请（免费）或"
-                       + "二级市场购入提案递进收件箱，你只批「买不买」。本次未向任何部门派件、未动账。";
+            ask.count = ReadSlotCount(text);
+
+            if (wantsBuy)
+            {
+                ask.ok = false;
+                ask.note = "买入时刻要走二级市场（或让运营部递购入提案、由你批「买不买」，提案落在收件箱），"
+                           + "命令台不直接扣款成交通。本次未向任何部门派件、未动账。";
+                return true;
+            }
+
+            // 申请：真执行。缺机场或时刻时如实引导，不猜。
+            bool toArrival = string.Equals(ask.slotKind, Data.SlotHolding.SlotKindArrival,
+                StringComparison.OrdinalIgnoreCase);
+            string end = toArrival ? "到港" : "离港";
+            if (string.IsNullOrEmpty(ask.origin))
+            {
+                ask.ok = false;
+                ask.note = $"要申请{end}时刻，请点名机场（三字码或中文名，如：申请 ATL 08:00 {end}时刻槽）。";
+                return true;
+            }
+            if (string.IsNullOrEmpty(ask.clock))
+            {
+                ask.ok = false;
+                ask.note = $"要申请{end}时刻，请点名具体时刻（如：申请 {ask.origin} 08:00 {end}时刻槽）"
+                           + "—— 时刻槽精确到刻，不接受「早班」这类时段名。";
+                return true;
+            }
+            ask.ok = true;
             return true;
+        }
+
+        /// <summary>
+        /// 从原话读出申请的是哪一端。默认离港（槽的身份历来是离港时刻），
+        /// 说了「到港 / 落地 / 进场」才按到港算 —— 与 <c>SlotHolding.SlotKindArrival</c> 同名。
+        /// </summary>
+        static string ReadSlotKind(string text)
+        {
+            if (Has(text, "到港") || Has(text, "落地") || Has(text, "进场") || Has(text, "到达"))
+                return Data.SlotHolding.SlotKindArrival;
+            return Data.SlotHolding.SlotKindDeparture;
+        }
+
+        /// <summary>原话里的条数（「… 2 条」）。读不到按 1 条，越界值收进 1–8。</summary>
+        static int ReadSlotCount(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return 1;
+            var m = Regex.Match(text, @"(\d{1,2})\s*条");
+            if (!m.Success) return 1;
+            if (!int.TryParse(m.Groups[1].Value, out int n)) return 1;
+            return n < 1 ? 1 : n > 8 ? 8 : n;
         }
 
         /// <summary>

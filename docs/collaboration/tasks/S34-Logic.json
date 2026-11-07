@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-29T12:10:35.407Z",
-  "updatedAt": "2026-11-05T04:42:50.580Z",
+  "updatedAt": "2026-11-07T02:04:27.404Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 4 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs).",
+  "freshnessNote": "Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Data/InboxMail.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
   "staleForReviewId": "REV-20261029121552-3283e3",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -67,11 +67,13 @@
   "scopeDrift": {
     "basis": 8,
     "intact": 2,
-    "covered": 4,
+    "covered": 2,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Data/InboxMail.cs",
+      "Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs",
       "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
       "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
     ],
-    "uncoveredCount": 2
+    "uncoveredCount": 4
   }
 }

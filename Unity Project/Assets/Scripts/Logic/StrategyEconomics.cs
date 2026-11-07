@@ -19,14 +19,63 @@ namespace AirlineCEO.Logic
             return (0.4f * e + 0.25f * i + 0.2f * g + 0.15f * s) * 100f;
         }
 
-        /// <summary>时刻槽价值（万美元）：枢纽/干线/支线 × 时段稀缺度。</summary>
-        public static float SlotValueWan(int airportTier, int slotBand)
+        /// <summary>
+        /// 时刻槽的**小时需求系数**（下标 = 小时，0–23）。
+        ///
+        /// ★2026-11-05（用户裁决 B）：槽价不再按「早/中/晚/夜」四档取价，改为按**小时**取价 ——
+        /// 四个需求波只是需求系数，价格随每个小时的真实旺淡起伏。形状依据：
+        /// 早峰（07–08 时）最挤、晚高峰（17–19 时）需求最高、夜班（20 时以后）最淡、
+        /// 波间低谷（10 / 15 时）与 00–05 时最便宜。
+        ///
+        /// 绝对值锚定**单槽价**（★2026-11-07 用户裁决 A 修订）：
+        /// 2026-11-05 时这条曲线的绝对值是按「枢纽满池 56 槽总价 ≈ 27,300 万」反推的；
+        /// 2026-11-07 容量改按「真实全天曲线 × 1/3.5」放大（枢纽日容量 56 → 约 169），
+        /// 用户明确裁决：**单槽价不降** —— 机场是扩建释放配额，黄金时刻的单价仍由需求决定，
+        /// 不能因为多放出槽就把时刻做成白菜价。故本表不再承担「买下整个机场总价不变」的职责，
+        /// 总额随容量增长是预期行为；回归只钉「单价 = 等级 × 小时」与峰/夜形状。
+        /// 现值：枢纽 08:00 = 630 万、22:00 = 300 万；干线 08:00 = 315 万。
+        /// </summary>
+        public static readonly float[] HourDemandCoef =
         {
-            // airportTier: 0枢纽 1干线 2支线；slotBand: 0早 1中 2晚 3夜
+            0.27f, 0.27f, 0.27f, 0.27f, 0.27f, 0.27f,   // 00–05：宵禁/无容量，仅备取值
+            0.77f, 1.00f, 1.05f, 0.91f,                  // 06–09：早峰（08 时最挤）
+            0.59f, 0.73f, 0.82f, 0.77f, 0.68f, 0.55f,    // 10–15：午峰（12 时）与波间低谷
+            0.73f, 0.95f, 1.00f, 0.91f,                  // 16–19：晚高峰（18 时，全天最旺）
+            0.64f, 0.55f, 0.50f, 0.36f                   // 20–23：夜
+        };
+
+        /// <summary>某一**小时**的槽价（万美元）。小时越旺越贵，波间低谷最便宜。</summary>
+        public static float SlotValueWanAtHour(int airportTier, int hour)
+        {
             float baseVal = airportTier switch { 0 => 600f, 1 => 300f, _ => 120f };
-            float band = slotBand switch { 0 => 1.4f, 1 => 1.0f, 2 => 0.85f, _ => 0.6f };
-            return baseVal * band;
+            int h = hour < 0 ? 0 : hour > 23 ? 23 : hour;
+            return baseVal * HourDemandCoef[h];
         }
+
+        /// <summary>
+        /// 某一**具体时刻**的槽价（万美元）—— 单条槽的唯一正解报价。
+        /// 能拿到时刻的地方（买入/交割/挂牌/申请单正文）一律用这个，不要用时段口径。
+        /// </summary>
+        public static float SlotValueWanAt(string airportCode, string clock)
+        {
+            int m = ScheduleSlots.ParseClock(clock);
+            if (m >= 0) return SlotValueWanAtHour(AirlineCEO.Data.AirportCatalog.TierOfCode(airportCode), m / 60);
+            return SlotValueWan(airportCode, 1);
+        }
+
+        /// <summary>时段代表时刻（`ScheduleSlots.DepTimes`）的小时数。</summary>
+        static int BandHour(int slotBand) => slotBand switch { 0 => 8, 1 => 12, 2 => 18, _ => 22 };
+
+        /// <summary>
+        /// 时刻槽价值（万美元）：机场等级 × **该波代表时刻**的价。
+        ///
+        /// ★2026-11-05：这是**概览/比价**口径（代表时刻 08:00 / 12:00 / 18:00 / 22:00），
+        /// 不是单条槽的报价 —— 同一波内 06:30 与 09:00 价格不同（见 <see cref="HourDemandCoef"/>）。
+        /// 单条槽的扣款与文案必须用 <see cref="SlotValueWanAt"/>，否则会出现
+        /// 「邮件写 600 万、扣款 492 万」这种自相矛盾。
+        /// </summary>
+        public static float SlotValueWan(int airportTier, int slotBand)
+            => SlotValueWanAtHour(airportTier, BandHour(slotBand));
 
         /// <summary>按机场实际等级取时刻槽价值（等级由底表推导，见 AirportCatalog）。</summary>
         public static float SlotValueWan(string airportCode, int slotBand)

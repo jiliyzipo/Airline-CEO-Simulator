@@ -86,6 +86,7 @@ namespace AirlineCEO.Logic
             if (ask.topic == CeoCommandRouter.TopicHrRecruit) return HrRecruitDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicFinance) return FinanceDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicRouteQuery) return RouteQuery(gs, ask, raw);
+            if (ask.topic == CeoCommandRouter.TopicSlotDeal) return SlotDealDirective(ask);
             if (ask.topic == CeoCommandRouter.TopicFeasibility) return Feasibility(gs, ask);
             if (ask.topic == CeoCommandRouter.TopicCompany) return CompanyOverview(gs);
 

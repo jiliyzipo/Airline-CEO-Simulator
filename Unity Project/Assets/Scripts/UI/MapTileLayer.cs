@@ -47,6 +47,37 @@ namespace AirlineCEO.UI
         /// <summary>当前底图源是否使用 GCJ-02 坐标（高德=是，Google=否）。供投影/天气纠偏统一读取，避免三处各自硬编码。</summary>
         public static bool IsGcjSource => _source == MapSource.Gaode;
 
+        /// <summary>
+        /// 进入 Play 时复位（★2026-11-07，为「禁用域重载」准备）。
+        ///
+        /// 与 <see cref="MapWeatherTileLayer"/> 已有的 <c>SoftResetStatics</c> 同源口径：
+        /// 退出播放模式时运行时创建的 Texture2D 已被销毁，字典里留下的是「假 null」，
+        /// 不清就会整图空白；<c>_live</c> 存着上一局的实例（已销毁）；
+        /// <c>_probeRunning</c> 若停在 true，第二局的可达性探测永远不会再发起。
+        /// 风格 / 源这类「玩家选择」也一并回到默认值 —— 域重载开着时它们本来就是这个行为，
+        /// 复位只是为了两局严格同构，不代表新增了限制。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetForNewSession()
+        {
+            _live.Clear();
+            _cache.Clear();
+            _subTick = 0;
+            _style = MapStyle.Default;
+            _source = MapSource.Google;
+            _overseasArcGIS = false;
+            _overseasGoogleFails = 0;
+            _lastOverseasProbeAt = -999f;
+            _googleState = 0;
+            _probeRunning = false;
+            _pendingGoogleState = 0;
+            _lastProbeAt = -999f;
+            _googleRuntimeFails = 0;
+            _loggedFirstOk = false;
+            try { _http?.Dispose(); } catch { /* 旧域句柄可能已失效 */ }
+            _http = null;
+        }
+
         /// <summary>当前底图源允许的最大并发下载数。</summary>
         static int MaxConcurrent => _source == MapSource.Gaode ? MaxConcurrentGaode : MaxConcurrentGoogle;
 

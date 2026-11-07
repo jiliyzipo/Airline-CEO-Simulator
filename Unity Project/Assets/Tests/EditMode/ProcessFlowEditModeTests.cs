@@ -301,11 +301,20 @@ namespace AirlineCEO.Tests.EditMode
                 for (int b = 0; b < ScheduleSlots.SlotBands.Length; b++)
                 {
                     if (RoutePermitLogic.SlotsAvailable(gs, candidates[c], b) < 1) continue;
-                    var grid = ScheduleSlots.SlotGridLabels(b);
+                    // ★2026-11-06：不能再拿网格第 0 个 —— 全天网格是 00:00 起的，
+                    // 而 00:00–05:45 在这张容量表上没有槽，递单能过、交割会取不到。
+                    // ★2026-11-07：也不能只拿「第一个公布刻」—— 他航逐刻占用计入容量后，
+                    // 段内第一个刻经常正是被他航占满的那一个（占用从段首铺开），
+                    // 于是夹具挑到一个「段有余量、刻级为 0」的时刻，交割必然失败。
+                    var grid = ScheduleSlots.BandGridClaimableLabels(candidates[c], b);
                     if (grid == null || grid.Count == 0) continue;
-                    airport = candidates[c];
-                    clock = grid[0];
-                    return true;
+                    for (int i = 0; i < grid.Count; i++)
+                    {
+                        if (RoutePermitLogic.SlotsAvailableAt(gs, candidates[c], grid[i]) < 1) continue;
+                        airport = candidates[c];
+                        clock = grid[i];
+                        return true;
+                    }
                 }
             }
             return false;
