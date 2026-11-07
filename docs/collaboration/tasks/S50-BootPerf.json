@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "queued",
-  "freshness": "current",
+  "freshness": "unknown",
   "holder": null,
   "scope": [
     "本阶段改动范围：Docs",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-07T14:30:30.208Z",
-  "updatedAt": "2026-11-07T14:36:55.935Z",
+  "updatedAt": "2026-11-07T14:48:03.440Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -46,6 +46,13 @@
     "tools/collab/config.example.json",
     "docs/collaboration"
   ],
-  "freshnessNote": "Delivery matches current fingerprints; awaiting review.",
-  "staleForReviewId": null
+  "freshnessNote": "",
+  "staleForReviewId": null,
+  "supersededBy": {
+    "deliveryId": "DEL-20261107143823-54ca1d",
+    "taskId": "S51-BootPerf",
+    "actor": "cursor",
+    "note": "基准退化被撤回，改由 S51 交付同批改动",
+    "at": "2026-11-07T14:47:56.454Z"
+  }
 }

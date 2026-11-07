@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 1003,
-  "updatedAt": "2026-11-07T14:38:44.328Z",
+  "revision": 1007,
+  "updatedAt": "2026-11-07T14:48:03.980Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -540,9 +540,9 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "queued",
       "holder": null,
-      "freshness": "current",
+      "freshness": "unknown",
       "taskBookStatus": null,
-      "updatedAt": "2026-11-07T14:30:30.208Z"
+      "updatedAt": "2026-11-07T14:47:56.454Z"
     },
     "S51-BootPerf": {
       "title": "阶段 S51-BootPerf：Editor/Logic/UI",
@@ -911,12 +911,12 @@
       "at": "2026-10-31T07:36:05.340Z"
     },
     "DEL-20261107143041-b27e5d": {
-      "status": "withdrawn",
-      "supersededBy": null,
+      "status": "superseded",
+      "supersededBy": "DEL-20261107143823-54ca1d",
       "taskId": "S50-BootPerf",
       "actor": "cursor",
-      "note": "提交后生成，对比基准退化为工作区（仅 7 个文档文件），漏掉 146 个真实改动；按未提交改动重新交付",
-      "at": "2026-11-07T14:36:45.319Z"
+      "note": "基准退化被撤回，改由 S51 交付同批改动",
+      "at": "2026-11-07T14:47:56.414Z"
     }
   }
 }
