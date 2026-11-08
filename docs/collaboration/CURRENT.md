@@ -1,7 +1,7 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-11-08T04:53:31.171Z
-状态 revision：1012
+生成时间：2026-11-08T05:20:01.668Z
+状态 revision：1013
 Cursor 最近确认读取：revision 1001 @ 2026-11-07T14:37:48.583Z
 Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
@@ -45,7 +45,7 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 - **S10-PressDesk** 阶段 S10-PressDesk：Editor/Assets-Tests/Logic · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 25 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S11-T043Windows** 阶段 S11-T043Windows：T04.3 五个 PlayMode 实时窗口 + 工具修复与文档收口 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261025103525-a76682 covered 66 changed files; 26 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
+  - Historic verdict REV-20261025103525-a76682 covered 66 changed files; 26 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs, tools/semcheck/semcheck_tests.csproj).
 - **S12-CommandConsole** 阶段 S12-CommandConsole：命令台历史 / 四类写指令 / 教程文案 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 13 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
 - **S13-CollabSupersede** 阶段 S13-CollabSupersede：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 已被 DEL-20261026120855-4108a5（S14-CollabBinding）取代
@@ -115,8 +115,8 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
   - Historical review REV-20261101064127-18ff17 passed delivery DEL-20261101063922-e47797; current workspace needs re-review.
 - **S50-BootPerf** 阶段 S50-BootPerf：Docs · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261107143823-54ca1d（S51-BootPerf）取代
 - **S50-RouteAssignRetire** 阶段 S50：撤掉 n98「航线分配」页 + 机队新增「周计划及航班环」页签（含命令台加机链路） · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 已被 DEL-20261103001103-55b815（S51-PlanRingFleetDetail）取代
-- **S51-BootPerf** 阶段 S51-BootPerf：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
-  - Review REV-20261108024604-9f8271 still applies to delivery DEL-20261107143823-54ca1d.
+- **S51-BootPerf** 阶段 S51-BootPerf：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
+  - Historical review REV-20261108024604-9f8271 passed delivery DEL-20261107143823-54ca1d; current workspace needs re-review.
 - **S51-PlanRingFleetDetail** 阶段 S51：删除 n36「航班环构建器」页 + 飞机详情移入「机队」模块 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261103005003-47f5c8 passed delivery DEL-20261103001103-55b815; current workspace needs re-review.
 - **S52-RouteLifecycle** 阶段 S52：开航全流程九关（准入 → 时刻 → 开航执行 → 编班 → 投入运营） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-

@@ -14,7 +14,7 @@
 - S06-BatchB: 6 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S07-Balance: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs），需按当前代码复验；不要自行勾选独立验收通过。
 - S10-PressDesk: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
-- S11-T043Windows: 2 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs），需按当前代码复验；不要自行勾选独立验收通过。
+- S11-T043Windows: 3 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs, tools/semcheck/semcheck_tests.csproj），需按当前代码复验；不要自行勾选独立验收通过。
 - S12-CommandConsole: 9 个本任务改动过的文件已被后续改动但无人复验（Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S16-CollabFidelity: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
 - S17-ScopeBaseline: 4 个本任务改动过的文件已被后续改动但无人复验（tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …），需按当前代码复验；不要自行勾选独立验收通过。
@@ -41,6 +41,7 @@
 - S47-DeptReportPartial: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S48-PruneOnReviewFix: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S49-PreflightDefault: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
+- S51-BootPerf: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S51-PlanRingFleetDetail: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S52-RouteLifecycle: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S53-InboxRowBackNav: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
