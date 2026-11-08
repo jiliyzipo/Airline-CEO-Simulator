@@ -46,7 +46,6 @@
 - S47-DeptReportPartial: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S48-PruneOnReviewFix: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S49-PreflightDefault: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
-- S51-BootPerf: 已交付，等待 Codex；不要自行勾选独立验收通过。
 - S51-PlanRingFleetDetail: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S52-RouteLifecycle: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。
 - S53-InboxRowBackNav: 历史检测已通过，但工作区已变（freshness=stale），需按当前代码复验；不要自行勾选独立验收通过。

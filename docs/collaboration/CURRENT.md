@@ -1,9 +1,9 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-11-07T14:48:06.538Z
-状态 revision：1007
+生成时间：2026-11-08T02:48:52.142Z
+状态 revision：1011
 Cursor 最近确认读取：revision 1001 @ 2026-11-07T14:37:48.583Z
-Codex 最近确认读取：revision 983 @ 2026-11-04T12:40:13.789Z
+Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
 > 状态已更新，Codex 尚未确认读取最新 revision。
 
@@ -115,8 +115,8 @@ Codex 最近确认读取：revision 983 @ 2026-11-04T12:40:13.789Z
   - Historical review REV-20261101064127-18ff17 passed delivery DEL-20261101063922-e47797; current workspace needs re-review.
 - **S50-BootPerf** 阶段 S50-BootPerf：Docs · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261107143823-54ca1d（S51-BootPerf）取代
 - **S50-RouteAssignRetire** 阶段 S50：撤掉 n98「航线分配」页 + 机队新增「周计划及航班环」页签（含命令台加机链路） · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 已被 DEL-20261103001103-55b815（S51-PlanRingFleetDetail）取代
-- **S51-BootPerf** 阶段 S51-BootPerf：Editor/Logic/UI · 开发=ready_for_review · 检测=queued · freshness=current · holder=-
-  - Delivery matches current fingerprints; awaiting review.
+- **S51-BootPerf** 阶段 S51-BootPerf：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
+  - Review REV-20261108024604-9f8271 applies to delivery DEL-20261107143823-54ca1d.
 - **S51-PlanRingFleetDetail** 阶段 S51：删除 n36「航班环构建器」页 + 飞机详情移入「机队」模块 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261103005003-47f5c8 passed delivery DEL-20261103001103-55b815; current workspace needs re-review.
 - **S52-RouteLifecycle** 阶段 S52：开航全流程九关（准入 → 时刻 → 开航执行 → 编班 → 投入运营） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
@@ -142,7 +142,7 @@ Codex 最近确认读取：revision 983 @ 2026-11-04T12:40:13.789Z
 
 ## 最新检测
 
-- REV-20261104124030-9c37f2 → delivery DEL-20261104123522-e90c14 status=passed · 独立检测角色 @ 2026-11-04T12:43:06.915Z
+- REV-20261108024604-9f8271 → delivery DEL-20261107143823-54ca1d status=passed · 独立检测角色 @ 2026-11-08T02:48:51.085Z
 
 ## 开放缺陷
 

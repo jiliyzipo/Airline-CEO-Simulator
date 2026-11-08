@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 1007,
-  "updatedAt": "2026-11-07T14:48:03.980Z",
+  "revision": 1011,
+  "updatedAt": "2026-11-08T02:48:51.118Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -547,7 +547,7 @@
     "S51-BootPerf": {
       "title": "阶段 S51-BootPerf：Editor/Logic/UI",
       "devStatus": "ready_for_review",
-      "reviewStatus": "queued",
+      "reviewStatus": "passed",
       "holder": null,
       "freshness": "current",
       "taskBookStatus": null,

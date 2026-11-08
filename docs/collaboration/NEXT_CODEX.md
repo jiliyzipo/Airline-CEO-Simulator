@@ -45,7 +45,6 @@
 - S47-DeptReportPartial: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S48-PruneOnReviewFix: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S49-PreflightDefault: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S51-BootPerf: 开发=ready_for_review 检测=queued freshness=current
 - S51-PlanRingFleetDetail: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S52-RouteLifecycle: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S53-InboxRowBackNav: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
