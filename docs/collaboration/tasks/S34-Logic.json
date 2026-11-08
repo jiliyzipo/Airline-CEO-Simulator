@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Logic、Assets-Tests、Data、Editor、Systems",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-29T12:10:35.407Z",
-  "updatedAt": "2026-11-07T02:04:27.404Z",
+  "updatedAt": "2026-11-08T04:53:30.503Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Data/InboxMail.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
-  "staleForReviewId": "REV-20261029121552-3283e3",
+  "freshnessNote": "Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261104074739-592c9d.",
+  "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:17.690Z",
@@ -67,13 +67,8 @@
   "scopeDrift": {
     "basis": 8,
     "intact": 2,
-    "covered": 2,
-    "uncovered": [
-      "Unity Project/Assets/Scripts/Data/InboxMail.cs",
-      "Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
-      "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
-    ],
-    "uncoveredCount": 4
+    "covered": 6,
+    "uncovered": [],
+    "uncoveredCount": 0
   }
 }

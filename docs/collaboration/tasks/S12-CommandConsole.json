@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-11-07T02:04:25.106Z",
+  "updatedAt": "2026-11-08T04:53:30.105Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 9 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 13 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -74,19 +74,18 @@
   "scopeDrift": {
     "basis": 44,
     "intact": 22,
-    "covered": 9,
+    "covered": 13,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "docs/handoff/Baseline_2026-10-17.json",
-      "Unity Project/Assets/Scripts/Editor/OpenRouteStudyRegression.cs",
       "docs/handoff/P21_命令台历史_开发记录_2026-10-25.md",
-      "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md"
+      "docs/handoff/P22_命令台四类写指令_开发记录_2026-10-25.md",
+      "docs/handoff/P23_教程与引导文案重写_开发记录_2026-10-25.md",
+      "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md",
+      "docs/handoff/两条账务口径裁定_2026-10-25.md"
     ],
-    "uncoveredCount": 13
+    "uncoveredCount": 9
   }
 }

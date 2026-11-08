@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T11:19:23.780Z",
-  "updatedAt": "2026-11-07T02:04:26.593Z",
+  "updatedAt": "2026-11-08T04:53:30.349Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 24 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+  "freshnessNote": "Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 31 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
   "staleForReviewId": "REV-20261027113125-429ba1",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -96,19 +96,17 @@
   "scopeDrift": {
     "basis": 108,
     "intact": 69,
-    "covered": 24,
+    "covered": 31,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
       "Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/StrategySubpagePanel.cs",
       "tools/collab/tests/cleancheckout.test.mjs",
-      "tools/collab/tests/collab.test.mjs"
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/run-all.mjs"
     ],
-    "uncoveredCount": 15
+    "uncoveredCount": 8
   }
 }

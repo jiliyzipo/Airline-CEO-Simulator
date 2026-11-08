@@ -12,8 +12,6 @@
 - S05-P2Close: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S06-BatchB: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S07-Balance: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S08-ShortHaul: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S09-Residual: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S10-PressDesk: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S11-T043Windows: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S12-CommandConsole: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
@@ -32,9 +30,6 @@
 - S29-CollabPendingFilter: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S30-InboxRowLayout: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S31-RouteConsoleMerge: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S33-Assets-Tests: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S34-Logic: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
-- S36-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S39-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S40-UI: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）
 - S41-CollabFpCache: 开发=ready_for_review 检测=passed freshness=stale（历史通过仅对应旧快照，需按当前代码复验）

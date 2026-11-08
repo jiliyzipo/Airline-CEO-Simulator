@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 1011,
-  "updatedAt": "2026-11-08T02:48:51.118Z",
+  "revision": 1012,
+  "updatedAt": "2026-11-08T04:53:30.755Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -135,7 +135,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.212Z"
     },
@@ -144,7 +144,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.671Z"
     },
@@ -351,7 +351,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:35.187Z"
     },
@@ -360,7 +360,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:17.707Z"
     },
@@ -378,7 +378,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "stale",
+      "freshness": "archived",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:07.495Z"
     },

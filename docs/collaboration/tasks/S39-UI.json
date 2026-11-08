@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-30T13:12:12.693Z",
-  "updatedAt": "2026-11-07T14:02:58.646Z",
+  "updatedAt": "2026-11-08T04:53:30.538Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 4 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/UI/MapWidget.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
+  "freshnessNote": "Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 7 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).",
   "staleForReviewId": "REV-20261030133510-4850f0",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -67,13 +67,10 @@
   "scopeDrift": {
     "basis": 30,
     "intact": 22,
-    "covered": 4,
+    "covered": 7,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs",
-      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/UIFactory.cs"
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 1
   }
 }

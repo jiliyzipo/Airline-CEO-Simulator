@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T00:02:21.815Z",
-  "updatedAt": "2026-11-07T14:02:57.412Z",
+  "updatedAt": "2026-11-08T04:53:30.442Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028002745-400331 covered 119 changed files; 25 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+  "freshnessNote": "Historic verdict REV-20261028002745-400331 covered 119 changed files; 34 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
   "staleForReviewId": "REV-20261028002745-400331",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -96,19 +96,17 @@
   "scopeDrift": {
     "basis": 119,
     "intact": 77,
-    "covered": 25,
+    "covered": 34,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
-      "Unity Project/Assets/Scripts/Systems/ExternalEventManager.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
-      "Unity Project/Assets/Scripts/UI/MapWidget.cs",
       "Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/StrategySubpagePanel.cs"
+      "tools/collab/tests/cleancheckout.test.mjs",
+      "tools/collab/tests/collab.test.mjs",
+      "tools/collab/tests/daily.test.mjs",
+      "tools/collab/tests/run-all.mjs"
     ],
-    "uncoveredCount": 17
+    "uncoveredCount": 8
   }
 }

@@ -1,7 +1,7 @@
 # CURRENT · Airline-CEO-Simulator
 
-生成时间：2026-11-08T02:48:52.142Z
-状态 revision：1011
+生成时间：2026-11-08T04:53:31.171Z
+状态 revision：1012
 Cursor 最近确认读取：revision 1001 @ 2026-11-07T14:37:48.583Z
 Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 > 状态已更新，Cursor 尚未确认读取最新 revision。
@@ -23,7 +23,7 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 - **C-ENG** 工程入口串联验收（compile / slotcheck / 隔离 Unity） · 开发=rework · 检测=cancelled · freshness=stale · holder=-
   - Delivery snapshot differs from current workspace.
 - **D2-TierLadder** 阶段 D2-TierLadder：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 39 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/AirportCatalog.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/AirportRegions.cs …).
+  - Historic verdict REV-20261022093922-eb9aad covered 117 changed files; 56 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs …).
 - **S01-COLLAB** 阶段 S01-COLLAB：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261018103950-3b9460 covered 33 changed files; 12 taken over by later passed deliveries, 4 still uncovered (tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs, tools/collab/tests/reverse-review.test.mjs …).
 - **S02-Collab** 阶段 S02-Collab：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
@@ -31,23 +31,23 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 - **S03-Docs** 阶段 S03-Docs：Docs · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261019092547-d6429c（S04-UI）取代 · 基线=本任务改动文件（有变动，见 freshnessNote）
   - scopePolicy=changed-files but the latest delivery has no passed review
 - **S04-UI** 阶段 S04-UI：T03.8 UI 走查与 D1-D5 修复 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261019094559-31090f covered 9 changed files; 4 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/MVPBootstrap.cs …).
+  - Historic verdict REV-20261019094559-31090f covered 9 changed files; 7 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S05-P2Close** 阶段 S05-P2Close：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 39 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/AirportCatalog.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/AirportRegions.cs …).
+  - Historic verdict REV-20261022011140-9e5b0b covered 105 changed files; 56 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs …).
 - **S06-BatchB** 阶段 S06-BatchB：Logic/UI/Editor · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 41 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Data/AirportCatalog.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/AirportRegions.cs …).
+  - Historic verdict REV-20261022025040-a46f56 covered 113 changed files; 58 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/OpenRouteModalUI.cs …).
 - **S07-Balance** 阶段 S07-Balance：K13 基线刷新 / K12 季末一次性项 / K14 网络池压测 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261023015616-582178 covered 33 changed files; 16 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs).
-- **S08-ShortHaul** 阶段 S08-ShortHaul：Balance/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261023065836-eecd5f covered 23 changed files; 7 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs).
-- **S09-Residual** 阶段 S09-Residual：Editor/Assets-Tests/Balance · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261024021702-057abf covered 30 changed files; 9 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Tests/PlayMode/DevelopmentSlotWorkflowTests.cs).
+  - Historic verdict REV-20261023015616-582178 covered 33 changed files; 17 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/Logic/AirportRegions.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs).
+- **S08-ShortHaul** 阶段 S08-ShortHaul：Balance/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
+  - Historic verdict REV-20261023065836-eecd5f covered 23 changed files; 9 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261028002145-55518e, DEL-20261031045140-2cd3d8 等 5 个.
+- **S09-Residual** 阶段 S09-Residual：Editor/Assets-Tests/Balance · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
+  - Historic verdict REV-20261024021702-057abf covered 30 changed files; 12 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261028002145-55518e, DEL-20261031045140-2cd3d8 等 6 个.
 - **S10-PressDesk** 阶段 S10-PressDesk：Editor/Assets-Tests/Logic · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 16 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs …).
+  - Historic verdict REV-20261024132317-f6bf86 covered 56 changed files; 25 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S11-T043Windows** 阶段 S11-T043Windows：T04.3 五个 PlayMode 实时窗口 + 工具修复与文档收口 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261025103525-a76682 covered 66 changed files; 17 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs …).
+  - Historic verdict REV-20261025103525-a76682 covered 66 changed files; 26 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S12-CommandConsole** 阶段 S12-CommandConsole：命令台历史 / 四类写指令 / 教程文案 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 9 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 13 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
 - **S13-CollabSupersede** 阶段 S13-CollabSupersede：Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 已被 DEL-20261026120855-4108a5（S14-CollabBinding）取代
   - Historical review REV-20261026064716-f5b286 passed delivery DEL-20261026063907-c4218e; current workspace needs re-review.
 - **S14-CollabBinding** 阶段 S14-CollabBinding：检测证据绑定与待办收敛 · 开发=ready_for_review · 检测=passed · freshness=unknown · holder=- · 已被 DEL-20261026134228-f7662c（S15-CollabContract）取代
@@ -59,41 +59,41 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 - **S18-ScopeVerdictFix** 阶段 S18：收敛判定单一口径（预览与落盘不得互相矛盾） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261027033305-dbab6a covered 17 changed files; 7 taken over by later passed deliveries, 4 still uncovered (tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs, tools/collab/tests/daily.test.mjs …).
 - **S19-ScenarioFixture** 阶段 S19：任务书手测场景夹具（缺员/停飞/维护/缺槽一键构造） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261027033436-155e44 covered 51 changed files; 10 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261027033436-155e44 covered 51 changed files; 16 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S20-SnapshotHygiene** 阶段 S20-SnapshotHygiene：Collab/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261027035404-8c86c1 covered 40 changed files; 9 taken over by later passed deliveries, 10 still uncovered (docs/handoff/Baseline_2026-10-17.json, tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs …).
 - **S21-FreshnessVerdict** 阶段 S21-FreshnessVerdict：Docs/Collab · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261027041517-4580f4 covered 42 changed files; 7 taken over by later passed deliveries, 10 still uncovered (docs/handoff/Baseline_2026-10-17.json, tools/collab/tests/cleancheckout.test.mjs, tools/collab/tests/collab.test.mjs …).
 - **S22-BalanceBridge** 阶段 S22-BalanceBridge：Collab/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 21 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 27 taken over by later passed deliveries, 7 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
 - **S23-RouteAblation** 阶段 S23-RouteAblation：Collab/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=unknown · holder=-
 - **S24-UtilizationAudit** 阶段 S24-UtilizationAudit：Collab/Editor/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261027071330-bfc0de covered 82 changed files; 19 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261027071330-bfc0de covered 82 changed files; 25 taken over by later passed deliveries, 7 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
 - **S25-StatusPrompts** 阶段 S25-StatusPrompts：Editor/Collab/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 24 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261027113125-429ba1 covered 108 changed files; 31 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).
 - **S26-T038MapRender** 阶段 S26-T038MapRender：Editor/Collab/UI · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261027123307-f320b4（S27-MapBandLegibility）取代
 - **S27-MapBandLegibility** 阶段 S27-MapBandLegibility：Editor/Collab/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 25 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261027124433-1357a2 covered 110 changed files; 33 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).
 - **S28-PressDeskSign** 阶段 S28-PressDeskSign：Editor/Collab/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261028002745-400331 covered 119 changed files; 25 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261028002745-400331 covered 119 changed files; 34 taken over by later passed deliveries, 8 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/NetworkPanelUI.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).
 - **S29-CollabPendingFilter** 阶段 S29-CollabPendingFilter：Collab/Docs · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
   - Historic verdict REV-20261028010721-cc34b5 covered 510 changed files; 7 taken over by later passed deliveries, 10 still uncovered (docs/Development Manual/Development Task Book/Task book/Airline_CEO_Dev_Task_2026-10-21.md, docs/collaboration/OPERATOR_MANUAL_ZH.md, docs/collaboration/PROTOCOL.md …).
 - **S30-InboxRowLayout** 阶段 S30-InboxRowLayout：Editor/UI/Assets-Tests · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
+  - Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 5 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S31-RouteConsoleMerge** 阶段 S31-RouteConsoleMerge：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 3 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
-- **S33-Assets-Tests** 阶段 S33-Assets-Tests：Assets-Tests/Systems/UI · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261029102331-4029cf covered 4 changed files; 0 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/Systems/InboxManager.cs).
-- **S34-Logic** 阶段 S34-Logic：Logic/Assets-Tests/Data · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Data/InboxMail.cs, Unity Project/Assets/Scripts/Editor/CeoCommandRegression.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).
+  - Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).
+- **S33-Assets-Tests** 阶段 S33-Assets-Tests：Assets-Tests/Systems/UI · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
+  - Historic verdict REV-20261029102331-4029cf covered 4 changed files; 1 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d.
+- **S34-Logic** 阶段 S34-Logic：Logic/Assets-Tests/Data · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
+  - Historic verdict REV-20261029121552-3283e3 covered 8 changed files; 6 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261104074739-592c9d.
 - **S35-Slotcheck** 阶段 S35-Slotcheck：Slotcheck/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
   - Historic verdict REV-20261029230451-f09f2a covered 4 changed files; 4 were edited later and are now owned by passed deliveries DEL-20261104074739-592c9d, DEL-20261104123522-e90c14.
-- **S36-UI** 阶段 S36-UI：UI/Logic/Slotcheck · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261030001502-59e457 covered 9 changed files; 3 taken over by later passed deliveries, 2 still uncovered (Unity Project/Assets/Scripts/UI/MapWidget.cs, Unity Project/Assets/Scripts/UI/UIFactory.cs).
+- **S36-UI** 阶段 S36-UI：UI/Logic/Slotcheck · 开发=ready_for_review · 检测=passed · freshness=archived · holder=- · 基线=本任务改动文件（全部未变，已归档）
+  - Historic verdict REV-20261030001502-59e457 covered 9 changed files; 5 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261031045140-2cd3d8, DEL-20261104123522-e90c14 等 4 个.
 - **S37-UI** 阶段 S37-UI：UI/Logic/Systems · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261030131243-e1a262（S39-UI）取代
 - **S38-UI** 阶段 S38-UI：UI/Logic/Systems · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261030131243-e1a262（S39-UI）取代
 - **S39-UI** 阶段 S39-UI：UI/Logic/Systems · 开发=ready_for_review · 检测=passed · freshness=stale · holder=- · 基线=本任务改动文件（有变动，见 freshnessNote）
-  - Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 4 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Logic/RoutePermitLogic.cs, Unity Project/Assets/Scripts/UI/MapWidget.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).
+  - Historic verdict REV-20261030133510-4850f0 covered 30 changed files; 7 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).
 - **S40-UI** 阶段 S40-UI：UI/Logic/Systems · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261031050706-9fdd8a passed delivery DEL-20261031045140-2cd3d8; current workspace needs re-review.
 - **S41-CollabFpCache** 阶段 S41-CollabFpCache：协作工具指纹缓存 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
@@ -116,7 +116,7 @@ Codex 最近确认读取：revision 1007 @ 2026-11-08T02:45:43.571Z
 - **S50-BootPerf** 阶段 S50-BootPerf：Docs · 开发=ready_for_review · 检测=queued · freshness=unknown · holder=- · 已被 DEL-20261107143823-54ca1d（S51-BootPerf）取代
 - **S50-RouteAssignRetire** 阶段 S50：撤掉 n98「航线分配」页 + 机队新增「周计划及航班环」页签（含命令台加机链路） · 开发=todo · 检测=not_run · freshness=unknown · holder=- · 已被 DEL-20261103001103-55b815（S51-PlanRingFleetDetail）取代
 - **S51-BootPerf** 阶段 S51-BootPerf：Editor/Logic/UI · 开发=ready_for_review · 检测=passed · freshness=current · holder=-
-  - Review REV-20261108024604-9f8271 applies to delivery DEL-20261107143823-54ca1d.
+  - Review REV-20261108024604-9f8271 still applies to delivery DEL-20261107143823-54ca1d.
 - **S51-PlanRingFleetDetail** 阶段 S51：删除 n36「航班环构建器」页 + 飞机详情移入「机队」模块 · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-
   - Historical review REV-20261103005003-47f5c8 passed delivery DEL-20261103001103-55b815; current workspace needs re-review.
 - **S52-RouteLifecycle** 阶段 S52：开航全流程九关（准入 → 时刻 → 开航执行 → 编班 → 投入运营） · 开发=ready_for_review · 检测=passed · freshness=stale · holder=-

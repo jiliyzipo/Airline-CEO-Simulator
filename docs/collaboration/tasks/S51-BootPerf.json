@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-07T14:38:00.189Z",
-  "updatedAt": "2026-11-08T02:48:51.103Z",
+  "updatedAt": "2026-11-08T04:53:30.692Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,6 +45,6 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Review REV-20261108024604-9f8271 applies to delivery DEL-20261107143823-54ca1d.",
+  "freshnessNote": "Review REV-20261108024604-9f8271 still applies to delivery DEL-20261107143823-54ca1d.",
   "staleForReviewId": null
 }

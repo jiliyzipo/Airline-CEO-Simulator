@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T08:56:42.660Z",
-  "updatedAt": "2026-11-05T07:41:21.121Z",
+  "updatedAt": "2026-11-08T04:53:30.489Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 3 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs, Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs …).",
+  "freshnessNote": "Historic verdict REV-20261028110915-15a8d5 covered 11 changed files; 6 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs).",
   "staleForReviewId": "REV-20261028110915-15a8d5",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -71,13 +71,10 @@
   "scopeDrift": {
     "basis": 11,
     "intact": 4,
-    "covered": 3,
+    "covered": 6,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
-      "Unity Project/Assets/Scripts/Logic/CeoCommandRouter.cs",
-      "Unity Project/Assets/Scripts/Logic/DeptReportLogic.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 1
   }
 }

@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "stale",
+  "freshness": "archived",
   "holder": null,
   "scope": [
     "本阶段改动范围：Assets-Tests、Systems、UI",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-29T10:10:44.235Z",
-  "updatedAt": "2026-11-05T04:42:50.572Z",
+  "updatedAt": "2026-11-08T04:53:30.495Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261029102331-4029cf covered 4 changed files; 0 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/Systems/InboxManager.cs).",
-  "staleForReviewId": "REV-20261029102331-4029cf",
+  "freshnessNote": "Historic verdict REV-20261029102331-4029cf covered 4 changed files; 1 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d.",
+  "staleForReviewId": null,
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-31T03:15:35.170Z",
@@ -66,10 +66,8 @@
   "scopeDrift": {
     "basis": 4,
     "intact": 3,
-    "covered": 0,
-    "uncovered": [
-      "Unity Project/Assets/Scripts/Systems/InboxManager.cs"
-    ],
-    "uncoveredCount": 1
+    "covered": 1,
+    "uncovered": [],
+    "uncoveredCount": 0
   }
 }

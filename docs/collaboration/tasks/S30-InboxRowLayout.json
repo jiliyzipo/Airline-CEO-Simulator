@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-28T02:11:15.020Z",
-  "updatedAt": "2026-11-07T14:02:57.835Z",
+  "updatedAt": "2026-11-08T04:53:30.478Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 2 taken over by later passed deliveries, 4 still uncovered (Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs, Unity Project/Assets/Scripts/Systems/InboxManager.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
+  "freshnessNote": "Historic verdict REV-20261028022523-acfde4 covered 9 changed files; 5 taken over by later passed deliveries, 1 still uncovered (Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs).",
   "staleForReviewId": "REV-20261028022523-acfde4",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -73,13 +73,10 @@
   "scopeDrift": {
     "basis": 9,
     "intact": 3,
-    "covered": 2,
+    "covered": 5,
     "uncovered": [
-      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs",
-      "Unity Project/Assets/Scripts/Systems/InboxManager.cs",
-      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
-      "Unity Project/Assets/Scripts/UI/UIFactory.cs"
+      "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs"
     ],
-    "uncoveredCount": 4
+    "uncoveredCount": 1
   }
 }
