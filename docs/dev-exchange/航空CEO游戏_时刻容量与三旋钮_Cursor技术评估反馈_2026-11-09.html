@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>航空CEO游戏｜时刻容量与三旋钮 · Cursor技术评估反馈</title>
+<style>
+:root{--bg:#f4f7fb;--paper:#fff;--ink:#12263d;--muted:#52667e;--sub:#71859b;--line:#dce6ef;--navy:#0d2035;--navy2:#183a60;--blue:#286cb3;--blue-soft:#e9f3fc;--good:#087858;--good-soft:#e7f7f1;--warn:#9a6108;--warn-soft:#fff5e5;--bad:#a53b43;--bad-soft:#fff0f0;--r:13px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.8 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}button{font:inherit}
+.hero{background:linear-gradient(112deg,#0d2035,#153658 72%,#174b73);color:white;padding:43px max(26px,calc((100vw - 1220px)/2)) 36px}.hero .eyebrow{font-size:11px;letter-spacing:2.5px;color:#8ecaff;font-weight:700}.hero h1{font-size:clamp(25px,3.3vw,36px);line-height:1.38;letter-spacing:-.5px;margin:13px 0 8px}.hero .sub{max-width:890px;color:#bcd0e2;margin:0}.hero .meta{margin-top:21px;display:flex;gap:10px;flex-wrap:wrap}.hero .meta span{border:1px solid #547390;border-radius:50px;padding:3px 12px;color:#c8def0;font-size:12px}
+.layout{max-width:1220px;margin:0 auto;padding:26px 22px 80px;display:grid;grid-template-columns:225px minmax(0,1fr);gap:25px}.sidebar{position:sticky;top:22px;align-self:start;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:15px}.sidebar b{font-size:12px;color:var(--sub);letter-spacing:1px;display:block;padding:5px 10px 11px}.sidebar a{display:block;text-decoration:none;color:#38536e;border-radius:7px;font-size:13px;padding:7px 10px;line-height:1.5}.sidebar a:hover{background:var(--blue-soft);color:var(--blue)}.body{min-width:0}.section{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:27px 31px;margin-bottom:20px;box-shadow:0 6px 20px rgba(16,48,78,.025)}h2{font-size:22px;line-height:1.45;margin:0 0 13px;letter-spacing:-.3px}h3{font-size:16px;line-height:1.5;margin:24px 0 9px}p{margin:8px 0 13px}p:last-child{margin-bottom:0}.desc{color:var(--muted)}.small{font-size:12px;color:var(--sub)}strong{color:#102d4d}code{padding:1px 5px;background:#f0f5fa;border-radius:4px;color:#204c72;font-size:.94em;font-family:Consolas,"Cascadia Code",monospace}.idx{font-size:12px;color:var(--blue);font-weight:800;letter-spacing:2px;margin-bottom:7px}.lead{font-size:16px;line-height:1.95}.rule{border-left:3px solid var(--blue);background:#f1f7fd;padding:12px 16px;border-radius:0 8px 8px 0;margin:15px 0}.rule.warn{border-left-color:#bd8530;background:var(--warn-soft)}.rule.good{border-left-color:var(--good);background:var(--good-soft)}.rule.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.badge{display:inline-block;border-radius:100px;padding:2px 9px;font-size:11px;font-weight:800;line-height:1.5;background:#eef2f7;color:#556779;white-space:nowrap}.badge.ok{background:var(--good-soft);color:var(--good)}.badge.review{background:var(--warn-soft);color:var(--warn)}.badge.no{background:var(--bad-soft);color:var(--bad)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 12px}.kpi{background:#f6f9fc;border:1px solid var(--line);border-radius:10px;padding:14px 15px}.kpi .num{font-weight:800;font-size:28px;line-height:1.2;letter-spacing:-1px;font-variant-numeric:tabular-nums}.kpi .lab{font-size:12px;color:var(--muted);margin-top:5px}.kpi .hint{font-size:11px;color:var(--sub)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px;margin:15px 0}table{border-collapse:collapse;width:100%;min-width:590px;font-size:13px;line-height:1.55}th{text-align:left;background:#eff5fa;color:#3b5670;font-size:12px;padding:11px 12px;font-weight:700;white-space:nowrap}td{border-top:1px solid #e5edf4;padding:10px 12px;vertical-align:top}tbody tr:nth-child(even){background:#fbfdff}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tr.emph{background:#edf8f4!important;font-weight:650}tr.caution{background:#fff6eb!important}
+.bar-chart{padding:18px 21px 9px;border-radius:11px;background:#f6f9fc;border:1px solid var(--line);margin:16px 0}.barline{display:grid;grid-template-columns:96px 1fr 44px;gap:12px;align-items:center;margin:10px 0}.barline .label{font-size:12px;color:var(--muted)}.track{height:19px;border-radius:5px;background:#e1eaf2;overflow:hidden}.fill{height:100%;border-radius:5px;background:#2d7fc0}.fill.a{background:#a9c1d7}.fill.b{background:#368bc1}.fill.c{background:#155b9a}.barline .v{font-size:13px;text-align:right;font-weight:800;color:#244d72}.chart-caption{font-size:11px;color:var(--sub);margin:12px 0 8px}
+.decision-grid{display:grid;gap:10px;margin-top:14px}.decision{display:grid;grid-template-columns:48px 1fr auto;gap:13px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:15px;background:#fcfdff}.decision .letter{font-weight:900;color:var(--blue);font-size:21px;line-height:1.45}.decision .dt{font-weight:800;color:#173452}.decision p{font-size:13px;color:var(--muted);margin:4px 0 0}.bullets{padding-left:21px;margin:8px 0}.bullets li{margin:5px 0}.timeline{display:grid;grid-template-columns:90px 1fr;gap:9px 12px;margin-top:15px}.phase{padding-top:13px;font-weight:800;color:var(--blue);border-top:1px solid var(--line)}.pcontent{padding-top:13px;border-top:1px solid var(--line)}.source{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:13px;margin-top:21px}.copyarea{white-space:pre-wrap;background:#eff5fa;color:#153c60;padding:16px;border:1px solid var(--line);border-radius:10px;font:12px/1.8 Consolas,"Microsoft YaHei",monospace;max-height:350px;overflow:auto}button.copy{background:#1d638d;color:white;border:0;padding:9px 18px;border-radius:8px;cursor:pointer;font-weight:650;margin-top:12px}button.copy:hover{background:#164c71}.footer{text-align:center;color:var(--sub);font-size:12px;padding:10px 0 28px}
+@media(max-width:900px){.layout{display:block;padding:18px}.sidebar{position:static;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:0 6px}.sidebar b{width:100%}.sidebar a{padding:5px 8px}.section{padding:22px 20px}.kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:540px){.hero{padding:31px 18px}.kpis{grid-template-columns:1fr}.decision{grid-template-columns:32px 1fr}.decision .badge{grid-column:2;justify-self:start}.barline{grid-template-columns:72px 1fr 30px;gap:8px}.section{padding:20px 16px}h2{font-size:19px}}
+@media print{html,body{background:white!important;color:black}.hero{background:white;color:#10273e;padding:12px 0 20px;border-bottom:3px solid #224d71}.hero .sub,.hero .meta span,.hero .eyebrow{color:#345!important}.layout{display:block;padding:0}.sidebar,button.copy{display:none}.section{box-shadow:none;border:none;border-radius:0;border-bottom:1px solid #ccc;break-inside:avoid;padding:15px 0;margin:0}.decision,.kpi,.bar-chart,.rule{print-color-adjust:exact;-webkit-print-color-adjust:exact}table{font-size:11px}th,td{padding:6px}h2{break-after:avoid}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">AIRLINE CEO SIMULATOR · TECHNICAL REVIEW</div>
+  <h1>时刻容量与三个调节旋钮<br>Cursor 技术评估反馈报告</h1>
+  <p class="sub">针对《时刻容量与三旋钮_技术评估_2026-11-09.html》的复核、关键纠偏与开发决策建议</p>
+  <div class="meta"><span>2026-11-09</span><span>意见版本 v1.0</span><span>供 Cursor 制定实施方案</span><span>性质：评审建议，非生产变更指令</span></div>
+</header>
+<div class="layout">
+  <nav class="sidebar"><b>报告目录</b>
+    <a href="#summary">00　总体结论</a>
+    <a href="#sim">01　九组容量模拟</a>
+    <a href="#d27">02　除数27过渡问题</a>
+    <a href="#round">03　分方向与取整守恒</a>
+    <a href="#night">04　凌晨时刻与四班次</a>
+    <a href="#domain">05　容量与跑道职责</a>
+    <a href="#airport">06　新机场扩展</a>
+    <a href="#decide">07　A/B/C/D 四项裁决</a>
+    <a href="#choice">08　参数优选</a>
+    <a href="#roadmap">09　实施顺序与验收</a>
+    <a href="#conclusion">10　最终建议</a>
+    <a href="#cursor">附录　交给 Cursor 的指令</a>
+  </nav>
+  <main class="body">
+    <section class="section" id="summary">
+      <div class="idx">EXECUTIVE SUMMARY</div><h2>总体判断</h2>
+      <p class="lead"><strong>Cursor 的技术评估有价值，应采纳其主要发现及分阶段开发思路；但不建议按它提出的 P1 方案直接修改正式游戏。</strong></p>
+      <p class="desc">Cursor 对照现有代码发现：机场容量仍基于跑道数、背景航司占用分配会系统性填满热门时刻、放宽容量还将改变航线扩张、时刻交易及经济平衡。相比概念性方案，这是更有操作性的诊断。</p>
+      <div class="rule bad"><strong>最重要的纠偏：</strong>“除数27 ≈ 当前总容量”不等于“81个机场的容量逐场保持不变”。不能把它当作无风险的架构迁移方案。</div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">81</div><div class="lab">现有容量研究样本</div><div class="hint">不是游戏可用机场的上限</div></div>
+        <div class="kpi"><div class="num">45 / 81</div><div class="lab">除数27后容量发生变化的机场</div><div class="hint">复核附件嵌入数据</div></div>
+        <div class="kpi"><div class="num">D16 × 75%</div><div class="lab">建议优先验证的候选方案</div><div class="hint">尚未通过 Unity 经济平衡测试</div></div>
+      </div>
+    </section>
+
+    <section class="section" id="sim">
+      <div class="idx">01 · SIMULATION</div><h2>九组模拟：容量扩大能改善什么？</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="num">249</div><div class="lab">现状每刻每方向合计</div></div>
+        <div class="kpi"><div class="num">435</div><div class="lab">除数16，较现状约 +75%</div></div>
+        <div class="kpi"><div class="num">571</div><div class="lab">除数12，较现状约 +129%</div></div>
+      </div>
+      <div class="bar-chart"><strong>87%初始占用率下：08:00仍有空位的机场数量</strong>
+        <div class="barline"><div class="label">现状</div><div class="track"><div class="fill a" style="width:1.23%"></div></div><div class="v">1</div></div>
+        <div class="barline"><div class="label">除数16</div><div class="track"><div class="fill b" style="width:18.52%"></div></div><div class="v">15</div></div>
+        <div class="barline"><div class="label">除数12</div><div class="track"><div class="fill c" style="width:30.86%"></div></div><div class="v">25</div></div>
+        <p class="chart-caption">横轴按全部81机场为100%。源于 Cursor 评估第5章离线复算；不是实际 Unity 游戏的经营结果。</p>
+      </div>
+      <p>扩大容量可以增加机场总体承载力、小机场的容量分辨率和可选择的小时数，但<strong>无法自动解决热门时段集中占满</strong>的问题。容量规模与市场占用率必须分别测试。</p>
+      <div class="rule warn">报告将87%作为固定模拟参数；实际代码据 Cursor 描述为基于哈希的85%–90%基本区间，并对枢纽增加2个百分点。离线结论须在 Unity 内复核。</div>
+    </section>
+
+    <section class="section" id="d27">
+      <div class="idx">02 · CRITICAL CORRECTION</div><h2>除数27不是安全的“数值不变”过渡方案</h2>
+      <p>Cursor 建议先把申报容量按27缩放，保持世界总规模与现状相近；等确认迁移成功后再切到16。分离架构与平衡变更的原则正确，但具体做法无法真正保留现有机场容量。</p>
+      <div class="kpis"><div class="kpi"><div class="num">249</div><div class="lab">现状总容量</div></div><div class="kpi"><div class="num">248</div><div class="lab">申报值 ÷ 27 后总容量</div></div><div class="kpi"><div class="num">45</div><div class="lab">容量变化的机场数</div></div></div>
+      <div class="tablewrap"><table><thead><tr><th>机场</th><th>现有容量</th><th>除数27</th><th>变化</th></tr></thead><tbody>
+        <tr><td>ATL 亚特兰大</td><td>5</td><td>8</td><td>+3</td></tr><tr><td>DEN 丹佛</td><td>6</td><td>9</td><td>+3</td></tr><tr><td>LHR 希思罗</td><td>2</td><td>3</td><td>+1</td></tr><tr><td>BOS 波士顿</td><td>6</td><td>4</td><td>−2</td></tr><tr><td>AMS 阿姆斯特丹</td><td>6</td><td>4</td><td>−2</td></tr><tr><td>WUH 武汉</td><td>3</td><td>1</td><td>−2</td></tr><tr><td>CAN 广州</td><td>5</td><td>4</td><td>−1</td></tr><tr><td>PVG 浦东</td><td>4</td><td>3</td><td>−1</td></tr>
+      </tbody></table></div>
+      <p class="small">复核方式：从 Cursor HTML 附带的81机场记录读取跑道数、申报小时架次，以 <code>max(1, round(D÷27))</code> 对比逐场现值，得到总量248、45场变化。</p>
+      <div class="rule good"><strong>建议新增 C0 方案：</strong>迁移首期保留旧跑道平铺容量的显式兼容模式，保证所有机场逐场数值不变。新申报容量模式独立开启，用除数16和12做平衡试验。这样“先结构、后数值”才是真正可验证的。</div>
+    </section>
+
+    <section class="section" id="round">
+      <div class="idx">03 · CAPACITY CONSERVATION</div><h2>离港、到港同数取整：全局误差小，不等于局部误差小</h2>
+      <p>Cursor 建议暂时接受双方向对称取整带来的全行业约1.8%超发，以避免一次性修改多个接口。短期兼容测试可接受，但不应作为“贴近现实”的最终模型。</p>
+      <div class="tablewrap"><table><thead><tr><th>机场</th><th>申报架次/小时</th><th>理论50%容量</th><th>双向对称取整/小时</th><th>偏差</th></tr></thead><tbody>
+        <tr><td>LHR</td><td>88</td><td>44</td><td>48</td><td>+9.1%</td></tr><tr><td>BKK</td><td>72</td><td>36</td><td>40</td><td>+11.1%</td></tr><tr><td>TSN</td><td>24</td><td>12</td><td>16</td><td>+33.3%</td></tr><tr><td>SYX</td><td>20</td><td>10</td><td>8</td><td>−20.0%</td></tr>
+      </tbody></table></div>
+      <p class="small">数据为D16假设下的模型算术，非实际机场运营量。最终实现应优先满足每小时或其他设定时间窗口的总架次守恒。</p>
+      <div class="rule"><strong>裁决建议 B2：</strong>正式启用申报容量模型前实现双方向与总容量守恒。可考虑添加分方向查询接口/兼容重载，逐步替换旧调用，而不是预设必须“一次修改全部函数签名”。</div>
+    </section>
+
+    <section class="section" id="night">
+      <div class="idx">04 · CROSS-MIDNIGHT</div><h2>凌晨时刻必须归入夜班，不应改掉既定 UI</h2>
+      <p>Cursor 发现后台早班池覆盖00:00–09:45共40刻，而夜班池仅20:00–23:45共16刻；界面却按06:00开始显示早班。这是后台池归属和界面语义不一致，并非简单文字问题。</p>
+      <div class="tablewrap"><table><thead><tr><th>班次</th><th>既定显示时间</th><th>每15分钟格数</th></tr></thead><tbody>
+        <tr><td>早班</td><td>06:00–10:00</td><td>16</td></tr><tr><td>中班</td><td>10:00–15:00</td><td>20</td></tr><tr><td>晚班</td><td>15:00–20:00</td><td>20</td></tr><tr class="emph"><td>夜班</td><td>20:00–次日06:00</td><td>40</td></tr><tr><td><strong>合计</strong></td><td>完整24小时</td><td><strong>96</strong></td></tr>
+      </tbody></table></div>
+      <div class="rule bad"><strong>不接受：</strong>仅把“早班06:00”标签改成“00:00”，以迎合现有后台逻辑。</div>
+      <p><strong>正确工作：</strong>先审计跨午夜池、航班时刻、已持有槽、申请与二级交易的映射，再制定安全迁移方案，保持现有已确认的四时段界面和96格总量。</p>
+    </section>
+
+    <section class="section" id="domain">
+      <div class="idx">05 · DOMAIN SEPARATION</div><h2>跑道数量、申报容量与游戏容量应分层</h2>
+      <p>Cursor 找到集中入口 <code>QuarterCapacityRaw → RunwayCountOf × SlotsPerRunwayPerQuarter</code>，说明初步接入有机会做到局部改造。但不能为了减少代码行数而改变 <code>RunwayCountOf</code> 的原始语义。</p>
+      <div class="tablewrap"><table><thead><tr><th>数据概念</th><th>含义</th><th>建议职责</th></tr></thead><tbody>
+        <tr><td>物理跑道数</td><td>机场基础设施属性</td><td>继续由跑道数据查询提供</td></tr><tr><td>申报时刻容量</td><td>机场在某个口径/日期/协调条件下的可用能力</td><td>独立数据表、带来源和有效日期</td></tr><tr><td>游戏可分配容量</td><td>缩放、时段限制、离到方向分配后的最终容量</td><td>统一容量查询接口计算</td></tr>
+      </tbody></table></div>
+      <p>应提供 <code>CapacityOf</code> 或同等专用接口，显式选择兼容模式或申报容量模式。数据缺失时必须可诊断，禁止默默回落到按机场等级猜测的数值。</p>
+    </section>
+
+    <section class="section" id="airport">
+      <div class="idx">06 · EXTENSIBILITY</div><h2>81个机场是初始数据集，不是固定上限</h2>
+      <p>Cursor 表示没有“81”的硬编码循环上限，但新增机场需同时维护四张通过 IATA 字符串关联的数据表。</p>
+      <div class="tablewrap"><table><thead><tr><th>现有数据表</th><th>职责</th></tr></thead><tbody>
+        <tr><td><code>AirportCatalog</code></td><td>机场身份、等级、协调属性</td></tr><tr><td><code>AirportRunways</code></td><td>跑道数量</td></tr><tr><td><code>AirportGeoCatalog</code></td><td>地理坐标</td></tr><tr><td><code>CityEconomyCatalog</code></td><td>城市及经济数据</td></tr>
+      </tbody></table></div>
+      <p>现阶段无需强行把四表合并，但要新增数据完整性检测与统一机场容量接入接口，保证未来扩充至更多机场时不会因漏填而无声失败。</p>
+      <div class="rule good"><strong>第三旋钮继续采用“机场容量演进机制”：</strong>适用于任何现有或未来机场，不限于报告标记的5座富余机场。当前只设计扩展接口，完整扩建玩法等经营闭环稳定后再做。</div>
+    </section>
+
+    <section class="section" id="decide">
+      <div class="idx">07 · DECISIONS</div><h2>四个待裁决问题：建议 A1 / B2 / C0 / D1</h2>
+      <div class="decision-grid">
+        <div class="decision"><div class="letter">A</div><div><div class="dt">高峰时刻是否必须留空？</div><p>先用75%的初始占用率进行测试，不强制每刻硬留一条。允许热门机场满池，但应验证玩家是否仍有合理可执行的开线方案。</p></div><span class="badge ok">A1 · 测试</span></div>
+        <div class="decision"><div class="letter">B</div><div><div class="dt">起降容量是否严格守恒？</div><p>正式新容量模型以分方向及总架次守恒为目标；可先保留旧接口作兼容测试，之后渐进迁移。</p></div><span class="badge ok">B2 · 目标</span></div>
+        <div class="decision"><div class="letter">C</div><div><div class="dt">新架构的过渡默认值？</div><p>不在原C1/C2中选：新增C0，采用旧跑道平铺兼容模式保证逐场值不变，不能用除数27假装无变化。</p></div><span class="badge ok">C0 · 新增</span></div>
+        <div class="decision"><div class="letter">D</div><div><div class="dt">M1–M6构型如何定位？</div><p>保留为机场运行特征、容量可信度核查及缺失数据时的估算参考；可靠申报容量优先，不另做六套重复算法。</p></div><span class="badge ok">D1 · 采纳</span></div>
+      </div>
+      <p class="small">其中C项是当前最直接的实施风险，B项是新模型长期可信度的关键。</p>
+    </section>
+
+    <section class="section" id="choice">
+      <div class="idx">08 · BALANCE</div><h2>优先验证：除数16 × 75%初始占用率</h2>
+      <div class="tablewrap"><table><thead><tr><th>测试方案</th><th>日可申请余量（单方向）</th><th>08:00有余量机场</th></tr></thead><tbody>
+        <tr><td>现状 + 87%</td><td>3,089</td><td>1</td></tr>
+        <tr><td>除数16 + 87%</td><td>5,253</td><td>15</td></tr>
+        <tr class="emph"><td>除数16 + 75%（优先候选）</td><td>9,800</td><td>56</td></tr>
+        <tr><td>除数12 + 75%</td><td>12,864</td><td>67</td></tr>
+        <tr><td>除数16 + 60%</td><td>15,721</td><td>68</td></tr>
+      </tbody></table></div>
+      <p>该候选在市场开放度与容量规模之间可能较均衡，仍需检验机场时刻二级市场是否失去稀缺性，以及航线收入、票价、客流、成本与利润是否因扩容而失衡。</p>
+      <div class="rule warn"><strong>禁止直接当成最终答案：</strong>75%不是现实机场通用利用率，更不是未来自主经营AI必须保持的持仓比例。这只是静态背景航司的初始占用测试参数。</div>
+    </section>
+
+    <section class="section" id="roadmap">
+      <div class="idx">09 · IMPLEMENTATION</div><h2>建议的开发顺序与验收边界</h2>
+      <div class="timeline">
+        <div class="phase">P0<br><span class="badge ok">可开始</span></div>
+        <div class="pcontent"><strong>只读审计与测试工具</strong><br>校核81机场及32个估算值的数据来源；核实过时跑道信息；复算D12/D16×不同占用率；加入新增机场完整性检查、00:00–06:00归属检查；列出受影响调用链。不得修改现有生产容量或存档。</div>
+        <div class="phase">P1-A<br><span class="badge review">审批后</span></div>
+        <div class="pcontent"><strong>新容量数据层 + 显式兼容模式</strong><br>引入申报容量、来源、有效日期；保持旧机场逐场容量不变；新增容量查询接口；确认缺数据时不会无声猜测。</div>
+        <div class="phase">P1-B<br><span class="badge review">审批后</span></div>
+        <div class="pcontent"><strong>初始市场占用率参数化</strong><br>保留现状行为作基准；单独运行87%、75%、60%离线与Unity测试。勿把静态占用目标当作未来AI行为约束。</div>
+        <div class="phase">P1-C<br><span class="badge review">方案确认</span></div>
+        <div class="pcontent"><strong>方向守恒、旧档保护、跨午夜池方案</strong><br>定义整数分配；独立起降容量；超配检测只告警不删持仓；跨午夜班次归属先设计迁移方案。</div>
+        <div class="phase">P1-D<br><span class="badge review">测试阶段</span></div>
+        <div class="pcontent"><strong>经济平衡与交易验证</strong><br>正式在Unity内对照现状、D16×87%、D16×75%、D12×75%等组合；记录开线数、周班次、净利、现金流最低点、交易量及热门时刻可用性。</div>
+        <div class="phase">P2<br><span class="badge">暂缓</span></div>
+        <div class="pcontent"><strong>容量演进、真实AI竞对、多人</strong><br>等经营闭环稳定后再做；架构不限定机场数量和未来扩容对象。</div>
+      </div>
+      <h3>重要验收标准</h3>
+      <div class="tablewrap"><table><thead><tr><th>方面</th><th>必须能证明</th></tr></thead><tbody>
+        <tr><td>兼容模式</td><td>81座已录入机场逐场容量与现状完全一致，不仅是总和一致</td></tr>
+        <tr><td>容量守恒</td><td>离港 + 到港不超过选定窗口的总架次预算；无整数超配</td></tr>
+        <tr><td>四班次</td><td>16+20+20+40=96；凌晨属于夜班；跨午夜申请与存档一致</td></tr>
+        <tr><td>旧存档</td><td>可以加载；发现超配明确告警；不得静默删除或转移持仓</td></tr>
+        <tr><td>新机场</td><td>新增记录能被检测并进入容量流程，缺表能明确提示而非静默退化</td></tr>
+        <tr><td>经济系统</td><td>容量增加不被直接等同为盈利增加；航线、二级市场、财务联动测试通过</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="section" id="conclusion">
+      <div class="idx">10 · FINAL RECOMMENDATION</div><h2>最终结论</h2>
+      <div class="tablewrap"><table><thead><tr><th>项目</th><th>判断</th></tr></thead><tbody>
+        <tr><td>真实容量 + 三旋钮的总体架构</td><td><span class="badge ok">建议采纳</span></td></tr>
+        <tr><td>Cursor九组离线模拟</td><td><span class="badge ok">可用于后续验证</span></td></tr>
+        <tr><td>用除数27作为“数值不变”迁移</td><td><span class="badge no">建议否决</span></td></tr>
+        <tr><td>除数16 × 75%初始占用</td><td><span class="badge review">优先测试，未定稿</span></td></tr>
+        <tr><td>完整AI竞争及机场扩建玩法</td><td><span class="badge">暂缓开发</span></td></tr>
+      </tbody></table></div>
+      <div class="rule good"><strong>当前应批准：</strong>Cursor开展P0数据审计、模拟复核与测试工具建设。<strong>当前不批准：</strong>整套P1直接上线，更不应直接将“除数16×75%”写死到正式存档或经济平衡中。</div>
+      <p><strong>三个旋钮的最终职责：</strong>①世界容量比例，决定能提供多少时刻；②初始市场占用率，决定开局已有多少资源被背景航司持有；③机场容量演进机制，决定所有机场未来如何变化。</p>
+      <p class="source"><strong>资料与验证边界：</strong>本报告以 Cursor《时刻容量与三旋钮_技术评估_2026-11-09.html》及此前架构建议为依据。报告中引用的代码路径、业务行为、Unity兼容性结论来自 Cursor 的代码审查叙述；本报告未直接执行Unity测试。另对上传的评估HTML内嵌81机场表的“除数27”逐场计算进行了复核。所有参数结论均为候选或开发建议，非正式上线确认。</p>
+    </section>
+
+    <section class="section" id="cursor">
+      <div class="idx">APPENDIX · ACTIONABLE BRIEF</div><h2>可以直接交给 Cursor 的反馈指令</h2>
+      <div class="copyarea" id="brief">请阅读《航空CEO游戏_时刻容量与三旋钮_Cursor技术评估反馈_2026-11-09.html》，与原技术评估对照。本轮先继续P0分析与验证，暂不修改正式平衡参数或生产存档。
+请按以下裁决修订计划：
+A：A1，仅将75%初始占用率作为测试方案，暂不强制每个时刻留1条。
+B：目标B2，新现实容量模型正式启用前实现离港/到港分方向与总容量守恒；先评估兼容重载/新查询接口，避免不必要的大规模签名修改。
+C：新增C0，保留现有“跑道平铺”兼容模式，保证每一机场的容量不变；不要以除数27替代现状，因81场中有45场容量会变化。
+D：D1，M1–M6仅作特征、审核和缺失容量估算的参考，优先使用有来源的真实容量。
+保持四班次：早班06:00–10:00(16刻)、中班10:00–15:00(20刻)、晚班15:00–20:00(20刻)、夜班20:00–次日06:00(40刻)。先审计旧池的00:00–06:00归属与跨午夜持仓，未经迁移设计不修改生产数据。
+统一新机场容量接入和数据完整性校验；不限制机场数量为81，不将未来扩容限定于5座富余机场。
+准备 D16×75% 优先平衡测试，同时保留 D16×87%、D12×75%及现状对照；补充经济、时刻交易和旧档风险测试。
+先提交受影响文件、迁移/兼容方案、测试脚本和验收标准，经确认后再实施P1。</div>
+      <button class="copy" id="copyBtn" type="button">复制 Cursor 指令</button>
+      <p class="small">将本HTML放在项目 <code>docs/design/</code> 或其他参考目录；本轮指令要求先修订实施计划，不授权直接改动生产逻辑。</p>
+    </section>
+    <footer class="footer">航空公司 CEO 模拟经营游戏 · 时刻容量与三旋钮技术评估反馈 · 2026-11-09</footer>
+  </main>
+</div>
+<script>
+document.getElementById('copyBtn').addEventListener('click', async function(){
+  const content=document.getElementById('brief').innerText;
+  try{ await navigator.clipboard.writeText(content); this.textContent='已复制'; }
+  catch(e){ const t=document.createElement('textarea');t.value=content;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();this.textContent='已复制'; }
+  setTimeout(()=>this.textContent='复制 Cursor 指令',1800);
+});
+</script>
+</body></html>

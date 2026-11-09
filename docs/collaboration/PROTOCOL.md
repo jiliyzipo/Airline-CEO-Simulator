@@ -1,11 +1,13 @@
 # 协作协议 · PROTOCOL
 
+> **2026-11-09 日常协作入口：** [用户、Codex、Cursor 三方工作流程](三方工作流程与操作方法_2026-11-09.md)。用户提需求，Codex 规范与审查，Cursor 开发自测，用户 Unity 目测。下文收口/检测命令仅在用户明确要求“统一检测 / 阶段收口”时执行，不是每次修复后的默认动作。
+
 ## 职责
 
 | 角色 | 可做 | 不可做 |
 |---|---|---|
 | Cursor | claim / deliver / release / 修复缺陷 | 将独立检测标为 passed |
-| Codex | review-start / review-run / review-finish / 写缺陷 | 默认改生产业务代码 |
+| Codex | 需求规范 / 方案共识 / 范围监督 / 代码审查 / review-start / review-run / review-finish / 写缺陷 | 默认改生产业务代码 |
 | 用户 | 优先级、设计裁决、提交/推送授权 | — |
 
 ## 状态

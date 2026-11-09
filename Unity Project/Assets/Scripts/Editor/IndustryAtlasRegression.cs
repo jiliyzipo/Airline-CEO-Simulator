@@ -357,7 +357,9 @@ namespace AirlineCEO.EditorTools
                 // 故用两座例外机场各钉一条必现用例：
                 //   · ZUH 限时窗口 07:00–23:00 → 早段 06:30 / 06:45 在窗口外（容量 0）⇒ **不许出块**，
                 //     早段第一块必须是 07:00；
-                //   · KWE 窗口含 23:00 但干线该小时容量 0 ⇒ **不许出块**。
+                //   · PEK 窗口 24h，但 23:00 起宵禁 ⇒ **不许出块**（★2026-11-09：容量改为
+                //     「跑道数平铺」后，干线机场 23:00 不再天然为 0，宵禁成了唯一还压容量的机制，
+                //     旧用例拿 KWE 当反例的前提已不成立，改用 PEK 钉同一件事）。
                 // 另钉一条全局口径：每块都必须是「可申请 / 我司 / 他航」三者之一，容量必须 > 0。
                 bool stateOk = true;
                 {
@@ -376,12 +378,12 @@ namespace AirlineCEO.EditorTools
                             Debug.LogError($"R48 三种时刻：ZUH 早段出现了 {zuhEarly[k].time}（协调窗口外，容量 0），不该显示。");
                         }
 
-                    var kweNight = IndustryAirlineLogic.ChipsOf(gs, "KWE", 3);
-                    for (int k = 0; k < kweNight.Count; k++)
-                        if (kweNight[k].time == "23:00")
+                    var pekNight = IndustryAirlineLogic.ChipsOf(gs, "PEK", 3);
+                    for (int k = 0; k < pekNight.Count; k++)
+                        if (pekNight[k].time == "23:00")
                         {
                             stateOk = false;
-                            Debug.LogError("R48 三种时刻：KWE 23:00（干线该小时容量 0）不该显示。");
+                            Debug.LogError("R48 三种时刻：PEK 23:00（宵禁起始，容量 0）不该显示。");
                         }
 
                     // ———— 免槽必须**真免**（★2026-11-05 用户追问「什么叫免槽」时查出）————

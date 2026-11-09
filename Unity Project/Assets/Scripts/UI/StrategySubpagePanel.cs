@@ -392,38 +392,22 @@ namespace AirlineCEO.UI
         }
 
         /// <summary>
-        /// 「机场时刻」：纯文字表（★2026-11-07 用户裁决）。
+        /// 「机场时刻」：按用户 UI 原型重做的机场汇总卡 + 时刻矩阵（★2026-11-08）。
         ///
-        /// 用户原话：「在目前保留功能的前提下，删除『机场时刻』页面的 UI，页面版式回退到
-        /// 图片中纯文字的状态。然后等待我的新 UI 设计。」
+        /// ★2026-11-07 的「纯文字表」是过渡版 —— 用户当时要求先删干净 UI、等新设计稿。
+        /// 设计稿到位后本页改由 <see cref="AirportSlotsView"/> 全权渲染：
+        /// 折叠式机场汇总栏、早/中/晚/夜四段 × 15 分钟刻度 × 离港/到港双泳道、
+        /// 搜索 / 排序 / 过滤器、以及点方块弹出的时刻详情。
         ///
-        /// 故卡片 / 方块 / 浮窗 / 过滤器菜单 / 搜索框全部删除，本页只留：
-        /// 顶部一行统计 + 一段可滚动的文字表，页面上不再有任何可点控件
-        /// （申请时刻一律走命令台 —— 与「所有申请动作在命令台下达」的既有裁决一致）。
-        ///
-        /// 保留的是**数据与判据**，一条不动：24 小时逐刻容量、航班波铺排、
-        /// 到离港双池、我司与他航持有推导都在 <see cref="IndustryAirlineLogic"/> 里，
-        /// 文字表只是把它们原样打印出来（见 <see cref="IndustryAirlineLogic.SlotsTableText"/>）。
+        /// 数据与判据一条不动：24 小时逐刻容量、航班波铺排、到离港双池、我司与他航持有推导
+        /// 仍在 <see cref="IndustryAirlineLogic"/> 里，本函数只负责把视图挂到正文宿主上。
+        /// 业务仍只读 —— 时刻申请 / 二级市场买入 / 审批照旧由运营部递提案、CEO 在收件箱批。
         /// </summary>
         void RenderAirportSlots()
         {
             var gs = GameState.Instance;
             if (gs == null) return;
-
-            L("SlotStat", IndustryAirlineLogic.SlotsSummary(gs), 0f, 0.940f, 1f, 1f,
-                13, UITheme.Success, true);
-            L("SlotHint",
-                "「—」＝这一刻无人持有，可直接申请；「航司 ×N」＝同刻有 N 条归该航司；余量以各段末尾的「余 N」为准。支线机场非协调，不占时刻池。",
-                0f, 0.900f, 1f, 0.938f, 11, UITheme.TextMuted);
-
-            var body = UIFactory.ScrollableLabel(_bodyHost, "SlotsBody",
-                new UIFactory.Anchor(new Vector2(0.005f, 0.005f), new Vector2(0.995f, 0.892f),
-                    Vector2.zero, Vector2.zero),
-                UITheme.TextPrimary, 10, TextAlignmentOptions.TopLeft, showScrollbar: true);
-            // TMP 默认 maxVisibleCharacters = 99999：整张表（80 个机场 × 4 段 × 十余刻）
-            // 会逼近这个上限，超了就被静默截尾。这里抬开，免得表看着"少了一半机场"。
-            body.maxVisibleCharacters = int.MaxValue;
-            body.text = IndustryAirlineLogic.SlotsTableText(gs);
+            AirportSlotsView.Build(Host);
         }
 
         void RenderRouteRight()

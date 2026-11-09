@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.1243313">
+  <test-suite type="TestSuite" id="1000" name="IsolatedBaseline__snap_r2c_post" fullname="IsolatedBaseline__snap_r2c_post" runstate="Runnable" testcasecount="147" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.124331" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1197" name="AirlineCEO.EditModeTests.dll" fullname="D:/Project/_snap_r2c_pre/Unity Project/Library/ScriptAssemblies/AirlineCEO.EditModeTests.dll" runstate="Runnable" testcasecount="147" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.117013" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="42356" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1198" name="AirlineCEO" fullname="AirlineCEO" runstate="Runnable" testcasecount="147" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.114193" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1199" name="Tests" fullname="AirlineCEO.Tests" runstate="Runnable" testcasecount="147" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.113259" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1200" name="EditMode" fullname="AirlineCEO.Tests.EditMode" runstate="Runnable" testcasecount="147" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.112305" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1177" name="SlotSequenceEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.108302" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1178" name="ApplicationSequenceKeepsApprovalsHoldingsAndCash" fullname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests.ApplicationSequenceKeepsApprovalsHoldingsAndCash" methodname="ApplicationSequenceKeepsApprovalsHoldingsAndCash" classname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" runstate="Runnable" seed="1980009674" result="Failed" start-time="2026-11-09 12:17:15Z" end-time="2026-11-09 12:17:15Z" duration="0.099310" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  时刻槽申请序列在抽取后发生漂移（批准/驳回、持仓时刻与方向、资金流水或余额），逐项结果见 Console 的「SLOTSEQ|」行。
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests.ApplicationSequenceKeepsApprovalsHoldingsAndCash () [0x00000] in D:\Project\_snap_r2c_pre\Unity Project\Assets\Tests\EditMode\SlotSequenceEditModeTests.cs:21
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[[SLOTSEQ] 申请序列回归
+SLOTSEQ|setup.apt=PEK
+SLOTSEQ|setup.tier=0
+SLOTSEQ|setup.runways=3
+SLOTSEQ|setup.dayCapacity=204
+SLOTSEQ|setup.cash=6000.0
+SLOTSEQ|setup.clock=09:00
+SLOTSEQ|setup.holdings=0
+SLOTSEQ|prop1.ok=true
+SLOTSEQ|prop1.note=已提交收件箱：09:00 已被他航占满，运营部改报 PEK 09:45；请批准购入该刻时刻槽，批准后即刻过户并扣款。
+SLOTSEQ|prop1.inbox=1
+SLOTSEQ|prop1.status=pending
+SLOTSEQ|prop1.clock=09:45
+SLOTSEQ|prop1.avail=1
+SLOTSEQ|prop1.price=546.0
+SLOTSEQ|approve1.ok=true
+SLOTSEQ|approve1.msg=已批准通过二级市场购入取得 PEK 09:45 时刻槽。3月2日交割。
+SLOTSEQ|approve1.status=approved
+SLOTSEQ|approve1.cashDelta=0.0
+SLOTSEQ|approve1.holdDelta=0
+SLOTSEQ|settle1.status=approved
+SLOTSEQ|settle1.cashDelta=-546.0
+SLOTSEQ|settle1.holdDelta=1
+SLOTSEQ|settle1.hold.count=1
+SLOTSEQ|settle1.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+SLOTSEQ|settle1.mail.count=1
+SLOTSEQ|settle1.mail[0]=m_seq_buy|buy_slot|approved|提案|建议购入 PEK 09:45 时刻槽|body=<b><color=#8FB6E8>▎提案要点</color></b> · 机场　PEK（枢纽） · 时刻　09:45（机场当地离港时刻）—— **时刻槽精确到时刻**，06:30 与 08:00 是两条槽，不能互相顶替 · 渠道　二级市场购入（向持槽航司买，需付款） · 估价　约 546 万美元 · 现金　现有 6000 万；按当前净烧钱 81 万/月，交割扣款后约剩 5454 万 ≈ **67.7 个月**跑道 · 池况　PEK 09:45 · 离港池 该刻容量 3 · …
+SLOTSEQ|check1.holding=PEK|09:45|DEP|cost=546.00
+SLOTSEQ|full.clock=11:00
+SLOTSEQ|full.ok=false
+SLOTSEQ|full.msg=PEK 11:00 该刻已被占满（PEK 11:00 · 离港池 该刻容量 3 · 该刻余 0（已持 3 条）；所在中班池 52/60（我司 0 · 他航 52 · 余 8）· 协调 24h）。可改申请同波内其他时刻，或走二级市场。
+SLOTSEQ|full.cashDelta=0.0
+SLOTSEQ|full.holdDelta=0
+SLOTSEQ|curfew.ok=false
+SLOTSEQ|curfew.msg=PEK 02:00 落在宵禁时段（23:00–06:00 宵禁），机场不开放，无法取得时刻槽。
+SLOTSEQ|curfew.cashDelta=0.0
+SLOTSEQ|short.clock=06:00
+SLOTSEQ|short.ok=false
+SLOTSEQ|short.msg=现金不足，PEK 06:00 时刻槽 1 条需 462 万（枢纽价，单价 462 万）。若走协调池申请则不收费，该提案由运营部按需另递。
+SLOTSEQ|short.cash=1.0
+SLOTSEQ|short.holdDelta=0
+SLOTSEQ|arr.clock=06:00
+SLOTSEQ|arr.ok=true
+SLOTSEQ|arr.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+SLOTSEQ|arr.assigned=06:00
+SLOTSEQ|arr.cashDelta=0.0
+SLOTSEQ|arr.holdDelta=1
+SLOTSEQ|pair.clock=06:00
+SLOTSEQ|pair.arrClock=06:15
+SLOTSEQ|pair.ok=true
+SLOTSEQ|pair.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+SLOTSEQ|pair.holdDelta=1
+SLOTSEQ|pair.holding=06:00|arr=06:15
+SLOTSEQ|pool.ok=false
+SLOTSEQ|pool.msg=该机场该时段时刻池余量不足（要 999 条，PEK 06:00–09:45（早班池） · 池 45/48（我司 2 · 他航 43 · 余 3） · 日容量 204 · 协调 24h · 23:00–06:00 宵禁）。
+SLOTSEQ|pool.cashDelta=0.0
+SLOTSEQ|pool.holdDelta=0
+SLOTSEQ|dup.ok=false
+SLOTSEQ|dup.note=该时刻槽提案已提交过。
+SLOTSEQ|occ.poolCapDep=60
+SLOTSEQ|occ.poolCapArr=60
+SLOTSEQ|occ.dep.band=1
+SLOTSEQ|occ.dep.poolCap=60
+SLOTSEQ|occ.dep.ourUse=0
+SLOTSEQ|occ.dep.industry=52
+SLOTSEQ|occ.dep.available=8
+SLOTSEQ|occ.dep.sumOpenByClock=8
+SLOTSEQ|occ.arr.band=1
+SLOTSEQ|occ.arr.poolCap=60
+SLOTSEQ|occ.arr.ourUse=0
+SLOTSEQ|occ.arr.industry=53
+SLOTSEQ|occ.arr.available=7
+SLOTSEQ|occ.arr.sumOpenByClock=7
+SLOTSEQ|occ.clocks09dep=0
+SLOTSEQ|occ.clocks09arr=0
+SLOTSEQ|final.hold.count=3
+SLOTSEQ|final.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+SLOTSEQ|final.hold[1]=PEK|06:00|ARR|arr=-|cost=0.00|inUse=False|expQ=3
+SLOTSEQ|final.hold[2]=PEK|06:00|DEP|arr=06:15|cost=0.00|inUse=False|expQ=3
+SLOTSEQ|final.cash=5454.0
+SLOTSEQ|final.inbox=1
+SLOTSEQ|check.00=PASS ; ①批准只排期：不动现金
+SLOTSEQ|check.01=PASS ; ①批准只排期：不落持仓
+SLOTSEQ|check.02=PASS ; ①提案被受理（收件箱有待批单）
+SLOTSEQ|check.03=PASS ; ①有剩量时交割落 1 条持仓
+SLOTSEQ|check.04=PASS ; ①持仓时刻与提案时刻一致（09:45 → 09:45）
+SLOTSEQ|check.05=PASS ; ①持仓单价与该刻报价一致（546.00 → 546.00）
+SLOTSEQ|check.06=PASS ; ①扣款等于该刻报价（前 6000.00 → 后 5454.00）
+SLOTSEQ|check.07=PASS ; ②满刻被驳回（11:00）
+SLOTSEQ|check.08=PASS ; ②满刻驳回不动钱
+SLOTSEQ|check.09=PASS ; ②满刻驳回不动持仓
+SLOTSEQ|check.10=PASS ; ③宵禁刻（02:00）被驳回
+SLOTSEQ|check.11=PASS ; ③宵禁驳回不动钱
+SLOTSEQ|check.12=PASS ; ③宵禁驳回不动持仓
+SLOTSEQ|check.13=PASS ; ④现金不足被驳回
+SLOTSEQ|check.14=PASS ; ④现金不足不扣款
+SLOTSEQ|check.15=PASS ; ④现金不足不落持仓
+SLOTSEQ|check.16=PASS ; ⑤免费渠道（协调池）不收费
+SLOTSEQ|check.17=PASS ; ⑤到港方向入账（kind=ARR）
+SLOTSEQ|check.18=PASS ; ⑤只到港持仓没有配对离港
+SLOTSEQ|check.19=PASS ; ⑥配对到港时刻入账（06:15 → 06:15）
+SLOTSEQ|check.20=PASS ; ⑥离港持仓 kind 为空串
+SLOTSEQ|check.21=PASS ; ⑦超余量（999 条）被驳回
+SLOTSEQ|check.22=PASS ; ⑦超余量不落持仓
+SLOTSEQ|check.23=PASS ; ⑧同一 id 重复提案被挡
+SLOTSEQ|check.24=PASS ; ⑨ C0 两方向池容量同值
+SLOTSEQ|check.25=PASS ; ⑨ 逐刻容量不分方向（DEP=ARR）
+SLOTSEQ|check.26=PASS ; ⑨ 离港段余 = 逐刻余量之和
+SLOTSEQ|check.27=PASS ; ⑨ 到港段余 = 逐刻余量之和
+SLOTSEQ|check.28=PASS ; ⑨ 09:00 离港余量 = 容量 − 我司 − 他航
+SLOTSEQ|check.29=PASS ; ⑨ 09:00 到港余量 = 容量 − 我司 − 他航
+SLOTSEQ|check.30=PASS ; 场景 ① 已实际执行
+SLOTSEQ|check.31=PASS ; 场景 ② 已实际执行
+SLOTSEQ|check.32=PASS ; 场景 ③ 已实际执行
+SLOTSEQ|check.33=PASS ; 场景 ④ 已实际执行
+SLOTSEQ|check.34=PASS ; 场景 ⑤ 已实际执行
+SLOTSEQ|check.35=PASS ; 场景 ⑥ 已实际执行
+SLOTSEQ|check.36=FAIL ; 场景 ⑦ 已实际执行
+SLOTSEQ|check.37=PASS ; 场景 ⑧ 已实际执行
+SLOTSEQ|check.38=PASS ; 场景 ⑨ 已实际执行
+SLOTSEQ|check.summary=pass=38 fail=1 covered=8/9
+SLOTSEQ|check.all=false
+
+Saving results to: D:\Project\_snap_r2c_pre\Unity Project\Logs\Tasks20261017_Batch1NegCtrlCover.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

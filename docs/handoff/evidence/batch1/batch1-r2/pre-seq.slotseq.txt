@@ -1,0 +1,121 @@
+setup.apt=PEK
+setup.tier=0
+setup.runways=3
+setup.dayCapacity=204
+setup.cash=6000.0
+setup.clock=09:00
+setup.holdings=0
+prop1.ok=true
+prop1.note=已提交收件箱：09:00 已被他航占满，运营部改报 PEK 09:45；请批准购入该刻时刻槽，批准后即刻过户并扣款。
+prop1.inbox=1
+prop1.status=pending
+prop1.clock=09:45
+prop1.avail=1
+prop1.price=546.0
+approve1.ok=true
+approve1.msg=已批准通过二级市场购入取得 PEK 09:45 时刻槽。3月2日交割。
+approve1.status=approved
+approve1.cashDelta=0.0
+approve1.holdDelta=0
+settle1.status=approved
+settle1.cashDelta=-546.0
+settle1.holdDelta=1
+settle1.hold.count=1
+settle1.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+settle1.mail.count=1
+settle1.mail[0]=m_seq_buy|buy_slot|approved|提案|建议购入 PEK 09:45 时刻槽|body=<b><color=#8FB6E8>▎提案要点</color></b> · 机场　PEK（枢纽） · 时刻　09:45（机场当地离港时刻）—— **时刻槽精确到时刻**，06:30 与 08:00 是两条槽，不能互相顶替 · 渠道　二级市场购入（向持槽航司买，需付款） · 估价　约 546 万美元 · 现金　现有 6000 万；按当前净烧钱 81 万/月，交割扣款后约剩 5454 万 ≈ **67.7 个月**跑道 · 池况　PEK 09:45 · 离港池 该刻容量 3 · …
+check1.holding=PEK|09:45|DEP|cost=546.00
+full.clock=11:00
+full.ok=false
+full.msg=PEK 11:00 该刻已被占满（PEK 11:00 · 离港池 该刻容量 3 · 该刻余 0（已持 3 条）；所在中班池 52/60（我司 0 · 他航 52 · 余 8）· 协调 24h）。可改申请同波内其他时刻，或走二级市场。
+full.cashDelta=0.0
+full.holdDelta=0
+curfew.ok=false
+curfew.msg=PEK 02:00 落在宵禁时段（23:00–06:00 宵禁），机场不开放，无法取得时刻槽。
+curfew.cashDelta=0.0
+short.clock=06:00
+short.ok=false
+short.msg=现金不足，PEK 06:00 时刻槽 1 条需 462 万（枢纽价，单价 462 万）。若走协调池申请则不收费，该提案由运营部按需另递。
+short.cash=1.0
+short.holdDelta=0
+arr.clock=06:00
+arr.ok=true
+arr.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+arr.assigned=06:00
+arr.cashDelta=0.0
+arr.holdDelta=1
+pair.clock=06:00
+pair.arrClock=06:15
+pair.ok=true
+pair.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+pair.holdDelta=1
+pair.holding=06:00|arr=06:15
+pool.ok=false
+pool.msg=该机场该时段时刻池余量不足（要 999 条，PEK 06:00–09:45（早班池） · 池 45/48（我司 2 · 他航 43 · 余 3） · 日容量 204 · 协调 24h · 23:00–06:00 宵禁）。
+pool.cashDelta=0.0
+pool.holdDelta=0
+dup.ok=false
+dup.note=该时刻槽提案已提交过。
+occ.poolCapDep=60
+occ.poolCapArr=60
+occ.dep.band=1
+occ.dep.poolCap=60
+occ.dep.ourUse=0
+occ.dep.industry=52
+occ.dep.available=8
+occ.dep.sumOpenByClock=8
+occ.arr.band=1
+occ.arr.poolCap=60
+occ.arr.ourUse=0
+occ.arr.industry=53
+occ.arr.available=7
+occ.arr.sumOpenByClock=7
+occ.clocks09dep=0
+occ.clocks09arr=0
+final.hold.count=3
+final.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+final.hold[1]=PEK|06:00|ARR|arr=-|cost=0.00|inUse=False|expQ=3
+final.hold[2]=PEK|06:00|DEP|arr=06:15|cost=0.00|inUse=False|expQ=3
+final.cash=5454.0
+final.inbox=1
+check.00=PASS ; ①批准只排期：不动现金
+check.01=PASS ; ①批准只排期：不落持仓
+check.02=PASS ; ①提案被受理（收件箱有待批单）
+check.03=PASS ; ①有剩量时交割落 1 条持仓
+check.04=PASS ; ①持仓时刻与提案时刻一致（09:45 → 09:45）
+check.05=PASS ; ①持仓单价与该刻报价一致（546.00 → 546.00）
+check.06=PASS ; ①扣款等于该刻报价（前 6000.00 → 后 5454.00）
+check.07=PASS ; ②满刻被驳回（11:00）
+check.08=PASS ; ②满刻驳回不动钱
+check.09=PASS ; ②满刻驳回不动持仓
+check.10=PASS ; ③宵禁刻（02:00）被驳回
+check.11=PASS ; ③宵禁驳回不动钱
+check.12=PASS ; ③宵禁驳回不动持仓
+check.13=PASS ; ④现金不足被驳回
+check.14=PASS ; ④现金不足不扣款
+check.15=PASS ; ④现金不足不落持仓
+check.16=PASS ; ⑤免费渠道（协调池）不收费
+check.17=PASS ; ⑤到港方向入账（kind=ARR）
+check.18=PASS ; ⑤只到港持仓没有配对离港
+check.19=PASS ; ⑥配对到港时刻入账（06:15 → 06:15）
+check.20=PASS ; ⑥离港持仓 kind 为空串
+check.21=PASS ; ⑦超余量（999 条）被驳回
+check.22=PASS ; ⑦超余量不落持仓
+check.23=PASS ; ⑧同一 id 重复提案被挡
+check.24=PASS ; ⑨ C0 两方向池容量同值
+check.25=PASS ; ⑨ 逐刻容量不分方向（DEP=ARR）
+check.26=PASS ; ⑨ 离港段余 = 逐刻余量之和
+check.27=PASS ; ⑨ 到港段余 = 逐刻余量之和
+check.28=PASS ; ⑨ 09:00 离港余量 = 容量 − 我司 − 他航
+check.29=PASS ; ⑨ 09:00 到港余量 = 容量 − 我司 − 他航
+check.30=PASS ; 场景 ① 已实际执行
+check.31=PASS ; 场景 ② 已实际执行
+check.32=PASS ; 场景 ③ 已实际执行
+check.33=PASS ; 场景 ④ 已实际执行
+check.34=PASS ; 场景 ⑤ 已实际执行
+check.35=PASS ; 场景 ⑥ 已实际执行
+check.36=PASS ; 场景 ⑦ 已实际执行
+check.37=PASS ; 场景 ⑧ 已实际执行
+check.38=PASS ; 场景 ⑨ 已实际执行
+check.summary=pass=39 fail=0 covered=9/9
+check.all=true

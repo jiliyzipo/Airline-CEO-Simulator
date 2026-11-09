@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>航空CEO游戏｜Cursor 第六轮：验证补齐与最小实施方案（2026-11-09）</title>
+<style>
+:root{--bg:#f4f7fb;--paper:#fff;--ink:#193046;--muted:#62778d;--blue:#2d699b;--line:#dce5ed;--light:#f1f6fa;--green:#216d58;--greenbg:#ebf6f1;--amber:#895d16;--amberbg:#fff6e8;--red:#9b3e43;--redbg:#fff2f1;--shade:#ecf2f7}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--bg);font:15px/1.78 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-serif}
+header{background:linear-gradient(115deg,#0f2338,#1c486e);color:#fff;padding:38px max(22px,calc((100vw - 1120px)/2)) 28px}
+header .eyebrow{font-size:12px;letter-spacing:2px;font-weight:750;color:#94c4ee}h1{font-size:clamp(24px,3vw,33px);line-height:1.4;letter-spacing:-.6px;margin:12px 0 10px}header .subtitle{margin:0;color:#d4e4f2;max-width:930px;font-size:15px}header .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}header .tags span{border:1px solid #61809c;color:#d8e8f5;padding:3px 11px;border-radius:100px;font-size:12px}
+.container{max-width:1164px;margin:0 auto;padding:24px 22px 60px;display:grid;grid-template-columns:196px minmax(0,1fr);gap:24px}
+nav{align-self:start;position:sticky;top:20px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 13px}nav b{font-size:12px;color:var(--muted);display:block;margin:0 9px 8px}nav a{color:#49667f;text-decoration:none;display:block;font-size:12.5px;padding:6px 9px;border-radius:6px}nav a:hover{background:#edf4fa;color:#16466d}
+main{min-width:0}section{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:26px 30px;margin:0 0 20px;box-shadow:0 2px 13px rgba(25,55,80,.025)}
+.section-no{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);font-weight:800;margin-bottom:3px}h2{font-size:21px;line-height:1.45;margin:0 0 13px}h3{font-size:15.5px;color:#204c70;margin:22px 0 9px}p{margin:9px 0 14px}strong{color:#183c58}
+ul,ol{padding-left:23px;margin:8px 0 16px}li{margin:5px 0}
+.lead{font-size:16px;line-height:1.9}.small{font-size:12px;color:var(--muted)}
+.note{background:var(--light);border-left:3px solid #4685b9;padding:12px 16px;border-radius:0 8px 8px 0;margin:15px 0}.warn{background:var(--amberbg);border-left-color:#c38c34}.critical{background:var(--redbg);border-left-color:#b5565b}.good{background:var(--greenbg);border-left-color:#278264}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:750;white-space:nowrap;background:var(--shade);color:#506578}.pill.ok{background:var(--greenbg);color:var(--green)}.pill.hold{background:var(--amberbg);color:var(--amber)}.pill.no{background:var(--redbg);color:var(--red)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:17px 0}.card{background:#f7fafd;border:1px solid var(--line);border-radius:10px;padding:14px}.card .big{font-size:23px;font-weight:780;letter-spacing:-.8px;color:#23496b;line-height:1.2}.card .lbl{font-size:12px;color:var(--muted);margin-top:6px}
+.table-wrap{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:9px;margin:12px 0 16px}table{width:100%;min-width:620px;border-collapse:collapse;font-size:13px;line-height:1.58}th{background:#edf4f9;text-align:left;color:#3d5b77;padding:9px 12px;white-space:nowrap}td{padding:10px 12px;border-top:1px solid #e6edf3;vertical-align:top}tbody tr:nth-child(even){background:#fbfdff}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tr.emph{background:#f0f8f5!important}tr.bad{background:#fff7f6!important}
+code{background:#f0f5fa;color:#224f72;padding:1px 5px;border-radius:4px;font-size:12.5px;font-family:"Cascadia Code",Consolas,monospace}pre{background:#14283d;color:#e6eef7;border-radius:10px;padding:15px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12.5px;line-height:1.75;font-family:"Cascadia Code",Consolas,monospace}
+.footer{font-size:12px;color:#8395a7;text-align:center;padding-bottom:20px}
+@media(max-width:860px){.container{grid-template-columns:1fr}nav{position:relative;display:flex;flex-wrap:wrap}nav b{width:100%}nav a{display:inline-block}.cards{grid-template-columns:1fr 1fr}section{padding:22px 20px}}
+@media print{body{background:#fff}.container{display:block;padding:0 10mm}nav{display:none}header{background:#fff;color:#112d47;border-bottom:3px solid #214e74}header .subtitle,header .tags span{color:#3d5b74}section{box-shadow:none;border:none;border-bottom:1px solid #cbd7e0;margin:0;padding:12mm 0}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">AIRLINE CEO SIMULATOR · EVIDENCE ROUND 6</div>
+  <h1>时刻容量与三个调节旋钮<br />Cursor 第六轮：验证补齐与最小实施方案</h1>
+  <p class="subtitle">承认勘误仍未清干净、承认脚本与源码语义不一致，并补交 ARR 专属夹具、跨班次配对量化、以及机场身份迁移与容量服务的最小实施方案与回退办法。仍未放行生产开发。</p>
+  <div class="tags"><span>2026年11月9日</span><span>P0 · 只读复核</span><span>未修改生产代码</span><span>未放行 P1</span></div>
+</header>
+<div class="container">
+<nav aria-label="目录"><b>目录</b><a href="#s0">00 · 结论</a><a href="#s1">01 · 我方三处错误</a><a href="#s2">02 · ARR 专属夹具</a><a href="#s3">03 · 接缝与压力</a><a href="#s4">04 · airportId 方案</a><a href="#s5">05 · CapacityService</a><a href="#s6">06 · 回退办法</a><a href="#s7">07 · 仍缺</a><a href="#s8">08 · 产物</a></nav>
+<main>
+
+<section id="s0"><div class="section-no">00 / CONCLUSION</div><h2>结论：三项批评全部成立，本轮的修正都是「我确实错了」</h2>
+  <p class="lead">评审第 3 点说「第五轮报告所称『已全部改写』与实际附件不符」——<strong>这是对的，我上一轮的核查方法本身有问题</strong>：只 grep 了 4 个词组就说「全部改写」，实际漏了 5 处。评审第 4 点说脚本用 <code>continue</code> 而源码用 <code>break</code>——<strong>也是对的</strong>，我已改为忠实复刻。</p>
+  <div class="cards">
+    <div class="card"><div class="big">5 处</div><div class="lbl">勘误版 v2 残留旧结论（已全部清除）</div></div>
+    <div class="card"><div class="big">break</div><div class="lbl">脚本已改为与源码一致（原来是 continue）</div></div>
+    <div class="card"><div class="big">0.6–2.0%</div><div class="lbl">ARR 逐刻超容刻占比（A 与 B 都存在）</div></div>
+    <div class="card"><div class="big">15 → 585</div><div class="lbl">接缝处位移放大（分钟），非新增压力</div></div>
+  </div>
+  <div class="note critical"><strong>立场不变：不放行生产开发。</strong>本轮仍为 P0。四项未关闭中，A/B 经营实测必须开 Unity，需用户单独授权；历史异常档无样本，按要求<strong>明确标注未覆盖</strong>，不凭空扩大任务。</div>
+</section>
+
+<section id="s1"><div class="section-no">01 / MY ERRORS</div><h2>我方本轮承认的三处错误</h2>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>评审指出</th><th>事实</th><th>处理</th></tr></thead><tbody>
+    <tr class="bad"><td>1</td><td>勘误版 v2 仍有未撤回表述</td><td><strong>成立。</strong>实际残留 5 处，我上一轮只检索了 <code>必然出现超配｜不冲击经济平衡｜自行退槽｜逐季收紧</code> 四个词组，<strong>方法本身漏检</strong>。</td><td>逐处改写，改用全量扫描（见下）</td></tr>
+    <tr class="bad"><td>2</td><td>脚本失败处理用 <code>continue</code>，源码用 <code>break</code></td><td><strong>成立。</strong><code>OursLayout</code> 第 665 行 <code>if (!Place(...)) break;</code>，我写成 <code>continue</code>，导致「单条丢弃」被误算成「只丢这一条」，而实际是<strong>该池后续全部不再落位</strong>。</td><td>已改为 <code>break</code>，并单列 <code>break</code> 次数</td></tr>
+    <tr class="bad"><td>3</td><td>（我方自查）上一版 ARR 丢弃 343/512 条</td><td><strong>是夹具越界造成的假象。</strong>我用「DEP 侧免费余量」造持仓，未约束 ARR 池，导致长轮挡把到港集中挤进同一池。加入「DEP+ARR 双池合法」夹具后<strong>丢弃归零</strong>。</td><td>撤回该数字，改用双夹具对照</td></tr>
+  </tbody></table></div>
+  <h3>5 处残留与改法</h3>
+  <div class="table-wrap"><table><thead><tr><th>残留原句</th><th>位置</th><th>改为</th></tr></thead><tbody>
+    <tr><td>「所以不会冲垮经济平衡。这是支持 B 的最强理由」</td><td>§01 三个结论 第 3 条</td><td>「分布发生转移（22:00 71→22、23:00 84→3）；已撤回，须以 A/B 实测为准」</td></tr>
+    <tr><td>「A 下最大合法持仓」「真实存档只会更少」</td><td>§03 测试方法</td><td>「免费余量满载夹具」＋「<strong>不是</strong>最大合法持仓，不含二级市场与后期演化」</td></tr>
+    <tr><td>「该持仓占池容量却没有对应刻 …… <code>Place</code> 会失败并 <code>break</code>」</td><td>§03 三种残留</td><td>「<code>NearestGridIndex</code> 会吸附到最近刻，<strong>不会</strong>导致 Place 失败；会失败的是同刻被多条离网格持仓吸附后超容」</td></tr>
+    <tr><td>「二、B 的代价：早班池超配（必须提前承认）」</td><td>§03 标题</td><td>「早班池收缩与晚间可用性下降（超配结论已撤回）」</td></tr>
+    <tr><td>「1. B 的早班超配处置（只告警 / 过渡期 / 推迟）」</td><td>MD 摘要 §7</td><td>「早班池收缩处置（直接接受 / 晚间加保护 / 推迟 P1-C）——均<strong>不需要</strong>退槽、宽限或删除」</td></tr>
+  </tbody></table></div>
+  <div class="note good"><strong>本轮核查方法：</strong>对生成脚本 <code>gen-round2-review.mjs</code> 做全量检索 <code>超配|经济平衡|必然|最大合法|只会更少|冲垮|宽限|逐季收紧|自行退槽</code>，逐条判定「是撤回说明」还是「未撤回旧结论」；重出后再对成品 HTML 复查同一组词。<strong>不再以「改了某几个词」为完工判据。</strong></div>
+</section>
+
+<section id="s2"><div class="section-no">02 / ARR FIXTURE</div><h2>ARR 专属夹具：跨班次配对与双池合法性</h2>
+  <h3>配对到港时刻的池归属规则（源码口径）</h3>
+  <pre>// RoutePermitLogic.PoolClocksAt 第 783–805 行
+bool wantArr = IsArrivalKind(kind);
+if (KindOf(s) == Arrival) {                       // 只到港持仓：slotTime 即落地钟点
+    if (!wantArr) continue;
+    if (BandOfClock(s.slotTime) == b) list.Add(s.slotTime);
+    continue;
+}
+string c = wantArr ? ArrClockOfHolding(s) : s.slotTime;   // 配对持仓：ARR 用 arrTime
+if (BandOfClock(c) == b) list.Add(c);             // ★ 按「该时刻所在段」过滤 → 配对可跨段分发</pre>
+  <p>因此一条配对持仓会<strong>分别</strong>落进「离港时刻所在段的 DEP 池」和「到港时刻所在段的 ARR 池」。若两时刻跨段，这一对就横跨两个池——这正是评审要求覆盖的情形。</p>
+  <h3>跨班次配对比例（按真实轮挡推算，3,116 条夹具）</h3>
+  <div class="table-wrap"><table><thead><tr><th>轮挡</th><th>布局 A 跨池</th><th>布局 B 跨池</th><th>说明</th></tr></thead><tbody>
+    <tr><td>短程 73 分</td><td class="num">20.5%</td><td class="num">20.9%</td><td>几乎无差别</td></tr>
+    <tr><td>中程 333 分</td><td class="num">81.9%</td><td class="num">82.4%</td><td>几乎无差别</td></tr>
+    <tr><td>长程 733 分</td><td class="num">100%</td><td class="num">100%</td><td>必然跨池</td></tr>
+    <tr class="bad"><td>跨段 240 分</td><td class="num">40.1%</td><td class="num">54.3%</td><td><strong>B 显著增加</strong>：05:00 起飞在 A 属早班、ARR 06:30 也属早班（同池）；在 B 中 05:00 属夜班、06:30 属早班（跨池）</td></tr>
+  </tbody></table></div>
+  <h3>双夹具对照：丢弃与守恒</h3>
+  <div class="table-wrap"><table><thead><tr><th>夹具</th><th>池</th><th>布局</th><th>持仓</th><th>落位</th><th>丢弃</th><th>break</th><th>守恒（PoolUse＝Σ逐刻＝落位）</th></tr></thead><tbody>
+    <tr class="emph"><td>Y · DEP+ARR 双池合法</td><td>DEP</td><td>A / B</td><td class="num">3,116</td><td class="num">3,116</td><td class="num">0</td><td class="num">0</td><td>✓</td></tr>
+    <tr class="emph"><td>Y · DEP+ARR 双池合法</td><td>ARR</td><td>A / B</td><td class="num">3,116</td><td class="num">3,116</td><td class="num">0</td><td class="num">0</td><td>✓</td></tr>
+  </tbody></table></div>
+  <p class="small">四种轮挡（73 / 333 / 733 / 240 分）× 两个池 × 两个布局，<strong>丢弃全为 0、break 全为 0、三层计数全部守恒</strong>。故上一版「B 丢 343 条」的说法撤回。脚本：<code>place-consistency.mjs</code>。</p>
+  <div class="note warn"><strong>但 ARR 的「原刻位」不守恒——这与丢弃是两件事：</strong>到港时刻 = 离港 + 轮挡，通常<strong>不在 15 分钟网格上</strong>（73 / 333 / 240 分都不是 15 的倍数），<code>NearestGridIndex</code> 必然吸附。所以 ARR 池「原刻不变」比例是 0%（轮挡=240 时 96.8%），显示位移 ≤ 15 分属正常折算，不是缺陷。</div>
+</section>
+
+<section id="s3"><div class="section-no">03 / SEAM &amp; PRESSURE</div><h2>接缝：B 不增加压力，只是放大后果</h2>
+  <p>评审要求分清「显示排序、邻刻选择、背景铺排」，并要求不得为修正显示而改写原持仓时刻。以下为分离后的量化。</p>
+  <h3>① ARR 逐刻超容压力（A 与 B 都存在，与接缝无关）</h3>
+  <div class="table-wrap"><table><thead><tr><th>轮挡</th><th>A 超容刻 / 全部</th><th>B 超容刻 / 全部</th><th>单刻最大溢出</th><th>B − A</th></tr></thead><tbody>
+    <tr><td>短程 73 分</td><td class="num">60 / 9,888（0.61%）</td><td class="num">80 / 9,888（0.81%）</td><td class="num">1–2 条</td><td class="num">+20</td></tr>
+    <tr><td>中程 333 分</td><td class="num">94 / 9,888（0.95%）</td><td class="num">94 / 9,888（0.95%）</td><td class="num">1 条</td><td class="num">0</td></tr>
+    <tr><td>长程 733 分</td><td class="num">196 / 9,888（1.98%）</td><td class="num">197 / 9,888（1.99%）</td><td class="num">1–2 条</td><td class="num">+1</td></tr>
+    <tr><td>跨段 240 分</td><td class="num">100 / 9,888（1.01%）</td><td class="num">100 / 9,888（1.01%）</td><td class="num">1 条</td><td class="num">0</td></tr>
+  </tbody></table></div>
+  <p><strong>关键判读：逐刻超容是既存现象，B 几乎不改变其规模（+0 到 +20 刻，占 0.2%）。</strong>它来自「到港时刻按轮挡偏移后向某一刻聚集」，与班次如何划分无关。</p>
+  <h3>② 接缝放大后果：同样溢出，位移差 39 倍</h3>
+  <div class="table-wrap"><table><thead><tr><th>布局</th><th>同一持仓在 05:45 溢出后的落位</th><th>位移</th></tr></thead><tbody>
+    <tr class="emph"><td>A（早班连续）</td><td>06:00（下标 24 就是 06:00）</td><td class="num">+15 分</td></tr>
+    <tr class="bad"><td>B（夜班有接缝）</td><td>20:00（下标 24 是 20:00）</td><td class="num">+585 分</td></tr>
+  </tbody></table></div>
+  <p>ARR 侧同理：在轮挡 240 分场景下，最大位移 A 为 <strong>315 分</strong>、B 为 <strong>555 分</strong>；中程 333 分时 A 为 327 分、B 为 543 分。</p>
+  <div class="note good"><strong>符合评审三项要求的分层结论：</strong>① <strong>显示排序</strong>——B 夜班数组按下标排列会把 00:00–05:45 排在 20:00 之前，属显示层缺陷；② <strong>邻刻选择</strong>——<code>Place</code> 用下标距离而非时刻距离，是接缝放大的直接原因；③ <strong>原持仓时刻</strong>——<code>SlotHolding.slotTime</code> <strong>不被任何路径改写</strong>（<code>OursLayout</code> 只往 <code>perQ</code> 里放名字，不回写存档）。故修复方案必须<strong>只改显示与选择策略，不动 slotTime</strong>，与本轮建议一致。</div>
+  <h3>③ 修复方案（不改容量、不改存档、不改持仓时刻）</h3>
+  <div class="table-wrap"><table><thead><tr><th>项</th><th>最小改动</th><th>风险</th></tr></thead><tbody>
+    <tr><td>夜班网格顺序</td><td><code>BandGrid(3)</code> 返回时按「日序」重排：20:00…23:45 → 00:00…05:45</td><td>低。<code>BuildBandGridCache</code> 是纯函数，仅顺序变化；需与 <code>MatrixGrid</code> 列头同步</td></tr>
+    <tr><td><code>Place</code> 候选顺序</td><td>把「下标 ±d」改为「时刻距离 ±15d」，用 <code>ClockDiff</code> 排序候选</td><td>中。<code>Place</code> 被 <code>OursLayout</code> 与 <code>PlaceCount</code> 共用，需回归全部时刻表用例</td></tr>
+    <tr><td>跨午夜区间判据</td><td><code>BandHourStart/End</code> 增加 <code>wraps</code> 语义；<code>MatrixGrid</code> 改环状判据</td><td>低，纯显示</td></tr>
+  </tbody></table></div>
+  <p class="small">脚本：<code>arr-tick-pressure.mjs</code>、<code>seam-case.mjs</code>、<code>place-consistency.mjs</code>。</p>
+</section>
+
+<section id="s4"><div class="section-no">04 / AIRPORT IDENTITY</div><h2>机场身份迁移：最小实施方案</h2>
+  <h3>受影响面（代码事实）</h3>
+  <div class="table-wrap"><table><thead><tr><th>层</th><th>当前键</th><th>改动方式</th></tr></thead><tbody>
+    <tr><td><code>AirportInfo.code</code></td><td>IATA 3 字母，兼作主键</td><td>新增 <code>airportId</code>（稳定串），<code>code</code> 降为「可选外码」；新增 <code>icao</code>（可空）</td></tr>
+    <tr><td><code>AirportRunways</code> / <code>AirportGeoCatalog</code> / <code>CityEconomyCatalog</code></td><td>IATA</td><td>三表保持 IATA 键不变，由 <code>AirportCatalog</code> 在加载时<strong>按 airportId 建索引</strong>，不改表结构</td></tr>
+    <tr><td><code>SlotHolding.airport</code></td><td>IATA</td><td><strong>不迁移</strong>。读档时经 <code>ResolveAirport</code> 把 IATA → airportId；写出时仍写 IATA（若已存在则写 airportId，见下）</td></tr>
+    <tr><td><code>RouteData.origin/destination</code></td><td>IATA</td><td>同上，读时解析，不批量重写</td></tr>
+    <tr><td><code>FindByCode</code>（26 处调用）</td><td>线性扫 <code>All</code></td><td>增加 <code>Dictionary&lt;string, int&gt;</code> 索引（IATA / ICAO / airportId 三张），<code>FindByCode</code> 保留签名转调字典</td></tr>
+  </tbody></table></div>
+  <h3>分三步，每步都可独立回退</h3>
+  <div class="table-wrap"><table><thead><tr><th>步</th><th>内容</th><th>不做会怎样</th><th>回退</th></tr></thead><tbody>
+    <tr class="emph"><td>M1</td><td>只加索引与 <code>airportId</code> 字段，<strong>不改任何读写路径</strong>。行为完全不变。</td><td>5,000 场时 <code>FindByCode</code> 退化为 O(N²)</td><td>删掉字典与字段，零影响</td></tr>
+    <tr><td>M2</td><td>读档时经 <code>ResolveAirport</code> 解析（IATA → airportId，失败则回退 IATA 直查）。写出仍用原键。</td><td>只有 ICAO 的机场无法录入</td><td>关掉解析开关，走原直查</td></tr>
+    <tr><td>M3</td><td>支持「仅 ICAO」机场注册；IATA 变更加别名映射（旧 IATA → 新 airportId），<strong>不丢记录</strong>。</td><td>玩家无法启用附近小机场</td><td>别名表为空即退化为 M2</td></tr>
+  </tbody></table></div>
+  <div class="note warn"><strong>硬约束（评审已认可）：</strong>不得静默丢记录。任何解析失败必须<strong>显式告警并保留原键</strong>，不得把无法解析的持仓过滤掉。别名映射表本身要能回滚——它是纯数据，不进存档结构。</div>
+</section>
+
+<section id="s5"><div class="section-no">05 / CAPACITY SERVICE</div><h2>单一容量服务：最小接口与兼容层</h2>
+  <h3>接口（只读，替换现有烘焙值）</h3>
+  <pre>public static class CapacityService
+{
+    // 唯一权威查询：单机场 / 单刻（0–1439）/ 单方向
+    public static int QuarterCapacity(string airport, int minuteOfDay, string kind);
+
+    // 池口径：四班次
+    public static int PoolCapacity(string airport, int band, string kind);
+
+    // 失效信号（航季切换 / 事件生效 / 调试改容量后调用）
+    public static void Invalidate(string airport = null);
+}</pre>
+  <h3>与现有 <code>int[4]</code> 的关系</h3>
+  <div class="table-wrap"><table><thead><tr><th>层</th><th>角色</th><th>迁移期做法</th></tr></thead><tbody>
+    <tr class="emph"><td><code>CapacityService</code></td><td>唯一真相源</td><td>先只实现「平铺模式」：内部按 <code>runwayEff × 1</code> 算，输出与今日<strong>逐值相同</strong></td></tr>
+    <tr><td><code>AirportInfo.slotCapacity</code></td><td>派生缓存</td><td>改为 <code>CapacityService.PoolCapacity</code> 的懒填充缓存，<code>Invalidate</code> 可重建</td></tr>
+    <tr><td><code>AirportCatalog.SlotCapacity(code, band, kind)</code></td><td>兼容读取</td><td>签名不变，内部转调 service；<strong>顺带修 <code>kind</code> 被忽略的缺陷</strong></td></tr>
+  </tbody></table></div>
+  <div class="note critical"><strong>必须避免的坑（评审已明确警告）：</strong>不能让「可变容量数组」与「覆盖表」并存为两个可互相矛盾的权威。判据很简单——<strong>全仓只有一处计算容量</strong>，其余都是它的缓存或转调。若出现第二处独立算容量，即视为回归失败。</div>
+  <h3>验证方式（不需要 Unity 也能做一半）</h3>
+  <ul>
+    <li><strong>等价性</strong>：平铺模式下，<code>CapacityService.PoolCapacity</code> 对 104 座机场 × 4 班次 × 2 方向的输出，必须与今日 <code>AirportInfo.slotCapacity</code> <strong>逐值相等</strong>（0 差异才算迁移成功）。</li>
+    <li><strong>缓存失效</strong>：<code>Invalidate</code> 后重建的值与首次计算一致。</li>
+    <li><strong>单一真相</strong>：静态检查「除 <code>CapacityService</code> 外，无第二处 <code>runwayEff × 1</code> 计算」。</li>
+  </ul>
+</section>
+
+<section id="s6"><div class="section-no">06 / ROLLBACK</div><h2>回退办法（逐项）</h2>
+  <div class="table-wrap"><table><thead><tr><th>改动</th><th>回退开关</th><th>回退后行为</th><th>存档影响</th></tr></thead><tbody>
+    <tr><td>B 布局（16/20/20/40）</td><td><code>BandLayout.Mode = A | B</code></td><td>回到 h&lt;10 归早班</td><td>无（band 由 slotTime 反推）</td></tr>
+    <tr><td>夜班网格重排</td><td>同上（跟随布局开关）</td><td>回到分钟升序</td><td>无</td></tr>
+    <tr><td><code>Place</code> 改时刻距离</td><td>保留旧实现为 <code>PlaceByIndex</code></td><td>逐刻落位退回下标算法</td><td>无（不回写 slotTime）</td></tr>
+    <tr><td><code>airportId</code> 解析</td><td><code>AirportIdentity.ResolveOnLoad = on/off</code></td><td>直接按 IATA 查表，与今日一致</td><td>无（写出仍用原键）</td></tr>
+    <tr><td><code>CapacityService</code></td><td>平铺模式恒等 ⇒ 关闭 service 即等于今日值</td><td>回到烘焙 <code>int[4]</code></td><td>无</td></tr>
+  </tbody></table></div>
+  <p class="small">五项回退全部<strong>无需迁移存档</strong>，这是本轮设计刻意的选择：把「结构变更」和「数值变更」分开，任一项都可单独关掉而不影响其余。</p>
+</section>
+
+<section id="s7"><div class="section-no">07 / STILL OPEN</div><h2>仍缺的三项（两项等授权、一项无样本）</h2>
+  <div class="table-wrap"><table><thead><tr><th>项</th><th>状态</th><th>为什么还不能做</th></tr></thead><tbody>
+    <tr class="bad"><td>A/B 经营对照（固定种子、同起始资金）</td><td><strong>未做</strong></td><td>必须在 Unity 隔离副本内跑；需用户单独授权开 Unity。本轮所有数字都是离线静态供需，<strong>不含航线、客座率、利润、机队利用率、二级市场、现金流</strong></td></tr>
+    <tr><td>历史异常档逐刻比对</td><td><strong>未覆盖</strong></td><td>无 <code>f41de9d</code> 之前的存档样本。按要求<strong>明确标注未覆盖</strong>，不凭空推断</td></tr>
+    <tr><td>M1～M3 的实际编码与回归</td><td>仅方案</td><td>P1 范围，未获授权</td></tr>
+  </tbody></table></div>
+  <div class="note good"><strong>已可收敛、无需再往返的：</strong>稳定 <code>airportId</code> ＋ IATA/ICAO 可选；单一 <code>CapacityService</code>；渐进迁移；区分容量／占用／余量；B 的 16/20/20/40 班次定义；C0 兼容模式；机场数量不设人为上限。</div>
+</section>
+
+<section id="s8"><div class="section-no">08 / ARTIFACTS</div><h2>本轮产物</h2>
+  <div class="table-wrap"><table><thead><tr><th>类型</th><th>文件</th></tr></thead><tbody>
+    <tr><td>报告</td><td><code>out/reports/Cursor第六轮验证补齐与最小方案_2026-11-09.html</code></td></tr>
+    <tr><td>勘误版（第三修）</td><td><code>out/reports/B方案实测与机场扩展复核_2026-11-09.html</code></td></tr>
+    <tr><td>脚本</td><td><code>place-consistency.mjs</code>（break 语义 ＋ ARR ＋ 双夹具）、<code>arr-tick-pressure.mjs</code>（逐刻压力）、<code>seam-case.mjs</code>（接缝复现）、<code>dep-arr-split.mjs</code>（DEP/ARR 分离）</td></tr>
+    <tr><td>明细</td><td><code>place-consistency.json</code>、<code>seam-case.json</code>、<code>b-compat-per-airport.csv</code>、<code>b-impact-by-hour.csv</code></td></tr>
+  </tbody></table></div>
+  <p><strong>未改动：</strong>生产容量算法、<code>AirportCatalog</code>、<code>BandOfDep</code>、<code>Place</code>、存档结构、背景航司铺排、经济参数。<strong>未运行 Unity。未跑 <code>stage-close</code>，未生成 DEL，未 commit。</strong></p>
+</section>
+
+<div class="footer">航空公司 CEO 模拟经营游戏 · Cursor 第六轮验证补齐 · 2026-11-09 · P0 只读复核 · 未放行 P1</div>
+</main></div>
+</body>
+</html>

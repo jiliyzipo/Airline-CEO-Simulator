@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>跑道数与时刻容量重算 · 2026-11-08</title>
+<style>
+:root{--bg:#0d1b2f;--panel:#142943;--line:#22364f;--fg:#dbe6f4;--mute:#8aa3bf;--green:#4ce39e;--blue:#4a86e8;--warn:#e4a0a7}
+*{box-sizing:border-box}
+body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:15px/1.75 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif}
+main{max-width:1080px;margin:0 auto;padding:34px 32px 90px}
+h1{font-size:26px;line-height:1.35;margin:0 0 18px;letter-spacing:.3px;color:#eef5ff}
+h2{font-size:19px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#cfe4fb}
+h3{font-size:16px;margin:30px 0 10px;color:#bcd8f5}
+h4{font-size:15px;margin:22px 0 8px;color:#a8c8ea}
+p{margin:12px 0}
+strong{color:#eff6ff;font-weight:600}
+code{background:#1b3350;padding:1.5px 6px;border-radius:4px;font-size:13px;color:#9ec9f0;
+  font-family:'Cascadia Mono',Consolas,monospace}
+pre{background:#0f2035;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:14px 0}
+pre code{background:none;padding:0;font-size:12.5px;line-height:1.65;color:#b9d4ee}
+blockquote{background:#122238;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;
+  margin:16px 0;padding:12px 18px;color:#b7c9dd}
+blockquote p{margin:6px 0}
+blockquote ul{margin:8px 0;padding-left:22px}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+.tw{overflow:auto;margin:16px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;
+  font-variant-numeric:tabular-nums}
+thead th{background:#192f50;color:#cddff4;font-weight:600;font-size:13px;padding:9px 12px;
+  border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+tbody td{padding:8px 12px;border-bottom:1px solid #1a2c44;vertical-align:top}
+tbody tr:nth-child(even) td{background:#111f33}
+tbody tr:hover td{background:#1a3049}
+tbody tr:last-child td{border-bottom:0}
+@media (max-width:700px){main{padding:20px 16px 70px}body{font-size:14px}}
+</style></head>
+<body><main>
+<h1>跑道数修正与时刻容量重算 · 2026-11-08</h1>
+<p>本轮起因：用户指出对照表里有 6 个机场的跑道数与现实不符（2024–2026 期间的新建/扩建已投运）， 要求「先改跑道数，再按新跑道重排时刻容量」。</p>
+<h2>一、用户给定的事实修正</h2>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">表内旧值</th><th style="text-align:left">用户给出的现实</th><th style="text-align:right">修正后</th></tr></thead><tbody>
+<tr><td style="text-align:left">CKG 重庆江北</td><td style="text-align:right">3 条</td><td style="text-align:left">2024 年底启用第四跑道</td><td style="text-align:right"><strong>4</strong></td></tr>
+<tr><td style="text-align:left">CAN 广州白云</td><td style="text-align:right">3 条</td><td style="text-align:left">2025 年 T3 及第五跑道投运</td><td style="text-align:right"><strong>5</strong></td></tr>
+<tr><td style="text-align:left">KMG 昆明长水</td><td style="text-align:right">2 条</td><td style="text-align:left">2026 年东二跑道投用</td><td style="text-align:right"><strong>3</strong></td></tr>
+<tr><td style="text-align:left">WUH 武汉天河</td><td style="text-align:right">2 条</td><td style="text-align:left">2025 年初第三跑道投用</td><td style="text-align:right"><strong>3</strong></td></tr>
+<tr><td style="text-align:left">URC 乌鲁木齐地窝堡</td><td style="text-align:right">2 条</td><td style="text-align:left">改扩建后升级为三跑道</td><td style="text-align:right"><strong>3</strong></td></tr>
+<tr><td style="text-align:left">PKX 北京大兴</td><td style="text-align:right">4 条</td><td style="text-align:left">建成四条，初期按「三纵一横」三条运行，第四条为远期构型</td><td style="text-align:right"><strong>4</strong>（容量按三跑）</td></tr>
+</tbody></table></div>
+<h2>二、重算方法：保形状、等比外推</h2>
+<p>容量取值链是 <strong>现实小时起降容量 → 折半得单向离港 → × 1/3.5 → 逐场 24 格小时容量 → QuarterSplit 拆到 4 个 15 分钟刻</strong>。</p>
+<p>跑道增补只改「起降架次的绝对上限」，不会凭空造出一条新的逐小时曲线形状。 本作手里没有这 5 场 2025–2026 年的逐小时实测（CAAC 公开口径还停在 2024）， 所以采用<strong>等比外推</strong>：</p>
+<pre><code>新小时容量[h] = round(旧小时容量[h] × 新现实容量 ÷ 旧现实容量)</code></pre>
+<p>这样做的好处是不会伪造数据源：形状（早高峰 07–09、午后平台、晚高峰 17–19、夜间衰减） 仍然是 CAAC 实测那条曲线，只是整体抬到与新跑道数匹配的档位。</p>
+<p>现实容量取值（起降合计 / 小时）：</p>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">旧</th><th style="text-align:right">新</th><th style="text-align:right">倍数</th><th style="text-align:left">依据</th></tr></thead><tbody>
+<tr><td style="text-align:left">CAN</td><td style="text-align:right">81</td><td style="text-align:right">110</td><td style="text-align:right">1.358</td><td style="text-align:left">双跑道组独立进近（02/20 与 01/19 分属两组），第三条跑道组再添一处独立流</td></tr>
+<tr><td style="text-align:left">CKG</td><td style="text-align:right">58</td><td style="text-align:right">78</td><td style="text-align:right">1.345</td><td style="text-align:left">四跑道（含新 03/21 组）后平行进近能力放开</td></tr>
+<tr><td style="text-align:left">KMG</td><td style="text-align:right">54</td><td style="text-align:right">70</td><td style="text-align:right">1.296</td><td style="text-align:left">东二跑道补上第二条独立平行进近</td></tr>
+<tr><td style="text-align:left">WUH</td><td style="text-align:right">28</td><td style="text-align:right">36</td><td style="text-align:right">1.286</td><td style="text-align:left">第三跑道解除单组平行限制</td></tr>
+<tr><td style="text-align:left">URC</td><td style="text-align:right">33</td><td style="text-align:right">44</td><td style="text-align:right">1.333</td><td style="text-align:left">改扩建后三跑道</td></tr>
+<tr><td style="text-align:left">PKX</td><td style="text-align:right">62</td><td style="text-align:right">62</td><td style="text-align:right">1.000</td><td style="text-align:left">建成四条但只运行三条，「三纵一横」= 三跑容量</td></tr>
+</tbody></table></div>
+<blockquote><p>这些数字是<strong>工程估算</strong>（按跑道组数与独立进近流数外推），不是 CAAC 公布值。</p><p>若日后拿到 2025–2026 实测小时容量，应直接替换绝对值（形状表也一并换），</p><p>本轮的等比倍数即可作废。</p></blockquote>
+<h2>三、落地数值</h2>
+<h3>3.1 <code>AirportCatalog.AirportHourRates</code>（单向离港槽 / 小时）</h3>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">旧日合计</th><th style="text-align:right">新日合计</th><th style="text-align:right">峰时（小时）</th><th style="text-align:right">峰刻（15 分钟）</th></tr></thead><tbody>
+<tr><td style="text-align:left">CAN</td><td style="text-align:right">200</td><td style="text-align:right"><strong>270</strong></td><td style="text-align:right">12 → 16</td><td style="text-align:right">3 → <strong>4</strong></td></tr>
+<tr><td style="text-align:left">CKG</td><td style="text-align:right">128</td><td style="text-align:right"><strong>166</strong></td><td style="text-align:right">8 → 11</td><td style="text-align:right">2 → <strong>3</strong></td></tr>
+<tr><td style="text-align:left">KMG</td><td style="text-align:right">128</td><td style="text-align:right"><strong>164</strong></td><td style="text-align:right">8 → 10</td><td style="text-align:right">2 → <strong>3</strong></td></tr>
+<tr><td style="text-align:left">WUH</td><td style="text-align:right">84</td><td style="text-align:right"><strong>103</strong></td><td style="text-align:right">5 → 6</td><td style="text-align:right">2 → <strong>2</strong></td></tr>
+<tr><td style="text-align:left">URC</td><td style="text-align:right">73</td><td style="text-align:right"><strong>92</strong></td><td style="text-align:right">4 → 5</td><td style="text-align:right">2 → <strong>2</strong></td></tr>
+<tr><td style="text-align:left">PKX</td><td style="text-align:right">127</td><td style="text-align:right">127</td><td style="text-align:right">不变</td><td style="text-align:right">不变</td></tr>
+</tbody></table></div>
+<p>新数组：</p>
+<pre><code>{ "CAN", new[] { 7, 4, 1, 1, 1, 1, 5, 12, 14, 15, 15, 15, 16, 15, 15, 15, 16, 16, 15, 16, 15, 15, 14, 11 } },
+{ "CKG", new[] { 4, 3, 1, 1, 1, 1, 4, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 11, 9, 9, 8, 7 } },
+{ "KMG", new[] { 4, 3, 1, 1, 1, 1, 4, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 9, 9, 8, 6 } },
+{ "URC", new[] { 3, 1, 1, 0, 1, 1, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4 } },
+{ "WUH", new[] { 3, 1, 1, 0, 1, 0, 3, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 4 } },</code></pre>
+<h3>3.2 对全池的影响</h3>
+<ul><li>81 个协调机场离港池容量：<strong>11 944 → 12 126 条</strong>（+182，+1.5%）。</li><li>到港池同值（到港池与离港池对称）。</li><li>已公布时刻槽记录：<strong>5 892 条</strong>（容量增加使更多刻从 0 变正，可放槽位增加）。</li><li>静态航司持有量按 <code>IndustryAirlineLogic</code> 的确定性哈希随容量重算，</li></ul>
+<p>6 场离港池利用率落在 85%–89%，与全局口径一致。</p>
+<h3>3.3 「同刻两家」窗口数（刻内分布不变的前提）</h3>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">≥2 条刻（旧→新）</th><th style="text-align:right">≥3 条刻（新）</th></tr></thead><tbody>
+<tr><td style="text-align:left">CAN</td><td style="text-align:right">71 → 73</td><td style="text-align:right">67</td></tr>
+<tr><td style="text-align:left">CKG</td><td style="text-align:right">50 → 70</td><td style="text-align:right">16</td></tr>
+<tr><td style="text-align:left">KMG</td><td style="text-align:right">50 → 69</td><td style="text-align:right">15</td></tr>
+<tr><td style="text-align:left">WUH</td><td style="text-align:right">17 → 29</td><td style="text-align:right">0</td></tr>
+<tr><td style="text-align:left">URC</td><td style="text-align:right">17 → 19</td><td style="text-align:right">0</td></tr>
+<tr><td style="text-align:left">PKX</td><td style="text-align:right">50 → 50</td><td style="text-align:right">0</td></tr>
+</tbody></table></div>
+<p>注意：这<strong>不是</strong>「容量贴近现实」的终点。WUH / URC / PKX 在扩容后峰刻仍只有 2 条， 说明瓶颈已从「日总量」转移到 <code>QuarterSplit</code> 的刻内均匀化 —— 与 <code>2026-11-08_时刻容量与竞争模式_分析.md</code> 里「杠杆 ③」的判断一致。</p>
+<h2>四、改动清单</h2>
+<div class="tw"><table><thead><tr><th style="text-align:left">文件</th><th style="text-align:left">改动</th></tr></thead><tbody>
+<tr><td style="text-align:left"><code>Unity Project/Assets/Scripts/Data/AirportCatalog.cs</code></td><td style="text-align:left">6 场跑道重算后的 <code>AirportHourRates</code>（5 场改值，PKX 保持）+ 口径注释</td></tr>
+<tr><td style="text-align:left"><code>tools/slotreport/runways.tsv</code></td><td style="text-align:left">6 场跑道数与配置文本（CAN 5 / CKG 4 / KMG 3 / WUH 3 / URC 3 / PKX 4 三跑运行）</td></tr>
+<tr><td style="text-align:left"><code>Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs</code></td><td style="text-align:left">⑨ 容量规模断言新增 6 条用例（日容量 + 08:00 峰刻），防止日后被改回旧表</td></tr>
+<tr><td style="text-align:left"><code>docs/handoff/2026-11-06_机场时刻容量对照表.md</code></td><td style="text-align:left">§4 表内 6 场跑道数与现实容量；新增 §5.4 重算小节；§4 前加口径提示</td></tr>
+<tr><td style="text-align:left"><code>tools/slotreport/out/reports/*</code> 与 <code>~/Downloads/*</code></td><td style="text-align:left">重新生成的 总览 CSV / 逐刻 CSV / HTML</td></tr>
+</tbody></table></div>
+<h2>五、自测记录（开发自测，不构成验收）</h2>
+<p>1. <strong>编译</strong>：<code>dotnet build tools/semcheck/semcheck.csproj</code> → 0 错误（1 条既有 warning， 与本轮无关：<code>InboxRowLayoutRegression.cs</code> 未使用变量）。 2. <strong>报表复算</strong>：<code>dotnet run --project tools/slotreport</code> → <code>协调机场 81 个 · 已公布时刻槽 5892 条</code>， 6 场日容量与上表逐位一致（CAN 270 / CKG 166 / KMG 164 / WUH 103 / URC 92 / PKX 127）。 3. <strong>逐刻一致性</strong>：逐刻 CSV 每场「离港_容量」求和 = 总览「全天_单池容量」， QuarterSplit 不产生 <code>r=0</code> 以外的空洞（PKX 77 刻、CAN 83 刻等）。 4. <strong>未执行</strong>：<code>AirportCatalogRegression</code> ⑨ 的 6 条新断言尚未在 Unity 内跑过 —— 用户 Unity 编辑器正开着（占用中），按约定不杀进程、不跑 batchmode。 下次 Unity 空闲时需补跑一次 <code>AirportCatalogRegression</code>。</p>
+</main></body></html>

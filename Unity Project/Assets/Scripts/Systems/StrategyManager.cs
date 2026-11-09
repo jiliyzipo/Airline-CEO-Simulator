@@ -175,8 +175,12 @@ namespace AirlineCEO.Systems
                 }
                 else if (hourRate <= 0)
                 {
-                    message = $"{airport} {clock} 不设时刻槽（{Data.AirportCatalog.CoordLabel(airport)}，"
-                              + $"{clockMin / 60:00} 时这一小时容量为 0）。";
+                    // ★2026-11-09：容量改为「跑道数平铺」后，某一小时为 0 只剩宵禁一种原因
+                    // （协调时段内、非宵禁的刻容量恒等于跑道数），文案据此分开写。
+                    string curfew = Data.AirportCatalog.CurfewLabel(airport);
+                    message = string.IsNullOrEmpty(curfew)
+                        ? $"{airport} {clock} 不设时刻槽（{Data.AirportCatalog.CoordLabel(airport)}）。"
+                        : $"{airport} {clock} 落在宵禁时段（{curfew}），机场不开放，无法取得时刻槽。";
                 }
                 else
                 {

@@ -1,0 +1,333 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>机场时刻容量与三旋钮｜架构建议报告 2026-11-09</title><style>
+:root{color-scheme:dark;--bg:#0d1522;--panel:#142238;--line:#2e4664;--text:#eaf2fc;--muted:#a4b8d2;--accent:#80b7ff}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--text);margin:0;font-family:Inter,system-ui,-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;font-size:15px;line-height:1.83}
+main{max-width:1060px;padding:46px 32px 96px;margin:auto}h1{font-size:31px;line-height:1.4;letter-spacing:-.5px;color:#fff;margin:0 0 28px}h2{font-size:23px;margin:39px 0 15px;border-bottom:1px solid var(--line);padding:0 0 9px;color:#fff}h3{font-size:17px;margin:27px 0 8px;color:#d7e8fb}p,li{color:#c8d8e9}strong{color:#fff}hr{border:0;border-top:1px solid var(--line);margin:26px 0}a{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.6;margin:15px 0 27px;display:block;overflow-x:auto;white-space:normal}thead{background:#1c3150}th{text-align:left;white-space:nowrap;font-weight:700;color:#eef7ff}th,td{padding:9px 12px;border:1px solid #35506c;vertical-align:top}tr:nth-child(even){background:#112034}
+blockquote{background:#142941;border-left:4px solid #62a4fe;border-radius:6px;padding:10px 17px;margin:22px 0}blockquote p{margin:4px 0}pre{background:#06101d;border:1px solid var(--line);padding:18px;border-radius:9px;overflow:auto;font-size:13px;color:#aee4e3}code{font-family:ui-monospace,Consolas,monospace;color:#bce7ff}p code,li code{background:#223553;padding:1px 4px;border-radius:4px}ul,ol{padding-left:23px}li{margin:6px 0}body:before{content:'AIRLINE CEO SIMULATOR  /  TECHNICAL RECOMMENDATION';display:block;max-width:1060px;margin:0 auto;padding:24px 32px 0;box-sizing:border-box;color:#86b8ef;font-size:11px;letter-spacing:1.8px;font-weight:750}
+@media(max-width:650px){main{padding:25px 14px 60px}h1{font-size:25px}h2{font-size:20px}th,td{padding:7px}body:before{padding:20px 14px 0}}
+@media print{:root{color-scheme:light}body{background:#fff;color:#111;font-size:12px}p,li,h1,h2,h3,strong{color:#111}table{font-size:10px}td,th{color:#111!important;border-color:#bbb!important}blockquote{background:#eff5fa}code{color:#17394b}pre{color:#222;white-space:pre-wrap;overflow-wrap:anywhere}main{max-width:none;padding:10px}h2{page-break-after:avoid}tr{break-inside:avoid}}
+</style></head><body><main><h1>航空公司 CEO 模拟游戏｜机场时刻容量与“三个调节旋钮”架构建议报告</h1>
+<p><strong>版本：</strong> 建议稿 v1.0　　<strong>日期：</strong> 2026-11-09<br />
+<strong>用途：</strong> 供 Cursor 阅读、审查现有项目、提出实施方案；<strong>本文件不是直接执行的代码修改指令</strong>。<br />
+<strong>项目现状：</strong> 游戏核心经营模块仍在开发与完善；暂不启动完整 AI 竞争模式。机场初始名单为 81 座协调机场，但<strong>81 不是机场数量上限</strong>，未来应支持更多协调机场、非协调机场及新建机场。<br />
+<strong>依据：</strong> 项目提交的《时刻容量模型_2026-11-09.html》《时刻容量模型与三旋钮_2026-11-09(1).html》及随后两轮设计审查意见。附件中的若干容量值、跑道信息与利用率属于历史资料或估算，不应不经核实直接作为当前实时数据。</p>
+<hr />
+<h2>0. 执行摘要和裁决状态</h2>
+<p><strong>总体建议：有条件采纳“真实容量资料 + 统一游戏化缩放 + 独立市场占用 + 可演进机场能力”的思路，但不要立即全量替换现有游戏容量表。</strong></p>
+<table>
+<thead>
+<tr>
+<th>事项</th>
+<th>建议结论</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机场容量来源</td>
+<td>以带时间范围、来源和可信度的机场实际协调/运行数据为首选，不再仅按跑道条数平铺</td>
+<td>建议采纳，先校核数据</td>
+</tr>
+<tr>
+<td>机场数量</td>
+<td>初始 81 座只是数据集，不是代码常量或容量引擎上限</td>
+<td>应立即纳入架构约束</td>
+</tr>
+<tr>
+<td>跑道构型 M1–M6</td>
+<td>保留作运行特征和校核参考；不能简单用分类代替实测申报容量</td>
+<td>建议保留、允许扩展</td>
+</tr>
+<tr>
+<td>第一旋钮：世界容量比例</td>
+<td><strong>除数 16 仅作首轮测试基准</strong>，与除数 12 对照；不直接固化为永久规则</td>
+<td>待平衡测试</td>
+</tr>
+<tr>
+<td>第二旋钮：初始市场占用率</td>
+<td>现有约 87% 可作为对照基准，另测 75%、60%；以后由 AI 经营行为决定真实占用</td>
+<td>分阶段实施</td>
+</tr>
+<tr>
+<td>第三旋钮：机场容量演进</td>
+<td>不再是“5 个富余机场”，改为<strong>适用于全部现有和未来机场的容量变化机制</strong></td>
+<td>修改设计定义，暂不做完整玩法</td>
+</tr>
+<tr>
+<td>离港/到港容量</td>
+<td>独立记录，受共享的总起降能力约束；防止整数取整超配</td>
+<td>必须纳入实施设计</td>
+</tr>
+<tr>
+<td>24 小时与航季</td>
+<td>每 15 分钟完整展示；按机场本地时间、航季、宵禁/夜航限制处理</td>
+<td>建议保留</td>
+</tr>
+<tr>
+<td>完整 AI 竞对与多人</td>
+<td>本阶段只预留身份、持仓、交易与结算接口；暂不开发完整 AI、多玩家服务端</td>
+<td>延后</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Cursor 第一项任务：先审查、复算、设计和提交差异报告。未经用户批准，不自动修改生产代码、存档结构或原有平衡参数。</strong></p>
+</blockquote>
+<h2>1. 容量模型：以真实机场能力为基础，但要明确游戏化缩放</h2>
+<h3>1.1 容量的三层含义</h3>
+<p>请在数据模型与文档中区分：</p>
+<ol>
+<li><strong>基础设施/可运行能力（Physical/Operational Capacity）</strong>：在指定跑道构型、天气、空域和设施条件下可能达到的上限；资料不足时允许为空，不得用自设百分比冒充已证实的物理上限。</li>
+<li><strong>申报/协调容量（Declared/Coordinated Capacity）</strong>：机场在特定航季、时段和方向下可用于协调的容量；不一定等于物理上限。</li>
+<li><strong>实际分配与占用（Allocated/Held Capacity）</strong>：玩家、背景航司和未来 AI 已持有的时刻；可申请余量 = 当前可分配容量 − 已有效占用 − 已确认的预留/冻结（各项不能重复计算）。</li>
+</ol>
+<p>同时区分两种“富余”：<strong>未被航司占用的当前时刻余量</strong>，与<strong>申报容量相对运行能力的扩容余地</strong>。两者是不同概念。</p>
+<h3>1.2 M1–M6 构型的职责</h3>
+<p>保留原报告 M1–M6 的六类运行构型作为机场特征（单跑组、紧耦合、独立组、饱和组、双组、多组），但应修正“跑道数量”与“可独立运行组数”混用的问题。它们可辅助估算缺失的容量数据、解释运行限制、推算建设/技术改进影响。<strong>若已经有可信的小时协调容量，不应再按跑道构型乘一次增益，避免重复计入效率。</strong></p>
+<p>所有分类应由机场数据驱动；将来允许新增模型、未知模型及按航季变更构型。分类不是资源约束的唯一来源。</p>
+<h3>1.3 单位与 1:1 的定义必须先统一</h3>
+<ul>
+<li>现实申报值 <code>D</code> 通常以**架次/小时（起飞 + 降落的动作数量）**记录。</li>
+<li>游戏界面的每个 15 分钟格子要分别存储<strong>离港容量</strong>和<strong>到港容量</strong>；1 个离港时刻 = 一次离港动作，1 个到港时刻 = 一次到港动作。</li>
+<li>同一架飞机周转可能同时需要到港与后续离港时刻，但<strong>不意味着这两次动作发生在同一15分钟格，也不意味着一个到港时刻与一个离港时刻天然绑定为单个资源</strong>。</li>
+<li>原报告的 <code>D ÷ 8</code> 可以在“起降 50:50 且以一进一出配对为统计单位”时用作<strong>每刻每方向平均值</strong>；不是所有机场的通用 1:1 物理法则。总量口径应以“架次”做守恒检查。</li>
+</ul>
+<h3>1.4 建议的缩放与整数分配算法</h3>
+<p>报告中的“除数”可继续用于 UI、测试参数和模型比较，但实现时建议转换为容量缩放系数：</p>
+<pre><code class="language-text">世界容量比例 S = 8 / 除数     # 除数16→S=0.50；12→约0.667
+小时游戏总起降预算 M(h) = 按一致的取整策略缩放 D(h) × S
+将 M(h) 分配到该小时的4个15分钟格：
+    m(h,0)+m(h,1)+m(h,2)+m(h,3)=M(h)
+每格再分配离港/到港：
+    dep(h,q)+arr(h,q)=m(h,q)
+校验：Σq[dep(h,q)+arr(h,q)] = M(h)
+</code></pre>
+<ul>
+<li>每小时向4个格子分配整数余数；分配算法必须<strong>确定性</strong>且不得因逐格取整使总容量扩大。</li>
+<li>起降比例优先引用机场真实协调参数；缺失时可以暂用 50:50 作为<strong>显式标记的游戏假设</strong>，允许按时段设置离港高峰和到港高峰。</li>
+<li>还要校验多个方向是否共用跑道/空域约束；实时天气、5/20分钟或滚动小时窗口可留到后续版本，但接口应可扩展。</li>
+<li>示例：LHR 若某小时参考总量为 88 架次、<code>S=0.5</code>，游戏小时预算应为 <strong>44 个起降动作</strong>。四个15分钟格合计44，例如每格11，离港/到港各按 6/5、5/6 交替分配。<strong>不能</strong>先算 <code>88/16≈6</code>，再给每格离港和到港都配6，导致小时合计48。</li>
+<li>上述 LHR 仅为<strong>算法示例</strong>，不是特定真实航季/小时的官方分配数据。</li>
+</ul>
+<h3>1.5 全天与航季</h3>
+<ul>
+<li>机场时刻界面保留完整 <strong>00:00–24:00 的96个15分钟格</strong>，早/中/晚/夜四段可以沿用现有 UI（夜班20:00–次日06:00）。</li>
+<li>不因某时段为夜间便将它从时间轴删除；宵禁、货运许可、运行限制和不开池需分别建模：<code>禁</code>（规则禁止）、<code>满</code>（有容量但无剩余）、<code>—</code>（该时段未开放/无容量）、可申请数字（有余量）。</li>
+<li>以<strong>机场本地时间</strong>解释小时槽，保留时区及夏令时处理能力；季节和小时限制应有生效起止日期。游戏航季日期由游戏时间驱动，不应使用真实系统“今日”代替。</li>
+<li>原报告把峰值小时容量乘以24所得的“世界日航班量”只能称作<strong>满负荷理论指标</strong>，不能当作按实际全天运行曲线生成的日航班量。</li>
+</ul>
+<h2>2. 三个旋钮：职责、边界、未来变化</h2>
+<h3>旋钮① 世界容量比例（WorldCapacityScale）</h3>
+<p><strong>作用：</strong> 决定真实容量相对于游戏抽象规模的缩放，控制每个时刻能容纳多少航班。</p>
+<ul>
+<li>基准候选：<strong>除数16（50%）</strong>；对照：<strong>除数12（约66.7%）</strong>。报告给出的81机场单刻合计分别为435与571，这些数包含逐场取整效应，并非精确同比例。</li>
+<li>不能据此宣称机场排行与余量绝对不变：小容量整数取整、方向分配、宵禁限制都可能改变细节。</li>
+<li><strong>不建议在进行中的存档里无条件更改此参数</strong>。它会影响已有持仓、价格、收益、审批、历史优先权和存档兼容性。建议在新局初始化或版本迁移时确定。</li>
+<li>此旋钮<strong>不是难度旋钮</strong>；它改变市场能容纳的航班总规模。</li>
+</ul>
+<h3>旋钮② 初始市场占用率（InitialMarketOccupancy）</h3>
+<p><strong>作用：</strong> 在尚无完整动态竞争的阶段，为背景航司生成可重复、可追踪的初始资源持仓，以改变玩家面对的申请余量。</p>
+<ul>
+<li>测试档位：<strong>87%（现状参考）、75%、60%</strong>；同时对不同机场等级、高峰与低峰分别观察。</li>
+<li><code>floor(cap × rate)</code> 在低容量时可能完全不敏感（例如 cap=2 时，87% 与75% 都可能只占1），因此不能把“调一行数字”视为对所有机场都有效的难度控制。</li>
+<li>该参数只应在<strong>新局/初始市场生成</strong>时使用，不能在运行中直接抹掉或凭空生成他航已确认持仓。</li>
+<li>一旦未来 AI 航司有独立策略、资产和经营行为，实际占用应由<strong>航司竞争结果</strong>决定；此旋钮逐步退回为开局拥挤度与难度预设，不再强制维持固定占用率。</li>
+<li>必须避免“会占槽的背景航司”和“会行动的AI航司”成为两套相互冲突的所有权状态。</li>
+</ul>
+<h3>旋钮③ 机场容量演进机制（AirportCapacityEvolution）</h3>
+<p><strong>作用：</strong> 支持所有机场的容量随时间、基础设施、运营和政策变化。</p>
+<p><strong>关键修订：不得把“富余机场”固定为5座，也不得把全球机场数量固定为81座。</strong> 原报告的5座“富余机场”仅是旧数据集里对当时状态的分类，不是未来规则。</p>
+<ul>
+<li>每个机场均可拥有其自身的<strong>当前协调容量、运行能力（如已知）、潜在扩容条件和生效日期</strong>。</li>
+<li>扩容可能来自新增跑道、滑行道优化、航站楼/停机位改建、空管技术改进及政策变化；缩容可能来自施工、环保/宵禁收紧、空域变化等。</li>
+<li>当前“饱和”也不等于永久没有扩建潜力；“富余”也不等于一定允许立即增加协调容量。</li>
+<li>第三旋钮<strong>不是单一全局百分比滑块</strong>，而是一套可启用的机场级演进规则与事件接口。</li>
+<li>本阶段只需完成字段和接口设计，不开发完整建设模拟、自动扩建或经济事件系统。</li>
+</ul>
+<h2>3. 支持持续新增机场：动态数据库与统一引擎</h2>
+<p><strong>目标：机场新增只录入/导入数据即可参与统一容量计算，不应为新机场重写代码。</strong> 当前81场是首批数据集合，未来可增加其他国家、地区的协调机场与非协调机场。</p>
+<h3>3.1 建议的数据结构（概念设计，字段名供 Cursor 按现有代码调整）</h3>
+<table>
+<thead>
+<tr>
+<th>数据域</th>
+<th>示例字段</th>
+<th>设计说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机场主数据</td>
+<td><code>airportId</code>, <code>iata</code>, <code>icao</code>, <code>name</code>, <code>country</code>, <code>timezone</code>, <code>activeFrom/To</code></td>
+<td>稳定主键；代码变化与更名不应破坏存档</td>
+</tr>
+<tr>
+<td>时刻协调等级</td>
+<td><code>coordinationLevel</code>, <code>allocationPolicy</code></td>
+<td>协调机场与非协调机场使用不同申请机制，但共享运行能力约束</td>
+</tr>
+<tr>
+<td>跑道运行特征</td>
+<td><code>runwayConfig</code>, <code>operationGroupType</code>, <code>operationalConstraints</code></td>
+<td>M1–M6可扩展、允许未知值</td>
+</tr>
+<tr>
+<td>容量档案</td>
+<td><code>capacityProfileId</code>, <code>effectiveFrom/To</code>, <code>season</code>, <code>hour</code>, <code>declaredTotal</code>, <code>declaredDep/Arr</code></td>
+<td>可按机场/航季/小时生效；分方向值缺失时有降级策略</td>
+</tr>
+<tr>
+<td>能力与扩展</td>
+<td><code>operationalMaximum</code>, <code>expansionTriggers</code>, <code>capacityEvents</code></td>
+<td>允许未知值；不要把估算当已确认最大值</td>
+</tr>
+<tr>
+<td>夜航和政策</td>
+<td><code>curfewRules</code>, <code>nightExceptions</code>, <code>restrictions</code></td>
+<td>客运/货运均计入真实起降动作；许可单独约束</td>
+</tr>
+<tr>
+<td>数据溯源</td>
+<td><code>sourceName</code>, <code>sourceUrlOrRef</code>, <code>asOfDate</code>, <code>confidence</code>, <code>estimated</code></td>
+<td>含估算标记，允许重新校核和替换</td>
+</tr>
+<tr>
+<td>资源占用</td>
+<td><code>slotId</code>, <code>airportId</code>, <code>season</code>, <code>localTime</code>, <code>direction</code>, <code>holderAirlineId</code>, <code>status</code></td>
+<td>玩家与背景/未来AI共用账本，不允许重复持有或超配</td>
+</tr>
+</tbody>
+</table>
+<h3>3.2 新增机场流程</h3>
+<ol>
+<li>导入机场主数据、时区、协调等级及运行构型。</li>
+<li>优先读取真实航季协调容量；没有权威数据时采用显式标记的同类机场估算并保留依据。</li>
+<li>通过统一缩放和整数分配计算各小时及15分钟起降容量。</li>
+<li>依据协调等级生成申请机制：高度协调机场使用时刻持仓/分配；非协调机场可用较简化的运营容量校验，<strong>不强行制造与协调机场同等稀缺的时刻产权市场</strong>。</li>
+<li>执行容量守恒、占用无超额、查询显示与存档读写校验；合格后对游戏开放。</li>
+</ol>
+<h3>3.3 容量状态应动态计算</h3>
+<ul>
+<li><code>饱和/临界/富余</code>不能写死于机场名单，应明确<strong>分类口径</strong>：是“当前占用/协调容量”还是“协调容量/经核实的运行上限”。</li>
+<li><strong>占用率</strong>属于市场层；<strong>物理扩容潜力</strong>属于机场能力层。界面可以分别显示，不能混为单一“机场饱和档”。</li>
+<li>对未知能力上限的机场，显示“待核实”，不要自动计算不存在依据的扩容百分比。</li>
+</ul>
+<h2>4. 数据核查与既有系统兼容</h2>
+<h3>4.1 来源核查优先级</h3>
+<p>附件中81场申报总量 <strong>6,802架次/时</strong>、按除数16转换的每刻合计 <strong>435</strong> 是该数据集内的复算指标，<strong>不是已被逐场核实的2026年真实申报值</strong>。其中部分数据标为 <code>EST</code>，资料混合不同年份。Cursor 应先生成：机场代码、源数值、单位、年份、来源链接、估算标记、与当前机场资料差异的审计表。</p>
+<p>至少重点核查：</p>
+<ul>
+<li><strong>BKK</strong> 第三跑道扩建后的运行能力和实际协调容量。</li>
+<li><strong>CGK</strong> 第三跑道投入使用后的跑道数量和容量资料。</li>
+<li><strong>ATL</strong> 等机场的跑道方向/构型描述；避免错误的“横向跑道”分类。</li>
+<li><strong>M6</strong> 定义中“≥5条跑道”与现有4条跑道却分到M6的记录是否自洽。</li>
+</ul>
+<p>不要将“申报值÷0.95/0.88/0.75”称为实际物理上限；只能作为明确注明假设的探索性推算。</p>
+<h3>4.2 不应破坏的现有模块</h3>
+<ul>
+<li>机场时刻的申请、审批排队、交割、历史优先权、使用率检查、释放及二级市场。</li>
+<li>机场时刻 24 小时矩阵及机场折叠 UI；<code>禁 / — / 满 / 可申请数量</code> 语义。</li>
+<li>航线开通、机队排班、客流需求、财务成本、季度结算与董事会 KPI。</li>
+<li>存档版本兼容和旧档已有时刻持仓；尤其不能因缩放参数变化，使旧档已持有时刻超过新容量而被悄悄删除。</li>
+</ul>
+<blockquote>
+<p>重要依赖：早先竞争模式报告指出，部分干线市场需求预测可能远大于合理值。<strong>需求侧与收益模型未校准前，不得将“放宽容量”视为已完成经济平衡。</strong> 先做数据验证与隔离模拟，避免“新增时刻=新增无上限利润”。</p>
+</blockquote>
+<h2>5. 按当前项目阶段划分的开发范围</h2>
+<h3>P0：现在就做（以审查和低风险设计为主）</h3>
+<ol>
+<li>查明机场列表是否存在写死“81”的数组、循环、枚举或固定容量假设。</li>
+<li>列出时刻容量/占用/申请/二级市场/存档的实际代码入口与依赖图。</li>
+<li>复核当前容量口径与“架次”单位，排除到港/离港双算及逐格取整超配。</li>
+<li>审计81场机场数据的年份、来源和估算项，列出与当前资料明显冲突的记录。</li>
+<li>设计与现有架构兼容的机场数据、航季容量、航司持仓、演进事件结构。</li>
+<li>在<strong>隔离工具或测试分支</strong>中，比较除数16与12，初始占用率87%、75%、60%，暂不替换正式参数。</li>
+</ol>
+<h3>P1：P0通过审批后，分批实施</h3>
+<ol>
+<li>接入可扩展机场主数据与容量档案，保留旧数据适配器。</li>
+<li>接入统一小时预算→15分钟离港/到港容量分配，并通过容量守恒测试。</li>
+<li>对现有时刻申请、交易、存档加入容量一致性校验和迁移/回退方案。</li>
+<li>保留现有 UI 读取同一真实数据来源，不因原型显示而产生模拟数据和实际数据的分叉。</li>
+</ol>
+<h3>P2：经营闭环稳定后再实施</h3>
+<ul>
+<li>动态 AI 航司经营、真实竞争持仓、供需与定价联动。</li>
+<li>机场扩建/缩容事件和由航季推动的容量演进。</li>
+<li>多人模式的服务端权威状态、原子分配和同步。<strong>不要在当前阶段启动这些重构。</strong></li>
+</ul>
+<h2>6. 验收标准与必须通过的测试</h2>
+<table>
+<thead>
+<tr>
+<th>测试类别</th>
+<th>最低验收要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容量守恒</td>
+<td>对每个机场/航季/小时：4个15分钟格的离港+到港总和等于该小时的游戏预算，不出现负数和凭空增量</td>
+</tr>
+<tr>
+<td>分配安全</td>
+<td>任一离港/到港时刻：有效持仓+冻结/预留不超过可用容量；申请与交割时重新校验</td>
+</tr>
+<tr>
+<td>新增机场</td>
+<td>添加第82、100、200座测试机场，不改容量算法代码即可导入、显示、申请或按协调等级运营</td>
+</tr>
+<tr>
+<td>非协调机场</td>
+<td>不被错误强制进入与高度协调机场完全相同的交易规则；仍遵守运行能力限制</td>
+</tr>
+<tr>
+<td>时间覆盖</td>
+<td>96个15分钟格完整；跨午夜、当地时区、航季切换、夜航/禁飞状态正确</td>
+</tr>
+<tr>
+<td>数据质量</td>
+<td>有来源/日期/估算标记；能力上限未知时不伪造扩容百分比</td>
+</tr>
+<tr>
+<td>旧档兼容</td>
+<td>既有存档加载不崩溃，原持仓不会无声丢失；发现超配时有显式迁移/冲突处理方案</td>
+</tr>
+<tr>
+<td>经济平衡</td>
+<td>除数12/16与占用率三档完成同种子模拟，记录可申请余量、玩家可开线数、利润及难度变化</td>
+</tr>
+<tr>
+<td>可重复性</td>
+<td>同一存档种子和航季条件生成一致的静态初始市场；不同种子允许合理差异</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>新增机场后，时刻矩阵、季度结算与载入耗时不发生不可接受的退化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>禁止以“界面显示正确”代替底层持仓与容量守恒验证。</strong></p>
+<h2>7. 请 Cursor 输出的成果，以及停止条件</h2>
+<p>本次先交付下列<strong>审查材料</strong>，而不是直接提交全面改造：</p>
+<ol>
+<li><strong>现有架构差异分析</strong>：真实代码文件清单、容量生成路径、数据流、关联业务逻辑；指出与报告设想不一致之处。</li>
+<li><strong>机场数据审计表</strong>：81场逐项来源、数据年份、疑似错误、估算标记、优先修复级别；注明新机场接入接口。</li>
+<li><strong>数据结构和算法方案</strong>：动态机场、容量版本/航季、离港到港分配、取整守恒、统一持仓、容量演进事件。</li>
+<li><strong>测试方案与结果</strong>：除数12/16 × 占用率60%/75%/87% 的隔离对照；包括峰值、小机场、夜航机场和典型干线机场。</li>
+<li><strong>风险与分批实施清单</strong>：对现有申请、市场、财务、结算、存档与 UI 的影响；每一批的回退手段。</li>
+<li><strong>等待用户裁决</strong>：给出推荐首轮参数，但显式标注暂定；未经确认，不启动P1/P2，不覆盖既有生产逻辑、不进行不可逆存档迁移。</li>
+</ol>
+<h3>可直接发给 Cursor 的任务说明</h3>
+<blockquote>
+<p>请将本建议报告作为<strong>目标设计和审查要求</strong>，不是已批准的开发变更。先阅读现有项目并核对报告假设，重点检查机场数量固定依赖、现有时刻容量口径、离港到港总量一致性、背景航司持仓方式、存档兼容与数据来源。输出架构差异、数据审计、12/16容量及60%/75%/87%占用率的隔离测试、分阶段实施计划和风险清单。<strong>本轮只分析并提交报告，不直接修改生产代码。</strong></p>
+</blockquote>
+<hr />
+<h2>附：参考资料与说明</h2>
+<ul>
+<li>项目附件《时刻容量模型_2026-11-09.html》：首版81机场、M1–M6、除数22与分场数据。</li>
+<li>项目附件《时刻容量模型与三旋钮_2026-11-09(1).html》：除数8/12/16/22/27的测试、三旋钮、静态AI占用对照。</li>
+<li>本报告整合此前关于<strong>除数16作为测试基准</strong>、<strong>动态机场数量不限81</strong>、<strong>第三旋钮重定义为全机场容量演进机制</strong>及<strong>暂不引入完整AI竞争</strong>的设计建议。</li>
+<li><strong>证据边界：</strong> 原附件的机场小时申报容量、运行构型和部分“物理上限”尚未逐项独立核查。本文的数值对照用于架构与平衡测试，不构成对全部机场2026年现行协调参数的认证。</li>
+</ul>
+</main></body></html>

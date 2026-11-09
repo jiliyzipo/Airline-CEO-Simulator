@@ -47,7 +47,7 @@
   "blockers": [],
   "sourceTaskBook": "P21/P22/P23（docs/handoff 三份开发记录）",
   "createdAt": "2026-10-25T13:03:15.876Z",
-  "updatedAt": "2026-11-08T04:53:30.105Z",
+  "updatedAt": "2026-11-09T00:51:20.199Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -59,7 +59,7 @@
     "tools/collab",
     "docs/handoff"
   ],
-  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 13 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
+  "freshnessNote": "Historic verdict REV-20261026015132-1bde4e covered 44 changed files; 12 taken over by later passed deliveries, 10 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
   "staleForReviewId": "REV-20261026015132-1bde4e",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -74,8 +74,9 @@
   "scopeDrift": {
     "basis": 44,
     "intact": 22,
-    "covered": 13,
+    "covered": 12,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
@@ -86,6 +87,6 @@
       "docs/handoff/S12_命令台阶段验收证据对照_2026-10-25.md",
       "docs/handoff/两条账务口径裁定_2026-10-25.md"
     ],
-    "uncoveredCount": 9
+    "uncoveredCount": 10
   }
 }

@@ -418,22 +418,78 @@ namespace AirlineCEO.Tests.PlayMode
             yield return null;
             Canvas.ForceUpdateCanvases();
 
-            // ★2026-11-07 用户裁决：机场时刻页的卡片 UI 全部删除，版式回到纯文字，
-            // 等新的 UI 设计稿。故这里钉两件事：
-            // ① 文字表在，且写得出每段的离港 / 到港余量；
-            // ② 旧的卡片 / 搜索 / 筛选 / 方块 / 浮窗一律不许残留 —— 留着就等于 UI 没删干净。
-            // 数据口径（空闲块数 == 余量）仍由 R48 的 EditMode 回归兜底。
-            var slotsBody = FindChild(go.transform, "SlotsBody_Content");
-            Assert.IsNotNull(slotsBody, "「机场时刻」应画出纯文字表（SlotsBody）");
-            var slotsText = slotsBody.GetComponent<TMPro.TextMeshProUGUI>();
-            Assert.IsNotNull(slotsText, "SlotsBody_Content 应是文本节点");
-            StringAssert.Contains("离港余", slotsText.text, "文字表必须写出每段的离港余量");
-            StringAssert.Contains("到港余", slotsText.text, "文字表必须写出每段的到港余量");
-            Assert.IsNull(FindChild(go.transform, "SlotCards"), "卡片区已删除，不应再建出来");
-            Assert.IsNull(FindChild(go.transform, "SlotSearch"), "搜索框属已删除的卡片 UI");
-            Assert.IsNull(FindChild(go.transform, "SlotFilterBtn"), "过滤器菜单属已删除的卡片 UI");
-            Assert.IsNull(FindChild(go.transform, "SlotCount"), "筛选摘要属已删除的卡片 UI");
-            Assert.IsNull(FindChild(go.transform, "SlotTip"), "浮窗属已删除的卡片 UI");
+            // ★2026-11-08（用户 UI 设计稿落地）：机场时刻页由「纯文字表」重做为
+            // 机场汇总卡（可折叠）+ 15 分钟时刻矩阵 + 时刻详情弹窗。
+            // 这里钉四件事：
+            // ① 卡片列表与工具栏（搜索 / 过滤器 / 条数摘要）真的建出来了；
+            // ② 折叠展开能出矩阵；
+            // ③ 点矩阵里的方块能弹出时刻详情；
+            // ④ 旧的纯文字表不再存在 —— 两套 UI 并存等于没换。
+            // 数据口径（逐刻余量、我司/他航持有）仍由 R48 的 EditMode 回归兜底。
+            Assert.IsNotNull(FindChild(go.transform, "SlotCards"), "「机场时刻」应画出机场卡列表（SlotCards）");
+            Assert.IsNotNull(FindChild(go.transform, "SlotSearch"), "应画出搜索框");
+            Assert.IsNotNull(FindChild(go.transform, "SlotFilterBtn"), "应画出过滤器按钮");
+            Assert.IsNotNull(FindChild(go.transform, "SlotCount"), "应画出条数摘要");
+            Assert.IsNull(FindChild(go.transform, "SlotsBody_Content"), "纯文字表应已被新 UI 取代");
+
+            // ★2026-11-08 用户裁定：取消 ◀ ▶ 翻页，改成一屏滚动（右侧滑条）。
+            // 三条一起钉住，免得「翻页又悄悄回来」或「只是把按钮藏了、列表仍只建一页」：
+            // ① 翻页控件不再存在；② 卡片区真的是 ScrollRect 且带纵向滑条；③ 内容高度超过一页。
+            Assert.IsNull(FindChild(go.transform, "SlotPrev"), "翻页按钮已按用户裁定撤掉");
+            Assert.IsNull(FindChild(go.transform, "SlotNext"), "翻页按钮已按用户裁定撤掉");
+            Assert.IsNull(FindChild(go.transform, "SlotPage"), "页码显示已随翻页撤掉");
+            Assert.IsNotNull(FindChild(go.transform, "SlotScrollHint"), "应有「滚轮 / 滑条滚动」提示");
+            var cardsHost = FindChild(go.transform, "SlotCards");
+            var cardsViewport = cardsHost.Find("Viewport");
+            Assert.IsNotNull(cardsViewport, "机场卡区缺 Viewport");
+            var cardsScroll = cardsViewport.GetComponent<UnityEngine.UI.ScrollRect>();
+            Assert.IsNotNull(cardsScroll, "机场卡区必须是可滚动区（ScrollRect）");
+            Assert.IsNotNull(cardsScroll.verticalScrollbar, "滚动区应带右侧纵向滑条");
+            Assert.IsTrue(cardsScroll.vertical, "滚动区应允许纵向滚动");
+            Assert.IsNotNull(cardsScroll.content, "滚动区缺 Content");
+
+            var coordAirports = IndustryAirlineLogic.FilteredAirports(
+                gs, IndustryAirlineLogic.SlotFilterQuery.Default);
+            Assert.IsTrue(coordAirports.Count > 0, "应有协调机场可展示");
+            if (coordAirports.Count > 6)
+                Assert.Greater(cardsScroll.content.sizeDelta.y, 6 * 74f,
+                    "取消分页后内容高度必须超过一页（6 张卡）—— 否则只是把翻页按钮藏起来了");
+            string firstCode = coordAirports[0].code;
+
+            Assert.IsNotNull(FindChild(go.transform, "SlotHead_" + firstCode),
+                "第一张机场卡应有可点的汇总头部");
+            ClickChild(go.transform, "SlotHead_" + firstCode);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsNotNull(FindChild(go.transform, "SlotMatrix_" + firstCode),
+                "点汇总栏应展开时刻矩阵");
+
+            var firstCell = FindClickablePrefix(go.transform, "SlotDep_b");
+            Assert.IsNotNull(firstCell, "矩阵里应有可点的离港时刻方块");
+            firstCell.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsNotNull(FindChild(host.transform, "SlotDetailOverlay"),
+                "点时刻方块应弹出时刻详情（弹窗挂在画布 / 顶层节点上）");
+            AirportSlotDetailModal.Close();
+            yield return null;
+
+            // ★2026-11-08 用户报障护栏：「滚到 DFW 以下是空白」。
+            //
+            // 那时是按视口高度 + `anchoredPosition` 反推滚动距离来切窗口，偏移量一旦读错
+            // （正负号 / 时机），判据就恒真，窗口再也不补建 —— 画面上只剩开头几张卡、
+            // 下面一片空。本用例把滚动条按到底，要求**最后一行的卡必须被补建出来**：
+            // 只要窗口逻辑又退化成「只建开头那几张」，这一条就会失败。
+            if (coordAirports.Count > 6)
+            {
+                string lastCode = coordAirports[coordAirports.Count - 1].code;
+                cardsScroll.verticalNormalizedPosition = 0f;
+                yield return null;
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                Assert.IsNotNull(FindChild(go.transform, "SlotHead_" + lastCode),
+                    "滚动条按到底后，最后一张机场卡（" + lastCode + "）必须补建出来"
+                    + " —— 建窗逻辑又只停在开头几张了");
+            }
 
             Object.Destroy(host);
             Object.Destroy(gsHost);
@@ -595,6 +651,22 @@ namespace AirlineCEO.Tests.PlayMode
                 var c = parent.GetChild(i);
                 if (c.name == name) return c;
                 var deep = FindChild(c, name);
+                if (deep != null) return deep;
+            }
+            return null;
+        }
+
+        /// <summary>深度优先找第一个「名字以 <paramref name="prefix"/> 开头且带 Button」的节点。</summary>
+        static Transform FindClickablePrefix(Transform parent, string prefix)
+        {
+            if (parent == null) return null;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var c = parent.GetChild(i);
+                if (c.name.StartsWith(prefix, System.StringComparison.Ordinal)
+                    && c.GetComponent<UnityEngine.UI.Button>() != null)
+                    return c;
+                var deep = FindClickablePrefix(c, prefix);
                 if (deep != null) return deep;
             }
             return null;

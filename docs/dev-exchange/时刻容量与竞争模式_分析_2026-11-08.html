@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>时刻容量与竞争模式 · 分析 · 2026-11-08</title>
+<style>
+:root{--bg:#0d1b2f;--panel:#142943;--line:#22364f;--fg:#dbe6f4;--mute:#8aa3bf;--green:#4ce39e;--blue:#4a86e8;--warn:#e4a0a7}
+*{box-sizing:border-box}
+body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:15px/1.75 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif}
+main{max-width:1080px;margin:0 auto;padding:34px 32px 90px}
+h1{font-size:26px;line-height:1.35;margin:0 0 18px;letter-spacing:.3px;color:#eef5ff}
+h2{font-size:19px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#cfe4fb}
+h3{font-size:16px;margin:30px 0 10px;color:#bcd8f5}
+h4{font-size:15px;margin:22px 0 8px;color:#a8c8ea}
+p{margin:12px 0}
+strong{color:#eff6ff;font-weight:600}
+code{background:#1b3350;padding:1.5px 6px;border-radius:4px;font-size:13px;color:#9ec9f0;
+  font-family:'Cascadia Mono',Consolas,monospace}
+pre{background:#0f2035;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:14px 0}
+pre code{background:none;padding:0;font-size:12.5px;line-height:1.65;color:#b9d4ee}
+blockquote{background:#122238;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;
+  margin:16px 0;padding:12px 18px;color:#b7c9dd}
+blockquote p{margin:6px 0}
+blockquote ul{margin:8px 0;padding-left:22px}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+.tw{overflow:auto;margin:16px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;
+  font-variant-numeric:tabular-nums}
+thead th{background:#192f50;color:#cddff4;font-weight:600;font-size:13px;padding:9px 12px;
+  border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+tbody td{padding:8px 12px;border-bottom:1px solid #1a2c44;vertical-align:top}
+tbody tr:nth-child(even) td{background:#111f33}
+tbody tr:hover td{background:#1a3049}
+tbody tr:last-child td{border-bottom:0}
+@media (max-width:700px){main{padding:20px 16px 70px}body{font-size:14px}}
+</style></head>
+<body><main>
+<h1>时刻容量、竞争模式与「平台」——设想分析（2026-11-08）</h1>
+<blockquote><p><strong>本文性质</strong>：纯分析，<strong>未改任何代码</strong>。用于裁决「引入 AI 竞对 / 线上多玩家全面竞争」与「时刻容量贴近现实」这两件事的先后与边界。</p><p>触发问询（用户原话）：「如果将 AI 竞对航司或者线上多玩家引入各个模块的全面竞争模式，那么时刻容量越贴近真实，玩家的平台就越大吧？」</p><p>前一轮问询：「目前时刻槽容量的数量没有贴近现实，严控容量是为了让玩家有压力，对吧？」</p></blockquote>
+<hr>
+<h2>0. 一句话结论</h2>
+<p>方向对，但<strong>「平台越大」不会自动成立</strong>。</p>
+<ul><li>在<strong>决策空间</strong>的意义上成立：容量贴近现实会让「同一刻站得下多家航司」，竞争才有名次，grandfathering / 新进入者配额 / use-it-or-lose-it 才有意义。</li><li>在<strong>玩家可及槽位</strong>的意义上<strong>不成立</strong>，甚至可能变小：稀缺度降 3.5 倍，AI 也会扩张去吃新增容量，玩家相对份额可能不变。</li><li>而且它有<strong>三个前提</strong>，目前两个是缺的（需求侧、AI 持仓账）。顺序做反会白做，且很难回头（槽价、二级市场行情全部要重标）。</li></ul>
+<hr>
+<h2>1. 现状：问题不在「槽的总数少」，在「同一刻站不下多家」</h2>
+<p>数据取自本阶段刚导出的逐刻报表（<code>out/reports/机场时刻容量与占用_逐刻_2026-11-08.csv</code>，5,862 条已公布槽，与游戏内「机场时刻」卡片同一份铺排）。</p>
+<blockquote><p><strong>⚠ 22:12 重出后的小幅更新</strong>：用户 22:06 修正了 CAN / CKG / KMG / WUH / URC 的跑道数</p><p>（PKX 维持三跑运行），容量重算后本报表变为 **5,892 条已公布槽、单池容量 12,126、</p><p>他航已占 10,627、可申请 1,499**（到港已占 10,608 / 可申请 1,518）。</p><p>单刻容量分布随之变为：6 条 3 处、5 条 92 处、4 条 331 处、3 条 1,161 处、</p><p>2 条 2,536 处、1 条 1,769 处。<strong>下表的绝对数字按 18:30 口径，结构与结论不受影响</strong></p><p>—— 变化全部落在 4 条这一档（284 → 331），1 条档反而少 25 处。</p></blockquote>
+<h3>1.1 全游戏单刻容量分布</h3>
+<div class="tw"><table><thead><tr><th style="text-align:right">单刻容量</th><th style="text-align:right">出现次数</th><th style="text-align:right">占比</th></tr></thead><tbody>
+<tr><td style="text-align:right">6 条</td><td style="text-align:right"><strong>3</strong></td><td style="text-align:right">0.05%</td></tr>
+<tr><td style="text-align:right">5 条</td><td style="text-align:right">92</td><td style="text-align:right">1.6%</td></tr>
+<tr><td style="text-align:right">4 条</td><td style="text-align:right">284</td><td style="text-align:right">4.8%</td></tr>
+<tr><td style="text-align:right">3 条</td><td style="text-align:right">1,158</td><td style="text-align:right">19.8%</td></tr>
+<tr><td style="text-align:right">2 条</td><td style="text-align:right">2,531</td><td style="text-align:right">43.2%</td></tr>
+<tr><td style="text-align:right">1 条</td><td style="text-align:right">1,794</td><td style="text-align:right">30.6%</td></tr>
+</tbody></table></div>
+<p><strong>全游戏最挤的一刻只能站 6 家，而且只有 3 处。</strong> 74% 的刻（4,325 条）只能站 1–2 家。</p>
+<h3>1.2 各机场峰值刻容量</h3>
+<div class="tw"><table><thead><tr><th style="text-align:right">峰值刻容量</th><th style="text-align:right">机场数</th></tr></thead><tbody>
+<tr><td style="text-align:right">2 条</td><td style="text-align:right"><strong>36</strong></td></tr>
+<tr><td style="text-align:right">3 条</td><td style="text-align:right">29</td></tr>
+<tr><td style="text-align:right">4 条</td><td style="text-align:right">11</td></tr>
+<tr><td style="text-align:right">5 条</td><td style="text-align:right">3</td></tr>
+<tr><td style="text-align:right">6 条</td><td style="text-align:right">2</td></tr>
+</tbody></table></div>
+<p><strong>45% 的协调机场（36 / 81），在本场最忙的那一刻，全场只能站下 2 家航司。</strong> 这 36 个里包括 PKX（北京大兴）、SHA（上海虹桥）、CTU（成都双流）、XMN（厦门高崎）、SYX（三亚凤凰）这些真实的高密度场。</p>
+<h3>1.3 三个具体的刻</h3>
+<div class="tw"><table><thead><tr><th>刻</th><th style="text-align:right">容量</th><th style="text-align:right">已占</th><th>持有方</th></tr></thead><tbody>
+<tr><td>PEK 07:00</td><td style="text-align:right">2</td><td style="text-align:right">2</td><td>汉莎航空、美国联合航空</td></tr>
+<tr><td>PVG 07:00</td><td style="text-align:right">2</td><td style="text-align:right">2</td><td>美国联合航空、全日空</td></tr>
+<tr><td>LHR 07:00</td><td style="text-align:right">3</td><td style="text-align:right">2</td><td>阿联酋航空、英国航空</td></tr>
+<tr><td>SYX 07:00</td><td style="text-align:right">1</td><td style="text-align:right">1</td><td>阿联酋航空</td></tr>
+</tbody></table></div>
+<p><strong>北京首都早上 7 点，两条槽在汉莎和美联航手上，主基地的国航不在其中。</strong> 现实里 PEK 07 时离港约 27 班 —— 那一刻二十几架飞机在起飞。</p>
+<p>所以现在这张表不是「贴近现实但有偏差」，而是<strong>在结构上无法表达真实枢纽的竞争形态</strong>：槽的总量已经放到 1/3.5（11,944 条单池容量），但每格装不下人。</p>
+<hr>
+<h2>2. 真正的机制：不是「槽变多」，而是「同一刻能站下更多家」</h2>
+<p>这是这个设想里最关键、但最容易被说漏的一层。</p>
+<p>压缩比 K 只改一件事：<strong>每个格子里能放几条</strong>。格子本身不变 —— 81 场 × 96 刻 × 2 池 = 15,552 格，这个数永远不变。K 从 1/3.5 放到 1/1，变的是每格能站几家：</p>
+<div class="tw"><table><thead><tr><th></th><th style="text-align:right">K=1/3.5（现在）</th><th style="text-align:right">K=1/2</th><th style="text-align:right">K=1/1（现实量）</th></tr></thead><tbody>
+<tr><td>全游戏单池日容量</td><td style="text-align:right">11,944</td><td style="text-align:right">≈ 20,902</td><td style="text-align:right">≈ 41,802</td></tr>
+<tr><td>全游戏最大单刻</td><td style="text-align:right">6 条（仅 3 处）</td><td style="text-align:right">10 条</td><td style="text-align:right">21 条</td></tr>
+<tr><td>峰刻 ≥3 条的机场</td><td style="text-align:right">45 / 81</td><td style="text-align:right"><strong>81 / 81</strong></td><td style="text-align:right">81 / 81</td></tr>
+<tr><td>峰刻 ≥5 条的机场</td><td style="text-align:right">3 / 81</td><td style="text-align:right">45 / 81</td><td style="text-align:right"><strong>81 / 81</strong></td></tr>
+<tr><td>PEK 07:00</td><td style="text-align:right">2</td><td style="text-align:right">≈ 4</td><td style="text-align:right">≈ 7</td></tr>
+<tr><td>LHR 07:00</td><td style="text-align:right">3</td><td style="text-align:right">≈ 5</td><td style="text-align:right">≈ 8</td></tr>
+<tr><td>ATL 峰刻</td><td style="text-align:right">6</td><td style="text-align:right">10</td><td style="text-align:right">21</td></tr>
+</tbody></table></div>
+<p>（K=1/2 与 1/1 两列为按小时容量等比外推，非代码实测；当前 K 列为报表实测。）</p>
+<p><strong>「2 → 7」的含义不是「你更容易拿到」，而是「这一刻可以同时有五家航司在飞，而你要争的是那第五个位置」。</strong></p>
+<ul><li>容量 2 时，竞争是<strong>二元</strong>的：你或他。</li><li>容量 7 时，竞争才有<strong>名次</strong>：谁拿了 07:00 第一个、谁是第四个、谁只能退到 07:15。</li></ul>
+<p>这是真实的枢纽竞争形态，也是 WASG 里四条规则<strong>唯一有意义的前提</strong>：</p>
+<div class="tw"><table><thead><tr><th>规则</th><th>代码落点</th><th>现在为什么空转</th></tr></thead><tbody>
+<tr><td>grandfathering 历史优先权</td><td><code>SlotUsageLogic</code> §8.7</td><td>每刻 1–2 条，没有「历史」可保</td></tr>
+<tr><td>use-it-or-lose-it 80%</td><td><code>SlotUsageLogic</code> §8.6</td><td>同上，失格释放只在自己跟自己比</td></tr>
+<tr><td>新进入者 50% 配额</td><td><strong>未做</strong>（设计文档 §13.8 明确不做）</td><td>没有「进入者」概念</td></tr>
+<tr><td>拍卖 / 二级市场定价</td><td><code>SlotMarketLogic</code>（确定性定价）</td><td>卖方由哈希挑，无对手方出价</td></tr>
+</tbody></table></div>
+<p>准确的说法是：<strong>贴近真实不是一个「让玩家更舒服」的改动，而是让竞争系统从「无意义」变成「有意义」的开关。</strong></p>
+<hr>
+<h2>3. 三个必须同时成立的前提</h2>
+<h3>前提 ①：需求侧也得贴近真实 —— 目前不成立（这是最容易被忽略的一环）</h3>
+<p>引力模型（<code>Logic/RouteGravityModel.cs:3-14</code>）：</p>
+<pre><code>G = (gdpA × gdpB) / (km/1000)^1.2
+P = (popA × popB)^0.3
+H = (liveA × liveB / 10000) × (odA × odB / 10000)
+周客流 = G × P × H × 3.5        （BalanceK = 3.5）</code></pre>
+<p>代入实际数据（<code>Data/CityEconomyCatalog.cs</code>）：</p>
+<div class="tw"><table><thead><tr><th>航线</th><th style="text-align:right">G</th><th style="text-align:right">P</th><th style="text-align:right">H</th><th style="text-align:right">周客流</th><th style="text-align:right">每班（7 班/周）</th></tr></thead><tbody>
+<tr><td>PEK–SHA</td><td style="text-align:right">390,061</td><td style="text-align:right">6.61</td><td style="text-align:right">0.686</td><td style="text-align:right"><strong>6,189,531</strong></td><td style="text-align:right">884,219</td></tr>
+<tr><td>LHR–JFK</td><td style="text-align:right">149,960</td><td style="text-align:right">5.43</td><td style="text-align:right">0.849</td><td style="text-align:right">2,420,091</td><td style="text-align:right">345,727</td></tr>
+<tr><td>HRB–URC</td><td style="text-align:right">1,119</td><td style="text-align:right">3.05</td><td style="text-align:right">0.106</td><td style="text-align:right"><strong>1,259</strong></td><td style="text-align:right"><strong>180</strong></td></tr>
+</tbody></table></div>
+<p>而 <code>MarketPaxPerFlight</code> 是「周客流 ÷ 周班次」，再被座位数封顶（<code>Logic/CapacityEconomics.cs:68-84</code>）。代入结果：</p>
+<ul><li><strong>PEK–SHA：每班市场容量 88 万人次，飞机只有 180 座 —— 需求封顶永远不起作用。</strong></li><li><strong>HRB–URC：每班正好 180 人 —— 恰好卡在 180 座机上。</strong></li><li>LHR–JFK：每班 34.5 万 —— 同样完全不构成约束。</li></ul>
+<p>也就是说：<strong>干线需求不构成约束，支线需求恰好卡在临界点。</strong> 现实里 PEK–SHA 周客流约 20 万（本作高约 30 倍），而真正的瓶颈从来是时刻与运力，不是客流。</p>
+<p><strong>后果</strong>：容量放到 1/1 之后，枢纽的每一个新增槽都等于<strong>纯利润</strong>，因为需求永远吃不完。游戏会变成「谁拿到枢纽高峰槽谁赢」，而不是「谁经营得好谁赢」。</p>
+<p><strong>容量贴近真实必须与需求贴近真实同时做</strong>，否则扩出来的空间不是「平台」，是印钞机。</p>
+<h3>前提 ②：AI 必须有会演进、可被剥夺的持仓 —— 目前明确拒绝过</h3>
+<p>行业航司 39 家（<code>Data/IndustryAirlines.cs:55-96</code>，国航 / 东航 / 南航 / 国泰 / 汉莎 / 法航 / 荷航 / 英航 / 阿联酋 / 卡塔尔 / 新航 / 全日空 / 日航 / 大韩 / 达美 / 美联航 / 美航 / 土航 / 澳航 / 海航 / 厦航 / 深航 / 川航 / 长荣 / 泰航 / 马航 / 北欧 / 芬兰 / 西班牙 / 瑞士 / 俄航 / 印度 / 埃塞俄比亚 / 南非 / 华夏 / 天津 / 首都 / 山东 / 乌鲁木齐）。</p>
+<p>它们占着槽，但<strong>从不行动</strong>。代码里写下了理由（<code>Logic/IndustryAirlineLogic.cs:15-22</code>）：</p>
+<blockquote><p>为什么他航的持仓是<strong>推导</strong>出来的而不是存盘状态：</p><ul><li>存档里只有我司一家。给 38 家他航建持仓表，等于凭空多出一份要随季度演进、要处理旧档迁移、还要防止与「时刻池容量」打架的账 —— <strong>收益只是让表格好看一点</strong>。</li><li>推导可以做到<strong>确定性</strong>：同一存档、同一季度、同一机场，看到的是同一张表。</li></ul></blockquote>
+<p><strong>这个判断在单机下完全正确，在竞争模式下完全错误。</strong> 理由是同一个：那本「要随季度演进的账」，在单机里只是让表格好看，在竞争里<strong>就是全部玩法</strong> —— 持仓不再是展示数据，而是可以被抢、被买、被 lost 的资产。</p>
+<p>而且现在有<strong>两套互不相通的他航名单</strong>，这是竞争化最硬的障碍：</p>
+<div class="tw"><table><thead><tr><th>名单</th><th style="text-align:right">数量</th><th>占槽</th><th>会行动</th><th>典型名</th></tr></thead><tbody>
+<tr><td><code>IndustryAirlines.All</code></td><td style="text-align:right">39</td><td>是</td><td>否</td><td>国航、东航、汉莎、美联航</td></tr>
+<tr><td><code>AIManager</code> 运行时生成</td><td style="text-align:right">5</td><td>否</td><td>是</td><td>云翼、青鸾、银燕、北辰、新加坡航空</td></tr>
+</tbody></table></div>
+<p>（<code>Systems/AIManager.cs:44-58</code>）</p>
+<p><strong>会占槽的不会动，会动的不会占槽。</strong> 竞争化第一步必须把这两张表合成一张 —— 否则「AI 抢槽」这件事在数据结构上无处安放。</p>
+<p>顺带一处已存在的数据重复：<code>新加坡航空</code> 同时出现在两张表里（<code>Data/IndustryAirlines.cs</code> 的静态目录 + <code>AIManager</code> 的 <code>AI-SQ</code>），是同一个实体被复制成两份。</p>
+<h3>前提 ③：槽必须可交易、可剥夺、有价格 —— 部分成立</h3>
+<p><code>SlotMarketLogic</code> 已做二级市场，但与池容量解耦（成交不查池容量，因为航司间转让不增加机场总起降），机制设计是对的。缺的是<strong>对手方</strong>：</p>
+<ul><li>卖方由 <code>IndustryAirlineLogic.SellerAt(gs, airport, clock, year, quarter)</code> 挑，但该函数的 <code>year</code> / <code>quarter</code> 两个形参<strong>在实现里完全未被使用</strong> —— 定价不随赛季变化。</li><li>没有「谁缺槽谁出价」，只有「这一格谁在卖」。</li><li>被收回的槽（80% 使用率失格）直接退回池，没有进入新一轮分配的市场过程。</li></ul>
+<p>WASG 那套规则已经实现了一半（80% / HBD / 失格释放），缺的正是对手方。</p>
+<hr>
+<h2>4. AI 与多玩家：两种完全不同的工程问题</h2>
+<p>门槛差一个数量级，不能混为一谈。</p>
+<p><strong>AI 竞对是内容问题</strong>：合并名单、给 AI 建持仓账、写一套「何时扩张 / 退让 / 卖槽」的策略、平衡数值。改动大但不涉及架构。</p>
+<p><strong>多玩家是并发问题</strong>：</p>
+<div class="tw"><table><thead><tr><th>项</th><th>现在</th><th>多玩家需要</th></tr></thead><tbody>
+<tr><td>时间粒度</td><td>90 天/季（<code>GameState.DaysPerQuarter = 90</code>），季度结算</td><td>需要权威分配器；一季内多人的抢槽必须原子</td></tr>
+<tr><td>槽获取</td><td><code>StrategyManager.AcquireSlotsAt</code> 本地检查后写入，<strong>无锁无事务</strong></td><td>两个客户端都能通过检查、都写入 → 同一刻超卖</td></tr>
+<tr><td>他航占用</td><td><code>hash(机场, 时段)</code> 推导，无状态</td><td><strong>这一条反而是资产</strong> —— 所有客户端算出同一结果，零同步</td></tr>
+<tr><td>状态</td><td>单份 <code>GameState</code> 本地存档</td><td>服务端权威 + 增量同步</td></tr>
+</tbody></table></div>
+<p>值得单独说第三行：<strong>哈希推导在单机里是「无奈的近似」，在多玩家里却是「免费的确定性」</strong>。如果所有玩家都对同一套确定性的他航持仓竞争，服务器只需广播玩家的操作，不必同步 39 家的全量状态。这是现有设计的一个隐藏优势，竞争化时不要顺手把它拆掉。</p>
+<p>但第一、二行是真障碍：「检查余量 → 写入持仓」现在是一个<strong>非原子的两步</strong>（<code>QueueApplySlots</code> 递交时判一次，<code>AcquireSlotsAt</code> 交割时再判一次，中间隔 7–18 天）。<strong>这一条不修，多玩家第二天就会超卖。</strong></p>
+<hr>
+<h2>5. 一个反直觉的点：真实容量会<strong>削弱</strong>竞争，不是加强</h2>
+<p>这是动工前最需要想清楚的地方。</p>
+<p>容量放到 1/1，稀缺度立刻降 3.5 倍。竞争要补回这个压力，但竞争压力是<strong>弹性的</strong>：AI 也会扩张去吃新增的容量。如果 AI 策略是「尽量占满」，玩家的<strong>相对份额</strong>可以完全不变 —— 从「7 个空刻里挑」变成「20 个空刻里挑，但另外 7 家也在挑」。</p>
+<p>那时候真正变好的不是「能拿到多少」，而是三件别的事：</p>
+<div class="tw"><table><thead><tr><th>变化</th><th>现在</th><th>竞争化之后</th></tr></thead><tbody>
+<tr><td><strong>可读性</strong></td><td>你拿不到 07:00，因为撞上一个哈希函数</td><td>因为国航持有它，且你有价格可以谈</td></tr>
+<tr><td><strong>方差 / 重玩价值</strong></td><td><code>hash(机场, 时段, "occ")</code>，<strong>每局开局完全一样</strong></td><td>路径依赖，每局不同</td></tr>
+<tr><td><strong>策略深度</strong></td><td>只有「申请 / 买 / 改时」三个动作</td><td>抢、换、卖、弃、等新进入者配额</td></tr>
+</tbody></table></div>
+<p>第二项可能比「平台变大」更有价值：现在这套哈希是全局确定性的，意味着<strong>第 100 局和第 1 局的时刻表完全相同</strong>。</p>
+<p>所以判断是：<strong>「平台越大」在「决策空间」的意义上成立，在「玩家可及槽位」的意义上不成立，甚至可能变小。</strong> 若要的是后者，贴近真实是错的方向；若要的是前者，它是对的，且必须配竞争。</p>
+<hr>
+<h2>6. 建议的推进顺序</h2>
+<p>依赖关系是<strong>单向</strong>的，反过来做会白做：</p>
+<div class="tw"><table><thead><tr><th style="text-align:right">步</th><th>做什么</th><th>为什么必须在这一步</th></tr></thead><tbody>
+<tr><td style="text-align:right">1</td><td><strong>合并他航名单 + 给 AI 建持仓账</strong></td><td>没有对手，容量放多少都是空的</td></tr>
+<tr><td style="text-align:right">2</td><td><strong>让 AI 的占用率内生</strong> —— 从 <code>0.85 + 0.05×hash</code> 改成「按盈利预期决定持多少」</td><td>87% 这个魔法数字才会自己找到位置</td></tr>
+<tr><td style="text-align:right">3</td><td><strong>放容量 K</strong>（1/3.5 → 1/2 → 1/1），每档观察玩家可及槽位</td><td>这是唯一「可回退」的一步，应放在有对手之后</td></tr>
+<tr><td style="text-align:right">4</td><td><strong>需求侧同步校准</strong></td><td>否则第 3 步变成印钞（见前提①）</td></tr>
+<tr><td style="text-align:right">5</td><td><strong>多玩家的原子性</strong>单独作为工程项</td><td>与 1–4 步无耦合，混在一起会拖死前四步</td></tr>
+</tbody></table></div>
+<p><strong>若顺序反过来（先放容量）</strong>：会得到一个「槽很多、谁都能拿、但没有人跟你抢」的世界 —— 压力彻底消失，而且很难回头，因为槽价与二级市场行情全部要重标。</p>
+<hr>
+<h2>7. 待裁决（三件事）</h2>
+<div class="tw"><table><thead><tr><th>#</th><th>待定</th><th>影响</th></tr></thead><tbody>
+<tr><td>1</td><td><strong>推进顺序</strong>：先「合并名单 + AI 持仓账」，还是先看一版「K=1/2 与 K=1/1 各机场单刻容量对照表」（不改代码）</td><td>决定下一步是否动代码</td></tr>
+<tr><td>2</td><td><strong>需求侧那个数算不算 bug</strong>：PEK–SHA 6,189,531 人次/周（现实约 20 万）</td><td>影响第 3 步能不能做；若有意为之，按「需求不设限」继续设计</td></tr>
+<tr><td>3</td><td><strong>目标形态</strong>：AI 竞对（单机，改动可控）还是线上多玩家（需服务端 + 原子分配）</td><td>两者共用前提①②，但第 5 步完全不同</td></tr>
+</tbody></table></div>
+<hr>
+<h2>附录 · 数据来源与复算方法</h2>
+<h3>A.1 逐刻数据</h3>
+<ul><li>工具：<code>tools/slotreport</code>（<code>dotnet run --project tools/slotreport/slotreport.csproj -- out/reports</code>）</li><li>数据源：<code>IndustryAirlineLogic.ChipsOf(null, code, band, out _, out _)</code> —— 与游戏内「机场时刻」卡片、时刻浮窗<strong>同一份铺排</strong>，非另写公式。</li><li>产物：<code>机场时刻容量与占用_逐刻_2026-11-08.csv</code>（5,862 行）、<code>机场时刻容量与占用_总览_2026-11-08.csv</code>（81 行）、同名 <code>.html</code>。</li><li>校验：逐场逐段「Σ逐刻容量 == <code>RoutePermitLogic.SlotPoolCapacity(code, band)</code>」全 81 场 × 4 段零警告通过。</li></ul>
+<h3>A.2 容量口径</h3>
+<ul><li>小时容量表：<code>Data/AirportCatalog.cs:244-330</code> 的 <code>AirportHourRates</code>（逐场真实全天曲线 × 1/3.5）。</li><li>15 分钟拆分：<code>AirportCatalog.QuarterCapacity(code, minutes)</code>（<code>Data/AirportCatalog.cs:393</code>），规则见 <code>QuarterSplit</code>（<code>r=4 → 2/1/1/0</code>，<code>r=6 → 2/2/1/1</code>，<code>r≥7</code> 均分 base=r/4）。</li><li>K=1/2 与 K=1/1 两列为<strong>等比外推</strong>（当前值 × 1.75 / × 3.5），不是代码实测 —— 因为改 K 需要重标槽价与二级市场，属未执行项。</li></ul>
+<h3>A.3 占用率</h3>
+<ul><li><code>IndustryAirlineLogic.IndustryHeldOfKind</code>（<code>Logic/IndustryAirlineLogic.cs:140-168</code>）：<code>rate = 0.85 + 0.05 × Unit(airport, band, salt)</code>，枢纽 +0.02，上限 92%；<code>MustLeaveOpen = 1</code> 强制留 1 条。</li><li>合计：单池容量 11,944 / 他航已占 10,465（87.6%）/ 可申请 1,479（12.4%）；到港已占 10,444 / 可申请 1,500。</li></ul>
+<h3>A.4 需求复算</h3>
+<p>复算脚本（Node，独立于 Unity）：</p>
+<pre><code>G = (620 × 690) / (1.080)^1.2  = 390,061
+P = (21.8 × 24.9)^0.3          = 6.61
+H = (0.92 × 0.90) × (0.92 × 0.90) = 0.6856
+周客流 = 390,061 × 6.61 × 0.6856 × 3.5 = 6,189,531</code></pre>
+<p>与 <code>RouteGravityModel.Evaluate</code> 的公式逐项一致；差异只在于该函数内 <code>liveIndex</code> 会乘宏观系数并叠加 drift（<code>CityEconomyLogic.cs:36</code>，clamp 20–120），本文按 <code>odIndex</code> 近似取 <code>liveIndex</code>。</p>
+<hr>
+<h2>8. 本次会话未做的事</h2>
+<ul><li><strong>未改任何生产代码。</strong> 本文全部结论来自读码 + 报表复算。</li><li><strong>未跑 <code>stage-close</code>、未生成 DEL</strong>（按 2026-11-01 裁决：每轮开发完不自动收口，等用户说「统一检测 / 阶段收口」）。</li><li>未提交（<code>git commit</code>）。</li></ul>
+<hr>
+<h2>9. 相关文件</h2>
+<div class="tw"><table><thead><tr><th>文件</th><th>作用</th></tr></thead><tbody>
+<tr><td><code>docs/handoff/2026-11-08_时刻容量与竞争模式_分析.md</code></td><td>本文（源）</td></tr>
+<tr><td><code>out/reports/时刻容量与竞争模式_分析_2026-11-08.html</code></td><td>本文的可读版（深色排版，表格/代码块已渲染）</td></tr>
+<tr><td><code>tools/tmp/md2html.mjs</code></td><td>Markdown → 单文件 HTML 渲染器（本次新增，仅供文档导出，不参与游戏构建）</td></tr>
+<tr><td><code>out/reports/机场时刻容量与占用_逐刻_2026-11-08.csv</code></td><td>5,862 行逐刻数据（§1 全部数字的来源）</td></tr>
+<tr><td><code>out/reports/机场时刻容量与占用_总览_2026-11-08.csv</code></td><td>81 行机场总览（含跑道数）</td></tr>
+<tr><td><code>tools/slotreport/</code></td><td>上述报表的生成工具（直连游戏源码）</td></tr>
+</tbody></table></div>
+</main></body></html>

@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-27T04:34:40.494Z",
-  "updatedAt": "2026-11-08T04:53:30.268Z",
+  "updatedAt": "2026-11-09T09:34:22.269Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 27 taken over by later passed deliveries, 7 still uncovered (Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs …).",
+  "freshnessNote": "Historic verdict REV-20261027043857-e4c054 covered 80 changed files; 25 taken over by later passed deliveries, 9 still uncovered (Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Systems/TimeManager.cs, Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs …).",
   "staleForReviewId": "REV-20261027043857-e4c054",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -99,16 +99,18 @@
   "scopeDrift": {
     "basis": 80,
     "intact": 46,
-    "covered": 27,
+    "covered": 25,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
       "Unity Project/Assets/Scripts/Systems/TimeManager.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "tools/collab/tests/cleancheckout.test.mjs",
       "tools/collab/tests/collab.test.mjs",
       "tools/collab/tests/daily.test.mjs",
-      "tools/collab/tests/run-all.mjs"
+      "tools/collab/tests/run-all.mjs",
+      "Unity Project/Assets/Scripts/Editor/RegressionTriggerBridge.cs"
     ],
-    "uncoveredCount": 7
+    "uncoveredCount": 9
   }
 }

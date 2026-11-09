@@ -1,0 +1,1182 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>81 个协调机场 · 时刻容量模型</title>
+<style>
+:root{--bg:#0f1419;--panel:#161d26;--line:#243040;--txt:#dfe7ef;--dim:#8b9bb0;--acc:#4ea1ff;--ok:#3ddc97;--warn:#ffb454;--bad:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:26px;margin:0 0 6px}
+.lede{color:var(--dim);margin:0 0 26px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi b{display:block;font-size:24px;letter-spacing:.5px}
+.kpi span{color:var(--dim);font-size:12px}
+h2{font-size:16px;margin:34px 0 12px;padding-left:10px;border-left:3px solid var(--acc)}
+.formula{background:#0b1016;border:1px solid var(--line);border-radius:10px;padding:16px 18px;font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#a9d6ff;white-space:pre-wrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card-h{display:flex;justify-content:space-between;align-items:baseline}
+.card-h b{font-size:15px}
+.num{color:var(--acc);font-size:12px}
+.sub{color:var(--dim);font-size:12px;margin:2px 0 8px}
+.card p{margin:0 0 10px;font-size:13px;color:#c4d1e0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:#0d1620;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-size:12px;font-family:ui-monospace,monospace}
+.chip i{color:var(--dim);font-style:normal;margin-left:5px;font-size:11px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.tools input,.tools select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13px}
+.tools a{color:var(--acc);font-size:13px;align-self:center;text-decoration:none}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{position:sticky;top:0;background:#101821;color:var(--dim);font-weight:600;text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;font-size:12px}
+thead th:hover{color:var(--acc)}
+tbody td{padding:7px 8px;border-bottom:1px solid #1a2330;vertical-align:top}
+tbody tr:hover{background:#131c26}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.code{font-family:ui-monospace,monospace;font-weight:700;color:#fff}
+td.m{color:var(--acc);font-size:12px;white-space:nowrap}
+td.big{font-weight:700;color:#fff;font-size:15px}
+td.dim{color:var(--dim)}
+td.up{color:var(--ok)}td.down{color:var(--bad)}
+td.sat{font-size:12px;white-space:nowrap}
+.sS{color:var(--bad)}.sC{color:var(--warn)}.sF{color:var(--ok)}
+td.src{color:var(--dim);font-size:11px;font-family:ui-monospace,monospace}
+td.note{color:#9fb0c4;font-size:12px;min-width:280px}
+.foot{color:var(--dim);font-size:12px;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body><div class="wrap">
+<h1>81 个协调机场 · 时刻容量模型</h1>
+<p class="lede">调研日期 2026-11-09 ｜ 跑道构型 + 申报容量 → 六个模型 → 每 15 分钟槽数</p>
+
+<div class="kpis">
+  <div class="kpi"><b>81</b><span>协调机场</span></div>
+  <div class="kpi"><b>249</b><span>跑道上限合计（条）</span></div>
+  <div class="kpi"><b>6,802</b><span>申报容量合计（架次/时）</span></div>
+  <div class="kpi"><b>308</b><span>每刻槽合计（新）</span></div>
+  <div class="kpi"><b>249</b><span>每刻槽合计（现行平铺）</span></div>
+  <div class="kpi"><b>+59</b><span>差值（23.7%）</span></div>
+</div>
+
+<h2>一条公式，全表通用</h2>
+<div class="formula">每刻槽数 = 申报容量（起降/小时） ÷ 22
+
+  22 = 2（起降对半）× 4（一小时四刻）× 2.75（统一压缩比）
+  2.75 由已确认的 CAN 110 架次/时 ↔ 5 槽/刻 反推 → CAN 恰好落 5
+
+压缩比对所有机场相同，所以相对位次与现实完全一致。</div>
+
+<h2>六个模型</h2>
+<div class="cards"><div class="card">
+    <div class="card-h"><b>M1 单跑组</b><span class="num">5 场</span></div>
+    <div class="sub">1 组 · 等效 1.0 条</div>
+    <p>只有一条跑道，一起一降混合。</p>
+    <div class="chips"><span class="chip">SAN<i>52</i></span><span class="chip">XMN<i>32</i></span><span class="chip">TNA<i>28</i></span><span class="chip">ZUH<i>25</i></span><span class="chip">SYX<i>20</i></span></div>
+  </div><div class="card">
+    <div class="card-h"><b>M2 单组·紧耦合</b><span class="num">12 场</span></div>
+    <div class="sub">1 组 · 等效 1.0–1.4 条</div>
+    <p>近距平行（&lt;1.5 km）或交叉跑道，只能一起一降；第二条跑道只加 0–40%。</p>
+    <div class="chips"><span class="chip">ZRH<i>68</i></span><span class="chip">VIE<i>66</i></span><span class="chip">BCN<i>61</i></span><span class="chip">CAI<i>58</i></span><span class="chip">MEL<i>58</i></span><span class="chip">CTU<i>52</i></span><span class="chip">BOM<i>46</i></span><span class="chip">SHA<i>43</i></span><span class="chip">MNL<i>42</i></span><span class="chip">CSX<i>33</i></span><span class="chip">KWE<i>33</i></span><span class="chip">HAK<i>27</i></span></div>
+  </div><div class="card">
+    <div class="card-h"><b>M3 单组·独立</b><span class="num">18 场</span></div>
+    <div class="sub">1 组 · 等效 1.6–2.0 条</div>
+    <p>一对远距平行（≥1.5 km），可同时独立进近/起飞。</p>
+    <div class="chips"><span class="chip">BKK<i>72</i></span><span class="chip">SIN<i>70</i></span><span class="chip">NRT<i>64</i></span><span class="chip">SVO<i>64</i></span><span class="chip">CGK<i>62</i></span><span class="chip">DOH<i>60</i></span><span class="chip">GRU<i>58</i></span><span class="chip">KIX<i>58</i></span><span class="chip">BNE<i>54</i></span><span class="chip">BOG<i>50</i></span><span class="chip">TPE<i>50</i></span><span class="chip">HGH<i>45</i></span><span class="chip">SCL<i>40</i></span><span class="chip">LIM<i>38</i></span><span class="chip">NKG<i>38</i></span><span class="chip">TAO<i>31</i></span><span class="chip">HRB<i>30</i></span><span class="chip">TSN<i>24</i></span></div>
+  </div><div class="card">
+    <div class="card-h"><b>M4 单组·饱和</b><span class="num">5 场</span></div>
+    <div class="sub">1 组 · 等效 2.0–2.8 条</div>
+    <p>一组跑到极限：混合起降、快速脱离道、高密度间隔。LHR / MUC / DXB 属此型。</p>
+    <div class="chips"><span class="chip">MUC<i>90</i></span><span class="chip">JFK<i>89</i></span><span class="chip">LHR<i>88</i></span><span class="chip">CPH<i>83</i></span><span class="chip">DXB<i>66</i></span></div>
+  </div><div class="card">
+    <div class="card-h"><b>M5 双组</b><span class="num">28 场</span></div>
+    <div class="sub">2 组 · 等效 2.0–2.9 条</div>
+    <p>能同时组织出两组独立运行（3–4 条跑道，或两对平行）。</p>
+    <div class="chips"><span class="chip">LAX<i>171</i></span><span class="chip">MCO<i>165</i></span><span class="chip">MSP<i>161</i></span><span class="chip">MIA<i>141</i></span><span class="chip">PHX<i>141</i></span><span class="chip">LAS<i>125</i></span><span class="chip">BOS<i>120</i></span><span class="chip">SEA<i>106</i></span><span class="chip">SFO<i>105</i></span><span class="chip">HND<i>90</i></span><span class="chip">ICN<i>90</i></span><span class="chip">MAD<i>90</i></span><span class="chip">FCO<i>88</i></span><span class="chip">PEK<i>88</i></span><span class="chip">PKX<i>88</i></span><span class="chip">DEL<i>80</i></span><span class="chip">TFU<i>80</i></span><span class="chip">CKG<i>78</i></span><span class="chip">SYD<i>78</i></span><span class="chip">KUL<i>76</i></span><span class="chip">PVG<i>74</i></span><span class="chip">ARN<i>70</i></span><span class="chip">HKG<i>70</i></span><span class="chip">KMG<i>70</i></span><span class="chip">SZX<i>60</i></span><span class="chip">XIY<i>51</i></span><span class="chip">URC<i>44</i></span><span class="chip">WUH<i>36</i></span></div>
+  </div><div class="card">
+    <div class="card-h"><b>M6 多组</b><span class="num">13 场</span></div>
+    <div class="sub">≥3 组 · 等效 3.5–5.5 条</div>
+    <p>三组以上（≥5 条跑道）；跑道越多，滑行与交叉牵制越重。</p>
+    <div class="chips"><span class="chip">DEN<i>250</i></span><span class="chip">DFW<i>245</i></span><span class="chip">ATL<i>220</i></span><span class="chip">ORD<i>220</i></span><span class="chip">IAH<i>185</i></span><span class="chip">DTW<i>181</i></span><span class="chip">CLT<i>179</i></span><span class="chip">IST<i>120</i></span><span class="chip">CDG<i>112</i></span><span class="chip">CAN<i>110</i></span><span class="chip">AMS<i>106</i></span><span class="chip">YYZ<i>90</i></span><span class="chip">FRA<i>80</i></span></div>
+  </div></div>
+
+<h2>逐场对照</h2>
+<div class="tools">
+  <input id="q" placeholder="搜索机场代码…" style="width:160px">
+  <select id="fm"><option value="">全部模型</option><option value="M1">M1 单跑组</option><option value="M2">M2 单组·紧耦合</option><option value="M3">M3 单组·独立</option><option value="M4">M4 单组·饱和</option><option value="M5">M5 双组</option><option value="M6">M6 多组</option></select>
+  <select id="fs"><option value="">全部饱和档</option><option value="S">饱和</option><option value="C">临界</option><option value="F">富余</option></select>
+  <a href="时刻容量模型_2026-11-09.csv" download>⬇ 下载 CSV</a>
+</div>
+<table id="tb"><thead><tr>
+<th data-i="0">代码</th><th data-i="1">跑道</th><th data-i="2">模型</th><th data-i="3">申报<br>架次/时</th>
+<th data-i="4">物理上限<br>(估)</th><th data-i="5">k</th><th data-i="6">槽/刻</th><th data-i="7">现行<br>跑道数</th>
+<th data-i="8">差</th><th data-i="9">饱和</th><th data-i="10">来源</th><th data-i="11">构型与运行方式</th>
+</tr></thead><tbody><tr data-model="M6" data-sat="C">
+    <td class="code">DEN</td>
+    <td class="n">6</td>
+    <td class="m">M6</td>
+    <td class="n">250</td>
+    <td class="n dim">284</td>
+    <td class="n dim">7.81</td>
+    <td class="n big">11</td>
+    <td class="n dim">6</td>
+    <td class="n up">+5</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">16L/16R·17L/17R 两组远距平行 + 07/25·08/26 横向</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">DFW</td>
+    <td class="n">7</td>
+    <td class="m">M6</td>
+    <td class="n">245</td>
+    <td class="n dim">258</td>
+    <td class="n dim">7.66</td>
+    <td class="n big">11</td>
+    <td class="n dim">7</td>
+    <td class="n up">+4</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">17L/17C/17R 三平行 + 18L/18R 平行 + 13L/13R 横向</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">ATL</td>
+    <td class="n">5</td>
+    <td class="m">M6</td>
+    <td class="n">220</td>
+    <td class="n dim">232</td>
+    <td class="n dim">6.88</td>
+    <td class="n big">10</td>
+    <td class="n dim">5</td>
+    <td class="n up">+5</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">08L/26R·08R/26L·09L/27R·09R/27L 四条平行 + 10/28 横向；双侧起降</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">ORD</td>
+    <td class="n">8</td>
+    <td class="m">M6</td>
+    <td class="n">220</td>
+    <td class="n dim">232</td>
+    <td class="n dim">6.88</td>
+    <td class="n big">10</td>
+    <td class="n dim">8</td>
+    <td class="n up">+2</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">六条平行(四组) + 10/28 两条横向；交叉滑行牵制</td>
+  </tr><tr data-model="M6" data-sat="C">
+    <td class="code">IAH</td>
+    <td class="n">5</td>
+    <td class="m">M6</td>
+    <td class="n">185</td>
+    <td class="n dim">210</td>
+    <td class="n dim">5.78</td>
+    <td class="n big">8</td>
+    <td class="n dim">5</td>
+    <td class="n up">+3</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">08L/08R·15L/15R 两组远距平行 + 09/27 横向</td>
+  </tr><tr data-model="M6" data-sat="C">
+    <td class="code">DTW</td>
+    <td class="n">6</td>
+    <td class="m">M6</td>
+    <td class="n">181</td>
+    <td class="n dim">206</td>
+    <td class="n dim">5.66</td>
+    <td class="n big">8</td>
+    <td class="n dim">6</td>
+    <td class="n up">+2</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">03L/03R·04L/04R 两组近距平行 + 09L/09R 远距</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">CLT</td>
+    <td class="n">4</td>
+    <td class="m">M6</td>
+    <td class="n">179</td>
+    <td class="n dim">188</td>
+    <td class="n dim">5.59</td>
+    <td class="n big">8</td>
+    <td class="n dim">4</td>
+    <td class="n up">+4</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">18L/18C/18R 三平行 + 05/23 交叉；三平行独立</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">LAX</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">171</td>
+    <td class="n dim">180</td>
+    <td class="n dim">5.34</td>
+    <td class="n big">8</td>
+    <td class="n dim">4</td>
+    <td class="n up">+4</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">06L/06R·07L/07R 两组平行；北侧紧邻对间距 800 英尺</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">MCO</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">165</td>
+    <td class="n dim">188</td>
+    <td class="n dim">5.16</td>
+    <td class="n big">8</td>
+    <td class="n dim">4</td>
+    <td class="n up">+4</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">17L/17R·18L/18R 两组远距平行</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">MSP</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">161</td>
+    <td class="n dim">183</td>
+    <td class="n dim">5.03</td>
+    <td class="n big">7</td>
+    <td class="n dim">4</td>
+    <td class="n up">+3</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">12L/12R 远距平行 + 17/35·04/22 横向</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">MIA</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">141</td>
+    <td class="n dim">160</td>
+    <td class="n dim">4.41</td>
+    <td class="n big">6</td>
+    <td class="n dim">4</td>
+    <td class="n up">+2</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">08L/08R·09/27 三平行 + 12/30 交叉</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">PHX</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">141</td>
+    <td class="n dim">160</td>
+    <td class="n dim">4.41</td>
+    <td class="n big">6</td>
+    <td class="n dim">3</td>
+    <td class="n up">+3</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">07L/07R 近距平行(2100 英尺) + 08/26 远距平行</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">LAS</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">125</td>
+    <td class="n dim">142</td>
+    <td class="n dim">3.91</td>
+    <td class="n big">6</td>
+    <td class="n dim">4</td>
+    <td class="n up">+2</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">01L/01R·08L/08R 两组远距平行，交叉角 30°</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">BOS</td>
+    <td class="n">6</td>
+    <td class="m">M5</td>
+    <td class="n">120</td>
+    <td class="n dim">136</td>
+    <td class="n dim">3.75</td>
+    <td class="n big">5</td>
+    <td class="n dim">6</td>
+    <td class="n down">-1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">04L/04R·09/27·14/32·15L/15R 多向；任一风向只有 4 条可用</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">IST</td>
+    <td class="n">4</td>
+    <td class="m">M6</td>
+    <td class="n">120</td>
+    <td class="n dim">126</td>
+    <td class="n dim">3.75</td>
+    <td class="n big">5</td>
+    <td class="n dim">4</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EST</td>
+    <td class="note">16L/16R·17L/17R 两组远距平行；新枢纽高密度</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">CDG</td>
+    <td class="n">4</td>
+    <td class="m">M6</td>
+    <td class="n">112</td>
+    <td class="n dim">118</td>
+    <td class="n dim">3.50</td>
+    <td class="n big">5</td>
+    <td class="n dim">4</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EC</td>
+    <td class="note">08L/08R·09L/09R 两组远距平行；两组独立，起降分离</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">CAN</td>
+    <td class="n">5</td>
+    <td class="m">M6</td>
+    <td class="n">110</td>
+    <td class="n dim">116</td>
+    <td class="n dim">3.44</td>
+    <td class="n big">5</td>
+    <td class="n dim">5</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">02L/02R 远距平行(2200 米) + 01/19 交叉 + T3 配套新增两条(2025)</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">AMS</td>
+    <td class="n">6</td>
+    <td class="m">M6</td>
+    <td class="n">106</td>
+    <td class="n dim">112</td>
+    <td class="n dim">3.31</td>
+    <td class="n big">5</td>
+    <td class="n dim">6</td>
+    <td class="n down">-1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">ACL</td>
+    <td class="note">18R/18C/18L 三平行 + 06/24·09/27·04/22 三条横向</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">SEA</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">106</td>
+    <td class="n dim">120</td>
+    <td class="n dim">3.31</td>
+    <td class="n big">5</td>
+    <td class="n dim">3</td>
+    <td class="n up">+2</td>
+    <td class="sat sC">临界</td>
+    <td class="src">FAA</td>
+    <td class="note">16L/16C/16R 三平行，间距 800–1700 英尺；相关/独立混合</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">SFO</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">105</td>
+    <td class="n dim">111</td>
+    <td class="n dim">3.28</td>
+    <td class="n big">5</td>
+    <td class="n dim">4</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">01L/01R·10L/10R 两组近距平行(750 英尺)；各组一起一降 + 海雾</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">HND</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">90</td>
+    <td class="n dim">95</td>
+    <td class="n dim">2.81</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EST</td>
+    <td class="note">16R/16L 远距平行 + 04/22·05/23 交叉；时刻上限 90</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">ICN</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">90</td>
+    <td class="n dim">102</td>
+    <td class="n dim">2.81</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">15L/15R·16/34 两组平行</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">MAD</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">90</td>
+    <td class="n dim">102</td>
+    <td class="n dim">2.81</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">14L/14R·18L/18R 两组远距平行；受空域限制</td>
+  </tr><tr data-model="M4" data-sat="S">
+    <td class="code">MUC</td>
+    <td class="n">2</td>
+    <td class="m">M4</td>
+    <td class="n">90</td>
+    <td class="n dim">95</td>
+    <td class="n dim">2.81</td>
+    <td class="n big">4</td>
+    <td class="n dim">2</td>
+    <td class="n up">+2</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EC</td>
+    <td class="note">08L/08R 远距平行(2300 米)；双跑独立 + 高密度间隔优化</td>
+  </tr><tr data-model="M6" data-sat="C">
+    <td class="code">YYZ</td>
+    <td class="n">5</td>
+    <td class="m">M6</td>
+    <td class="n">90</td>
+    <td class="n dim">102</td>
+    <td class="n dim">2.81</td>
+    <td class="n big">4</td>
+    <td class="n dim">5</td>
+    <td class="n down">-1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">06L/06R·15L/15R 两组交叉平行 + 05/23；同风向只用一组</td>
+  </tr><tr data-model="M4" data-sat="S">
+    <td class="code">JFK</td>
+    <td class="n">4</td>
+    <td class="m">M4</td>
+    <td class="n">89</td>
+    <td class="n dim">94</td>
+    <td class="n dim">2.78</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">04L/04R·13L/13R 两组交叉；同一时间只用一组，等效双跑</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">FCO</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">88</td>
+    <td class="n dim">100</td>
+    <td class="n dim">2.75</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">16L/16R 远距平行 + 07/25·16/34 交叉</td>
+  </tr><tr data-model="M4" data-sat="S">
+    <td class="code">LHR</td>
+    <td class="n">2</td>
+    <td class="m">M4</td>
+    <td class="n">88</td>
+    <td class="n dim">93</td>
+    <td class="n dim">2.75</td>
+    <td class="n big">4</td>
+    <td class="n dim">2</td>
+    <td class="n up">+2</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">ACL</td>
+    <td class="note">09L/09R 双跑混合运行（一起一降可按需反转）；跑道利用率 98%</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">PEK</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">88</td>
+    <td class="n dim">93</td>
+    <td class="n dim">2.75</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">18L/18R 远距平行(1960 米) + 01/19 交叉；交叉跑受侧风限制</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">PKX</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">88</td>
+    <td class="n dim">100</td>
+    <td class="n dim">2.75</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">17L/17R·01L/01R 两组远距平行；初期三纵一横</td>
+  </tr><tr data-model="M4" data-sat="S">
+    <td class="code">CPH</td>
+    <td class="n">3</td>
+    <td class="m">M4</td>
+    <td class="n">83</td>
+    <td class="n dim">87</td>
+    <td class="n dim">2.59</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EC</td>
+    <td class="note">04L/04R 远距平行(1900 米) + 12/30 横向；双跑独立高吞吐</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">DEL</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">80</td>
+    <td class="n dim">84</td>
+    <td class="n dim">2.50</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EST</td>
+    <td class="note">09/27·10/28·11/29 三条平行，间距 1500–2000 米</td>
+  </tr><tr data-model="M6" data-sat="S">
+    <td class="code">FRA</td>
+    <td class="n">4</td>
+    <td class="m">M6</td>
+    <td class="n">80</td>
+    <td class="n dim">84</td>
+    <td class="n dim">2.50</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EC</td>
+    <td class="note">07C/07R/07L 三平行 + 18 单向着陆跑道</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">TFU</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">80</td>
+    <td class="n dim">91</td>
+    <td class="n dim">2.50</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">01/19·02/20 远距平行 + 11/29 横向</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">CKG</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">78</td>
+    <td class="n dim">82</td>
+    <td class="n dim">2.44</td>
+    <td class="n big">4</td>
+    <td class="n dim">4</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">02L/02R 远距平行(1400 米) + 03/21 交叉 + 第四跑(2024)</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">SYD</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">78</td>
+    <td class="n dim">89</td>
+    <td class="n dim">2.44</td>
+    <td class="n big">4</td>
+    <td class="n dim">3</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">16R/16L 平行(500 米) + 07/25 交叉</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">KUL</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">76</td>
+    <td class="n dim">86</td>
+    <td class="n dim">2.38</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">14L/14R 远距平行 + 15/33 交叉</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">PVG</td>
+    <td class="n">4</td>
+    <td class="m">M5</td>
+    <td class="n">74</td>
+    <td class="n dim">78</td>
+    <td class="n dim">2.31</td>
+    <td class="n big">3</td>
+    <td class="n dim">4</td>
+    <td class="n down">-1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">16L/16R(460 米)·17L/17R(440 米) 两组近距平行，两组间距 2260 米</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">BKK</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">72</td>
+    <td class="n dim">82</td>
+    <td class="n dim">2.25</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">01L/01R 远距平行(2200 米)</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">ARN</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">70</td>
+    <td class="n dim">80</td>
+    <td class="n dim">2.19</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">01L/01R 远距平行 + 08/26 横向</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">HKG</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">70</td>
+    <td class="n dim">80</td>
+    <td class="n dim">2.19</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">07L/07R 远距平行(2000 米) + 07C 第三跑(2022)；空域受限</td>
+  </tr><tr data-model="M5" data-sat="S">
+    <td class="code">KMG</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">70</td>
+    <td class="n dim">74</td>
+    <td class="n dim">2.19</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">03/21·04/22 远距平行(1950 米) + 东二跑(2026)</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">SIN</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">70</td>
+    <td class="n dim">80</td>
+    <td class="n dim">2.19</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">02L/02R·02C 平行(1800 米)；双跑独立高密度</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">ZRH</td>
+    <td class="n">3</td>
+    <td class="m">M2</td>
+    <td class="n">68</td>
+    <td class="n dim">77</td>
+    <td class="n dim">2.13</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">16/34·14/32·10/28 三条全部交叉；任何风向只有双跑可用</td>
+  </tr><tr data-model="M4" data-sat="S">
+    <td class="code">DXB</td>
+    <td class="n">2</td>
+    <td class="m">M4</td>
+    <td class="n">66</td>
+    <td class="n dim">69</td>
+    <td class="n dim">2.06</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">ACL</td>
+    <td class="note">12L/12R 远距平行(1300 米)；混合运行，峰值 66/时，日 1396</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">VIE</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">66</td>
+    <td class="n dim">75</td>
+    <td class="n dim">2.06</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">11/29·16/34 双跑交叉(夹角 90°)；只能一起一降</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">NRT</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">64</td>
+    <td class="n dim">73</td>
+    <td class="n dim">2.00</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">16R/16L 远距平行(2000 米)</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">SVO</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">64</td>
+    <td class="n dim">73</td>
+    <td class="n dim">2.00</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">06L/06R 远距平行(2000 米)</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">CGK</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">62</td>
+    <td class="n dim">70</td>
+    <td class="n dim">1.94</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">07L/07R 远距平行(2000 米)</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">BCN</td>
+    <td class="n">3</td>
+    <td class="m">M2</td>
+    <td class="n">61</td>
+    <td class="n dim">69</td>
+    <td class="n dim">1.91</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EC</td>
+    <td class="note">06L/06R 平行(1000 米) + 02/20 横向；平行近距只能一起一降</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">DOH</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">60</td>
+    <td class="n dim">68</td>
+    <td class="n dim">1.88</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">16L/16R 远距平行(2000 米)</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">SZX</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">60</td>
+    <td class="n dim">68</td>
+    <td class="n dim">1.88</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">15/33·16/34 近距平行(1600 米) + 新三跑(2024)</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">CAI</td>
+    <td class="n">3</td>
+    <td class="m">M2</td>
+    <td class="n">58</td>
+    <td class="n dim">66</td>
+    <td class="n dim">1.81</td>
+    <td class="n big">3</td>
+    <td class="n dim">3</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">05L/05R 平行 + 16/34 交叉</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">GRU</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">58</td>
+    <td class="n dim">66</td>
+    <td class="n dim">1.81</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">09L/09R 远距平行(1500 米)</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">KIX</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">58</td>
+    <td class="n dim">66</td>
+    <td class="n dim">1.81</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">06R/06L 远距平行(填海人工岛)</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">MEL</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">58</td>
+    <td class="n dim">66</td>
+    <td class="n dim">1.81</td>
+    <td class="n big">3</td>
+    <td class="n dim">2</td>
+    <td class="n up">+1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">16/34·09/27 双跑交叉</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">BNE</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">54</td>
+    <td class="n dim">61</td>
+    <td class="n dim">1.69</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">01L/01R 远距平行(2200 米)</td>
+  </tr><tr data-model="M2" data-sat="S">
+    <td class="code">CTU</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">52</td>
+    <td class="n dim">55</td>
+    <td class="n dim">1.63</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">02L/02R 平行(1335 米)；相关平行进近，多数一起一降</td>
+  </tr><tr data-model="M1" data-sat="S">
+    <td class="code">SAN</td>
+    <td class="n">1</td>
+    <td class="m">M1</td>
+    <td class="n">52</td>
+    <td class="n dim">55</td>
+    <td class="n dim">1.63</td>
+    <td class="n big">2</td>
+    <td class="n dim">1</td>
+    <td class="n up">+1</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">FAA</td>
+    <td class="note">09/27 单跑道；快速脱离道完善，单跑吞吐极高</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">XIY</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">51</td>
+    <td class="n dim">58</td>
+    <td class="n dim">1.59</td>
+    <td class="n big">2</td>
+    <td class="n dim">3</td>
+    <td class="n down">-1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">CAAC</td>
+    <td class="note">05L/05R 远距平行(2100 米) + 06/24 交叉</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">BOG</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">50</td>
+    <td class="n dim">57</td>
+    <td class="n dim">1.56</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">13L/13R 远距平行(1500 米)；高原</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">TPE</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">50</td>
+    <td class="n dim">57</td>
+    <td class="n dim">1.56</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">05L/05R 远距平行(1500 米)</td>
+  </tr><tr data-model="M2" data-sat="S">
+    <td class="code">BOM</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">46</td>
+    <td class="n dim">48</td>
+    <td class="n dim">1.44</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EST</td>
+    <td class="note">09/27·14/32 双跑交叉(60°)；起降互相干扰</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">HGH</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">45</td>
+    <td class="n dim">51</td>
+    <td class="n dim">1.41</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">CAAC</td>
+    <td class="note">07/25·06/24 平行(1920 米)</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">URC</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">44</td>
+    <td class="n dim">50</td>
+    <td class="n dim">1.38</td>
+    <td class="n big">2</td>
+    <td class="n dim">3</td>
+    <td class="n down">-1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">CAAC</td>
+    <td class="note">07/25·06/24 远距平行 + 第三跑；第三跑未独立运行</td>
+  </tr><tr data-model="M2" data-sat="S">
+    <td class="code">SHA</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">43</td>
+    <td class="n dim">45</td>
+    <td class="n dim">1.34</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">18L/18R 近距平行(365 米)；只能一起一降，空域受制</td>
+  </tr><tr data-model="M2" data-sat="S">
+    <td class="code">MNL</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">42</td>
+    <td class="n dim">44</td>
+    <td class="n dim">1.31</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">EST</td>
+    <td class="note">06/24·13/31 双跑交叉(90°)；只能一起一降</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">SCL</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">40</td>
+    <td class="n dim">45</td>
+    <td class="n dim">1.25</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">17L/17R 远距平行</td>
+  </tr><tr data-model="M3" data-sat="C">
+    <td class="code">LIM</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">38</td>
+    <td class="n dim">43</td>
+    <td class="n dim">1.19</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">15L/15R 远距平行</td>
+  </tr><tr data-model="M3" data-sat="F">
+    <td class="code">NKG</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">38</td>
+    <td class="n dim">51</td>
+    <td class="n dim">1.19</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sF">富余</td>
+    <td class="src">CAAC</td>
+    <td class="note">06/24·07/25 平行(2000 米)；流量未饱和</td>
+  </tr><tr data-model="M5" data-sat="C">
+    <td class="code">WUH</td>
+    <td class="n">3</td>
+    <td class="m">M5</td>
+    <td class="n">36</td>
+    <td class="n dim">41</td>
+    <td class="n dim">1.13</td>
+    <td class="n big">2</td>
+    <td class="n dim">3</td>
+    <td class="n down">-1</td>
+    <td class="sat sC">临界</td>
+    <td class="src">CAAC</td>
+    <td class="note">04L/04R 远距平行(2100 米) + 第三跑(2025 初)；第三跑未形成独立运行</td>
+  </tr><tr data-model="M2" data-sat="S">
+    <td class="code">CSX</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">33</td>
+    <td class="n dim">35</td>
+    <td class="n dim">1.03</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">18L/18R 平行(380 米)；近距只能一起一降</td>
+  </tr><tr data-model="M2" data-sat="C">
+    <td class="code">KWE</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">33</td>
+    <td class="n dim">38</td>
+    <td class="n dim">1.03</td>
+    <td class="n big">2</td>
+    <td class="n dim">2</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">01L/01R 平行近距</td>
+  </tr><tr data-model="M1" data-sat="S">
+    <td class="code">XMN</td>
+    <td class="n">1</td>
+    <td class="m">M1</td>
+    <td class="n">32</td>
+    <td class="n dim">34</td>
+    <td class="n dim">1.00</td>
+    <td class="n big">1</td>
+    <td class="n dim">1</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">05/23 单跑道；高负荷，单跑已压到极限</td>
+  </tr><tr data-model="M3" data-sat="F">
+    <td class="code">TAO</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">31</td>
+    <td class="n dim">41</td>
+    <td class="n dim">0.97</td>
+    <td class="n big">1</td>
+    <td class="n dim">2</td>
+    <td class="n down">-1</td>
+    <td class="sat sF">富余</td>
+    <td class="src">CAAC</td>
+    <td class="note">17L/17R 远距平行；流量未饱和</td>
+  </tr><tr data-model="M3" data-sat="F">
+    <td class="code">HRB</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">30</td>
+    <td class="n dim">40</td>
+    <td class="n dim">0.94</td>
+    <td class="n big">1</td>
+    <td class="n dim">2</td>
+    <td class="n down">-1</td>
+    <td class="sat sF">富余</td>
+    <td class="src">EST</td>
+    <td class="note">05/23 + 新二跑，远距平行</td>
+  </tr><tr data-model="M1" data-sat="C">
+    <td class="code">TNA</td>
+    <td class="n">1</td>
+    <td class="m">M1</td>
+    <td class="n">28</td>
+    <td class="n dim">32</td>
+    <td class="n dim">0.88</td>
+    <td class="n big">1</td>
+    <td class="n dim">1</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">01/19 单跑道</td>
+  </tr><tr data-model="M2" data-sat="F">
+    <td class="code">HAK</td>
+    <td class="n">2</td>
+    <td class="m">M2</td>
+    <td class="n">27</td>
+    <td class="n dim">36</td>
+    <td class="n dim">0.84</td>
+    <td class="n big">1</td>
+    <td class="n dim">2</td>
+    <td class="n down">-1</td>
+    <td class="sat sF">富余</td>
+    <td class="src">CAAC</td>
+    <td class="note">09/27·10/28 平行近距</td>
+  </tr><tr data-model="M1" data-sat="C">
+    <td class="code">ZUH</td>
+    <td class="n">1</td>
+    <td class="m">M1</td>
+    <td class="n">25</td>
+    <td class="n dim">28</td>
+    <td class="n dim">0.78</td>
+    <td class="n big">1</td>
+    <td class="n dim">1</td>
+    <td class="n ">0</td>
+    <td class="sat sC">临界</td>
+    <td class="src">EST</td>
+    <td class="note">05/23 单跑道</td>
+  </tr><tr data-model="M3" data-sat="F">
+    <td class="code">TSN</td>
+    <td class="n">2</td>
+    <td class="m">M3</td>
+    <td class="n">24</td>
+    <td class="n dim">32</td>
+    <td class="n dim">0.75</td>
+    <td class="n big">1</td>
+    <td class="n dim">2</td>
+    <td class="n down">-1</td>
+    <td class="sat sF">富余</td>
+    <td class="src">CAAC</td>
+    <td class="note">16L/16R 远距平行；流量未饱和</td>
+  </tr><tr data-model="M1" data-sat="S">
+    <td class="code">SYX</td>
+    <td class="n">1</td>
+    <td class="m">M1</td>
+    <td class="n">20</td>
+    <td class="n dim">21</td>
+    <td class="n dim">0.63</td>
+    <td class="n big">1</td>
+    <td class="n dim">1</td>
+    <td class="n ">0</td>
+    <td class="sat sS">饱和</td>
+    <td class="src">CAAC</td>
+    <td class="note">09/27 单跑道；旅游旺季饱和</td>
+  </tr></tbody></table>
+
+<p class="foot">m 模型：M1 单跑 / M2 单组紧耦合 / M3 单组独立 / M4 单组饱和 / M5 双组 / M6 多组。
+k = 申报容量 ÷ 32（32 = 中国单跑道申报中位数，视为「一条标准跑道」）。物理上限为估算：申报 ÷ 利用率（饱和 0.95 / 临界 0.88 / 富余 0.75）。</p>
+</div>
+<script>
+const tb=document.getElementById('tb'),q=document.getElementById('q'),fm=document.getElementById('fm'),fs=document.getElementById('fs');
+const all=[...tb.tBodies[0].rows];
+function apply(){const s=q.value.trim().toUpperCase(),m=fm.value,x=fs.value;
+ all.forEach(r=>{const ok=(!s||r.cells[0].textContent.includes(s))&&(!m||r.dataset.model===m)&&(!x||r.dataset.sat===x);r.style.display=ok?'':'none';});}
+q.oninput=apply;fm.onchange=apply;fs.onchange=apply;
+let dir={};
+[...tb.tHead.rows[0].cells].forEach(th=>th.onclick=()=>{const i=+th.dataset.i;dir[i]=!dir[i];
+ const num=i===1||i===3||i===4||i===5||i===6||i===7||i===8;
+ all.sort((a,b)=>{let x=a.cells[i].textContent.trim(),y=b.cells[i].textContent.trim();
+  if(num){x=parseFloat(x)||0;y=parseFloat(y)||0;}else{return dir[i]?x.localeCompare(y):y.localeCompare(x);}
+  return dir[i]?x-y:y-x;});
+ all.forEach(r=>tb.tBodies[0].appendChild(r));});
+</script></body></html>

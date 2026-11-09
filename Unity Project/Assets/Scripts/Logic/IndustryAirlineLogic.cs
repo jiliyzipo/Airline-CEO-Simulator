@@ -601,11 +601,13 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
-        /// 某一刻的需求权重（0..1）：该小时容量 ÷ 该机场全天峰值小时容量。
+        /// 某一刻的需求权重（0..1）—— **他航落位的偏好**，与「容量」是两件事。
         ///
-        /// 用容量曲线本身当权重，比另写一份「早高峰 07–09、晚高峰 18–20」的硬编码更好：
-        /// 大兴的高峰在 09 时、厦门在 19 时、迪拜整夜都忙 —— 一份硬编码照顾不到这些差异，
-        /// 而现实曲线本来就已经把「哪一小时忙」写清楚了。
+        /// ★2026-11-09：容量改为「跑数平铺」后，容量本身不再携带「哪一小时更旺」的信息
+        /// （每刻都是跑道数）。若继续拿容量当权重，权重会全部相等，落位退化成
+        /// 「从这一波的第一刻往后逐刻填满」—— 于是 00:00 排满、09:00 空着，看着就是 bug。
+        /// 故权重改用与槽价同一张 <see cref="StrategyEconomics.HourDemandCoef"/>：
+        /// **容量不设峰谷，需求仍有峰谷**。
         /// </summary>
         public static float DemandWeight(string airport, string clock)
         {
@@ -613,9 +615,8 @@ namespace AirlineCEO.Logic
         }
 
         /// <summary>
-        /// 该机场**全天峰值小时容量**。★2026-11-07 性能：由 <see cref="DemandWeight"/> 拆出来，
-        /// 让同一机场的一段刻只算一次峰值（旧版每个刻都要重扫 24 小时）。
-        /// 容量表 <c>AirportCatalog.AirportHourRates</c> 是只读常量，故这个值在运行期不变。
+        /// 该机场**全天峰值小时容量**（仅用于「这机场到底有没有槽」的守卫：
+        /// 平铺后所有开放刻容量相同，本值 = 4 × 跑道数）。
         /// </summary>
         static int PeakHourCapacity(string airport)
         {
@@ -632,9 +633,15 @@ namespace AirlineCEO.Logic
         static float WeightAt(string airport, string clock, int peak)
         {
             if (peak <= 0) return 0f;
-            int hour = ScheduleSlots.ParseClock(clock) / 60;
-            return (float)AirportCatalog.HourCapacity(airport, hour) / peak;
+            int m = ScheduleSlots.ParseClock(clock);
+            if (m < 0) return 0f;
+            int hour = m / 60;
+            // 需求形状复用槽价那张表（08 时最挤、00–05 时最淡），再归一到 0..1。
+            return StrategyEconomics.HourDemandCoef[hour] / PeakDemandCoef;
         }
+
+        /// <summary><see cref="StrategyEconomics.HourDemandCoef"/> 的最大值（= 08 时的 1.05），用于归一到 0..1。</summary>
+        const float PeakDemandCoef = 1.05f;
 
         /// <summary>
         /// 我司在每一刻的落位：**一条持仓一格**，优先落在自己的钟点上；该刻已被自己前一条

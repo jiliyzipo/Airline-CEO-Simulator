@@ -1354,8 +1354,8 @@ namespace AirlineCEO.EditorTools
                           + $"（枢纽=0 / 干线=1 / 支线=2，由 CityEconomyCatalog 客流/货邮推导）");
                 var capHub = AirportCatalog.SlotCapacity("SZX");
                 var capTrunk = AirportCatalog.SlotCapacity("SYX");
-                Debug.Log($"时刻池 → SZX 早/中/晚/夜 = [{string.Join(",", capHub)}]（期望 12/12/14/8）"
-                          + $"　SYX = [{string.Join(",", capTrunk)}]"
+                Debug.Log($"时刻池 → SZX 早/中/晚/夜 = [{string.Join(",", capHub)}]（期望 120/60/60/48 = 3 跑道 × 40/20/20/16 刻）"
+                          + $"　SYX = [{string.Join(",", capTrunk)}]（期望 40/20/20/16 = 单跑道）"
                           + $"　SZX 协调机场={AirportCatalog.IsCoordinated("SZX")}（期望 True）"
                           + $"　SYX 协调机场={AirportCatalog.IsCoordinated("SYX")}");
 
@@ -1916,6 +1916,11 @@ namespace AirlineCEO.EditorTools
                 CeoCommandRegression.Run();
                 // 2026-10-21：机场目录 / 城市经济 / 经纬度三表必须同集合（经济表会生成接管航司）。
                 AirportCatalogRegression.Run();
+
+                // 2026-11-09 批次一：容量服务抽取必须逐格零差异，机场索引必须与线性扫描同语义。
+                CapacityServiceRegression.Run();
+                // 2026-11-09 批次一：判据层全等之外，还要走真实申请序列（批准/驳回、持仓、资金）。
+                SlotSequenceRegression.Run();
 
                 // 2026-10-21：局内跑道必须并入还本付息（选司 8 个月 ≠ 局内 9.7 个月的老事故）。
                 RunwayDebtRegression.Run();

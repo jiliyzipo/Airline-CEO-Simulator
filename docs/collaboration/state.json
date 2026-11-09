@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 1013,
-  "updatedAt": "2026-11-08T05:20:01.260Z",
+  "revision": 1021,
+  "updatedAt": "2026-11-09T12:28:59.641Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -135,7 +135,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.212Z"
     },
@@ -144,7 +144,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-27T01:33:25.671Z"
     },
@@ -378,7 +378,7 @@
       "devStatus": "ready_for_review",
       "reviewStatus": "passed",
       "holder": null,
-      "freshness": "archived",
+      "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-10-31T03:15:07.495Z"
     },
@@ -552,6 +552,15 @@
       "freshness": "stale",
       "taskBookStatus": null,
       "updatedAt": "2026-11-07T14:38:00.189Z"
+    },
+    "S50-Batch1SlotCapacity": {
+      "title": "阶段 S50-Batch1SlotCapacity：Editor/UI/Data",
+      "devStatus": "todo",
+      "reviewStatus": "not_run",
+      "holder": null,
+      "freshness": "unknown",
+      "taskBookStatus": null,
+      "updatedAt": "2026-11-09T12:28:36.362Z"
     }
   },
   "lastDeliveryId": "DEL-20261107143823-54ca1d",

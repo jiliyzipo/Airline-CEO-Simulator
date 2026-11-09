@@ -165,9 +165,28 @@ namespace AirlineCEO.Data
             new AirportInfo { code = "PER", nameZh = "珀斯", nameEn = "Perth" },
         };
 
+        /// <summary>
+        /// 代码 → <see cref="All"/> 下标。★2026-11-09 批次一（M1）新增。
+        ///
+        /// 此前 `FindByCode` 是 104 次逐个 <c>string.Equals(OrdinalIgnoreCase)</c> 的线性扫描，
+        /// 而它在「机场时刻」页一次刷新里会被调上千次（<see cref="Label"/> / <see cref="SlotCapacity"/>
+        /// 都经它转发）。改成字典后是 O(1)，**对外语义一字未变**：
+        /// 大小写不敏感、找不到仍返回 `default(AirportInfo)`、`All` 数组与存档写出内容都没动。
+        ///
+        /// 比较器必须仍是 <see cref="StringComparer.OrdinalIgnoreCase"/> —— 用不变文化比较器
+        /// 会在土耳其语 "I/ı" 这类环境下把 ICN 判错，属于典型的「换机器才炸」。
+        /// </summary>
+        static readonly Dictionary<string, int> _indexByCode =
+            new Dictionary<string, int>(All.Length, StringComparer.OrdinalIgnoreCase);
+
         // —— P1：等级 / 协调 / 槽池容量 / 宵禁 全部由底表推导，不手工录入 ——
         static AirportCatalog()
         {
+            // ★2026-11-09 批次一（M1）：先建代码索引再逐个推导。
+            // 顺序有讲究 —— 索引只依赖 `code`，而 `code` 在字段初始化器里就已全部写入；
+            // 等级 / 协调时段则要等循环逐行推导，所以索引可以早建、属性必须晚用。
+            for (int i = 0; i < All.Length; i++) _indexByCode[All[i].code] = i;
+
             for (int i = 0; i < All.Length; i++)
             {
                 var a = All[i];
@@ -178,222 +197,177 @@ namespace AirlineCEO.Data
                 a.tier = TierWithPromotion(a.code, TierOf(pax, cargo));
                 a.coordinated = a.tier <= 1;
                 a.coordWindow = CoordWindowFor(a.code, a.tier);
-                a.slotCapacity = new[]
-                {
-                    BandCapacity(a.code, a.coordWindow, a.tier, 0),
-                    BandCapacity(a.code, a.coordWindow, a.tier, 1),
-                    BandCapacity(a.code, a.coordWindow, a.tier, 2),
-                    BandCapacity(a.code, a.coordWindow, a.tier, 3),
-                };
+                // 池容量是**派生缓存**，唯一算法在 CapacityService（C0：跑道数平铺）。
+                a.slotCapacity = CapacityService.Pools(a.code, a.tier, a.coordWindow);
                 a.curfew = CurfewWindowOf(a.code);
                 All[i] = a;
             }
         }
 
-        // ————————————————— 容量：小时容量 → 15 分钟容量（★2026-11-05）—————————————————
+        // ————————————————— 容量：每条跑道每刻 1 条槽（★2026-11-09 用户裁决）—————————————————
         //
-        // 现实锚点：《民航航班时刻管理办法》第七条 —— 协调参数是「机场特定 1 小时或者
-        // 15 分钟内可提供的航班时刻数量」。故容量先按**小时**定义，再按确定性规则分配到
-        // 该小时的 4 个 15 分钟窗口；两套读数出自同一份数据，不会互相打脸。
+        // 用户 2026-11-09：「为什么时刻槽要设置峰刻容量？机场有多少条跑道就释放多少条时刻容量，
+        // 不要设置峰刻。」—— 此前那套「逐场现实小时曲线 × 1/3.5 → 拆到四个 15 分钟刻」整段作废。
+        // 旧口径让同一机场的容量随钟点起伏（大机场早高峰 4–5 条、凌晨 1 条），玩家看到的是
+        // 「跑道一条没变，容量却在变」，与「跑道决定容量」的直觉正面冲突。
         //
-        // 分配规则（对小时容量 r，见 <see cref="QuarterSplit"/>）：
-        //   r=1 → :00 1 条；r=2 → :00 :15 各 1 条；r=3 → :00 2 条 + :15 1 条；
-        //   r=4 → :00 2 + :15 :30 各 1；r=5 → :00 2 + 其余各 1；
-        //   r=6 → :00 :15 各 2 + :30 :45 各 1；r≥7 → 均分 base=r/4，余数优先给靠前的刻。
-        //   r=0 → 该小时无槽。
+        // 新口径只有一条：
+        //     **协调时段内、且不在宵禁中的每一个 15 分钟刻 = 跑道数 × 每跑道槽数 条槽。**
+        //     「每跑道槽数」这一旋钮 2026-11-09 批次一已随算法迁到
+        //     <see cref="CapacityService.SlotsPerRunwayPerQuarter"/>，此处不再保留第二份。
         //
-        // 数值标定（★2026-11-07 改口径）：旧版是「峰值维持、新增只落在肩峰与夜间」的两档死表
-        // （枢纽日合计 56、干线 33），摊到四刻必然每刻 1 条，正是用户报的「容量恒为 1」。
-        // 现改为逐场真实全天曲线 × 1/3.5（见 <see cref="AirportHourRates"/>）：枢纽日容量
-        // 升至 169–313 条，峰刻 3–6 条；干线 74–104 条，峰刻 2–3 条。
+        // 折损在哪：一条跑道现实小时容量约 30–40 架次（起降合计），折成单向约 15–20，
+        // 即每刻 4–5 条。本作取 1，等于对跑道吞吐做约 4 倍压缩 —— 与旧版 1/3.5 同量级，
+        // 但**不再随机场、随时段漂移**。
+        //
+        // 保留的两层限制（都不是「峰刻」）：
+        //   ① 协调时段 —— 辅协调机场只在窗口内需要槽（如珠海 07:00–23:00）。
+        //   ② 宵禁 —— 物理禁飞，容量记 0（PEK / EEA / NRT 等），界面仍显示「不开放」。
+        //
+        // ★「跑道数」有两种读法，别混：
+        //   · **物理跑道**（AirportRunways.Counts）= 建成投运了几条，报表与它对账；
+        //   · **等效跑道**（见下方 Overrides）= 每刻实际放几条槽，容量只看这个。
+        //   默认两者相等；申报容量超过跑道数的机场（用户模型：LHR / DXB 靠混合起降）
+        //   在 Overrides 里记等效值 + 一句理由，其余机场不开口子。
+        //
+        // 后果（2026-11-09 实测，等效表为空时）：81 场跑道合计 248 条 → 单池日容量 22,260
+        // （旧曲线口径 12,126）。多跑道枢纽变大（ORD 8 → 768/日、CAN 5 → 480/日），
+        // 双跑道的繁忙机场变小（DXB / BKK / SIN → 192/日）。详细对照见
+        // docs/handoff/2026-11-09_时刻容量改为跑道数.md。
 
-        /// <summary>枢纽每小时可分配槽数（下标 = 小时）。日合计 56。</summary>
-        static readonly int[] HubHourRate =
-        {
-            0, 0, 0, 0, 0, 0,                        // 00–05：宵禁/无需求
-            3, 4, 4, 4,                              // 06–09：早高峰
-            1, 3, 5, 5, 2, 1,                        // 10–15：午高峰 + 午后低谷
-            4, 4, 4, 4,                              // 16–19：晚高峰（全天最旺）
-            3, 2, 2, 1                               // 20–23：夜
-        };
-
-        /// <summary>干线每小时可分配槽数。日合计 33。</summary>
-        static readonly int[] MainHourRate =
-        {
-            0, 0, 0, 0, 0, 0,                        // 00–05
-            2, 2, 3, 2,                              // 06–09
-            1, 2, 3, 3, 1, 1,                        // 10–15
-            2, 2, 3, 2,                              // 16–19
-            2, 1, 1, 0                               // 20–23
-        };
+        // ★2026-11-09 批次一：每跑道槽数常量已迁到 CapacityService.SlotsPerRunwayPerQuarter。
+        // 此处不再保留第二份 —— 「唯一来源」不是口号：留一个同名副本，
+        // 日后两处不一致就会让表格与玩法分叉。
 
         /// <summary>
-        /// **逐场**每小时可分配槽数（单方向，下标 = 小时）。★2026-11-07。
-        ///
-        /// 为什么不再用「枢纽 / 干线两张 24 格表」：那两张表是手工调的，峰谷比 5 倍，
-        /// 而现实机场 7–22 时的峰谷比只有 1.28；更要命的是日总量只有 56 / 33 条，
-        /// 摊到四个 15 分钟刻就必然「每刻 1 条」—— 玩家看到的「容量 1 条」就是这么来的。
-        ///
-        /// 本表的数 = 各地机场**现实离港架次 ÷ 3.5**，形状取 CAAC 逐小时实测
-        /// （中国 23 场见对照表 §5.1 / §5.2）或逐场公开曲线（境外 61 场见 §10.5）。
-        /// 用户 2026-11-06 裁决：走「真实全天曲线 + 统一压缩比 1/3.5」。
-        ///
-        /// 表里没有的机场（如 MFM / SHE / LHW）回落到等级曲线 × <see cref="LegacyScale"/>，
-        /// 保证「有协调属性就一定有槽」。
+        /// 该机场**物理跑道数**（建成并投入运行的条数；含交叉跑道）。
+        /// 表内没有的机场按等级回落，保证「有协调属性就一定有槽」。
         /// </summary>
-        static readonly Dictionary<string, int[]> AirportHourRates = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase)
+        static int PhysicalRunwayCountOf(string code, int tier)
         {
-        // —— 中国主协调机场（CAAC 实测全天曲线 × 1/3.5，来源见对照表 §5.1 / §5.2）——
-            { "CAN", new[] { 5, 3, 1, 1, 1, 1, 4, 9, 10, 11, 11, 11, 12, 11, 11, 11, 12, 12, 11, 12, 11, 11, 10, 8 } },
-            { "CKG", new[] { 3, 2, 1, 1, 1, 1, 3, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 7, 7, 6, 5 } },
-            { "CSX", new[] { 2, 1, 1, 0, 0, 0, 2, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 5, 4, 3 } },
-            { "CTU", new[] { 2, 1, 1, 0, 1, 1, 2, 4, 4, 4, 5, 5, 5, 4, 5, 4, 5, 5, 4, 5, 4, 4, 4, 3 } },
-            { "DLC", new[] { 1, 0, 0, 0, 0, 0, 1, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2 } },
-            { "FOC", new[] { 1, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 2, 3, 2, 2, 2, 2 } },
-            { "HAK", new[] { 2, 1, 1, 0, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3 } },
-            { "HGH", new[] { 3, 2, 1, 1, 1, 1, 3, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 7, 7, 6, 5 } },
-            { "KMG", new[] { 3, 2, 1, 1, 1, 1, 3, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 7, 7, 6, 5 } },
-            { "NKG", new[] { 2, 1, 1, 1, 1, 1, 2, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4 } },
-            { "PEK", new[] { 5, 3, 2, 2, 2, 2, 4, 8, 9, 9, 9, 10, 9, 9, 10, 9, 9, 9, 9, 9, 9, 8, 8, 6 } },
-            { "PKX", new[] { 3, 2, 1, 1, 1, 1, 1, 5, 7, 8, 7, 7, 7, 7, 7, 7, 8, 8, 7, 8, 6, 7, 6, 5 } },
-            { "PVG", new[] { 7, 4, 3, 2, 3, 3, 5, 8, 10, 12, 11, 10, 11, 11, 11, 11, 11, 11, 11, 11, 10, 11, 10, 8 } },
-            { "SHA", new[] { 3, 1, 1, 1, 1, 1, 2, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5 } },
-            { "SYX", new[] { 1, 1, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2 } },
-            { "SZX", new[] { 5, 2, 1, 1, 1, 1, 3, 8, 8, 9, 9, 9, 10, 9, 9, 9, 10, 10, 9, 10, 9, 9, 8, 7 } },
-            { "TAO", new[] { 2, 1, 1, 0, 0, 0, 1, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3 } },
-            { "TFU", new[] { 4, 2, 1, 1, 1, 1, 3, 7, 8, 8, 8, 8, 9, 8, 8, 8, 9, 9, 8, 9, 8, 8, 7, 6 } },
-            { "TSN", new[] { 2, 1, 1, 0, 1, 0, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 3, 3 } },
-            { "URC", new[] { 2, 1, 1, 0, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3 } },
-            { "WUH", new[] { 2, 1, 1, 0, 1, 0, 2, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 3 } },
-            { "XIY", new[] { 3, 2, 1, 1, 1, 1, 3, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 7, 7, 6, 5 } },
-            { "XMN", new[] { 2, 1, 0, 0, 0, 0, 2, 3, 4, 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4 } },
-
-        // —— 境外机场（逐场实测/推算曲线 × 1/3.5，来源见对照表 §10.5）——
-            { "ADD", new[] { 1, 1, 0, 0, 0, 1, 2, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 4, 3, 2 } },
-            { "AMS", new[] { 0, 0, 0, 0, 0, 0, 3, 10, 11, 12, 12, 12, 12, 12, 11, 12, 12, 12, 12, 11, 11, 11, 7, 4 } },
-            { "ARN", new[] { 0, 0, 0, 0, 0, 0, 1, 5, 5, 6, 6, 6, 5, 6, 5, 5, 6, 6, 5, 5, 5, 5, 3, 2 } },
-            { "ATL", new[] { 4, 2, 1, 1, 1, 5, 12, 18, 21, 19, 17, 18, 20, 18, 17, 19, 21, 19, 18, 20, 17, 13, 8, 4 } },
-            { "BCN", new[] { 0, 0, 0, 0, 0, 0, 2, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 5, 3 } },
-            { "BKK", new[] { 3, 2, 1, 1, 1, 1, 4, 7, 8, 9, 8, 8, 8, 8, 8, 8, 8, 8, 9, 8, 8, 7, 5, 4 } },
-            { "BNE", new[] { 0, 0, 0, 0, 0, 0, 2, 5, 6, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 2, 0 } },
-            { "BOG", new[] { 1, 0, 0, 0, 0, 0, 2, 5, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 7, 6, 4, 3 } },
-            { "BOM", new[] { 2, 1, 0, 0, 0, 1, 2, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2 } },
-            { "BOS", new[] { 2, 1, 1, 0, 1, 3, 7, 11, 13, 12, 10, 11, 12, 11, 10, 12, 13, 12, 11, 12, 11, 8, 5, 3 } },
-            { "CAI", new[] { 2, 1, 0, 0, 0, 1, 3, 5, 7, 8, 8, 8, 8, 7, 7, 7, 7, 8, 7, 7, 6, 5, 4, 2 } },
-            { "CDG", new[] { 0, 0, 0, 0, 0, 0, 3, 9, 11, 12, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 7, 4 } },
-            { "CGK", new[] { 3, 2, 1, 1, 1, 1, 4, 7, 9, 9, 9, 8, 8, 8, 8, 8, 9, 9, 9, 9, 8, 7, 5, 4 } },
-            { "CLT", new[] { 3, 1, 1, 0, 1, 4, 9, 14, 16, 14, 13, 14, 15, 13, 12, 14, 16, 14, 13, 15, 13, 10, 6, 3 } },
-            { "CPH", new[] { 0, 0, 0, 0, 0, 0, 2, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 2 } },
-            { "DEL", new[] { 2, 1, 1, 0, 0, 1, 3, 7, 9, 10, 10, 10, 10, 9, 9, 9, 9, 10, 10, 9, 8, 7, 5, 3 } },
-            { "DEN", new[] { 3, 1, 1, 1, 1, 4, 10, 16, 18, 16, 15, 16, 17, 15, 14, 16, 18, 17, 16, 17, 15, 11, 7, 4 } },
-            { "DFW", new[] { 4, 2, 1, 1, 1, 4, 11, 17, 20, 18, 16, 17, 19, 16, 16, 18, 19, 18, 17, 19, 16, 12, 8, 4 } },
-            { "DOH", new[] { 8, 7, 6, 5, 5, 5, 7, 10, 11, 12, 12, 13, 12, 12, 11, 12, 12, 12, 12, 12, 11, 10, 9, 9 } },
-            { "DTW", new[] { 3, 1, 1, 0, 1, 3, 8, 13, 15, 14, 12, 13, 15, 13, 12, 14, 15, 14, 13, 14, 12, 10, 6, 3 } },
-            { "DXB", new[] { 9, 8, 6, 5, 5, 5, 7, 10, 12, 13, 13, 14, 13, 13, 12, 13, 13, 13, 13, 13, 12, 11, 10, 9 } },
-            { "EZE", new[] { 1, 0, 0, 0, 0, 0, 2, 4, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 6, 5, 4, 2 } },
-            { "FCO", new[] { 0, 0, 0, 0, 0, 0, 2, 6, 7, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 7, 7, 7, 5, 2 } },
-            { "FRA", new[] { 0, 0, 0, 0, 0, 0, 3, 9, 10, 11, 11, 11, 10, 11, 10, 10, 11, 11, 10, 10, 10, 10, 7, 3 } },
-            { "GRU", new[] { 2, 1, 0, 0, 0, 0, 3, 6, 7, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 9, 7, 5, 3 } },
-            { "HEL", new[] { 0, 0, 0, 0, 0, 0, 1, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 3, 1 } },
-            { "HKG", new[] { 3, 2, 1, 1, 1, 1, 4, 8, 9, 9, 9, 8, 8, 8, 8, 8, 9, 9, 9, 9, 8, 7, 6, 4 } },
-            { "HND", new[] { 4, 2, 1, 1, 1, 2, 5, 10, 12, 13, 12, 11, 11, 11, 11, 11, 12, 12, 12, 12, 11, 10, 8, 5 } },
-            { "IAH", new[] { 3, 1, 1, 0, 1, 4, 9, 14, 17, 15, 13, 14, 16, 14, 13, 15, 16, 15, 14, 15, 13, 10, 6, 3 } },
-            { "ICN", new[] { 3, 2, 1, 1, 1, 2, 5, 9, 11, 11, 11, 10, 10, 10, 10, 10, 11, 11, 11, 11, 10, 9, 7, 5 } },
-            { "IST", new[] { 7, 6, 5, 4, 4, 4, 6, 8, 10, 10, 10, 11, 10, 10, 10, 10, 10, 11, 10, 10, 10, 9, 8, 7 } },
-            { "JFK", new[] { 2, 1, 1, 0, 1, 3, 7, 11, 13, 11, 10, 11, 12, 10, 10, 11, 12, 11, 11, 12, 10, 8, 5, 3 } },
-            { "JNB", new[] { 1, 1, 0, 0, 0, 1, 2, 4, 6, 6, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2 } },
-            { "KIX", new[] { 2, 1, 1, 0, 0, 1, 3, 5, 6, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3 } },
-            { "KUL", new[] { 3, 2, 1, 1, 1, 1, 4, 7, 9, 9, 9, 8, 8, 8, 8, 8, 9, 9, 9, 9, 8, 7, 5, 4 } },
-            { "LAS", new[] { 6, 4, 2, 1, 1, 2, 5, 10, 12, 14, 15, 15, 15, 14, 14, 14, 14, 15, 14, 14, 13, 11, 9, 7 } },
-            { "LAX", new[] { 6, 4, 2, 1, 1, 1, 5, 9, 12, 13, 14, 15, 14, 14, 13, 13, 14, 14, 14, 13, 12, 10, 8, 7 } },
-            { "LHR", new[] { 0, 0, 0, 0, 0, 0, 3, 10, 11, 12, 12, 12, 12, 12, 11, 12, 12, 12, 12, 11, 11, 11, 7, 4 } },
-            { "LIM", new[] { 1, 0, 0, 0, 0, 0, 2, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 5, 3, 2 } },
-            { "MAD", new[] { 0, 0, 0, 0, 0, 0, 3, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 9, 6, 3 } },
-            { "MCO", new[] { 6, 3, 2, 1, 1, 1, 4, 8, 11, 12, 13, 13, 13, 12, 12, 12, 12, 12, 12, 12, 11, 9, 8, 6 } },
-            { "MEL", new[] { 0, 0, 0, 0, 0, 0, 2, 6, 7, 7, 7, 7, 7, 6, 7, 7, 7, 7, 7, 7, 6, 5, 3, 0 } },
-            { "MIA", new[] { 5, 3, 1, 1, 1, 1, 4, 8, 10, 11, 12, 12, 12, 11, 11, 11, 11, 12, 11, 11, 10, 9, 7, 6 } },
-            { "MNL", new[] { 2, 1, 1, 0, 0, 1, 2, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 4, 3, 2 } },
-            { "MSP", new[] { 3, 1, 1, 0, 1, 3, 8, 12, 14, 13, 11, 12, 13, 12, 11, 13, 14, 13, 12, 13, 11, 9, 5, 3 } },
-            { "MUC", new[] { 0, 0, 0, 0, 0, 0, 2, 6, 7, 8, 8, 8, 7, 8, 7, 7, 8, 8, 7, 7, 7, 7, 5, 2 } },
-            { "NRT", new[] { 2, 1, 1, 0, 0, 1, 3, 5, 6, 6, 6, 5, 5, 5, 5, 5, 6, 6, 6, 6, 5, 5, 4, 3 } },
-            { "ORD", new[] { 4, 2, 1, 1, 1, 5, 11, 18, 21, 18, 16, 18, 20, 17, 16, 18, 20, 19, 17, 19, 17, 13, 8, 4 } },
-            { "PHX", new[] { 5, 3, 1, 1, 1, 1, 4, 8, 10, 11, 12, 12, 12, 11, 11, 11, 11, 12, 11, 11, 10, 9, 7, 6 } },
-            { "SAN", new[] { 2, 1, 1, 0, 0, 1, 2, 4, 5, 5, 5, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 3 } },
-            { "SCL", new[] { 1, 0, 0, 0, 0, 0, 2, 4, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 6, 5, 4, 2 } },
-            { "SEA", new[] { 2, 1, 0, 0, 1, 3, 6, 10, 11, 10, 9, 10, 11, 9, 9, 10, 11, 10, 10, 11, 9, 7, 4, 2 } },
-            { "SFO", new[] { 2, 1, 0, 0, 0, 2, 5, 8, 10, 9, 8, 8, 9, 8, 8, 9, 9, 9, 8, 9, 8, 6, 4, 2 } },
-            { "SIN", new[] { 3, 2, 1, 1, 1, 2, 5, 9, 10, 11, 10, 10, 10, 10, 10, 10, 10, 10, 11, 10, 9, 8, 7, 5 } },
-            { "SVO", new[] { 0, 0, 0, 0, 0, 0, 2, 5, 6, 7, 7, 7, 6, 7, 6, 6, 7, 7, 6, 6, 6, 6, 4, 2 } },
-            { "SYD", new[] { 0, 0, 0, 0, 0, 0, 3, 7, 8, 9, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 7, 6, 3, 1 } },
-            { "TPE", new[] { 2, 1, 1, 0, 0, 1, 3, 5, 6, 6, 6, 5, 5, 5, 5, 5, 6, 6, 6, 6, 5, 5, 4, 3 } },
-            { "VIE", new[] { 0, 0, 0, 0, 0, 0, 2, 5, 6, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 2 } },
-            { "YVR", new[] { 4, 2, 1, 1, 0, 1, 3, 6, 7, 8, 9, 9, 9, 9, 8, 8, 9, 9, 9, 8, 7, 6, 5, 4 } },
-            { "YYZ", new[] { 2, 1, 0, 0, 1, 2, 6, 9, 11, 10, 9, 9, 10, 9, 8, 10, 11, 10, 9, 10, 9, 7, 4, 2 } },
-            { "ZRH", new[] { 0, 0, 0, 0, 0, 0, 2, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 4, 2 } },
-        };
-
-        /// <summary>表里没有的机场：等级曲线 × 3（≈ 1/3.5 的量级）。</summary>
-        const int LegacyScale = 3;
-
-        /// <summary>逐场小时容量；缺表时按等级回落。</summary>
-        static int HourRateOf(string code, int tier, int hour)
-        {
-            if (hour < 0 || hour > 23) return 0;
-            if (!string.IsNullOrEmpty(code) && AirportHourRates.TryGetValue(code, out var rate))
-                return rate[hour];
-            return HourRate(tier, hour) * LegacyScale;
+            if (!string.IsNullOrEmpty(code) && AirportRunways.Counts.TryGetValue(code, out int n)) return n;
+            return tier <= 0 ? 3 : tier == 1 ? 2 : 1;
         }
 
-        /// <summary>某机场某小时的可分配槽数（单方向）。</summary>
-        public static int HourRate(string code, int hour)
-            => HourRateOf(code, TierOfCode(code), hour);
-
         /// <summary>
-        /// 把一小时容量 `r` 分配到四个 15 分钟窗口。★2026-11-07 起**允许刻内不均匀**：
-        /// 用户 2026-11-06 裁决 `r=3 → 2/1/0/0`、`r=4 → 2/1/1/0`，
-        /// 宁可让 :30 / :45 空着，也要让最小的机场出现「同刻两家」。
-        /// r ≥ 7 时按 `base = r/4` 均分，余数优先给靠前的刻（大机场每刻 5–7 条是常态）。
+        /// **等效跑道**：申报容量高于物理跑道数的机场。
+        ///
+        /// ★2026-11-09 用户提出的模型（确认采用）：
+        /// 「原本所有机场的跑道数 = 时刻容量，但 LHR / DXB 通过**混合起降**
+        ///   （一条起飞、一条落地，还能按需反转）把容量做到了高于跑道数。」
+        ///
+        /// 这正好是现实里航班时刻协调的算法：容量是机场自己**申报**的每 15 分钟可提供
+        /// 的架次，不是由跑道条数算出来的。跑道条数只是**默认基线**；某些场靠运行方式
+        /// 把同一个跑道组合的吞吐抬上去，申报值就会超过「一条跑道一条槽」。
+        ///
+        /// 三条硬约束（回归会逐条验，见 AirportCatalogRegression ⑨）：
+        ///   ① <c>reason</c> 必须非空 —— 每个例外都要能对玩家讲清「为什么它比跑道多」；
+        ///   ② 等效值必须 **≥** 物理跑道数 —— 想比跑道少，去改跑道表，不许在这里做减法；
+        ///   ③ 等效值 **≤** 物理跑道数 × 2 —— 超过两倍就不是「混合运行」，是数据填错了。
+        ///
+        /// 当前为空表：用户尚未裁决具体数值，故行为与「纯跑道数」完全一致。
+        /// 填表示例（待裁决，不要擅自填）：
+        ///     { "LHR", new EffectiveRunways { value = 4, reason = "两条跑道混合起降（一条起一条降可反转）" } },
+        ///     { "DXB", new EffectiveRunways { value = 4, reason = "两条宽间距平行跑道混合运行" } },
         /// </summary>
-        static void QuarterSplit(int r, out int q0, out int q1, out int q2, out int q3)
+        struct EffectiveRunways
         {
-            q0 = q1 = q2 = q3 = 0;
-            if (r <= 0) return;
-            switch (r)
+            public int value;
+            public string reason;
+        }
+
+        static readonly Dictionary<string, EffectiveRunways> Overrides =
+            new Dictionary<string, EffectiveRunways>(StringComparer.OrdinalIgnoreCase)
             {
-                case 1: q0 = 1; return;
-                case 2: q0 = 1; q1 = 1; return;
-                case 3: q0 = 2; q1 = 1; return;
-                case 4: q0 = 2; q1 = 1; q2 = 1; return;
-                case 5: q0 = 2; q1 = q2 = q3 = 1; return;
-                case 6: q0 = q1 = 2; q2 = q3 = 1; return;
-            }
-            int b = r / 4, rem = r % 4;
-            q0 = b + (rem > 0 ? 1 : 0);
-            q1 = b + (rem > 1 ? 1 : 0);
-            q2 = b + (rem > 2 ? 1 : 0);
-            q3 = b;
-        }
+            };
 
-        /// <summary>某等级某小时的容量（支线 = 0：非协调，不设时刻槽）。</summary>
-        public static int HourRate(int tier, int hour)
+        /// <summary>
+        /// 该机场**每刻放几条槽用的跑道数**：有申报超额就用等效值，否则等于物理跑道数。
+        /// 界面显示「跑道」、报表算容量，都只看这一个数。
+        /// </summary>
+        public static int RunwayCount(string code)
+            => RunwayCountOf(code, TierOfCode(code));
+
+        static int RunwayCountOf(string code, int tier)
         {
-            if (hour < 0 || hour > 23) return 0;
-            if (tier == 0) return HubHourRate[hour];
-            if (tier == 1) return MainHourRate[hour];
-            return 0;
+            if (!string.IsNullOrEmpty(code) && Overrides.TryGetValue(code, out var ov)) return ov.value;
+            return PhysicalRunwayCountOf(code, tier);
         }
 
         /// <summary>
-        /// 某时刻所在的 **15 分钟窗口容量**（0..7 条）。非协调时段返回 0。
+        /// 供 <see cref="CapacityService"/> 使用的跑道数入口（显式给 tier，静态构造期可调）。
+        /// ★2026-11-09 批次一新增：容量算法迁出后仍只认这一处跑道口径，避免两套读数。
+        /// </summary>
+        public static int RunwayCountFor(string code, int tier) => RunwayCountOf(code, tier);
+
+        /// <summary>该机场**物理**跑道数（报表用来与 runways.tsv 对账，不参与容量）。</summary>
+        public static int PhysicalRunwayCount(string code)
+            => PhysicalRunwayCountOf(code, TierOfCode(code));
+
+        /// <summary>该机场为什么比物理跑道多放槽；空串 = 没有超额（走跑道数基线）。</summary>
+        public static string EffectiveRunwayReason(string code)
+            => !string.IsNullOrEmpty(code) && Overrides.TryGetValue(code, out var ov) ? (ov.reason ?? "") : "";
+
+        /// <summary>该机场的容量是否来自「申报超额」（界面据此显示「混合运行」标记）。</summary>
+        public static bool HasEffectiveRunwayOverride(string code)
+            => !string.IsNullOrEmpty(code) && Overrides.ContainsKey(code);
+
+        /// <summary>所有「申报超额」的机场代码（回归逐条校验理由与数值区间，报表逐条加注）。</summary>
+        public static string[] EffectiveRunwayOverrideCodes()
+        {
+            var keys = new string[Overrides.Count];
+            Overrides.Keys.CopyTo(keys, 0);
+            return keys;
+        }
+
+        /// <summary>
+        /// 表内是否有该机场的**显式**跑道数（true = 用的是实测值，false = 落回等级默认值）。
+        /// 回归用它在「某个协调机场悄悄掉回默认值」时报警。
+        /// </summary>
+        public static bool HasRunwayData(string code)
+            => !string.IsNullOrEmpty(code) && AirportRunways.Counts.ContainsKey(code);
+
+        /// <summary>
+        /// 判某分钟是否落在 `"23:00-06:00"` 这类窗口内（正确处理跨午夜）。
+        ///
+        /// 窗口为空返回 false；窗口写坏时返回 <paramref name="fallback"/> ——
+        /// 协调时段「写坏按全天」、宵禁「写坏按不禁」，两边都不让一条脏数据
+        /// 让整个机场静默失去槽。
+        /// </summary>
+        public static bool InWindowText(string window, int minutes, bool fallback)
+        {
+            if (string.IsNullOrEmpty(window)) return false;
+            int m = ((minutes % 1440) + 1440) % 1440;
+            int dash = window.IndexOf('-');
+            if (dash <= 0) return fallback;
+            if (!TryParseHm(window.Substring(0, dash).Trim(), out int s)) return fallback;
+            if (!TryParseHm(window.Substring(dash + 1).Trim(), out int e)) return fallback;
+            if (s == e) return false;
+            return s < e ? (m >= s && m < e) : (m >= s || m < e);
+        }
+
+        /// <summary>协调时段判定（24h 常量单独走快路径）。</summary>
+        public static bool InCoordWindowText(string window, int m)
+        {
+            if (string.IsNullOrEmpty(window)) return false;
+            if (window == CoordAllDay) return true;
+            return InWindowText(window, m, true);
+        }
+
+        /// <summary>宵禁判定：命中即物理禁飞，容量 0。</summary>
+        public static bool InCurfewWindow(string code, int m)
+            => InWindowText(CurfewWindowOf(code), m, false);
+
+        /// <summary>
+        /// 某时刻所在的 **15 分钟窗口容量**（条数）。非协调时段 / 宵禁返回 0。
         /// 这是「该刻最多放几条槽」的唯一判据。
         ///
-        /// ★2026-11-07：容量改由**逐场小时容量**派生（见 <see cref="AirportHourRates"/>），
-        /// 并允许刻内不均匀 —— 大机场峰值刻会出现 5–7 条，不再全场「每刻 1 条」。
+        /// ★2026-11-09：容量 = **该机场跑道数**（见 <see cref="RunwayCount"/>），
+        /// 全天同一数值，不再有峰谷曲线。
+        /// ★2026-11-09 批次一：算法本体迁到 <see cref="CapacityService.Quarter(string,int)"/>。
         /// </summary>
         public static int QuarterCapacity(string code, int minutes)
-        {
-            return QuarterCapacityRaw(code, TierOfCode(code), CoordWindowOf(code), minutes);
-        }
+            => CapacityService.Quarter(code, minutes);
 
         /// <summary>
         /// 某时刻是否需要时刻槽：协调机场 **且** 该时刻落在协调时段内。
@@ -407,9 +381,10 @@ namespace AirlineCEO.Data
         //
         // 用户问询「为什么会有无槽时刻」，查下来是**三种完全不同的东西被塞进同一个灰块**：
         //   ① 协调时段外 —— 该刻**不需要**槽（可以飞），画成「无槽」等于误报禁飞；
-        //   ② 该小时容量 0 —— 机场该小时不分配时刻（如干线 23:00），这是真信息；
-        //   ③ 小时容量 1–3 时未落选的刻 —— 只是「这一小时只有 r 条、铺不满四个刻」的
-        //      派生副产品，本身**没有独立含义**（枢纽 7/51、干线 23/51 都是它）。
+        //   ② 该小时容量 0 —— 机场该小时不分配时刻（★2026-11-09 起只有宵禁会触发），这是真信息；
+        //   ③ 小时容量不足以铺满四个刻时未落选的刻 —— 旧曲线口径的派生副产品
+        //      （枢纽 7/51、干线 23/51 都是它）。★2026-11-09 容量改为「跑道数平铺」后，
+        //      每刻都等于跑道数，**这一类已不可能出现**；保留常量只为兼容旧存档与界面分支。
         // 裁决：③ 不再画（卡片只呈现机场公布的槽位表），①② 各自单列一态并写明文字。
 
         /// <summary>该刻是机场公布的槽位（可以申请）。</summary>
@@ -447,12 +422,12 @@ namespace AirlineCEO.Data
         public static int TierOf(float paxMillion, float cargoWanTon)
             => Math.Min(PaxTier(paxMillion), CargoTier(cargoWanTon));
 
-        /// <summary>越繁忙的机场，时隙池越大（单位时隙的竞争由 slot 价值体现）。</summary>
-        /// <remarks>
-        /// ★2026-11-05：容量不再按四个需求波给死表，改由 <see cref="HourRate"/> 的小时容量
-        /// 派生（见上方「容量：小时容量 → 15 分钟容量」）。四个波的总量仍保持
-        /// 枢纽 12/12/14/8、干线 8/8/8/4（回归 R50 对账），只是多了肩峰与夜间的槽。
-        /// </remarks>
+        /// <summary>
+        /// 宵禁窗口：EEA 全境、PEK、以及 NRT / HND / SYD / TPE 真实宵禁，其余为空。
+        ///
+        /// ★2026-11-09：宵禁**直接压容量**（见 <see cref="CapacityService.Quarter(string,int)"/>，命中即 0），
+        /// 界面因此把这些刻显示成「不开放」，与物理禁飞一致。
+        /// </summary>
         static string CurfewWindowOf(string code)
         {
             if (AirportRegions.IsEea(code)) return CurfewWindow;
@@ -474,15 +449,16 @@ namespace AirlineCEO.Data
 
         /// <summary>该机场一天可分配的时刻总数（逐场小时容量之和；非协调机场 0）。</summary>
         public static int DayCapacity(string code)
-        {
-            int n = 0;
-            for (int h = 0; h < 24; h++) n += HourCapacity(code, h);
-            return n;
-        }
+            => CapacityService.Day(code);
 
         /// <summary>某机场某小时的容量（支线 = 0）。</summary>
+        /// <summary>
+        /// 某机场某小时的容量 = 该小时四个 15 分钟刻之和。
+        /// ★2026-11-09 起由 <see cref="QuarterCapacity"/> 反推，两者永不互相打脸。
+        /// ★2026-11-09 批次一：算法迁到 <see cref="CapacityService.Hour"/>。
+        /// </summary>
         public static int HourCapacity(string code, int hour)
-            => HourRate(code, hour);
+            => CapacityService.Hour(code, hour);
 
         /// <summary>是否协调机场（需时刻槽）。</summary>
         public static bool IsCoordinated(string code)
@@ -491,7 +467,10 @@ namespace AirlineCEO.Data
             return !string.IsNullOrEmpty(a.code) && !string.IsNullOrEmpty(a.coordWindow);
         }
 
-        /// <summary>该机场早/中/晚/夜四时段的可分配时刻数（下标 0–3，由小时容量派生）。</summary>
+        /// <summary>
+        /// 该机场早/中/晚/夜四时段的可分配时刻数（下标 0–3）。
+        /// ★2026-11-09 起 = 跑道数 × 该段刻数（宵禁刻与协调时段外的刻记 0）。
+        /// </summary>
         public static int[] SlotCapacity(string code)
         {
             var a = FindByCode(code);
@@ -596,59 +575,6 @@ namespace AirlineCEO.Data
             int m = ((minutes % 1440) + 1440) % 1440;
             if (s == e) return true;                        // 零长窗口视为全天
             return s < e ? (m >= s && m < e) : (m >= s || m < e);
-        }
-
-        /// <summary>
-        /// 某时段的池容量 = 该时段**整点区间**内各刻的 15 分钟容量之和。
-        ///
-        /// ★2026-11-06（用户裁决「只要能申请的时刻都要显示出来」）：覆盖面由需求波窗口
-        /// 改为 <see cref="AirlineCEO.Logic.ScheduleSlots.BandGrid"/>（按 BandOfDep 归段的全天网格）。
-        /// 旧口径只数窗口内的刻，于是 06:00 / 09:45 / 10:00–11:15 / 14:15–16:15 这些
-        /// 机场确实公布、日容量也计入的刻，既不显示也取不到 —— 枢纽 56 条日容量只有 46 条可达。
-        /// 改后四段之和 == <see cref="DayCapacity"/>（枢纽 15/16/17/8、干线 9/10/10/4）。
-        /// </summary>
-        static int BandCapacity(string code, string coordWindow, int tier, int band)
-        {
-            if (string.IsNullOrEmpty(coordWindow)) return 0;
-            int total = 0;
-            var grid = AirlineCEO.Logic.ScheduleSlots.BandGrid(band);
-            for (int i = 0; i < grid.Count; i++)
-            {
-                total += QuarterCapacityRaw(code, tier, coordWindow, grid[i]);
-            }
-            return total;
-        }
-
-        /// <summary>不依赖 <c>AirportInfo</c> 的容量算法本体（静态构造期只能调它）。</summary>
-        static int QuarterCapacityRaw(string code, int tier, string coordWindow, int minutes)
-        {
-            if (string.IsNullOrEmpty(coordWindow)) return 0;
-            int m = ((minutes % 1440) + 1440) % 1440;
-            if (coordWindow != CoordAllDay)
-            {
-                int dash = coordWindow.IndexOf('-');
-                bool inWindow = true;
-                if (dash > 0
-                    && TryParseHm(coordWindow.Substring(0, dash).Trim(), out int s)
-                    && TryParseHm(coordWindow.Substring(dash + 1).Trim(), out int e)
-                    && s != e)
-                {
-                    inWindow = s < e ? (m >= s && m < e) : (m >= s || m < e);
-                }
-                if (!inWindow) return 0;
-            }
-
-            int r = HourRateOf(code, tier, m / 60);
-            if (r <= 0) return 0;
-            QuarterSplit(r, out int q0, out int q1, out int q2, out int q3);
-            int q = (m % 60) / AirlineCEO.Logic.ScheduleSlots.SlotGridStepMinutes;
-            return q switch
-            {
-                0 => q0,
-                1 => q1,
-                2 => q2,
-                _ => q3
-            };
         }
 
         public static int ClampBand(int band) => band < 0 ? 0 : band > 3 ? 3 : band;
@@ -843,13 +769,23 @@ namespace AirlineCEO.Data
             return false;
         }
 
+        /// <summary>
+        /// 按 IATA 代码查机场（大小写不敏感）。找不到返回 `default(AirportInfo)`。
+        ///
+        /// ★2026-11-09 批次一（M1）：由线性扫描改为字典查表，O(N) → O(1)。
+        /// 返回值、比较语义、未命中行为全部不变 —— `FindByCode("")` 仍返回默认值，
+        /// `FindByCode("pek")` 仍命中 PEK。
+        /// </summary>
         public static AirportInfo FindByCode(string code)
         {
-            for (int i = 0; i < All.Length; i++)
-                if (string.Equals(All[i].code, code, StringComparison.OrdinalIgnoreCase))
-                    return All[i];
-            return default;
+            if (string.IsNullOrEmpty(code)) return default;
+            return _indexByCode.TryGetValue(code, out int i) ? All[i] : default;
         }
+
+        /// <summary>
+        /// 目录内的机场总数（★2026-11-09 批次一新增，供回归与索引自检使用）。
+        /// </summary>
+        public static int Count => All.Length;
 
         /// <summary>展示用：机场中文名紧跟 IATA，如「北京首都 PEK」。</summary>
         public static string Label(string code)

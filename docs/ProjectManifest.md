@@ -6,6 +6,8 @@
 
 协作状态入口（程序生成，勿手工维护第二套）：`docs/collaboration/CURRENT.md`。协议与操作见 `docs/collaboration/README.md`、`AGENTS.md`。
 
+日常三方协作入口：[用户、Codex、Cursor 工作流程](collaboration/三方工作流程与操作方法_2026-11-09.md)（2026-11-09）。用户提需求，Codex 形成规范并监督，Cursor 实现自测，用户在 Unity 目测；日常不自动收口。
+
 设计依据：Game Design Bible v1.0（源 docx；已提取文本 `_gdb_v1.0_extract.txt` 可检索）、MVP/V3.0 CEO 视角定稿、排班与时刻槽修订。宏观三阶段实现与四阶段设计仍有差异，见当前规则；不以代码存在即视为设计批准。
 
 Git 分支 `cursor/phase10-fleet-management`，本轮起点 HEAD `9216aab`。大量必要文件尚未跟踪；本轮保留所有既有修改和删除项，未提交、未推送、未批量暂存。必需文件及 SHA256 清单由 `tools/regression/export-baseline.js` 导出到 `handoff/Baseline_2026-10-17.json`。

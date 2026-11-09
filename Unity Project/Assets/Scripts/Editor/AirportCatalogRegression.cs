@@ -316,19 +316,29 @@ namespace AirlineCEO.EditorTools
                                && RouteGeography.IsPlausiblePassengerOd("LOS", "LHR", 5000f);
             bool gatewayOk = gatewayRuleOk && intlBlocked && domesticKept && noOvershoot;
 
-            // ⑨ 时刻容量规模（★2026-11-07）：用户报「不论枢纽还是干线，早中晚夜班前三分之二的刻容量
-            //    都只有 1 条」。根因是旧口径日总量只有 56 / 33 条，摊到四个 15 分钟刻必然一刻 1 条。
-            //    现在改按「真实全天曲线 × 1/3.5」（见 AirportCatalog.AirportHourRates），
-            //    这里把三件事钉死，免得日后有人再把容量表改回两档死表：
-            //      ① 日容量与对照表一致；② 峰值刻 > 1；③ 每个协调机场的日容量 > 0。
+            // ⑨ 时刻容量（★2026-11-09 用户裁决改口径）：
+            //    「机场有多少条跑道就释放多少条时刻容量，不要设置峰刻。」
+            //    容量现在只有一条规则：协调时段内、且不在宵禁中的每个 15 分钟刻 = 跑道数。
+            //    这里把四件事钉死，免得日后有人又把峰谷曲线塞回来：
+            //      ① 日容量 = 跑道数 × 该场可放刻数（宵禁 / 协调窗口外记 0）；
+            //      ② 任一刻容量 == 跑道数（不再是「峰刻 / 谷刻」两套数）；
+            //      ③ 24 小时刻钟求和 == 日容量（两条读数不会互相打脸）；
+            //      ④ 每个协调机场的日容量 > 0，且跑道数在表内（不落回等级默认值）。
             bool capacityOk = true;
             var capCases = new[]
             {
-                // code, 日容量（对照表 §10.5 / §5.2）, 峰值刻, 该刻期望容量
-                ("PEK", 169, 9 * 60, 3),
-                ("PVG", 205, 9 * 60, 3),
-                ("ATL", 313, 8 * 60, 6),
-                ("XMN", 74, 12 * 60, 2),
+                // code, 日容量, 抽查刻, 该刻期望容量（= 跑道数）
+                ("PEK", 204, 8 * 60, 3),   // 3 跑道，23:00–06:00 宵禁 → 17h × 4 × 3
+                ("PVG", 384, 8 * 60, 4),   // 4 跑道，无宵禁 → 96 × 4
+                ("ATL", 480, 8 * 60, 5),   // 5 跑道
+                ("XMN", 96, 8 * 60, 1),    // 单跑道：每刻恒 1，与「跑道决定容量」一致
+                ("CAN", 480, 8 * 60, 5),
+                ("CKG", 384, 8 * 60, 4),
+                ("KMG", 288, 8 * 60, 3),
+                ("WUH", 288, 8 * 60, 3),
+                ("URC", 288, 8 * 60, 3),
+                ("PKX", 384, 8 * 60, 4),
+                ("CDG", 272, 8 * 60, 4),   // EEA 宵禁 → 68 刻 × 4
             };
             var capLog = new StringBuilder();
             for (int i = 0; i < capCases.Length; i++)
@@ -337,12 +347,20 @@ namespace AirlineCEO.EditorTools
                 int gotDay = AirportCatalog.DayCapacity(code);
                 int gotPeak = AirportCatalog.QuarterCapacity(code, peakMin);
                 int sum = 0;
+                bool uniform = true;
                 for (int m = 0; m < 1440; m += ScheduleSlots.SlotGridStepMinutes)
-                    sum += AirportCatalog.QuarterCapacity(code, m);
-                if (gotDay != day || gotPeak != peakCap || sum != gotDay)
+                {
+                    int q = AirportCatalog.QuarterCapacity(code, m);
+                    sum += q;
+                    // 「不要设峰刻」的硬判据：凡是放了槽的刻，条数必须一模一样。
+                    if (q != 0 && q != peakCap) uniform = false;
+                }
+                if (gotDay != day || gotPeak != peakCap || sum != gotDay || !uniform
+                    || gotPeak != AirportCatalog.RunwayCount(code))
                 {
                     capacityOk = false;
-                    capLog.Append($"{code} 日={gotDay}(应{day}) 峰刻={gotPeak}(应{peakCap}) 刻合计={sum}; ");
+                    capLog.Append($"{code} 日={gotDay}(应{day}) 抽查刻={gotPeak}(应{peakCap}) 刻合计={sum}"
+                                  + $" 刻内均匀={uniform} 跑道数={AirportCatalog.RunwayCount(code)}; ");
                 }
             }
             for (int i = 0; i < airports.Count; i++)
@@ -354,11 +372,49 @@ namespace AirlineCEO.EditorTools
                     capacityOk = false;
                     capLog.Append($"{a.code} 是协调机场却日容量 0; ");
                 }
+                // 跑道数必须**显式**在 AirportRunways 表里：落回「按等级猜」会悄悄
+                // 把容量改成 3/2/1，而报表仍显示 tsv 里的真值 —— 这类分叉最难查。
+                if (!AirportCatalog.HasRunwayData(a.code))
+                {
+                    capacityOk = false;
+                    capLog.Append($"{a.code} 缺跑道数（已落回等级默认值）; ");
+                }
+            }
+
+            // ⑩ 「申报超额」表的三条硬约束（★2026-11-09 用户模型：「跑道数 = 容量」是基线，
+            //    LHR / DXB 靠混合起降把申报容量做到高于跑道数）。例外最容易腐化，故逐条验：
+            //      ① 理由非空 —— 玩家问「凭什么它比跑道多」时要有答案；
+            //      ② 等效 ≥ 物理 —— 想比跑道少请改跑道表，不许在这里做减法；
+            //      ③ 等效 ≤ 物理 × 2 —— 超过两倍不是混合运行，是数据填错。
+            bool overridesOk = true;
+            var overCodes = AirportCatalog.EffectiveRunwayOverrideCodes();
+            for (int i = 0; i < overCodes.Length; i++)
+            {
+                string code = overCodes[i];
+                int eff = AirportCatalog.RunwayCount(code);
+                int phy = AirportCatalog.PhysicalRunwayCount(code);
+                string reason = AirportCatalog.EffectiveRunwayReason(code);
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    overridesOk = false;
+                    capLog.Append($"{code} 申报超额但没写理由; ");
+                }
+                if (eff < phy || eff > phy * 2)
+                {
+                    overridesOk = false;
+                    capLog.Append($"{code} 等效跑道 {eff} 越界（物理 {phy}，允许 {phy}..{phy * 2}）; ");
+                }
+                // 超额表里的机场必须真的存在，否则就是拼错代码后静默失效。
+                if (AirportCatalog.FindByCode(code).code.Length == 0)
+                {
+                    overridesOk = false;
+                    capLog.Append($"{code} 申报超额的代码在机场目录里不存在; ");
+                }
             }
 
             bool all = apNoDup && ecoNoDup && sameSet && geoUsable && batchAOk && batchBOk && batchBPrimeOk
                        && offCatalog && takeoverCount && codeUnique && hubExists && searchOk
-                       && noUltraShort && gatewayOk && capacityOk;
+                       && noUltraShort && gatewayOk && capacityOk && overridesOk;
 
             string tail = all ? "✓" : "✗";
             if (!all)
@@ -372,8 +428,8 @@ namespace AirlineCEO.EditorTools
                         + $" 中文前缀={zhPrefixOk} 新城市={newCityOk} 码前缀={codePrefixOk} 解析一致={resolveSame})"
                         + $" 批次B无超短={noUltraShort}({ultra.ToString().Trim()})"
                         + $" 跨境门户={gatewayOk}(够格判定={gatewayRuleOk} 支线被拦={intlBlocked} 国内照常={domesticKept} 未连坐真实门户={noOvershoot})"
-                        + $" 时刻容量={capacityOk}({capLog.ToString().Trim()})）{batch}";
-            }
+                        + $" 时刻容量={capacityOk}({capLog.ToString().Trim()})"
+                        + $" 申报超额={overridesOk}({overCodes.Length} 场)）{batch}";            }
 
             Debug.Log($"机场底表三表贯通 → 机场={airports.Count} 城市经济={ecoList.Length} 坐标={geoList.Length}"
                       + $"　码无重复={apNoDup && ecoNoDup}　三表同集合={sameSet}　坐标可用={geoUsable}"

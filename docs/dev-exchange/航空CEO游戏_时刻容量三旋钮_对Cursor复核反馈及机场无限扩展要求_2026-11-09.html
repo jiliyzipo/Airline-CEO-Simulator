@@ -1,0 +1,294 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>时刻容量与三旋钮｜Cursor复核反馈·机场数量不设上限</title><style>
+:root{--bg:#eff3f9;--paper:#fff;--ink:#15263b;--muted:#596e85;--line:#dce5f0;--blue:#2873b5;--navy:#101f34;--cyan:#61bce8;--warn:#b2761b;--ok:#158065;}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:15px/1.85 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink)}
+.hero{background:linear-gradient(125deg,#0d2037,#183a5b 70%,#236d86);padding:47px max(22px,calc((100vw - 1160px)/2)) 42px;color:#fff}
+.eyebrow{color:#9ed2ef;letter-spacing:2.1px;text-transform:uppercase;font-size:11px;font-weight:750}.hero h1{margin:10px 0 13px;font-size:clamp(25px,3.1vw,37px);line-height:1.4;max-width:980px}
+.subtitle{color:#c1d5e5;max-width:960px;font-size:14px}.hero .tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:23px}.tag{padding:4px 11px;border:1px solid #577590;border-radius:30px;font-size:12px;color:#d8eaf5}
+.content{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:255px minmax(0,1fr);gap:24px;padding:30px 20px 70px;align-items:start}
+.nav{position:sticky;top:22px;padding:23px 18px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px #1e365b0a}.nav strong{font-size:13px;color:#203d5d;display:block;margin-bottom:12px}.nav a{display:block;color:#586d84;text-decoration:none;font-size:12.5px;line-height:1.55;padding:8px 8px;border-radius:7px}.nav a:hover{background:#edf5fc;color:#174f83}
+.paper{background:#fff;border-radius:15px;padding:35px 43px 46px;border:1px solid var(--line);box-shadow:0 8px 30px #263f6508;min-width:0}.paper>h1:first-child{display:none}
+h2{font-size:21px;line-height:1.45;border-bottom:1px solid #e0e9f2;margin:37px 0 17px;padding-bottom:10px;color:#142f4b;scroll-margin-top:18px}h2:first-of-type{margin-top:13px}h3{font-size:16px;margin:26px 0 12px;color:#194a71}p{margin:11px 0 15px}strong{color:#133a60}blockquote{border-left:3px solid var(--blue);margin:20px 0;padding:7px 19px;background:#f1f7fe;border-radius:0 8px 8px 0}blockquote p{margin:9px 0}
+.paper>p:nth-of-type(-n+4){color:#38546e}ul,ol{padding-left:23px}li{margin:7px 0}code{background:#eef4fb;color:#1b5d8f;border-radius:4px;padding:1px 5px;font-size:12.8px;overflow-wrap:anywhere}
+.table-scroller{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:18px 0 23px}table{border-collapse:collapse;width:100%;min-width:610px;font-size:13px;line-height:1.62}th{text-align:left;background:#eaf2fa;color:#31506d;padding:11px 12px;font-size:12px;white-space:nowrap}td{padding:10px 12px;border-top:1px solid #e8eff5;vertical-align:top}tr:nth-child(even) td{background:#fafcff}td:last-child{min-width:100px}
+pre{padding:16px;border-radius:10px;background:#12243a;color:#d9eaf5;overflow:auto;line-height:1.55}pre code{padding:0;background:transparent;color:inherit}
+.last{max-width:1160px;margin:0 auto 32px;text-align:center;color:#7e91a7;font-size:11px}
+@media (max-width:900px){.content{display:block;padding:16px 12px 45px}.nav{position:static;margin-bottom:16px}.nav a{display:inline-block;max-width:48%;vertical-align:top}.paper{padding:22px 20px}}@media print{body{background:#fff}.hero{background:#fff;color:#142c44;border-bottom:2px solid #244f73;padding:25px}.subtitle,.tag{color:#31465f!important}.content{display:block;padding:0}.nav{display:none}.paper{padding:12px 20px;border:0;box-shadow:none}h2{page-break-after:avoid}table{page-break-inside:auto}tr{page-break-inside:avoid}}
+</style></head><body>
+<header class="hero"><div class="eyebrow">Airline CEO Simulator · Architecture Review</div><h1>时刻容量与三个调节旋钮<br>对 Cursor 复核的反馈及机场无限扩展要求</h1><div class="subtitle">明确 103 座不是上限；支持玩家启用更多附近真实机场；落实 A1 / B2 / C0 / D1 与跨午夜夜班设计，分阶段实施、保护存档与经济平衡。</div><div class="tags"><span class="tag">2026-11-09</span><span class="tag">v1.1</span><span class="tag">提交 Cursor</span><span class="tag">本轮仅授权 P0 只读审计</span></div></header>
+<div class="content"><nav class="nav"><strong>报告目录</strong><a href="#section-1">0. 执行摘要与最终裁决</a><a href="#section-2">1. 机场数量：请纠正“103座是否最多”的误解</a><a href="#section-3">2. 对最新 Cursor 复核的接受与修正</a><a href="#section-4">3. 修订后的阶段安排与授权范围</a><a href="#section-5">4. Cursor 必须提交的验收标准</a><a href="#section-6">5. 建议直接发送给 Cursor 的执行指令</a><a href="#section-7">6. 备注与依据</a></nav><article class="paper"><h1>航空公司 CEO 模拟游戏｜时刻容量与三旋钮：对 Cursor 复核的反馈及机场扩展要求</h1>
+<p><strong>文件性质：</strong> 提交 Cursor 的技术反馈、架构约束及下一阶段工作要求<br/>
+<strong>版本：</strong> v1.1｜2026-11-09<br/>
+<strong>依据：</strong>《航空CEO游戏_时刻容量与三旋钮_评审复核与复算_2026-11-09.html》及此前两轮容量模型评审<br/>
+<strong>执行边界：</strong> 本轮批准只读审计与测试方案设计；未经进一步确认，不修改生产容量、不重铺真实持仓、不修改存档、不上线 AI 竞争或机场扩建玩法。</p>
+<h2 id="section-1">0. 执行摘要与最终裁决</h2>
+<p><strong>最重要的修正：103 座协调机场是 Cursor 当前核查到的项目状态，不是游戏上限。</strong> 游戏机场数量不得设置固定值；未来可以增加更多真实机场，既包括由开发团队导入的机场，也应逐步支持玩家按所在地、城市、半径搜索并启用原本未在初始游戏清单中的附近机场。</p>
+<p><strong>正式要求：</strong> 机场名录、协调资格、容量、地理位置、城市经济、航线市场和存档应能随数据扩展；新增机场走统一接入流程，不需要为每座机场编写特例。对“无限扩展”的定义是<strong>不设人为的机场数量上限</strong>，不是允许无限占用机器内存或伪造现实机场。</p>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>裁决项</th>
+<th>裁决</th>
+<th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机场数量上限</td>
+<td><strong>无固定上限；103 只作现状审计基线</strong></td>
+<td>架构要求，禁止写死 81/103/104</td>
+</tr>
+<tr>
+<td>A1 初始占用率</td>
+<td>优先隔离测试 D16×75%，并保留 87%/60% 对照</td>
+<td>非正式参数</td>
+</tr>
+<tr>
+<td>B2 分方向守恒</td>
+<td>正式容量模型必须满足小时总动作预算和离港/到港的守恒</td>
+<td>设计通过，实施待审批</td>
+</tr>
+<tr>
+<td>C0 兼容迁移</td>
+<td>保留旧跑道平铺模型作为显式兼容模式</td>
+<td>采纳；否决“÷27等价现状”</td>
+</tr>
+<tr>
+<td>D1 M1–M6</td>
+<td>用作运行构型元数据、校核和缺数估算参考</td>
+<td>不引入六套冲突的主算法</td>
+</tr>
+<tr>
+<td>跨午夜归属</td>
+<td>选择 <strong>B：早16／中20／晚20／夜40</strong></td>
+<td>审计影响后实施</td>
+</tr>
+<tr>
+<td>第三个旋钮</td>
+<td>所有现有、未来机场的容量演进机制</td>
+<td>现在预留规则/字段，玩法暂缓</td>
+</tr>
+<tr>
+<td>AI 竞对</td>
+<td>暂不引入完整 AI 经营竞争</td>
+<td>只预留统一机场资源与航司持仓接口</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="section-2">1. 机场数量：请纠正“103座是否最多”的误解</h2>
+<h3>1.1 三个数字的不同含义</h3>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>数字</th>
+<th>含义</th>
+<th>能否作为系统上限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>81</td>
+<td>原机场容量研究表中的机场样本</td>
+<td><strong>不能</strong></td>
+</tr>
+<tr>
+<td>104</td>
+<td>Cursor 在最新项目源码中报告的已录入机场数</td>
+<td><strong>不能</strong></td>
+</tr>
+<tr>
+<td>103</td>
+<td>上述机场中被当前代码标记为协调机场的数量</td>
+<td><strong>不能</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Cursor 还报告：目前有 <strong>15 座协调机场缺少显式跑道数据</strong>，使用按等级回退推算。以上代码与数量结论来自 Cursor 的报告，尚须以当前项目工作分支重新核实；不能把一次审计快照当成长期业务规则。</p>
+<h3>1.2 面向玩家的新增附近机场需求</h3>
+<p>游戏应逐步支持这样的使用场景：玩家想从自己居住地附近的小机场起步，但机场没有出现在初始清单中；玩家通过城市、机场名称、IATA/ICAO 代码或地图范围查找真实存在的机场，选择“加入本局可经营机场”；系统加载该机场的可用资料，验证是否可用于航线运营与时刻处理。</p>
+<p><strong>特别区分：</strong> “添加现实中存在的机场”与“玩家凭空创造机场/建设新机场”是两种不同玩法。本轮仅要求前者在架构上可行；后者涉及机场建设，当前不开发。</p>
+<p>建议保留两层概念：</p>
+<ul>
+<li><strong>机场主数据目录（Airport Master Catalog）：</strong> 收录已知真实机场，可持续扩展；采用稳定内部 ID，IATA 和 ICAO 均为可选外部标识，不能假设每座小机场都有 IATA 代码。</li>
+<li><strong>本局已启用机场（Active Airports）：</strong> 当前存档中需要经营、计算、展示的机场集合；玩家搜索并启用的机场加入该集合。目录更新不得自动改写既有存档持仓。</li>
+</ul>
+<p>新增机场不得自动被视为协调机场。对不同规则的机场分别实现：有正式时刻协调规则的机场进入容量与申请机制；非协调机场依据其运行许可、运行时段和设施约束处理，不能错误显示为“协调时刻已满”；规则未确认的机场明确标注“待核实”，不得静默猜测。</p>
+<h3>1.3 数据模型及接入要求</h3>
+<p>每个机场至少应有：稳定内部 <code>airportId</code>；<code>iataCode?</code>、<code>icaoCode?</code>；名称、城市、国家、经纬度、时区；机场类型（枢纽／干线／支线等）；协调级别与适用时段；跑道和运行限制；容量来源、日期、估算标志及可信度；数据版本。扩展属性不必一次开发完，但需要具备可诊断的缺失处理。</p>
+<p>应提供统一、幂等的“录入/更新—验证—启用—计算—搜索/地图—航线/时刻—报表—存档”流程。缺少任意关键字段要给出错误清单或限制功能，而不是默默回退到“按等级猜3条跑道”。</p>
+<p><strong>不要为了赶进度把四张现有表立刻强行合并。</strong> 短期可以建立统一聚合视图、接入层和跨表完整性检查；等扩展机场进入实施阶段，再评估是否迁移为单一记录体系。</p>
+<h3>1.4 性能与规模原则</h3>
+<p>“不设上限”指<strong>业务逻辑没有固定数量限制</strong>。实现上应通过按地区/视图加载、缓存、分页搜索、增量生成、按需模拟已启用机场及增量存档避免内存和结算时间随全球所有机场无条件线性增长。建议为 103、300、1,000、5,000 个机场的合成数据建立性能基线，阈值由测试确认，而非直接以某个数字拒绝新增。</p>
+<h2 id="section-3">2. 对最新 Cursor 复核的接受与修正</h2>
+<h3>2.1 已确认采纳</h3>
+<ol>
+<li><strong>C0 优于 ÷27 过渡：</strong> Cursor 的逐场复算指出，81场研究表与引擎跑道表口径略不同；在其引擎口径下，÷27 后总和仍为 248，但<strong>46座机场的逐场容量发生变化</strong>。因此绝不能以“总量相同”证明现状保持不变。兼容模式必须逐机场、逐时段、逐方向核对。</li>
+<li><strong>局部整数误差不能被全局平均掩盖：</strong> 报告将 D16 对称取整总偏差修正为 <strong>+2.32%（在其81场样本口径）</strong>，单机场小时偏差可达到 ±4 架次。严格守恒方案必要。</li>
+<li><strong>凌晨归属不是文案错误：</strong> 00:00–05:45 的容量已产生，但仍被 <code>BandOfDep</code> 划入早班；不得仅把早班标题改成 00:00–09:45。</li>
+<li><strong>扩大审计对象：</strong> Cursor 报告称当前为 104座录入、103座协调，且其中15座协调机场没有明确跑道数据。P0首先确认完整清单与缺数据现状。</li>
+</ol>
+<p><strong>统计口径警告：</strong> 81场研究表、81场引擎复算子集、103场协调机场、104场录入机场并非同一个分母。包括 248、304、2.32%、15/81 等指标必须在输出时同时标注来源、覆盖范围和算法版本，不能并列当成同一世界总量。</p>
+<h3>2.2 凌晨归属：正式选择方案 B</h3>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>班次</th>
+<th>时段（机场当地时刻）</th>
+<th style="text-align:right">15分钟格数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>早班</td>
+<td>06:00–10:00</td>
+<td style="text-align:right">16</td>
+</tr>
+<tr>
+<td>中班</td>
+<td>10:00–15:00</td>
+<td style="text-align:right">20</td>
+</tr>
+<tr>
+<td>晚班</td>
+<td>15:00–20:00</td>
+<td style="text-align:right">20</td>
+</tr>
+<tr>
+<td>夜班</td>
+<td>20:00–次日06:00</td>
+<td style="text-align:right">40</td>
+</tr>
+<tr>
+<td>合计</td>
+<td>全天24小时</td>
+<td style="text-align:right">96</td>
+</tr>
+</tbody>
+</table></div>
+<p>将凌晨 00:00–05:45 归入<strong>前一日20:00开始的夜班</strong>。必须审计 <code>BandOfDep</code>、<code>BandCapacity</code>、<code>ScheduleSlots</code>、申请与交易、AI占用重铺、存档加载、日结算及报表。Cursor 认为 <code>SlotHolding</code> 只存 <code>airport/slotTime/kind</code>，所以可能不用改存档 schema；但这仍需通过跨日持仓与池容量回归证明，不能据此宣布“没有兼容风险”。</p>
+<p>尤其要测试“周日23:45—周一00:00”、航季边界及机场当地日期切换时，夜班是否被错误分成两个不相干的经营池。在时区/夏令时尚未完善时，报告要明确现有游戏时间轴的局限，而非伪称已实现全部现实规则。</p>
+<h3>2.3 容量守恒 B2 与非高峰曲线</h3>
+<p>正式容量方案应先得出<strong>某机场某小时的游戏总起降架次预算</strong>，再把整数架次分配至四个15分钟格、分别分配到港与离港。按 D16 的50%世界容量示例：若申报88架次/时，小时预算44，四刻可以各给11，离港/到港为6/5交替，合计恰好44。</p>
+<p>现阶段维持用户已确定的<strong>不额外创建高峰/谷底容量曲线</strong>的设计，但允许为保证整数守恒，在四个15分钟格之间进行最多一单位的均匀余数分摊。不能用“每方向同数四舍五入”制造小机场的显著虚增或虚减。建议优先实现新方向查询而保留旧查询兼容，迁移的函数范围以代码检查为准。</p>
+<p>对未来没有统一小时申报值或小时限制不同的机场，应允许数据层提供对应时段/航季的真实限制；这项能力只预留，不意味着当前要开发完整空管调度模拟。</p>
+<h3>2.4 初始占用率 A1 与真实模拟口径</h3>
+<p>A1 指 <strong>D16×75% 是优先验证候选</strong>，不是已经验证的正式默认值。保留 87%及60% 做对照，且需使用生产代码当前的确定性哈希（报告称 <code>0.85 + 0.05×Unit()</code>、枢纽另加2%）对所有现有协调机场重跑，而不是只用固定87%替代。</p>
+<p>需要单独拆解三种因素：基础容量是否有可信来源；占用率多大；<code>FillWave</code> 如何把已占用容量分布在每刻。不得把“中国机场08:00未解锁”全部归因于官方容量偏低，也不得强制给每刻留一个免费槽来制造虚假的现实开放程度。</p>
+<p>未来引入AI经营后，旋钮②只决定<strong>开局背景航司持仓基线</strong>，不能持续用全局百分比强制调整、撤销真实航司的持仓。</p>
+<h3>2.5 三旋钮最终定位</h3>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>调节项</th>
+<th>正式名称</th>
+<th>控制什么</th>
+<th>不应控制什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>世界容量比例</td>
+<td>真实申报能力映射到游戏的规模；D16与D12为测试参数</td>
+<td>不直接制造需求或经营利润</td>
+</tr>
+<tr>
+<td>②</td>
+<td>初始市场占用率</td>
+<td>开局他航持仓与资源稀缺程度；87/75/60隔离测试</td>
+<td>不在每季度强制重置AI持仓</td>
+</tr>
+<tr>
+<td>③</td>
+<td>机场容量演进机制</td>
+<td><strong>所有当前和未来机场</strong>因设施、政策、航季变化发生的容量调整</td>
+<td>不限“5座富余机场”，也不是简单统一加成百分比</td>
+</tr>
+</tbody>
+</table></div>
+<p>第三旋钮在当前开发阶段只需预留 <code>capacityRevision</code>、有效日期、变化原因/来源与重新评估/存档兼容机制；机场建设工期、成本、审批、动态AI竞争等完整玩法暂缓。</p>
+<h2 id="section-4">3. 修订后的阶段安排与授权范围</h2>
+<div class="table-scroller"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>工作</th>
+<th>授权建议与交付</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P0-1</strong></td>
+<td>以当前分支复核机场清单、103协调与104录入、15条缺跑道、81研究表覆盖差异</td>
+<td><strong>立即批准只读审计</strong>；输出差异表，不改生产数据</td>
+</tr>
+<tr>
+<td><strong>P0-2</strong></td>
+<td>溯源机场容量、修复建议清单及 <code>EST</code> 标记；核查 BKK/CGK 等既有争议数据</td>
+<td><strong>只出校核报告</strong>；外部数据需逐条标注年份/出处</td>
+</tr>
+<tr>
+<td><strong>P0-3</strong></td>
+<td>记录现状逐机场×15分钟×方向的 golden baseline、四池及占用快照</td>
+<td><strong>只读快照与工具</strong>；不运行会改变玩家存档的操作</td>
+</tr>
+<tr>
+<td><strong>P0-4</strong></td>
+<td>用实际哈希占用规则复算，检查 D16/D12×87/75/60；审计夜班归属和B2算法</td>
+<td><strong>隔离离线模拟</strong>；附公式、随机种子、逐机场输出</td>
+</tr>
+<tr>
+<td><strong>P0-5</strong></td>
+<td>设计“无上限机场目录 + 玩家启用附近真实机场”的接入契约，核查四表缺失数据路径</td>
+<td><strong>只出接口/流程与风险分析</strong>；当前不开发新增机场UI</td>
+</tr>
+<tr>
+<td><strong>P1-A</strong></td>
+<td>显式 C0 兼容容量模式与独立 <code>CapacityOf</code> 接口</td>
+<td>待审批；禁止通过D27模拟旧容量</td>
+</tr>
+<tr>
+<td><strong>P1-B</strong></td>
+<td>参数化初始占用率，并验证游戏经济结果</td>
+<td>待审批；保留历史存档持仓</td>
+</tr>
+<tr>
+<td><strong>P1-C</strong></td>
+<td>B2守恒、16/20/20/40时段归属、旧档超配只告警</td>
+<td>待审批；独立回归与回退</td>
+</tr>
+<tr>
+<td><strong>P1-D</strong></td>
+<td>申报数据模式下D16/D12经济、二级市场和机队/航班模拟</td>
+<td>待P1稳定，确认最终参数</td>
+</tr>
+<tr>
+<td><strong>P2</strong></td>
+<td>玩家启用附近机场、全机场容量演进、完整AI/联机</td>
+<td>分别立项；现在仅预留兼容能力</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>注意：</strong> P0所谓“补齐15座机场”指审计后提供带出处的数据补齐建议，<strong>不是授权直接覆盖代码与存档</strong>。</p>
+<h2 id="section-5">4. Cursor 必须提交的验收标准</h2>
+<ol>
+<li><strong>无固定数量限制：</strong> 检索并证明运行时代码、配置、API、UI和导出不存在以 81/103/104 为上限的固定大小数组、遍历条件或默认拒绝规则；测试夹具中的当前样本量允许固定但必须标注版本。</li>
+<li><strong>现状可重复：</strong> C0兼容模式在当前协调机场（据报告为103座）逐机场、逐时段、逐方向结果与 golden 快照一致；包括 <code>DayCapacity</code>、四池容量、背景航司持仓及关键申请判据。若发现快照与源码不符，先解释再修改。</li>
+<li><strong>模拟无过配：</strong> B2中任一小时的离港+到港总数等于已整数化的小时预算，且不得超出运行限制；允许各15分钟格为保证守恒交替±1，不人为增加峰刻容量曲线。</li>
+<li><strong>凌晨归属正确：</strong> 96格全部覆盖一次且仅一次；夜班 20:00–次日06:00 含前一夜跨日格；原有持仓不被静默删除、重算时不能重复申请或交易。</li>
+<li><strong>数据缺失可诊断：</strong> 未提供跑道/容量/地理/协调信息时必须有明确告警、可信度标记与受限功能策略；不得静默用等级推算伪装真实参数。</li>
+<li><strong>玩家新增机场试验：</strong> 在隔离测试目录中加入至少一座现状之外的<strong>协调机场</strong>和一座<strong>非协调机场</strong>，包括无IATA仅ICAO的测试实例；无需修改容量算法即可搜索、展示、确定协调规则、保存并再次读取，既有机场数据保持不变。测试机场可为纯夹具，不能冒充真实机场对外展示。</li>
+<li><strong>规模测试：</strong> 使用300、1,000、5,000座合成机场验证搜索、机场地图、容量查询、存档和季度结算的增长曲线；报告性能瓶颈及建议优化，不设置新的硬性数量限制。</li>
+<li><strong>经济联动：</strong> 对比可开航线数、航班频次、客座率、季度净利润、现金流、二级市场价格与成交量，不得以“容量增大=利润更多”作为成功标准。</li>
+<li><strong>回退和权限：</strong> 提交改动文件清单、快照对比、测试结果和回退方案；在用户批准前不得更改正式世界容量、初始占用率或已持有时刻。</li>
+</ol>
+<h2 id="section-6">5. 建议直接发送给 Cursor 的执行指令</h2>
+<blockquote>
+<p>请依据本报告更新《时刻容量与三旋钮》技术实施方案。</p>
+<p>第一，确认 103 只是当前已识别的协调机场数，而不是任何系统限制。游戏机场数量不得设置固定上限；未来需要支持玩家按所在地、城市、位置半径查找并启用附近的真实机场，协调机场和非协调机场均可接入。先审查机场目录、地理、容量、市场和存档的扩展路径，不开发完整新增机场界面。</p>
+<p>第二，接受 C0、B2、D1 及凌晨归夜班 B 的原则；将四个时段定为早16／中20／晚20／夜40，不得将早班直接改为00:00开始。D16×75%仅作为重点测试候选，保留D12、87%和60%的对照。</p>
+<p>第三，先执行P0只读审计：复核104录入／103协调与81研究表的范围差异，查清15座缺少跑道数据机场，记录现有容量与背景占用 golden 基线，按真实哈希算法重算，评估跨午夜归属、容量守恒和新增机场数据接入。</p>
+<p>第四，提供清晰的P0审计结果、代码影响面、测试脚本、接口草案、风险、P1候选实现和回退方案。未获单独批准，不修改生产容量、不改存档、不更改实际占用率、不开发完整AI竞争或机场扩建玩法。</p>
+</blockquote>
+<h2 id="section-7">6. 备注与依据</h2>
+<p>本报告对机场数量、代码结构、缺数据数量以及部分模拟数字的引用，均来自用户提供的 Cursor《评审复核与复算》报告；并非本轮对完整 Unity 工程的独立实机验证。有关“玩家可以新增附近真实机场”和“无固定机场上限”是本轮用户明确提出的<strong>新增产品要求</strong>，不是当前代码已经实现的能力。有关技术分层、验收及分阶段实施，则是本报告的架构建议。</p>
+</article></div><div class="last">航空公司CEO模拟经营游戏 · 容量架构与机场扩展反馈 · 2026-11-09</div></body></html>

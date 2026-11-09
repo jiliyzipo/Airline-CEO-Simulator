@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-25T09:46:31.963Z",
-  "updatedAt": "2026-11-08T05:20:00.400Z",
+  "updatedAt": "2026-11-09T12:18:39.991Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,7 +45,7 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 26 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs, Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs, tools/semcheck/semcheck_tests.csproj).",
+  "freshnessNote": "Historic verdict REV-20261025103525-a76682 covered 66 changed files; 23 taken over by later passed deliveries, 6 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs …).",
   "staleForReviewId": "REV-20261025103525-a76682",
   "scopePolicy": "changed-files",
   "rescope": {
@@ -68,12 +68,15 @@
   "scopeDrift": {
     "basis": 66,
     "intact": 37,
-    "covered": 26,
+    "covered": 23,
     "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs",
       "Unity Project/Assets/Scripts/UI/Shell/CommandBarView.cs",
       "Unity Project/Assets/Scripts/UI/Shell/InboxPanelUI.cs",
       "tools/semcheck/semcheck_tests.csproj"
     ],
-    "uncoveredCount": 3
+    "uncoveredCount": 6
   }
 }

@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>机场时刻 · 24小时完整版（06:00—次日06:00）</title>
+<style>
+:root{--bg:#091527;--shell:#102440;--panel:#172d4c;--panel2:#1b3556;--border:#304a6c;--text:#eaf2ff;--muted:#9cb2d0;--green:#4ce39e;--blue:#317bfa;--white:#f2f7ff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px}
+button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #81b6ff;outline-offset:2px}
+.shell{margin:auto;max-width:1920px;min-height:100vh;background:linear-gradient(180deg,#10233e,#091527 90%)}
+.topbar{height:62px;background:#112743;padding:8px 18px;display:flex;align-items:center;gap:27px;border-bottom:1px solid #203b60}
+.logo{font-size:21px;letter-spacing:.7px;font-weight:850;white-space:nowrap}
+.nav{display:flex;gap:10px;flex:1}.nav span{flex:1;border-radius:10px;background:#1d3b63;padding:12px 10px;text-align:center;font-weight:750;white-space:nowrap}
+.subnav{display:flex;gap:10px;padding:10px 18px;background:#10213a;border-bottom:1px solid #1f385a}
+.subnav .item{border:0;border-radius:9px;background:#203c63;color:#d2e2f6;padding:12px 30px;font-weight:750}.subnav .active{background:#2465f8;color:#fff}
+.page{padding:16px 20px 92px}
+.status{display:flex;gap:15px;flex-wrap:wrap;align-items:center;color:#13d66d;font-size:16px;font-weight:800;line-height:1.5;margin-bottom:13px}.status .dot{color:#1d8a60}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;flex-wrap:wrap}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search{width:312px;max-width:80vw;border-radius:10px;border:1px solid #395576;padding:12px 16px;background:#183253;color:#f0f5ff;outline:none}.search::placeholder{color:#879db9}
+.select{border-radius:10px;border:1px solid #395576;background:#1b3557;color:#d9e5f6;padding:11px 14px;min-width:125px}
+.count{color:#a3b6d0;font-size:12px}.date{background:#193250;border:1px solid #395576;border-radius:10px;color:#e2ecfb;padding:10px 15px;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}.date .season-name{color:#9cc5f8;font-size:12px;font-weight:700;margin-right:10px;padding-right:10px;border-right:1px solid #4a6284}
+.filter-wrap{position:relative}.filter-btn{border-radius:10px;border:1px solid #395576;background:#1b3557;color:#d9e5f6;padding:11px 14px;min-width:125px;text-align:left;display:inline-flex;align-items:center;justify-content:space-between;gap:12px}.filter-btn.active{border-color:#5f91d5;background:#22426b}.filter-panel{position:absolute;top:calc(100% + 8px);left:0;z-index:25;width:340px;background:#142945;border:1px solid #355476;border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.35);padding:12px 12px 10px;display:none}.filter-panel.show{display:block}.filter-help{color:#8fa8c6;font-size:12px;text-align:right;padding:2px 4px 8px}.filter-group{margin-bottom:10px}.filter-group h4{margin:0 0 8px;font-size:14px;color:#dbe8fb}.filter-option{width:100%;border:0;background:transparent;color:#d2e2f6;border-radius:10px;padding:9px 12px;text-align:left;font-weight:700;display:flex;align-items:center;gap:10px}.filter-option:hover{background:#1c3657}.filter-option.active{background:#2960b8;color:#fff}.filter-option .check{width:16px;display:inline-block;color:#7ee1a2}.filter-option:not(.active) .check{color:transparent}.filter-actions{display:flex;gap:10px;padding-top:8px}.filter-actions button{flex:1;border:0;border-radius:12px;padding:11px 10px;font-weight:800}.filter-reset{background:#1d385b;color:#d9e8fb}.filter-apply{background:#2a66f8;color:#fff}
+.airports{display:flex;flex-direction:column;gap:9px}
+.airport{border:1px solid #2c4565;border-radius:13px;background:#142943;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.13)}
+.airport.open{border-color:#3f638f}
+.airport-head{display:grid;grid-template-columns:165px minmax(280px,1fr) 104px 104px 104px 24px;gap:14px;align-items:center;min-height:89px;width:100%;text-align:left;padding:13px 19px;background:#192f50;border:0;color:var(--text)}
+.airport-head:hover{background:#203858}
+.ident{display:flex;gap:13px;align-items:center;min-width:0}.code{font-size:28px;font-weight:850;letter-spacing:.5px;line-height:1.1}.city{font-size:12px;color:#a9bfda;margin-bottom:5px;white-space:nowrap}.tag{font-size:10px;font-weight:700;color:#9fc6f8;background:#214778;border-radius:12px;padding:3px 8px;display:inline-block}
+.occupancy{min-width:0;max-width:620px}.occupancy-label{color:#a5bdd8;font-size:12px;margin-bottom:11px;white-space:nowrap}.occupancy-label strong{font-size:16px;color:#f2f6ff;font-weight:800}.track{height:7px;border-radius:10px;background:#294665;overflow:hidden;max-width:530px}.track span{height:100%;display:block;background:#648ab0;border-radius:10px}
+.metric small{font-size:12px;color:#a2b7d1;display:block;margin-bottom:4px;white-space:nowrap}.metric b{font-size:19px;font-weight:850;font-variant-numeric:tabular-nums}.metric .green{color:var(--green)}.chevron{font-size:20px;color:#87b5ec;transition:transform .2s}.open .chevron{transform:rotate(180deg)}
+.details{border-top:1px solid #2c4565;background:linear-gradient(180deg,#102039,#10233d);padding:15px 15px 18px}
+.matrix-scroll{overflow-x:auto;scrollbar-color:#42678d #10223b;padding-bottom:5px}
+.matrix{min-width:1640px;width:100%;border:1px solid #2a4566;border-radius:10px;overflow:hidden;background:#112640}
+.shift-head,.hour-head,.time-head,.matrix-row{display:grid;grid-template-columns:56px 16fr 20fr 20fr 40fr}
+.shift-head .shift{background:#1c3960;color:#edf4ff;text-align:center;font-weight:850;font-size:15px;padding:9px 3px;border-left:2px solid #10223c}.shift-head .blank{background:#132b49}
+.shift em{font-style:normal;font-weight:600;font-size:13px;color:#c8d8ed;margin-left:6px}
+.hour-head{border-bottom:1px solid #29496c;background:#132b49}.hour-head .blank{background:#132b49}.hourgroup{display:grid;grid-auto-flow:column;align-items:center;grid-auto-columns:minmax(0,1fr);border-left:2px solid #2b4a70;height:25px}.hourgroup span{text-align:center;font-size:10px;font-weight:700;color:#d8e7fc;border-right:1px solid #2b4667}.time-head{border-bottom:1px solid #2d4d72}
+.time-head>.blank{background:#132b49}
+.group-time,.lane{display:grid;grid-auto-flow:column;align-items:center;grid-auto-columns:minmax(0,1fr);gap:1px;padding:0 2px;border-left:2px solid #2b4a70}
+.group-time{height:24px;background:#162b49}
+.group-time span{text-align:center;color:#c5d8f3;white-space:nowrap;font-size:9px;font-variant-numeric:tabular-nums}
+.matrix-row{height:42px}.matrix-row+.matrix-row{border-top:1px solid #274260}
+.direction{display:flex;align-items:center;justify-content:center;background:#18314f;color:#dfeeff}.direction svg{width:32px;height:32px;display:block;overflow:visible}.direction .plane-stroke{stroke:#f1f7ff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.lane{padding-top:5px;padding-bottom:5px}
+.slot{min-width:0;width:100%;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid #234160;border-radius:4px;background:#173451;color:#66e8a6;font-size:12px;font-weight:850;line-height:1;transition:background .12s,border-color .12s}
+.slot:hover{background:#28517d;border-color:#82b3ed}.slot.full{color:#d6e0ee;font-size:11px}.slot.curfew{color:#e4a0a7;background:#302c42;border-color:#594057;cursor:not-allowed}.hourgroup.night-hours span:nth-child(5),.group-time.night-times span:nth-child(17),.lane.night-lane .slot:nth-child(17){border-left:2px solid #70a2dc}.hourgroup .next-day{color:#8dc1ff}.slot.na{color:#718da9;font-size:14px}.slot.held{background:#2a69da;color:#fff;border-color:#5699fa}.slot.selected:not(.held){box-shadow:inset 0 0 0 2px #69abff}
+.no-data{padding:30px 10px;text-align:center;color:#9cb3d1;font-size:15px}
+.empty{padding:36px;text-align:center;color:#a6bdd9;border:1px dashed #385170;border-radius:12px}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#0d223d;border-top:1px solid #2c496c;padding:9px max(calc((100vw - 1920px)/2 + 12px),12px);display:flex;gap:8px;box-shadow:0 -8px 20px #050e1a99}
+.bottom .tab{flex:1;text-align:center;border-radius:8px;padding:10px 5px;background:#1d3d66;color:#d4e3f7;font-weight:700}.bottom .tab.active{background:#245ff3;color:#fff}
+.overlay{position:fixed;inset:0;background:#050a15ce;display:none;align-items:center;justify-content:center;z-index:30;padding:16px}.overlay.show{display:flex}
+.dialog{width:min(710px,100%);max-height:90vh;overflow:auto;background:#142944;border:1px solid #536f97;border-radius:15px;box-shadow:0 25px 70px #0009}
+.dialog-head{display:flex;align-items:start;justify-content:space-between;padding:20px 23px;border-bottom:1px solid #315071}.dialog-head h2{font-size:22px;margin:0 0 7px}.dialog-head p{margin:0;color:#9ab2d1;font-size:12px}.close{padding:7px 12px;border:1px solid #45658a;border-radius:8px;background:#244267;color:#d8eaff}
+.dialog-content{padding:18px 23px 22px}.columns{display:grid;grid-template-columns:1fr 1fr;gap:13px}.direction-panel{padding:15px;background:#1b3656;border:1px solid #355474;border-radius:10px}.direction-panel h3{margin:0 0 15px;font-size:16px}.numbers{display:flex;justify-content:space-between;gap:5px}.num{flex:1;text-align:center;padding:8px 4px;border-radius:7px;background:#152b47}.num b{display:block;font-size:22px}.num small{color:#a7bbd6;font-size:11px}.num .green{color:var(--green)}.stack{height:10px;border-radius:99px;overflow:hidden;display:flex;background:#10213b;margin:15px 0}.stack i{height:100%;display:block}.stack .other{background:#8399b4}.stack .mine{background:#488afa}.stack .free{background:#4ce39e}.othercodes{font-size:12px;color:#a9bfd7;line-height:1.9}.othercodes b{color:#edf5ff}
+.action{width:100%;margin-top:12px;border:1px solid #4989ff;border-radius:8px;padding:11px 7px;background:#2668e8;color:#fff;font-weight:800}.action.secondary{background:#284664;border-color:#507092}.action:disabled{opacity:.6;cursor:default}
+.toast{position:fixed;right:18px;bottom:85px;z-index:40;padding:12px 16px;border:1px solid #5982b3;border-radius:10px;background:#173a5c;color:#eef7ff;max-width:400px;box-shadow:0 12px 50px #0007;display:none}.toast.show{display:block}
+@media(max-width:1200px){.airport-head{grid-template-columns:150px minmax(180px,1fr) repeat(3,79px) 18px;gap:9px}.code{font-size:24px}.occupancy{max-width:none}.metric b{font-size:17px}}
+@media(max-width:760px){.filter-panel{width:min(92vw,340px);left:auto;right:0} .nav span:not(:first-child){display:none}.topbar{height:auto;gap:10px}.subnav{overflow-x:auto;padding:9px 12px}.subnav .item{padding:10px 14px;white-space:nowrap}.page{padding:12px 10px 84px}.status{font-size:13px;gap:8px}.airport-head{display:grid;grid-template-columns:1fr repeat(3,66px) 14px;grid-template-rows:auto auto;padding:13px;gap:10px}.ident{grid-column:1/2;grid-row:1/2}.occupancy{grid-column:1/-1;grid-row:2/3}.metric{grid-row:1/2}.metric small{font-size:10px}.metric b{font-size:15px}.chevron{grid-row:1/2}.details{padding:8px}.columns{grid-template-columns:1fr}.bottom .tab:nth-child(n+7){display:none}.bottom .tab{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar"><div class="logo">✈ 航线</div><div class="nav"><span>航线总览</span><span>航权与时刻槽</span><span>城市经济指数</span><span>运力缺口</span><span>开通新航线</span></div></header>
+  <div class="subnav"><button class="item">持仓与在办　●1</button><button class="item">时刻二级市场</button><button class="item">航权全景</button><button class="item active">机场时刻</button></div>
+  <main class="page">
+    <div class="status"><span>协调机场 81 个</span><span class="dot">•</span><span>我司持有 0 条</span><span class="dot">•</span><span>他航占用 10465 条</span><span class="dot">•</span><span>可申请余量 1479 条</span></div>
+    <div class="toolbar"><div class="controls"><input id="search" class="search" placeholder="搜索机场代码或城市（如 AMS）" aria-label="搜索机场"><select class="select" id="sort" aria-label="机场排序"><option value="owned">按我司持有 ↓</option><option value="remain">按可申请余量 ↓</option><option value="usage">按利用率 ↓</option><option value="code">按机场代码</option></select><div class="filter-wrap"><button id="filterBtn" type="button" class="filter-btn" aria-haspopup="true" aria-expanded="false">过滤器 <span>▾</span></button><div id="filterPanel" class="filter-panel" hidden><div class="filter-help">勾选后点确定</div><div class="filter-group"><h4>机场等级</h4><button type="button" class="filter-option" data-group="grade" data-value="all"><span class="check">✓</span>全部机场</button><button type="button" class="filter-option" data-group="grade" data-value="hub"><span class="check">✓</span>只有枢纽</button><button type="button" class="filter-option" data-group="grade" data-value="trunk"><span class="check">✓</span>只有干线</button></div><div class="filter-group"><h4>范围</h4><button type="button" class="filter-option" data-group="scope" data-value="all"><span class="check">✓</span>全部机场</button><button type="button" class="filter-option" data-group="scope" data-value="network"><span class="check">✓</span>只有我司航网</button></div><div class="filter-group"><h4>余量</h4><button type="button" class="filter-option" data-group="remainFilter" data-value="all"><span class="check">✓</span>不限</button><button type="button" class="filter-option" data-group="remainFilter" data-value="free"><span class="check">✓</span>只有仍有空位</button><button type="button" class="filter-option" data-group="remainFilter" data-value="full"><span class="check">✓</span>只有池已满</button></div><div class="filter-group"><h4>排序</h4><button type="button" class="filter-option" data-group="sortFilter" data-value="owned"><span class="check">✓</span>按我司持有 ↓</button><button type="button" class="filter-option" data-group="sortFilter" data-value="remain"><span class="check">✓</span>按可申请余量 ↓</button></div><div class="filter-actions"><button type="button" id="filterReset" class="filter-reset">重置</button><button type="button" id="filterApply" class="filter-apply">确定</button></div></div></div><span id="count" class="count"></span></div><span class="date" id="seasonDate" aria-label="当前航季日期范围"></span></div>
+    <section id="airports" class="airports" aria-label="机场时刻概览"></section>
+  </main>
+  <nav class="bottom"><div class="tab">◀</div><div class="tab">▶</div><div class="tab">主页</div><div class="tab">收件箱 <span id="inboxCount" style="color:#ff7979">●2</span></div><div class="tab active">航线</div><div class="tab">机队</div><div class="tab">人员</div><div class="tab">维护</div><div class="tab">财务</div><div class="tab">培训</div><div class="tab">愿景</div></nav>
+</div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="时刻详细信息"><div class="dialog"><div class="dialog-head"><div><h2 id="modTitle"></h2><p id="modInfo"></p></div><button id="close" class="close">关闭 ✕</button></div><div class="dialog-content"><div id="details" class="columns"></div></div></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+// 仅原型演示：正式游戏请将 window.GAME_DATE 替换为游戏内日期（YYYY-MM-DD）。
+const gameDate = window.GAME_DATE || '2026-11-07';
+function lastSunday(year,month){
+  const d=new Date(Date.UTC(year,month+1,0));
+  d.setUTCDate(d.getUTCDate()-d.getUTCDay());
+  return d;
+}
+function formatDate(d){
+  return `${d.getUTCFullYear()}年${String(d.getUTCMonth()+1).padStart(2,'0')}月${String(d.getUTCDate()).padStart(2,'0')}日`;
+}
+function seasonFor(dateString){
+  const d=new Date(dateString+'T00:00:00Z');
+  if(Number.isNaN(d.getTime()))return null;
+  const year=d.getUTCFullYear();
+  const spring=lastSunday(year,2);
+  const autumn=lastSunday(year,9);
+  let start,end,label;
+  if(d>=spring && d<autumn){
+    label='夏航季'; start=spring; end=new Date(autumn.getTime()-86400000);
+  } else if(d>=autumn){
+    label='冬航季'; start=autumn; end=new Date(lastSunday(year+1,2).getTime()-86400000);
+  } else {
+    label='冬航季'; start=lastSunday(year-1,9); end=new Date(spring.getTime()-86400000);
+  }
+  return {label,start,end};
+}
+function renderSeasonDate(){
+  const season=seasonFor(gameDate);
+  document.getElementById('seasonDate').innerHTML=season
+    ? `<span class="season-name">${season.label}</span>${formatDate(season.start)} — ${formatDate(season.end)}`
+    : '航季日期暂无数据';
+}
+renderSeasonDate();
+// 演示数据。机场汇总沿用设计截图，细分时刻为原型数据，待接入游戏状态接口。
+const airports=[
+ {code:'ATL',name:'亚特兰大',kind:'枢纽',grade:'hub',network:true,used:278,total:313,own:0},
+ {code:'PEK',name:'北京首都',kind:'枢纽',grade:'hub',network:false,used:null,total:null,own:null},
+ {code:'XMN',name:'厦门高崎',kind:'干线',grade:'trunk',network:true,used:null,total:null,own:null},
+ {code:'AMS',name:'阿姆斯特丹',kind:'枢纽',grade:'hub',network:true,used:156,total:187,own:0},
+ {code:'BCN',name:'巴塞罗那',kind:'干线',grade:'trunk',network:false,used:114,total:128,own:0},
+ {code:'BKK',name:'曼谷素万那普',kind:'枢纽',grade:'hub',network:true,used:125,total:142,own:0}
+];
+const periods=[
+ {label:'早班',start:6,end:10},
+ {label:'中班',start:10,end:15},
+ {label:'晚班',start:15,end:20},
+ {label:'夜班',start:20,end:30}
+];
+const exactCap={ATL:[6,5,5,5],AMS:[4,4,3,4],BCN:[3,3,3,2],BKK:[4,4,3,3]};
+let opened='ATL',query='',sortBy='owned',selected=null,proposalCount=2,toastTimer;
+const filters={grade:'all',scope:'all',remainFilter:'all',sortFilter:'owned'};
+function pad(n){return String(n).padStart(2,'0')}
+function timeLabel(h,q){return pad(h%24)+':'+pad(q*15)}
+function avail(a){return a.total==null?null:a.total-a.used}
+function usage(a){return a.total?Math.round(a.used/a.total*100):null}
+// 夜间航班：容量按机场、方向及航季数据提供。原型采用示例数值，不代表真实机场的时刻库存。
+// 正式游戏可通过 window.AIRPORT_CURFEWS 控制禁飞状态：
+// { AMS: { dep: ['01:00','01:15'], arr: [] } } （仅作为接口格式示例，不是 AMS 真实宵禁数据）
+// 不要把“无空余(满)”“未提供容量(—)”和“禁止正常申请(禁)”混为一谈。
+function isCurfew(code,h,q,dir){
+  const t=timeLabel(h,q),rule=window.AIRPORT_CURFEWS?.[code];
+  if(!rule) return false;
+  const entries=rule[dir];
+  return Array.isArray(entries) && entries.includes(t);
+}
+function capFor(code,h,q){
+  const hour=h%24;
+  let base=({ATL:6,AMS:4,BCN:3,BKK:3})[code];
+  if(base==null)return 0;
+  if(hour===8)return exactCap[code][q];
+  // 20:00–05:45 夜间持续展示：部分机场有夜间客货运，部分机场严格限量。
+  // 演示容量用于展示 UI 能处理夜间时刻；不能据此推断某个机场确切许可状态。
+  if(hour>=23||hour<6){
+    const nightCaps={ATL:[3,2,3,2],AMS:[1,0,1,0],BCN:[2,1,1,1],BKK:[3,3,2,2]};
+    const v=nightCaps[code][q];
+    return Math.max(0, v + ((hour===5 && q>=2)?1:0));
+  }
+  if(hour>=20){
+    const lateCaps={ATL:[4,3,3,2],AMS:[2,2,1,2],BCN:[2,2,1,2],BKK:[3,3,3,2]};
+    return lateCaps[code][q];
+  }
+  if(hour>=12&&hour<14)return ({ATL:[3,2,2,1],AMS:[2,1,2,1],BCN:[1,1,0,1],BKK:[2,2,1,0]})[code][q];
+  return Math.max(0,base+[0,-1,-1,0][q]-(hour===10?1:0));
+}
+
+function getSlot(code,h,q){
+  const n=capFor(code,h,q),idx=airports.findIndex(a=>a.code===code),hour=h%24,v=(hour*17+q*13+idx*7)%11;
+  let dUsed=n?Math.max(0,n-(v%4===0?0:v%3===1?1:2)):0;
+  let aUsed=n?Math.max(0,n-((v+4)%5===0?0:(v+3)%3===0?2:1)):0;
+  if(code==='ATL'&&hour===8&&q===0){dUsed=4;aUsed=5}
+  const airlineCodes=['CA','MU','CZ','HU','DL','UA','KL','AF','SQ','EK'];
+  function side(used,offset,dir){return {curfew:isCurfew(code,h,q,dir),used,remaining:n-used,mine:0,other:used,airlines:Array.from({length:Math.min(used,3)},(_,i)=>airlineCodes[(idx*2+hour+q+offset+i)%airlineCodes.length])}}
+  return {code,h,q,n,dep:side(dUsed,0,'dep'),arr:side(aUsed,3,'arr')};
+}
+function labelFor(n,d){return d.curfew?'禁':n===0?'—':d.remaining===0?'满':String(d.remaining)}
+function classFor(n,d,skey){return ['slot',d.curfew?'curfew':'',n===0&&!d.curfew?'na':'',n>0&&d.remaining===0&&!d.curfew?'full':'',d.mine>0?'held':'',skey===selected?'selected':''].filter(Boolean).join(' ')}
+
+function dirIcon(type){
+  const landing = `M 5.7,8.7 L 7.1,16.7 L 5.1,18.0 L 5.0,19.6 L 7.3,22.3 L 13.4,27.2 L 50.6,43.3 L 55.4,43.8 L 57.3,43.2 L 58.9,41.5 L 59.0,39.4 L 58.2,37.7 L 51.4,30.1 L 48.4,28.3 L 38.0,25.2 L 27.9,7.3 L 24.1,6.0 L 23.0,6.6 L 25.6,21.3 L 15.8,18.4 L 10.5,9.4 L 6.9,8.3 Z`;
+  const takeoff = `M 59.0,18.3 L 58.1,16.6 L 56.7,15.7 L 47.2,15.0 L 44.9,15.9 L 35.6,21.7 L 21.4,15.5 L 19.5,15.2 L 16.6,17.1 L 16.1,18.6 L 24.9,27.8 L 25.2,28.6 L 16.9,34.0 L 8.4,30.9 L 5.4,32.9 L 5.0,34.3 L 10.0,39.5 L 9.2,41.7 L 10.1,43.6 L 14.3,43.8 L 20.5,42.8 L 53.8,26.6 L 57.5,23.3 L 58.9,20.3 Z`;
+  const title = type==='dep'?'飞机起飞':'飞机降落';
+  const path = type==='dep'?takeoff:landing;
+  return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" fill="currentColor"><path d="${path}"/><path d="M6 56 L58 56" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round"/></svg>`;
+}
+
+function buildMatrix(code){
+  if(!exactCap[code])return '<div class="no-data">暂无时刻数据</div>';
+  const headings=periods.map(p=>`<div class="shift">${p.label}<em>${pad(p.start)}:00 – ${p.end>24?'次日':''}${pad(p.end%24)}:00</em></div>`).join('');
+  const hours=periods.map(p=>{const labels=[];for(let h=p.start;h<p.end;h++)labels.push(`<span class="${h>=24?'next-day':''}">${pad(h%24)}:00</span>`);return `<div class="hourgroup ${p.end>24?'night-hours':''}">${labels.join('')}</div>`}).join('');
+  const times=periods.map(p=>{const ticks=[];for(let h=p.start;h<p.end;h++)for(let q=0;q<4;q++)ticks.push(`<span>${pad(q*15)}</span>`);return `<div class="group-time ${p.end>24?'night-times':''}">${ticks.join('')}</div>`}).join('');
+  function laneHtml(dir){return periods.map(p=>{
+    const cells=[];
+    for(let h=p.start;h<p.end;h++)for(let q=0;q<4;q++){
+      const s=getSlot(code,h,q),d=s[dir],k=`${code}-${dir}-${h}-${q}`;
+      const state=d.curfew?'禁止正常申请':s.n===0?'未开放容量':d.remaining===0?'已满':'可申请 '+d.remaining;
+      cells.push(`<button class="${classFor(s.n,d,k)}" type="button" data-code="${code}" data-h="${h}" data-q="${q}" data-dir="${dir}" title="${code} ${h>=24?'次日 ':''}${timeLabel(h,q)} ${dir==='dep'?'离港':'到港'}：${state}" aria-label="${code} ${h>=24?'次日 ':''}${timeLabel(h,q)} ${dir==='dep'?'离港':'到港'} ${labelFor(s.n,d)}" ${d.curfew?'disabled':''}>${labelFor(s.n,d)}</button>`)
+    }
+    return `<div class="lane ${p.end>24?'night-lane':''}">${cells.join('')}</div>`;
+  }).join('')}
+  return `<div class="matrix-scroll"><div class="matrix">
+    <div class="shift-head"><div class="blank"></div>${headings}</div>
+    <div class="hour-head"><div class="blank"></div>${hours}</div>
+    <div class="time-head"><div class="blank"></div>${times}</div>
+    <div class="matrix-row"><div class="direction" title="离港" aria-label="离港">${dirIcon('dep')}</div>${laneHtml('dep')}</div>
+    <div class="matrix-row"><div class="direction" title="到港" aria-label="到港">${dirIcon('arr')}</div>${laneHtml('arr')}</div>
+  </div></div>`;
+}
+function buildAirport(a){
+  const isOpen=opened===a.code,hasData=a.total!=null,per=usage(a),remaining=avail(a);
+  return `<article class="airport ${isOpen?'open':''}" data-airport="${a.code}">
+    <button class="airport-head" type="button" data-toggle="${a.code}" aria-expanded="${isOpen}" aria-controls="detail-${a.code}" aria-label="${a.code} ${a.name} ${isOpen?'收起':'展开'}时刻详情">
+      <div class="ident"><b class="code">${a.code}</b><div><div class="city">${a.name}</div><span class="tag">${a.kind}</span></div></div>
+      <div class="occupancy"><div class="occupancy-label">机场时刻已占用 · <strong>${hasData?`${a.used}/${a.total}`:'—'}</strong></div><div class="track"><span style="width:${per??0}%"></span></div></div>
+      <div class="metric"><small>我司持有</small><b>${a.own??'—'}</b></div>
+      <div class="metric"><small>可申请</small><b class="green">${remaining??'—'}</b></div>
+      <div class="metric"><small>利用率</small><b>${per==null?'—':per+'%'}</b></div>
+      <div class="chevron" aria-hidden="true">⌄</div>
+    </button>
+    <div id="detail-${a.code}" ${isOpen?'':'hidden'} class="details">${isOpen?buildMatrix(a.code):''}</div>
+  </article>`
+}
+function effectiveSort(){return filters.sortFilter || sortBy || 'owned'}
+function applyFilters(list){
+  return list.filter(a=>{
+    if(query && !(a.code.toLowerCase().includes(query)||a.name.includes(query))) return false;
+    if(filters.grade!=='all' && a.grade!==filters.grade) return false;
+    if(filters.scope==='network' && !a.network) return false;
+    const remaining=avail(a);
+    if(filters.remainFilter==='free' && !(remaining!=null && remaining>0)) return false;
+    if(filters.remainFilter==='full' && !(remaining===0)) return false;
+    return true;
+  });
+}
+function sortList(list){
+  const mode=effectiveSort();
+  if(mode==='owned') list.sort((a,b)=>(b.own??-1)-(a.own??-1) || a.code.localeCompare(b.code));
+  if(mode==='remain') list.sort((a,b)=>(avail(b)??-1)-(avail(a)??-1) || a.code.localeCompare(b.code));
+  if(mode==='usage') list.sort((a,b)=>(usage(b)??-1)-(usage(a)??-1) || a.code.localeCompare(b.code));
+  if(mode==='code') list.sort((a,b)=>a.code.localeCompare(b.code));
+  return list;
+}
+function renderFilterPanel(){
+  document.querySelectorAll('.filter-option').forEach(btn=>{
+    const active = filters[btn.dataset.group]===btn.dataset.value;
+    btn.classList.toggle('active', active);
+  });
+  const btn=document.getElementById('filterBtn');
+  const labels=[];
+  if(filters.grade==='hub') labels.push('枢纽');
+  if(filters.grade==='trunk') labels.push('干线');
+  if(filters.scope==='network') labels.push('我司航网');
+  if(filters.remainFilter==='free') labels.push('有空位');
+  if(filters.remainFilter==='full') labels.push('池已满');
+  btn.classList.toggle('active', labels.length>0 || filters.sortFilter!=='owned');
+}
+function render(){
+  sortBy=effectiveSort();
+  document.getElementById('sort').value=sortBy;
+  let list=sortList(applyFilters([...airports]));
+  document.getElementById('count').textContent=`显示 ${list.length} 个机场`;
+  document.getElementById('airports').innerHTML=list.length?list.map(buildAirport).join(''):'<div class="empty">未找到机场</div>';
+  renderFilterPanel();
+}
+function directionHtml(name,d,n,dir){
+  const pct=x=>n?100*x/n:0;
+  let button='';
+  if(d.curfew)button='<button class="action secondary" disabled>该方向限制正常申请</button>';
+  else if(n===0)button='<button class="action secondary" disabled>暂无可申请时刻</button>';
+  else if(d.remaining>0)button=`<button class="action" data-action="apply" data-dir="${dir}">申请${name}时刻</button>`;
+  else if(d.other>0)button=`<button class="action secondary" data-action="buy" data-dir="${dir}">二级市场买入提案</button>`;
+  else button='<button class="action secondary" disabled>暂无可买入时刻</button>';
+  return `<div class="direction-panel"><h3>${name}</h3><div class="numbers"><div class="num"><b>${n}</b><small>总容量</small></div><div class="num"><b>${d.used}</b><small>已占用</small></div><div class="num"><b class="green">${d.remaining}</b><small>可申请</small></div></div><div class="stack"><i class="other" style="width:${pct(d.other)}%"></i><i class="mine" style="width:${pct(d.mine)}%"></i><i class="free" style="width:${pct(d.remaining)}%"></i></div><div class="othercodes">我司 ${d.mine} · 他航 ${d.other}<div>他航代码：<b>${d.airlines.length?d.airlines.join(' / '):'—'}</b></div></div>${button}</div>`;
+}
+function showModal(code,h,q,dir){
+  const s=getSlot(code,h,q),time=timeLabel(h,q);
+  document.getElementById('modTitle').textContent=`${code} · ${h>=24?'次日 ':''}${time}`;
+  document.getElementById('modInfo').textContent=dir==='dep'?'当前选择：离港':'当前选择：到港';
+  document.getElementById('details').innerHTML=directionHtml('离港',s.dep,s.n,'dep')+directionHtml('到港',s.arr,s.n,'arr');
+  document.getElementById('overlay').classList.add('show');
+  document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>{
+    proposalCount++;document.getElementById('inboxCount').textContent='●'+proposalCount;
+    const direction=btn.dataset.dir==='dep'?'离港':'到港';
+    document.getElementById('overlay').classList.remove('show');
+    showToast(btn.dataset.action==='buy'?`${code} ${time} ${direction}：买入提案已模拟递交收件箱（未扣款）`:`${code} ${time} ${direction}：申请已模拟递交收件箱`);
+  }));
+}
+function showToast(message){const el=document.getElementById('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),4000)}
+document.getElementById('airports').addEventListener('click',e=>{
+  const slot=e.target.closest('.slot');if(slot){const {code,h,q,dir}=slot.dataset;selected=`${code}-${dir}-${h}-${q}`;render();showModal(code,Number(h),Number(q),dir);return}
+  const header=e.target.closest('[data-toggle]');if(header){const code=header.dataset.toggle;opened=opened===code?null:code;render()}
+});
+document.getElementById('search').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();render()});
+document.getElementById('sort').addEventListener('change',e=>{sortBy=e.target.value;filters.sortFilter=e.target.value;render()});
+const filterBtn=document.getElementById('filterBtn');
+const filterPanel=document.getElementById('filterPanel');
+filterBtn.addEventListener('click',()=>{const open=filterPanel.classList.toggle('show'); filterPanel.hidden=!open;});
+document.querySelectorAll('.filter-option').forEach(btn=>btn.addEventListener('click',()=>{filters[btn.dataset.group]=btn.dataset.value; renderFilterPanel();}));
+document.getElementById('filterReset').addEventListener('click',()=>{filters.grade='all';filters.scope='all';filters.remainFilter='all';filters.sortFilter='owned';sortBy='owned';render();});
+document.getElementById('filterApply').addEventListener('click',()=>{sortBy=filters.sortFilter;filterPanel.classList.remove('show');filterPanel.hidden=true;render();});
+document.addEventListener('click',e=>{if(!e.target.closest('.filter-wrap') && filterPanel.classList.contains('show')){filterPanel.classList.remove('show');filterPanel.hidden=true;}});
+document.getElementById('close').addEventListener('click',()=>document.getElementById('overlay').classList.remove('show'));
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')e.target.classList.remove('show')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('overlay').classList.remove('show'); if(filterPanel.classList.contains('show')){filterPanel.classList.remove('show');filterPanel.hidden=true;}}});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "run": "batch1-r2",
+  "createdAt": "2026-11-09T12:13:38.741Z",
+  "repo": "D:\\Project\\Airline-CEO-Simulator",
+  "git": {
+    "head": "ce52048febb3f938e09079314813d3668364b39b",
+    "describe": "ce52048-dirty",
+    "dirtyFiles": 86
+  },
+  "unityVersion": null,
+  "artifacts": [
+    {
+      "label": "post-full",
+      "snapshotDir": "D:\\Project\\_snap_r2c_post",
+      "runName": "Batch1R2cPostFull",
+      "xml": "out\\analysis\\batch1-evidence\\batch1-r2\\post-full\\Tasks20261017_Batch1R2cPostFull.xml",
+      "xmlSha256": "da2717cd5b9ec40102e20a820a5a7d3bb24f31cf55089e91d70e1fc490bce5d0",
+      "log": "out\\analysis\\batch1-evidence\\batch1-r2\\post-full\\Tasks20261017_Batch1R2cPostFull.log",
+      "logSha256": "7b69fc8121a1e45e43e997848bc695d8c73d578da3ddd0c417e83bcf7eccd117",
+      "summary": {
+        "total": 147,
+        "passed": 147,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0,
+        "cases": []
+      },
+      "slotSeqLines": 121,
+      "slotSeqPath": "out\\analysis\\batch1-evidence\\batch1-r2\\post-full.slotseq.txt"
+    },
+    {
+      "label": "post-k19",
+      "snapshotDir": "D:\\Project\\_snap_r2c_post",
+      "runName": "Batch1R2cPostK19",
+      "xml": "out\\analysis\\batch1-evidence\\batch1-r2\\post-k19\\Tasks20261017_Batch1R2cPostK19.xml",
+      "xmlSha256": "b8bf9e91e5d466862a57dad01d4c1af3fd04f95af95becc529431e66875fa20c",
+      "log": "out\\analysis\\batch1-evidence\\batch1-r2\\post-k19\\Tasks20261017_Batch1R2cPostK19.log",
+      "logSha256": "7bd4dd42f84dcd3707edbd48752a87a5fcda8fa79d912f9a0889aed43316e894",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0,
+        "cases": []
+      },
+      "slotSeqLines": 0,
+      "slotSeqPath": null
+    },
+    {
+      "label": "post-seq",
+      "snapshotDir": "D:\\Project\\_snap_r2c_post",
+      "runName": "Batch1R2cPostSeq",
+      "xml": "out\\analysis\\batch1-evidence\\batch1-r2\\post-seq\\Tasks20261017_Batch1R2cPostSeq.xml",
+      "xmlSha256": "fc8ee80239ccda55ddfc4579af40fb0c24b69da7790290d84bd5601008b59158",
+      "log": "out\\analysis\\batch1-evidence\\batch1-r2\\post-seq\\Tasks20261017_Batch1R2cPostSeq.log",
+      "logSha256": "69dae474f30b50d939d05dc8a97adf54628fee423a2107ae81b775c6797b4cd9",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0,
+        "cases": []
+      },
+      "slotSeqLines": 121,
+      "slotSeqPath": "out\\analysis\\batch1-evidence\\batch1-r2\\post-seq.slotseq.txt"
+    },
+    {
+      "label": "pre-seq",
+      "snapshotDir": "D:\\Project\\_snap_r2c_pre",
+      "runName": "Batch1R2cPreSeq",
+      "xml": "out\\analysis\\batch1-evidence\\batch1-r2\\pre-seq\\Tasks20261017_Batch1R2cPreSeq.xml",
+      "xmlSha256": "db34d964f3f4a6e6822bf6e5aea814fa1c6c5a6ebc55466d0253ec9e696d3397",
+      "log": "out\\analysis\\batch1-evidence\\batch1-r2\\pre-seq\\Tasks20261017_Batch1R2cPreSeq.log",
+      "logSha256": "a852ecc9689e67a8ec1862833e5e8d311c1c5233a1cd4a8f7e22dc6fdfabf520",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0,
+        "cases": []
+      },
+      "slotSeqLines": 121,
+      "slotSeqPath": "out\\analysis\\batch1-evidence\\batch1-r2\\pre-seq.slotseq.txt"
+    },
+    {
+      "label": "pre-k19",
+      "snapshotDir": "D:\\Project\\_snap_r2c_pre",
+      "runName": "Batch1R2cPreK19",
+      "xml": "out\\analysis\\batch1-evidence\\batch1-r2\\pre-k19\\Tasks20261017_Batch1R2cPreK19.xml",
+      "xmlSha256": "de4bc812c10284f4d35fa94c37c7ba0d92c366f28646acec22a5616c475018b4",
+      "log": "out\\analysis\\batch1-evidence\\batch1-r2\\pre-k19\\Tasks20261017_Batch1R2cPreK19.log",
+      "logSha256": "1fd3390c36a5a1988fca47ce7d611ca7ba50a004f140ccc0ff2f9ee88fe12cd5",
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0,
+        "cases": []
+      },
+      "slotSeqLines": 0,
+      "slotSeqPath": null
+    }
+  ],
+  "preSnapshot": "D:\\Project\\_snap_r2c_pre",
+  "slotSeqCompare": {
+    "pre": "pre-seq",
+    "post": "post-seq",
+    "preLines": 121,
+    "postLines": 121,
+    "diffLines": 0,
+    "identical": true
+  },
+  "preRebuildDiff": "pre-rebuild.diff",
+  "preRebuildNote": "PRE-REBUILD.md"
+}

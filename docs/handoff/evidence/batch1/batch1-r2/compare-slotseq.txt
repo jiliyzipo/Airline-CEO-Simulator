@@ -1,0 +1,6 @@
+# SLOTSEQ 前后对照
+# pre : pre-seq (121 行)
+# post: post-seq (121 行)
+
+
+RESULT: identical（121 行逐行相同）

@@ -1,0 +1,1324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="147" result="Passed" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.5509368">
+  <test-suite type="TestSuite" id="1000" name="IsolatedBaseline__snap_r2c_post" fullname="IsolatedBaseline__snap_r2c_post" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.550937" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1197" name="AirlineCEO.EditModeTests.dll" fullname="D:/Project/_snap_r2c_post/Unity Project/Library/ScriptAssemblies/AirlineCEO.EditModeTests.dll" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.544485" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44620" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1198" name="AirlineCEO" fullname="AirlineCEO" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.544225" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1199" name="Tests" fullname="AirlineCEO.Tests" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.544142" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1200" name="EditMode" fullname="AirlineCEO.Tests.EditMode" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:14Z" duration="2.543738" total="147" passed="147" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1001" name="AccountingScenarioTests" fullname="AirlineCEO.Tests.EditMode.AccountingScenarioTests" classname="AirlineCEO.Tests.EditMode.AccountingScenarioTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.026331" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1002" name="LeaseReturnAndMaintenanceCheck_MatchCashAndAccrual" fullname="AirlineCEO.Tests.EditMode.AccountingScenarioTests.LeaseReturnAndMaintenanceCheck_MatchCashAndAccrual" methodname="LeaseReturnAndMaintenanceCheck_MatchCashAndAccrual" classname="AirlineCEO.Tests.EditMode.AccountingScenarioTests" runstate="Runnable" seed="312611742" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.017225" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[T04.3-S5 退租对账 → 自有+850=True　经营租赁Δ0=True（旧口径会白送 1090 万）　融资租赁−432=True　期满0=True　护栏(重复/欠款)=True　合计=True
+T04.3-S4 定检对账 → 扣款 −312.00=True（现金 1000→688）　不进损益=True（yearNetProfit 0.00→0.00）　现金不足不排=True　合计=True
+　已排 B-9101 C 检（312 万 · 预计第 7 月）。
+T04.3 账务场景 → 退租对账=True　定检对账=True　总计=True
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1003" name="AirlineTierEditModeTests" fullname="AirlineCEO.Tests.EditMode.AirlineTierEditModeTests" classname="AirlineCEO.Tests.EditMode.AirlineTierEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.009080" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1004" name="StarTierFollowsPassengerVolume" fullname="AirlineCEO.Tests.EditMode.AirlineTierEditModeTests.StarTierFollowsPassengerVolume" methodname="StarTierFollowsPassengerVolume" classname="AirlineCEO.Tests.EditMode.AirlineTierEditModeTests" runstate="Runnable" seed="1936682207" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.008529" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[D2 星级随客流单调 → 逆序=True 档间不重叠=True 四档齐全=True 档位合法=True ★2不克隆=True（11 种规模） 预设阶梯=True（CTU★2、PEK★3、CAN★4、PVG★5） 豁免预设=4 参与比较=100 | ★2 58 家 客流 2.8~38.2M | ★3 32 家 客流 40.0~67.0M | ★4 5 家 客流 70.0~77.8M | ★5 5 家 客流 78.0~104.0M
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1005" name="AirportCatalogEditModeTests" fullname="AirlineCEO.Tests.EditMode.AirportCatalogEditModeTests" classname="AirlineCEO.Tests.EditMode.AirportCatalogEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.042572" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1006" name="TripleTablesStayInSync" fullname="AirlineCEO.Tests.EditMode.AirportCatalogEditModeTests.TripleTablesStayInSync" methodname="TripleTablesStayInSync" classname="AirlineCEO.Tests.EditMode.AirportCatalogEditModeTests" runstate="Runnable" seed="129306284" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.042216" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[机场底表三表贯通 → 机场=104 城市经济=104 坐标=104　码无重复=True　三表同集合=True　坐标可用=True　批次A入表=True（ZUH/WUX/NGB/WNZ）　批次B入表=True（NNG/KWE/TYN/HET/TNA）　批次B'入表=True（LXA）　目录外反例=True（佛山沙堤）　批次B无超短航段=True　跨境门户门槛=True　接管航司=104　司码唯一=True　新枢纽有司=True　搜NGB不串CKG=True　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1007" name="ArrivalPairEditModeTests" fullname="AirlineCEO.Tests.EditMode.ArrivalPairEditModeTests" classname="AirlineCEO.Tests.EditMode.ArrivalPairEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.090858" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1008" name="ArrivalPairIsRecordedAndNotDoubleCounted" fullname="AirlineCEO.Tests.EditMode.ArrivalPairEditModeTests.ArrivalPairIsRecordedAndNotDoubleCounted" methodname="ArrivalPairIsRecordedAndNotDoubleCounted" classname="AirlineCEO.Tests.EditMode.ArrivalPairEditModeTests" runstate="Runnable" seed="1308662774" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.090344" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1009" name="BudgetAccrualTests" fullname="AirlineCEO.Tests.EditMode.BudgetAccrualTests" classname="AirlineCEO.Tests.EditMode.BudgetAccrualTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.007337" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1012" name="AccrueBudgetSpend_AllocatesExactlyTheGivenTotal_ByAmountShare" fullname="AirlineCEO.Tests.EditMode.BudgetAccrualTests.AccrueBudgetSpend_AllocatesExactlyTheGivenTotal_ByAmountShare" methodname="AccrueBudgetSpend_AllocatesExactlyTheGivenTotal_ByAmountShare" classname="AirlineCEO.Tests.EditMode.BudgetAccrualTests" runstate="Runnable" seed="1013143857" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.003653" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1011" name="DeptDailyFixedCost_ClampsNegativeMonthToZero" fullname="AirlineCEO.Tests.EditMode.BudgetAccrualTests.DeptDailyFixedCost_ClampsNegativeMonthToZero" methodname="DeptDailyFixedCost_ClampsNegativeMonthToZero" classname="AirlineCEO.Tests.EditMode.BudgetAccrualTests" runstate="Runnable" seed="1810296138" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.000136" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1010" name="DeptDailyFixedCost_ExcludesPayrollAndCrisis_ButKeepsTheFourDepartmentItems" fullname="AirlineCEO.Tests.EditMode.BudgetAccrualTests.DeptDailyFixedCost_ExcludesPayrollAndCrisis_ButKeepsTheFourDepartmentItems" methodname="DeptDailyFixedCost_ExcludesPayrollAndCrisis_ButKeepsTheFourDepartmentItems" classname="AirlineCEO.Tests.EditMode.BudgetAccrualTests" runstate="Runnable" seed="1309470101" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:11Z" duration="0.002163" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1013" name="CapacityServiceEditModeTests" fullname="AirlineCEO.Tests.EditMode.CapacityServiceEditModeTests" classname="AirlineCEO.Tests.EditMode.CapacityServiceEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:12Z" duration="0.177496" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1014" name="ExtractionPreservesEveryCapacityCell" fullname="AirlineCEO.Tests.EditMode.CapacityServiceEditModeTests.ExtractionPreservesEveryCapacityCell" methodname="ExtractionPreservesEveryCapacityCell" classname="AirlineCEO.Tests.EditMode.CapacityServiceEditModeTests" runstate="Runnable" seed="1053224704" result="Passed" start-time="2026-11-09 12:12:11Z" end-time="2026-11-09 12:12:12Z" duration="0.176949" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[容量服务 / 机场索引（批次一）→ 机场=104 逐刻格=9984（×2 方向=19968）｜逐刻差异=0 段池差异=0 缓存差异=0 小时差异=0 日容量差异=0 方向池差异=0｜基线摘要=True（新=d8436350 旧算=d8436350 基线=d8436350）｜索引语义=True　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1015" name="CapacityVerdictWeeklyEditModeTests" fullname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests" classname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.053675" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1018" name="LegacyReportWithoutWeeklyFacts_FallsBackToWavesOnly" fullname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests.LegacyReportWithoutWeeklyFacts_FallsBackToWavesOnly" methodname="LegacyReportWithoutWeeklyFacts_FallsBackToWavesOnly" classname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests" runstate="Runnable" seed="762248778" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.004887" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1017" name="TrulyUnchanged_IsStillReportedAsUnchanged" fullname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests.TrulyUnchanged_IsStillReportedAsUnchanged" methodname="TrulyUnchanged_IsStillReportedAsUnchanged" classname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests" runstate="Runnable" seed="414744759" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.005687" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1016" name="WeeklyDensify_WithoutChangingDailyWaves_IsReportedAsEffective" fullname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests.WeeklyDensify_WithoutChangingDailyWaves_IsReportedAsEffective" methodname="WeeklyDensify_WithoutChangingDailyWaves_IsReportedAsEffective" classname="AirlineCEO.Tests.EditMode.CapacityVerdictWeeklyEditModeTests" runstate="Runnable" seed="126878837" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.042262" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1019" name="CeoCommandTests" fullname="AirlineCEO.Tests.EditMode.CeoCommandTests" classname="AirlineCEO.Tests.EditMode.CeoCommandTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.094003" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1020" name="CeoCommand_RoutesSentencesToTheRightPipeline" fullname="AirlineCEO.Tests.EditMode.CeoCommandTests.CeoCommand_RoutesSentencesToTheRightPipeline" methodname="CeoCommand_RoutesSentencesToTheRightPipeline" classname="AirlineCEO.Tests.EditMode.CeoCommandTests" runstate="Runnable" seed="1270785251" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.093311" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[⑪b2 研究期/批准才排班 → 拟定不落账=True（班次 1→1 · rev 0→1）　研究期未满不进箱=True　期满进箱且仍未排班=True　批准才排班=True　批准后才开槽单=True（回执：已批准 PEK—CTU 运力呈报：裁定「未变动」—— 目标每日 2 段，实际 1 段，缺口见回执（无需重下同一条指令，该…）
+CEO 命令台 → 页面映射=True　可行性=True（PEK—JFK）　缺机场拒答=True　句子优先于页面=True（乘务员→HR，财务→FIN）　关线识别=True（PKX—SHA）　目录外关线=True（北京大兴—佛山沙堤）　乱码不派件=True　财务信=True　人力信=True　可行性信=True　关线确认卡=True（不动账）　取消确认=True　取消后可再下令=True　目录外复核=True　关线执行=True　台账清账=True　双部门公函=True　重复确认作废=True　同城对不猜=True　裸关线（不带「航线」）=True　带班次不关线=True　疑问不关线=True　运力调令认线=True　已下达=True　不猜幅度=True　问句不办=True　改班期指回页面=True　多班不猜=True　航线已消失=True　命令台分派=True　研究期/批准才排班=True　单线询问=True　答复件=True　同句只更新=True　问句不动账=True　未知班号=True　泛问句仍答=True　空问句不派件=True　无航线不派件=True　同城对问句不猜=True　点名航班号=True　逐班号=True（NV2102）　公司整体→顾问=True　回执=正文日利润=True（15.3 万美元）　回执结论一致=True　前置顺序(航权先于时刻)=True　回执不指向时刻=True　国际判定(新/日/韩/港)=True　「可能性」措辞=True　正文机场名不重复=True　国内线不提航权=True　同句去重=True（1/1）　汇报件无需批复=True　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1021" name="CommandLogTests" fullname="AirlineCEO.Tests.EditMode.CommandLogTests" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.006580" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1025" name="Amend_RewritesTheMatchingEntry_WithoutAddingANewOne" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Amend_RewritesTheMatchingEntry_WithoutAddingANewOne" methodname="Amend_RewritesTheMatchingEntry_WithoutAddingANewOne" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="1849102646" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.002739" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="Ensure_IsIdempotent_AndDoesNotWipeExistingData" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Ensure_IsIdempotent_AndDoesNotWipeExistingData" methodname="Ensure_IsIdempotent_AndDoesNotWipeExistingData" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="2050940107" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000633" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="Favorites_SurviveClearHistory_AndCapAtTwelve" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Favorites_SurviveClearHistory_AndCapAtTwelve" methodname="Favorites_SurviveClearHistory_AndCapAtTwelve" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="1301778822" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000607" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1024" name="Recall_WalksBackwardsFromNewest_AndStopsAtTheEnd" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Recall_WalksBackwardsFromNewest_AndStopsAtTheEnd" methodname="Recall_WalksBackwardsFromNewest_AndStopsAtTheEnd" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="1066867197" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000326" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1023" name="Record_IgnoresBlankAndCapsAtMaxEntries_FromTheTail" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Record_IgnoresBlankAndCapsAtMaxEntries_FromTheTail" methodname="Record_IgnoresBlankAndCapsAtMaxEntries_FromTheTail" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="827076511" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000375" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1022" name="Record_KeepsNewestFirst_AndDedupesOnlyAdjacentIdenticalPairs" fullname="AirlineCEO.Tests.EditMode.CommandLogTests.Record_KeepsNewestFirst_AndDedupesOnlyAdjacentIdenticalPairs" methodname="Record_KeepsNewestFirst_AndDedupesOnlyAdjacentIdenticalPairs" classname="AirlineCEO.Tests.EditMode.CommandLogTests" runstate="Runnable" seed="2053061064" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000269" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1028" name="ExternalForwardingTests" fullname="AirlineCEO.Tests.EditMode.ExternalForwardingTests" classname="AirlineCEO.Tests.EditMode.ExternalForwardingTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.011060" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1029" name="ForwardedMail_IsSignedOnlyByPressOfficer" fullname="AirlineCEO.Tests.EditMode.ExternalForwardingTests.ForwardedMail_IsSignedOnlyByPressOfficer" methodname="ForwardedMail_IsSignedOnlyByPressOfficer" classname="AirlineCEO.Tests.EditMode.ExternalForwardingTests" runstate="Runnable" seed="909351942" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.010534" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[转呈件 落款口径 all=True 泄漏=0 无影响不补确认函=True
+　预告 发改委：ok
+　施行 发改委：ok
+　预告 中央气象台：ok
+　施行 中央气象台：ok
+　预告 路透社：ok
+　施行 路透社：ok
+　预告 波音公司：ok
+　施行 波音公司：ok
+　预告 标普全球：ok
+　施行 标普全球：ok
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1030" name="InboxRowLayoutTests" fullname="AirlineCEO.Tests.EditMode.InboxRowLayoutTests" classname="AirlineCEO.Tests.EditMode.InboxRowLayoutTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.075285" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1031" name="ListRow_StaysSingleLineAndDropsRedundantDate" fullname="AirlineCEO.Tests.EditMode.InboxRowLayoutTests.ListRow_StaysSingleLineAndDropsRedundantDate" methodname="ListRow_StaysSingleLineAndDropsRedundantDate" classname="AirlineCEO.Tests.EditMode.InboxRowLayoutTests" runstate="Runnable" seed="2002488818" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.074840" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[收件箱列表行排版：单行收敛 + 主题两行 + 日期前缀去除 + 行高随字号缩放 + 主题时间同带 + 单行居中/两行块居中，8 组口径全部通过
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1032" name="InboxStatusTests" fullname="AirlineCEO.Tests.EditMode.InboxStatusTests" classname="AirlineCEO.Tests.EditMode.InboxStatusTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.004914" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1033" name="InflightAndStatusLabels_AreDistinguishable" fullname="AirlineCEO.Tests.EditMode.InboxStatusTests.InflightAndStatusLabels_AreDistinguishable" methodname="InflightAndStatusLabels_AreDistinguishable" classname="AirlineCEO.Tests.EditMode.InboxStatusTests" runstate="Runnable" seed="1200342250" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.002591" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[T05.2 状态提示 → 待交割标签=True（已批准·待交割）　交割中=True（已批准·交割中）　已办结=True（已批准）
+　待批状态行=True：「在等　CEO 批复　｜　何时推进　本季内（还可搁置 3 个季度）　｜　需 CEO　是」
+　待交割状态行=True：「在等　交割 / 落地　｜　何时推进　第1年 Q2　｜　需 CEO　否」
+　在途提示=True：「在途 2 封（最近一封约 2 小时后送达）」（逾期→「在途 2 封（最近一封正在送达）」）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1034" name="IndustryAtlasEditModeTests" fullname="AirlineCEO.Tests.EditMode.IndustryAtlasEditModeTests" classname="AirlineCEO.Tests.EditMode.IndustryAtlasEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.339314" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1035" name="AtlasMatchesPlayablePool" fullname="AirlineCEO.Tests.EditMode.IndustryAtlasEditModeTests.AtlasMatchesPlayablePool" methodname="AtlasMatchesPlayablePool" classname="AirlineCEO.Tests.EditMode.IndustryAtlasEditModeTests" runstate="Runnable" seed="733597834" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.338879" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[R48 槽价诊断 → PEK（枢纽）日容量 204 槽 · 买下全天 ≈ 94680 万（单槽峰价 630 万；总额随容量走，不作断言）
+R48 槽价诊断 → PKX（干线）日容量 384 槽 · 买下全天 ≈ 72624 万（单槽峰价 315 万；总额随容量走，不作断言）
+R48 行业情报表（81 个协调机场 · 324 个时段 · 39 家他航 · 284 条航权 · 卡片抽检 24 时段/0 可申请块/543 他航块/0 越界块） → 恒等式=True 余量同口径=True 不占满=True 确定性=True 槽长=True 买空=True 航权=True 文本=True 方块=True 三种时刻=True 筛选=True 槽价=True
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1036" name="IndustryHeldBandTests" fullname="AirlineCEO.Tests.EditMode.IndustryHeldBandTests" classname="AirlineCEO.Tests.EditMode.IndustryHeldBandTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.161644" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1037" name="FreeRoomPerBandStaysScarceButNeverZero" fullname="AirlineCEO.Tests.EditMode.IndustryHeldBandTests.FreeRoomPerBandStaysScarceButNeverZero" methodname="FreeRoomPerBandStaysScarceButNeverZero" classname="AirlineCEO.Tests.EditMode.IndustryHeldBandTests" runstate="Runnable" seed="931008452" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.160778" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1038" name="LogicPipelineTests" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.004788" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1041" name="CashRunway_300_over_80_IsGreen" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests.CashRunway_300_over_80_IsGreen" methodname="CashRunway_300_over_80_IsGreen" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" seed="2129433994" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000182" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="RPM_PekLhr_Calibrated_Ballpark" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests.RPM_PekLhr_Calibrated_Ballpark" methodname="RPM_PekLhr_Calibrated_Ballpark" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" seed="750975992" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000776" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="RPM_PekSha_Narrowbody_ThinMargin" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests.RPM_PekSha_Narrowbody_ThinMargin" methodname="RPM_PekSha_Narrowbody_ThinMargin" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" seed="1084141199" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000146" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1043" name="SaveSnapshot_RoundTrip_PreservesCashAndRoutes" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests.SaveSnapshot_RoundTrip_PreservesCashAndRoutes" methodname="SaveSnapshot_RoundTrip_PreservesCashAndRoutes" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" seed="740515900" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.002112" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1042" name="TickPipeline_SettleMonth_IsDeterministic" fullname="AirlineCEO.Tests.EditMode.LogicPipelineTests.TickPipeline_SettleMonth_IsDeterministic" methodname="TickPipeline_SettleMonth_IsDeterministic" classname="AirlineCEO.Tests.EditMode.LogicPipelineTests" runstate="Runnable" seed="1051783574" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000639" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1050" name="MainThreadDispatchTests" fullname="AirlineCEO.Tests.EditMode.MainThreadDispatchTests" classname="AirlineCEO.Tests.EditMode.MainThreadDispatchTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.009406" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1051" name="BackgroundWorkRunsOnMainThreadOnly" fullname="AirlineCEO.Tests.EditMode.MainThreadDispatchTests.BackgroundWorkRunsOnMainThreadOnly" methodname="BackgroundWorkRunsOnMainThreadOnly" classname="AirlineCEO.Tests.EditMode.MainThreadDispatchTests" runstate="Runnable" seed="1752855818" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.009086" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[主线程派发] 一件工作失败：故意失败
+R49 主线程派发 → 投递不立即执行=True　排空按序=True　单件异常不连累=True　退出中丢弃=True　取数管道只在线程池下载=True　退出掐断在飞下载=True　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1052" name="ModalBackStackTests" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.002689" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1057" name="DestroyedOwner_IsPrunedInsteadOfBlockingBack" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests.DestroyedOwner_IsPrunedInsteadOfBlockingBack" methodname="DestroyedOwner_IsPrunedInsteadOfBlockingBack" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" seed="213039631" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.001066" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1053" name="EmptyStack_LetsBackFallThrough" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests.EmptyStack_LetsBackFallThrough" methodname="EmptyStack_LetsBackFallThrough" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" seed="911279418" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000244" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1055" name="Pop_UnregistersWithoutClosing" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests.Pop_UnregistersWithoutClosing" methodname="Pop_UnregistersWithoutClosing" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" seed="952852398" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000246" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1054" name="Push_ThenBack_DismissesTopMostOnly" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests.Push_ThenBack_DismissesTopMostOnly" methodname="Push_ThenBack_DismissesTopMostOnly" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" seed="442372920" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000290" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1056" name="ReRegisteringSameOwner_DoesNotStackDuplicates" fullname="AirlineCEO.Tests.EditMode.ModalBackStackTests.ReRegisteringSameOwner_DoesNotStackDuplicates" methodname="ReRegisteringSameOwner_DoesNotStackDuplicates" classname="AirlineCEO.Tests.EditMode.ModalBackStackTests" runstate="Runnable" seed="1649353636" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000251" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1058" name="NavBackUnwindTests" fullname="AirlineCEO.Tests.EditMode.NavBackUnwindTests" classname="AirlineCEO.Tests.EditMode.NavBackUnwindTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.001714" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1059" name="Back_HopsOverTheBorrowedDepartmentPage" fullname="AirlineCEO.Tests.EditMode.NavBackUnwindTests.Back_HopsOverTheBorrowedDepartmentPage" methodname="Back_HopsOverTheBorrowedDepartmentPage" classname="AirlineCEO.Tests.EditMode.NavBackUnwindTests" runstate="Runnable" seed="163439886" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.001328" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[返回口径：借来的部门页一次 < 就退回原页（8 组口径通过，含标记丢失与反例）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1060" name="NetworkPoolVisibilityEditModeTests" fullname="AirlineCEO.Tests.EditMode.NetworkPoolVisibilityEditModeTests" classname="AirlineCEO.Tests.EditMode.NetworkPoolVisibilityEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.023435" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1061" name="NetworkPoolSeamIsVisibleAndInert" fullname="AirlineCEO.Tests.EditMode.NetworkPoolVisibilityEditModeTests.NetworkPoolSeamIsVisibleAndInert" methodname="NetworkPoolSeamIsVisibleAndInert" classname="AirlineCEO.Tests.EditMode.NetworkPoolVisibilityEditModeTests" runstate="Runnable" seed="922278599" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.023158" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K14 网络池可见性 → 默认零扰动=True 收窄生效=True 不越界=True 网络变化=True　✓
+　preset_startup：默认=全目录 True · 移除 2 城后航线变化 True
+　preset_regional：默认=全目录 True · 移除 4 城后航线变化 True
+　preset_legacy：默认=全目录 True · 移除 4 城后航线变化 True
+　preset_distressed：默认=全目录 True · 移除 4 城后航线变化 True
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1062" name="OpenRouteRushEditModeTests" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.008387" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1065" name="AnalyzeRequest_NeverBecomesRushAct" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.AnalyzeRequest_NeverBecomesRushAct" methodname="AnalyzeRequest_NeverBecomesRushAct" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="1571416281" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000410" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1070" name="PartsOrder_LeadDaysFollowsTheOrder_NotAConstant" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.PartsOrder_LeadDaysFollowsTheOrder_NotAConstant" methodname="PartsOrder_LeadDaysFollowsTheOrder_NotAConstant" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="1590862476" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.001864" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1069" name="PartsOrder_NonUrgent_SchedulesByLeadDays" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.PartsOrder_NonUrgent_SchedulesByLeadDays" methodname="PartsOrder_NonUrgent_SchedulesByLeadDays" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="1551067679" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000780" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1064" name="PlainOpenRouteCommand_IsNotRush" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.PlainOpenRouteCommand_IsNotRush" methodname="PlainOpenRouteCommand_IsNotRush" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="509838512" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000175" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1067" name="PlainStudy_KeepsTwoBusinessDays" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.PlainStudy_KeepsTwoBusinessDays" methodname="PlainStudy_KeepsTwoBusinessDays" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="1495784076" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000681" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1066" name="RushStudy_LandsWithinHours_NotAfterTwoBusinessDays" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.RushStudy_LandsWithinHours_NotAfterTwoBusinessDays" methodname="RushStudy_LandsWithinHours_NotAfterTwoBusinessDays" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="3578723" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000323" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1068" name="RushStudy_MailSaysItIsExpedited" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.RushStudy_MailSaysItIsExpedited" methodname="RushStudy_MailSaysItIsExpedited" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="233807032" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.002999" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1063" name="RushWord_InOpenRouteCommand_SetsRushFlag" fullname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests.RushWord_InOpenRouteCommand_SetsRushFlag" methodname="RushWord_InOpenRouteCommand_SetsRushFlag" classname="AirlineCEO.Tests.EditMode.OpenRouteRushEditModeTests" runstate="Runnable" seed="587537997" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000262" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1071" name="OpenRouteStudyTests" fullname="AirlineCEO.Tests.EditMode.OpenRouteStudyTests" classname="AirlineCEO.Tests.EditMode.OpenRouteStudyTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.058380" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1072" name="OpenRouteMemo_HasSingleSourceAndRejectsBeforeProfit" fullname="AirlineCEO.Tests.EditMode.OpenRouteStudyTests.OpenRouteMemo_HasSingleSourceAndRejectsBeforeProfit" methodname="OpenRouteMemo_HasSingleSourceAndRejectsBeforeProfit" classname="AirlineCEO.Tests.EditMode.OpenRouteStudyTests" runstate="Runnable" seed="855975028" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.057874" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[开航纪要单一出处 → 先否决后算账=True（同城机场之间没有定期客运航线（例如北京大兴与北京首都）。）　否决不投递=True　同输入同纪要=True（北京首都 PEK → 纽约肯尼迪 JFK · 10978 km · 75 分）　距离口径一致=True（直飞 10978 / 经停 13276）　UI 无第二作者=True　页面入口仍在=True　最优时刻=True（16:45 需求 1.10 / 438 万）　买不起要说清=True　前置条件前置=True　清单在签字前=True　到件重算=True（下达时 5000 万 → 到件时 120 万，正文改口=True）　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1073" name="OpsEconomicsTests" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.004396" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1086" name="AirportCatalog_ResolvesIataAndChinese" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.AirportCatalog_ResolvesIataAndChinese" methodname="AirportCatalog_ResolvesIataAndChinese" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1496602211" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000192" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1077" name="ApplyToRoute_FixedCostAmortizes_OneFlightLoses_ThreeFlightsProfits" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ApplyToRoute_FixedCostAmortizes_OneFlightLoses_ThreeFlightsProfits" methodname="ApplyToRoute_FixedCostAmortizes_OneFlightLoses_ThreeFlightsProfits" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="246878923" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000281" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1078" name="ApplyToRoute_LossBaseline_StaysNegativeAtEveryFrequency" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ApplyToRoute_LossBaseline_StaysNegativeAtEveryFrequency" methodname="ApplyToRoute_LossBaseline_StaysNegativeAtEveryFrequency" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1909269320" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000229" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1075" name="ApplyToRoute_ScalesDailyProfitByFrequency" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ApplyToRoute_ScalesDailyProfitByFrequency" methodname="ApplyToRoute_ScalesDailyProfitByFrequency" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="2122833520" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000121" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1079" name="BreakEvenDailyFlights_InfiniteWhenPerFlightContributionNonPositive" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.BreakEvenDailyFlights_InfiniteWhenPerFlightContributionNonPositive" methodname="BreakEvenDailyFlights_InfiniteWhenPerFlightContributionNonPositive" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="968891830" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000169" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1088" name="Irrops_AogFerry_CostsTwenty" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.Irrops_AogFerry_CostsTwenty" methodname="Irrops_AogFerry_CostsTwenty" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1469638342" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000295" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1087" name="ProjectOnTimePercent_MovesTowardDelayImpliedTarget" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ProjectOnTimePercent_MovesTowardDelayImpliedTarget" methodname="ProjectOnTimePercent_MovesTowardDelayImpliedTarget" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1542000106" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000139" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1080" name="RecalcDailyProfit_SubtractsFixedCostExactlyOnce" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.RecalcDailyProfit_SubtractsFixedCostExactlyOnce" methodname="RecalcDailyProfit_SubtractsFixedCostExactlyOnce" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1209971165" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000225" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1082" name="RouteFixedBase_RejectsIllegalValues_KeepsPrevious" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.RouteFixedBase_RejectsIllegalValues_KeepsPrevious" methodname="RouteFixedBase_RejectsIllegalValues_KeepsPrevious" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="206866752" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000259" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1081" name="RouteFixedBase_Tunable_ScalesFixedCostLinearly_AndResets" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.RouteFixedBase_Tunable_ScalesFixedCostLinearly_AndResets" methodname="RouteFixedBase_Tunable_ScalesFixedCostLinearly_AndResets" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="819799145" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000253" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1076" name="RouteFixedDailyWan_GrowsWithDistanceAndGauge" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.RouteFixedDailyWan_GrowsWithDistanceAndGauge" methodname="RouteFixedDailyWan_GrowsWithDistanceAndGauge" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="928387732" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000114" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1074" name="Schedule_HighUtilization_RaisesDelayProbability" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.Schedule_HighUtilization_RaisesDelayProbability" methodname="Schedule_HighUtilization_RaisesDelayProbability" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1915133095" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000112" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1085" name="ValidateRing_HubMatch_TrueWhenDestinationEqualsNextOrigin" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ValidateRing_HubMatch_TrueWhenDestinationEqualsNextOrigin" methodname="ValidateRing_HubMatch_TrueWhenDestinationEqualsNextOrigin" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="735803359" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000141" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1083" name="ValidateRing_NeedsTwoLegs" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ValidateRing_NeedsTwoLegs" methodname="ValidateRing_NeedsTwoLegs" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="1874595801" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000074" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1084" name="ValidateRing_SameLegs_StableRingId" fullname="AirlineCEO.Tests.EditMode.OpsEconomicsTests.ValidateRing_SameLegs_StableRingId" methodname="ValidateRing_SameLegs_StableRingId" classname="AirlineCEO.Tests.EditMode.OpsEconomicsTests" runstate="Runnable" seed="2096083321" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000239" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1089" name="PartsOrderDaySettlementEditModeTests" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:13Z" duration="0.030208" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1090" name="Approve_NonUrgent_SchedulesAbsoluteDueAndKeepsEffectPending" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.Approve_NonUrgent_SchedulesAbsoluteDueAndKeepsEffectPending" methodname="Approve_NonUrgent_SchedulesAbsoluteDueAndKeepsEffectPending" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="362270227" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000758" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1105" name="Approve_NoOrderNoPayload_ReportsHonestly_AndDoesNotFakeApproval" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.Approve_NoOrderNoPayload_ReportsHonestly_AndDoesNotFakeApproval" methodname="Approve_NoOrderNoPayload_ReportsHonestly_AndDoesNotFakeApproval" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="1054164332" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000358" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1104" name="Approve_OrderLost_RebuildsFromMailPayload" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.Approve_OrderLost_RebuildsFromMailPayload" methodname="Approve_OrderLost_RebuildsFromMailPayload" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="974683059" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000921" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1099" name="ApprovedPartsMail_StatusLine_ShowsDueDate_NotExternalBulletin" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.ApprovedPartsMail_StatusLine_ShowsDueDate_NotExternalBulletin" methodname="ApprovedPartsMail_StatusLine_ShowsDueDate_NotExternalBulletin" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="103985682" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000511" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="ArrivalReceipt_IsIdempotentPerOrder" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.ArrivalReceipt_IsIdempotentPerOrder" methodname="ArrivalReceipt_IsIdempotentPerOrder" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="1247226480" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.003594" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1096" name="CashShort_ReArmsAndRetriesNextDay_ThenDeliversReceipt" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.CashShort_ReArmsAndRetriesNextDay_ThenDeliversReceipt" methodname="CashShort_ReArmsAndRetriesNextDay_ThenDeliversReceipt" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="2085291490" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000726" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1095" name="DirectConfirm_StillEmitsArrivalReceipt" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.DirectConfirm_StillEmitsArrivalReceipt" methodname="DirectConfirm_StillEmitsArrivalReceipt" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="276193413" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000498" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1092" name="DueDay_CashShort_FailsHonestly_AndNeverCharges" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.DueDay_CashShort_FailsHonestly_AndNeverCharges" methodname="DueDay_CashShort_FailsHonestly_AndNeverCharges" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="959652720" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000324" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1091" name="DueDay_DeductsCash_StocksParts_AndDeliversReceipt" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.DueDay_DeductsCash_StocksParts_AndDeliversReceipt" methodname="DueDay_DeductsCash_StocksParts_AndDeliversReceipt" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="117281009" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000629" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1100" name="FailedReceipt_DoesNotBlockLaterArrivalReceipt" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.FailedReceipt_DoesNotBlockLaterArrivalReceipt" methodname="FailedReceipt_DoesNotBlockLaterArrivalReceipt" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="756597557" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000330" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1094" name="FooterNote_HasPositiveHeight_WhenThereIsSomethingToSay" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.FooterNote_HasPositiveHeight_WhenThereIsSomethingToSay" methodname="FooterNote_HasPositiveHeight_WhenThereIsSomethingToSay" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="148633107" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000590" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1103" name="MaintenanceSave_RoundTripKeepsOrdersAndStock" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.MaintenanceSave_RoundTripKeepsOrdersAndStock" methodname="MaintenanceSave_RoundTripKeepsOrdersAndStock" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="563469283" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000573" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1102" name="MaintenanceState_IsRegisteredInSaveKeys" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.MaintenanceState_IsRegisteredInSaveKeys" methodname="MaintenanceState_IsRegisteredInSaveKeys" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="1585426169" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.001325" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1101" name="PendingSettlement_IsDiscoverable_AndClearedAfterArrival" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.PendingSettlement_IsDiscoverable_AndClearedAfterArrival" methodname="PendingSettlement_IsDiscoverable_AndClearedAfterArrival" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="667655872" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:12Z" duration="0.000495" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="RealClockTicks_SettleTheOrder_AndDeliverReceipt" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.RealClockTicks_SettleTheOrder_AndDeliverReceipt" methodname="RealClockTicks_SettleTheOrder_AndDeliverReceipt" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="348093888" result="Passed" start-time="2026-11-09 12:12:12Z" end-time="2026-11-09 12:12:13Z" duration="0.016692" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1093" name="UrgentParts_StillChargesOnTheSpot" fullname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests.UrgentParts_StillChargesOnTheSpot" methodname="UrgentParts_StillChargesOnTheSpot" classname="AirlineCEO.Tests.EditMode.PartsOrderDaySettlementEditModeTests" runstate="Runnable" seed="383972817" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000419" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1106" name="PermitDayTimelineEditModeTests" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.014115" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1111" name="LegacyMail_WithoutTicks_KeepsQuarterCadence" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.LegacyMail_WithoutTicks_KeepsQuarterCadence" methodname="LegacyMail_WithoutTicks_KeepsQuarterCadence" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="989106046" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001142" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1108" name="NodeOffsets_AreMonotonicAndBounded" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.NodeOffsets_AreMonotonicAndBounded" methodname="NodeOffsets_AreMonotonicAndBounded" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="1470268741" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000576" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1109" name="Permit_DoesNotSettleOnApprovalDay_ButSettlesOnDueDay" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.Permit_DoesNotSettleOnApprovalDay_ButSettlesOnDueDay" methodname="Permit_DoesNotSettleOnApprovalDay_ButSettlesOnDueDay" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="872945899" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.009511" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1112" name="ProgressLine_ShowsDaysLeft_NotQuarter" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.ProgressLine_ShowsDaysLeft_NotQuarter" methodname="ProgressLine_ShowsDaysLeft_NotQuarter" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="1570759549" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000930" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1107" name="ReviewDays_AreDaysNotQuarters" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.ReviewDays_AreDaysNotQuarters" methodname="ReviewDays_AreDaysNotQuarters" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="1135642913" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000199" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1110" name="SlotPurchase_SettlesImmediately_PoolApplyWaitsDays" fullname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests.SlotPurchase_SettlesImmediately_PoolApplyWaitsDays" methodname="SlotPurchase_SettlesImmediately_PoolApplyWaitsDays" classname="AirlineCEO.Tests.EditMode.PermitDayTimelineEditModeTests" runstate="Runnable" seed="1236208559" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000569" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1113" name="PermitRushEditModeTests" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.013825" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1117" name="ApproveRush_SpendsPoints_AndPullsDueDateIn" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.ApproveRush_SpendsPoints_AndPullsDueDateIn" methodname="ApproveRush_SpendsPoints_AndPullsDueDateIn" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="916047720" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.002197" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1120" name="DayClock_OffSeason_UsesRegularLane" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.DayClock_OffSeason_UsesRegularLane" methodname="DayClock_OffSeason_UsesRegularLane" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="1073345632" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001107" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1118" name="ExtraFlightSlotRequest_SettlesOnFiveDayLane" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.ExtraFlightSlotRequest_SettlesOnFiveDayLane" methodname="ExtraFlightSlotRequest_SettlesOnFiveDayLane" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="1144243935" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001120" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1119" name="NightClock_SlotSettlesInThreeDays_EvenForExtraFlight" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.NightClock_SlotSettlesInThreeDays_EvenForExtraFlight" methodname="NightClock_SlotSettlesInThreeDays_EvenForExtraFlight" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="647100329" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000948" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1123" name="ObjectionPardon_ClampsToTomorrow_AndNeverSettlesOnTheSpot" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.ObjectionPardon_ClampsToTomorrow_AndNeverSettlesOnTheSpot" methodname="ObjectionPardon_ClampsToTomorrow_AndNeverSettlesOnTheSpot" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="1629722552" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001334" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1122" name="ObjectionPardon_PullsDueBackByObjectionDeferDays" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.ObjectionPardon_PullsDueBackByObjectionDeferDays" methodname="ObjectionPardon_PullsDueBackByObjectionDeferDays" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="641300887" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000466" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1124" name="ObjectionPardon_QuarterMirrorFollowsTheNewDueDate" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.ObjectionPardon_QuarterMirrorFollowsTheNewDueDate" methodname="ObjectionPardon_QuarterMirrorFollowsTheNewDueDate" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="664256625" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000686" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1115" name="PoorRelation_SendsNoRushOffer" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.PoorRelation_SendsNoRushOffer" methodname="PoorRelation_SendsNoRushOffer" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="684437894" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000274" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1114" name="RichRelation_OffersRush_WithoutChargingPoints" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.RichRelation_OffersRush_WithoutChargingPoints" methodname="RichRelation_OffersRush_WithoutChargingPoints" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="1828255420" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000318" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1121" name="Rush_IsOneShot_AndRefusesWhenPointsRunOut" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.Rush_IsOneShot_AndRefusesWhenPointsRunOut" methodname="Rush_IsOneShot_AndRefusesWhenPointsRunOut" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="794561239" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000412" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1116" name="StartRelation_StillGetsRushOffer" fullname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests.StartRelation_StillGetsRushOffer" methodname="StartRelation_StillGetsRushOffer" classname="AirlineCEO.Tests.EditMode.PermitRushEditModeTests" runstate="Runnable" seed="34879016" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000381" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1125" name="PressDeskTests" fullname="AirlineCEO.Tests.EditMode.PressDeskTests" classname="AirlineCEO.Tests.EditMode.PressDeskTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.003118" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1126" name="ExternalMail_IsForwardedByNamedPressOfficer" fullname="AirlineCEO.Tests.EditMode.PressDeskTests.ExternalMail_IsForwardedByNamedPressOfficer" methodname="ExternalMail_IsForwardedByNamedPressOfficer" classname="AirlineCEO.Tests.EditMode.PressDeskTests" runstate="Runnable" seed="1065441559" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.002530" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[新闻官 具名=True（卢曦）　同存档恒定=True　跨年不改名=True　换存档换人=True　识别=True　落款=「新闻官 卢曦」
+　外源投递 发件人=True 角色=True（新闻官 · 预警通报） 头像=True 原文保留=True 不再露出发布单位作发件人=True
+　转呈落款=True（新闻官 卢曦 / 2030年05月10日） 机关落款已撤=True
+　正文首行：<color=#7C8FA6>以下为中央气象台来文原文（2030年5月10日），由新闻官卢曦整理转呈。</color>
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1127" name="ProcessFlowEditModeTests" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.030944" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1130" name="NodeProgressMail_MarksDoneNodeDone_AndNextNodeActive" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests.NodeProgressMail_MarksDoneNodeDone_AndNextNodeActive" methodname="NodeProgressMail_MarksDoneNodeDone_AndNextNodeActive" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" seed="681309866" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001101" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1129" name="PermitAdmitMail_ShowsAllNineNodes" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests.PermitAdmitMail_ShowsAllNineNodes" methodname="PermitAdmitMail_ShowsAllNineNodes" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" seed="1924628135" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.021641" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1128" name="Render_ListsEveryNodeInOrder_WithStateMarks" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests.Render_ListsEveryNodeInOrder_WithStateMarks" methodname="Render_ListsEveryNodeInOrder_WithStateMarks" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" seed="1092632192" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000613" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1131" name="SlotSettleReceipt_ShowsFiveNodes_WithDeliveryDone" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests.SlotSettleReceipt_ShowsFiveNodes_WithDeliveryDone" methodname="SlotSettleReceipt_ShowsFiveNodes_WithDeliveryDone" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" seed="912518615" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.003907" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1132" name="TwoNodeReceiptsInOneQuarter_BothDelivered" fullname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests.TwoNodeReceiptsInOneQuarter_BothDelivered" methodname="TwoNodeReceiptsInOneQuarter_BothDelivered" classname="AirlineCEO.Tests.EditMode.ProcessFlowEditModeTests" runstate="Runnable" seed="1128956931" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000805" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1133" name="QuarterlyOneOffEditModeTests" fullname="AirlineCEO.Tests.EditMode.QuarterlyOneOffEditModeTests" classname="AirlineCEO.Tests.EditMode.QuarterlyOneOffEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.007400" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1134" name="OneOffItemsStayOutOfMonthlyBurn" fullname="AirlineCEO.Tests.EditMode.QuarterlyOneOffEditModeTests.OneOffItemsStayOutOfMonthlyBurn" methodname="OneOffItemsStayOutOfMonthlyBurn" classname="AirlineCEO.Tests.EditMode.QuarterlyOneOffEditModeTests" runstate="Runnable" seed="936736884" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006773" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K12 季末一次性项 → 带宽=True 常数同源=True 覆盖实测=True 对冲收窄=True 文案=True 分项=True 预计对照=True 档案头寸=True 国际判定同源=True　✓
+　★2 创业 CAN　敞口 -213 万　区间 ±12 万　实测 6.6 万（重算 6.6） ✓
+　★2 枢纽 NGB　敞口 -1100 万　区间 ±63 万　实测 34.1 万（重算 34.1） ✓
+　★2 枢纽 ZUH　敞口 -1168 万　区间 ±67 万　实测 36.2 万（重算 36.2） ✓
+　★3 区域 PEK　敞口 -1645 万　区间 ±94 万　实测 51.0 万（重算 51.0） ✓
+　★4 老牌 PVG　敞口 -8781 万　区间 ±501 万　实测 271.6 万（重算 272.2） ✓
+　★5 困境 CTU　敞口 -13102 万　区间 ±747 万　实测 405.2 万（重算 406.2） ✓
+　单季带宽：Q1 ±5.7%　Q2+ ±4.0%　（现实靠拢 3% + 季度漂移上限）
+　档案净美元头寸：★2 -1169 · ★3 -4424 · ★4 -8633 · ★5 -13089 万
+　预计行：季末一次性项　预计 ±501 万（净美元负债 → 人民币升值多为收益；未对冲；以汇兑为主，货运/险损/随机事件不可预判；不计入月烧钱）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1135" name="RouteConsoleMergeTests" fullname="AirlineCEO.Tests.EditMode.RouteConsoleMergeTests" classname="AirlineCEO.Tests.EditMode.RouteConsoleMergeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.056753" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1136" name="RoutePage_UsesGlobalConsoleWithContextFallback" fullname="AirlineCEO.Tests.EditMode.RouteConsoleMergeTests.RoutePage_UsesGlobalConsoleWithContextFallback" methodname="RoutePage_UsesGlobalConsoleWithContextFallback" classname="AirlineCEO.Tests.EditMode.RouteConsoleMergeTests" runstate="Runnable" seed="988004309" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.056390" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[ChineseFontProvider] 已从本地/系统字体文件创建中文 TMP（可补维护/财务）
+[ChineseFontProvider] 未找到 Assets/Fonts/SegoeUISymbol.ttf，公司名改用「航」
+单航线页命令台合并：上下文兜底 + 显式优先 + 问句不误判 + 无第二个输入框，全部通过
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1044" name="RouteDutyAttributionTests" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.002672" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1049" name="CardHeadline_ReportsSingleNumberWhenBothCountersAgree" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests.CardHeadline_ReportsSingleNumberWhenBothCountersAgree" methodname="CardHeadline_ReportsSingleNumberWhenBothCountersAgree" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" seed="1040327665" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000323" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1045" name="CollapsedSingleEntry_DutyTotalEqualsDepartureTotal" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests.CollapsedSingleEntry_DutyTotalEqualsDepartureTotal" methodname="CollapsedSingleEntry_DutyTotalEqualsDepartureTotal" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" seed="872359340" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000629" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1047" name="CrossNightFlight_ShiftsDutyWeekday_WithoutChangingTotal" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests.CrossNightFlight_ShiftsDutyWeekday_WithoutChangingTotal" methodname="CrossNightFlight_ShiftsDutyWeekday_WithoutChangingTotal" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" seed="1089107406" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000277" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1046" name="MaterializedWaves_KeepOneFlightPerScheduledDay" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests.MaterializedWaves_KeepOneFlightPerScheduledDay" methodname="MaterializedWaves_KeepOneFlightPerScheduledDay" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" seed="769215833" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000362" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1048" name="OpenedText_SeparatesTakeoverSentinelFromRealDate" fullname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests.OpenedText_SeparatesTakeoverSentinelFromRealDate" methodname="OpenedText_SeparatesTakeoverSentinelFromRealDate" classname="AirlineCEO.Tests.EditMode.RouteDutyAttributionTests" runstate="Runnable" seed="888659515" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000130" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1137" name="RunwayDebtEditModeTests" fullname="AirlineCEO.Tests.EditMode.RunwayDebtEditModeTests" classname="AirlineCEO.Tests.EditMode.RunwayDebtEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006717" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1138" name="QuarterlyPayoff_LowersBurnAndNeverShortensRunway" fullname="AirlineCEO.Tests.EditMode.RunwayDebtEditModeTests.QuarterlyPayoff_LowersBurnAndNeverShortensRunway" methodname="QuarterlyPayoff_LowersBurnAndNeverShortensRunway" classname="AirlineCEO.Tests.EditMode.RunwayDebtEditModeTests" runstate="Runnable" seed="1123543356" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006381" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[跑道/月供口径 → 权益排除=True　已还清排除=True　末季摊销=True　混装=True　局内含月供=True　权益不加烧钱=True　★2 创业 CTU 月供 30.9(同源=True) 跑道 8.00/8.0　★3 区域 PEK 月供 124.0(同源=True) 跑道 6.01/6.0　★4 老牌 CAN 月供 233.6(同源=True) 跑道 4.00/4.0　★5 困境 PVG 月供 332.7(同源=True) 跑道 3.00/3.0
+　逐季推进：月数[12,9,6,3,0] 烧钱[600.5,600.5,600.5,600.5,500.5] 跑道[5.00,5.00,5.00,5.00,5.99] 递减=True 未清期烧钱恒定=True 跑道不倒退=True 清偿季降一个月供=True 尾季摊薄=True　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1139" name="SaveLoadClockRepairEditModeTests" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.157494" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1144" name="HealthySave_IsNotTouchedByClockRepair" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests.HealthySave_IsNotTouchedByClockRepair" methodname="HealthySave_IsNotTouchedByClockRepair" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" seed="718580237" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.080036" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SaveManager] 已存档 F5 · 现金 2293 · 第 2 年 Q1 · 跑道约 28.5 月 · 现金跑道：按现在开支，流动性还可以撑 28.5 个月
+[SaveManager] 已读档 F9 · 现金 2293 · 第 2 年 Q1 · 11月19日 09:30（本季第 17 天）
+]]></output>
+              </test-case>
+              <test-case id="1142" name="LegacyMailDayWins_OverBrokenCounter" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests.LegacyMailDayWins_OverBrokenCounter" methodname="LegacyMailDayWins_OverBrokenCounter" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" seed="2136753139" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.019033" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SaveManager] 已存档 F5 · 现金 2293 · 第 2 年 Q1 · 跑道约 28.5 月 · 现金跑道：按现在开支，流动性还可以撑 28.5 个月
+[SaveManager] 存档缺少公历时钟字段：按最新收件时刻校正时钟 → 2026年11月19日  星期四  17:30（本季第 5 天 → 第 17 天，以收件日为准）
+[SaveManager] 已读档 F9 · 现金 2293 · 第 2 年 Q1 · 11月19日 09:30（本季第 17 天）
+]]></output>
+              </test-case>
+              <test-case id="1141" name="LegacySaveWithoutWallClock_LoadsAtNewestMailDay" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests.LegacySaveWithoutWallClock_LoadsAtNewestMailDay" methodname="LegacySaveWithoutWallClock_LoadsAtNewestMailDay" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" seed="1422824903" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.019356" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SaveManager] 已存档 F5 · 现金 2293 · 第 2 年 Q1 · 跑道约 28.5 月 · 现金跑道：按现在开支，流动性还可以撑 28.5 个月
+[SaveManager] 存档缺少公历时钟字段：按最新收件时刻校正时钟 → 2026年11月19日  星期四  17:30（本季第 1 天 → 第 17 天，以收件日为准）
+[SaveManager] 已读档 F9 · 现金 2293 · 第 2 年 Q1 · 11月19日 09:30（本季第 17 天）
+]]></output>
+              </test-case>
+              <test-case id="1140" name="SaveThenLoad_KeepsCashAndClock" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests.SaveThenLoad_KeepsCashAndClock" methodname="SaveThenLoad_KeepsCashAndClock" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" seed="2145844664" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.017979" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SaveManager] 已存档 F5 · 现金 2293 · 第 2 年 Q1 · 跑道约 28.5 月 · 现金跑道：按现在开支，流动性还可以撑 28.5 个月
+[SaveManager] 已读档 F9 · 现金 2293 · 第 2 年 Q1 · 11月19日 09:30（本季第 17 天）
+]]></output>
+              </test-case>
+              <test-case id="1143" name="StringTypedLegacyCash_IsSalvagedOnLoad" fullname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests.StringTypedLegacyCash_IsSalvagedOnLoad" methodname="StringTypedLegacyCash_IsSalvagedOnLoad" classname="AirlineCEO.Tests.EditMode.SaveLoadClockRepairEditModeTests" runstate="Runnable" seed="268320191" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.020122" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SaveManager] 已存档 F5 · 现金 2293 · 第 2 年 Q1 · 跑道约 28.5 月 · 现金跑道：按现在开支，流动性还可以撑 28.5 个月
+[SaveManager] 已读档 F9 · 现金 2293 · 第 2 年 Q1 · 11月19日 09:30（本季第 17 天）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1145" name="SaveSlotTypeRoundTripEditModeTests" fullname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" classname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.059898" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1149" name="CriticalKeys_AreClassified" fullname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests.CriticalKeys_AreClassified" methodname="CriticalKeys_AreClassified" classname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" runstate="Runnable" seed="1723894281" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.012825" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1148" name="LegacyStringTypedSlot_IsSalvagedOnRestore" fullname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests.LegacyStringTypedSlot_IsSalvagedOnRestore" methodname="LegacyStringTypedSlot_IsSalvagedOnRestore" classname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" runstate="Runnable" seed="278886931" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.014179" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1146" name="SlotClone_KeepsNumbersAsNumbers" fullname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests.SlotClone_KeepsNumbersAsNumbers" methodname="SlotClone_KeepsNumbersAsNumbers" classname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" runstate="Runnable" seed="1399611139" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.015054" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1147" name="SlotRestore_BringsBackCashAndClock" fullname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests.SlotRestore_BringsBackCashAndClock" methodname="SlotRestore_BringsBackCashAndClock" classname="AirlineCEO.Tests.EditMode.SaveSlotTypeRoundTripEditModeTests" runstate="Runnable" seed="828710759" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.016754" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1150" name="ScenarioFixtureTests" fullname="AirlineCEO.Tests.EditMode.ScenarioFixtureTests" classname="AirlineCEO.Tests.EditMode.ScenarioFixtureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.007520" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1151" name="ScenarioFixture_ProducesStatesTheGameItselfRecognises" fullname="AirlineCEO.Tests.EditMode.ScenarioFixtureTests.ScenarioFixture_ProducesStatesTheGameItselfRecognises" methodname="ScenarioFixture_ProducesStatesTheGameItselfRecognises" classname="AirlineCEO.Tests.EditMode.ScenarioFixtureTests" runstate="Runnable" seed="1912928312" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006970" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[场景夹具回归] 全部通过（18 名编制口径已核对）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1152" name="ShortHaulEditModeTests" fullname="AirlineCEO.Tests.EditMode.ShortHaulEditModeTests" classname="AirlineCEO.Tests.EditMode.ShortHaulEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006535" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1153" name="ChinaDomesticShortHaulIsNotGenerated" fullname="AirlineCEO.Tests.EditMode.ShortHaulEditModeTests.ChinaDomesticShortHaulIsNotGenerated" methodname="ChinaDomesticShortHaulIsNotGenerated" classname="AirlineCEO.Tests.EditMode.ShortHaulEditModeTests" runstate="Runnable" seed="314160274" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.006000" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K16 中国境内超短航段 → 境内超短被拦=True 真实短途未误伤=True 种子网络干净=True（扫描=81 条）　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1154" name="SlotCandidateTests" fullname="AirlineCEO.Tests.EditMode.SlotCandidateTests" classname="AirlineCEO.Tests.EditMode.SlotCandidateTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.409264" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1155" name="SlotAlternatives_StateOnlyWhatTheLedgerCanBackUp" fullname="AirlineCEO.Tests.EditMode.SlotCandidateTests.SlotAlternatives_StateOnlyWhatTheLedgerCanBackUp" methodname="SlotAlternatives_StateOnlyWhatTheLedgerCanBackUp" classname="AirlineCEO.Tests.EditMode.SlotCandidateTests" runstate="Runnable" seed="466122953" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.408885" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[T05.6 备选时刻可检验 → 条数=True（4）　编码一致=True　文案六要素=True　按台账复检=True
+　篡改可检出=True（本场端 声明=即刻可排 台账=需购入；对端 声明=即刻可排 台账=需购入；价格 声明=0.0 台账=870.0；即刻可排 声明=True 台账=False）　两次生成一致=True
+　台账变更后跟上=True（补 PEK 18:30 持仓后：本场端=即刻可排（期望 ready）　价 870→330 万　旧声明复检=True（期望 True：旧声明已过期，必须被检出））
+　候选 1　18:30　本场端=需购入　对端=需购入　价=870万　即刻可排=False　可派机=False　经停 —　复检=True
+　候选 2　18:15　本场端=需购入　对端=需购入　价=930万　即刻可排=False　可派机=False　经停 —　复检=True
+　候选 3　18:00　本场端=需购入　对端=需购入　价=970万　即刻可排=False　可派机=False　经停 —　复检=True
+　候选 4　17:15　本场端=需购入　对端=需购入　价=980万　即刻可排=False　可派机=False　经停 —　复检=True
+　主题「关于 PEK—SZX 加班时刻槽：4 个备选（请选定一个）」　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1156" name="SlotCashHintEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.045800" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1157" name="SlotProposalShowsCashRunway" fullname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests.SlotProposalShowsCashRunway" methodname="SlotProposalShowsCashRunway" classname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" runstate="Runnable" seed="1345088921" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.044983" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K19 时刻槽提案现金跑道 → 紧口径=True 紧文案=True 足额=True 差额=True 前提成立=True 信件正文=True 风险行=True 风险行渲染后仍可见=True 风险行不滥发=True　✓
+　烧钱=40.52 万/月　纯函数 326−300 剩 0.64 月（期望 0.64）
+　真实信件：请求=10:15 最终时刻=10:15 报价=177.0 万 正例现金=258.0（跑道 2.00 月） 反例现金=582.2（跑道 10.00 月）
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1158" name="SlotChannelEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotChannelEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotChannelEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.038644" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1159" name="FreeAndPaidChannelsStayDistinct" fullname="AirlineCEO.Tests.EditMode.SlotChannelEditModeTests.FreeAndPaidChannelsStayDistinct" methodname="FreeAndPaidChannelsStayDistinct" classname="AirlineCEO.Tests.EditMode.SlotChannelEditModeTests" runstate="Runnable" seed="783376942" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.038040" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[R45 时刻槽双渠道（PEK 06:00·池价 462 万）→ 免费单落 apply_slot=True　付费单落 buy_slot=True
+　交割实位：免费 06:00　付费 06:15（同刻=False）　免费③ 06:30
+　按件事判重：同刻重复被挡=True　跨机场不被挡=True（PVG 00:00）　提案不扣款=True
+　交割：免费不动现金=True　付费按价扣款=True
+　反例：现金不足拒绝且不扣=True　免费不看现金=True　池满拒绝免费=True
+　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1160" name="SlotDealCommandEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.018463" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1167" name="ApplySlot_QueuesProposal_ChargesNothing_AndGrantsNothing" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.ApplySlot_QueuesProposal_ChargesNothing_AndGrantsNothing" methodname="ApplySlot_QueuesProposal_ChargesNothing_AndGrantsNothing" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="2060683183" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.005141" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1162" name="ApplySlotSentence_IsRecognized_AndQueuesProposal" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.ApplySlotSentence_IsRecognized_AndQueuesProposal" methodname="ApplySlotSentence_IsRecognized_AndQueuesProposal" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="646971886" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001754" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1165" name="BuySlot_NoListing_RefusesWithZeroSideEffects" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.BuySlot_NoListing_RefusesWithZeroSideEffects" methodname="BuySlot_NoListing_RefusesWithZeroSideEffects" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="74418917" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001937" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1166" name="BuySlot_WithListing_StillRefusesCommand_AndLeavesListingAlone" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.BuySlot_WithListing_StillRefusesCommand_AndLeavesListingAlone" methodname="BuySlot_WithListing_StillRefusesCommand_AndLeavesListingAlone" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="283842256" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001699" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1161" name="BuySlotSentence_IsRecognized_ButRefusedAsOpsWork" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.BuySlotSentence_IsRecognized_ButRefusedAsOpsWork" methodname="BuySlotSentence_IsRecognized_ButRefusedAsOpsWork" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="884861811" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001658" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1164" name="BuySlotWithoutAirport_GuidesInsteadOfSendingMail" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.BuySlotWithoutAirport_GuidesInsteadOfSendingMail" methodname="BuySlotWithoutAirport_GuidesInsteadOfSendingMail" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="1170342483" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001669" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1163" name="SlotQuestion_StillGoesToDepartment" fullname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests.SlotQuestion_StillGoesToDepartment" methodname="SlotQuestion_StillGoesToDepartment" classname="AirlineCEO.Tests.EditMode.SlotDealCommandEditModeTests" runstate="Runnable" seed="2109429118" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.001692" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1168" name="SlotMarketEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotMarketEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotMarketEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.025941" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1169" name="SecondaryMarketTradesEvenWhenPoolFull" fullname="AirlineCEO.Tests.EditMode.SlotMarketEditModeTests.SecondaryMarketTradesEvenWhenPoolFull" methodname="SecondaryMarketTradesEvenWhenPoolFull" classname="AirlineCEO.Tests.EditMode.SlotMarketEditModeTests" runstate="Runnable" seed="1832727390" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.025434" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[R47 时刻二级市场（PEK 06:00·市价 462 万）→ 货架 7 条 roll=True
+　核心：池满=True 仍成交=True 扣款=True 入账=True 余量不为负=True 收回时点=True
+　反例：现金不足拒绝=True 提示=True 账未动=True
+　挂牌：按建议价=True 重复被挡=True 使用中被挡=True
+　卖侧：有人问价=True 进收件箱=True 婉拒保留=True 成交完整=True 幽灵拒=True 撤回作废=True 货架不补货=True
+　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1170" name="SlotMarketInboxFlowEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotMarketInboxFlowEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotMarketInboxFlowEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.012499" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1171" name="BuyThenListThenApprove_And_Reject_MoveCashExactlyOnce" fullname="AirlineCEO.Tests.EditMode.SlotMarketInboxFlowEditModeTests.BuyThenListThenApprove_And_Reject_MoveCashExactlyOnce" methodname="BuyThenListThenApprove_And_Reject_MoveCashExactlyOnce" classname="AirlineCEO.Tests.EditMode.SlotMarketInboxFlowEditModeTests" runstate="Runnable" seed="499827536" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.011901" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FLOW①买入] PEK 20:15（全日空） 叫价 570 万 → 现金 50000 → 49430（差额 570），持仓 0 → 1
+[FLOW②挂牌] PEK 20:15 叫价 440 万（市价 380），持仓仍 1 条
+[FLOW③批准] 达美航空 愿以 400 万收购 PEK 20:15 时刻槽
+　现金 49430 → 49830（+400，出价 400）
+　持仓 1 → 0，挂牌仍在架=False 邮件状态=approved 意向 open=False
+[FLOW④拒绝] 美国联合航空 愿以 610 万收购 PVG 19:00 时刻槽
+　现金 49030 → 49030（+0，应 0）
+　持仓 1 → 1（应不变） 挂牌仍在架=True 邮件状态=rejected 意向 open=False
+[FLOW⑤占用中学拒] 原因「PVG 19:00 无法过户（在飞·不可售）：正在被班次占用。现实里卖槽前必须先停飞或减班把槽腾出来 —— 请先在「周计划及航班环」调开该班次。」→ 现金 49030 未动，持仓 1 未动，邮件仍待办=True
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1172" name="SlotPreHoldEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.057138" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1173" name="AcceptingPermit_QueuesSlotProposalInParallel" fullname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests.AcceptingPermit_QueuesSlotProposalInParallel" methodname="AcceptingPermit_QueuesSlotProposalInParallel" classname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" runstate="Runnable" seed="137354558" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.014537" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1176" name="Grant_ReleasesCountdown_WithoutReturningSlot" fullname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests.Grant_ReleasesCountdown_WithoutReturningSlot" methodname="Grant_ReleasesCountdown_WithoutReturningSlot" classname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" runstate="Runnable" seed="1023486559" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.025722" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1175" name="PreHoldWindow_CoversDomesticSlotPermit" fullname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests.PreHoldWindow_CoversDomesticSlotPermit" methodname="PreHoldWindow_CoversDomesticSlotPermit" classname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" runstate="Runnable" seed="2127669602" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.000171" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1174" name="SettledSlotBeforeGrant_StartsCountdown_AndExpires" fullname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests.SettledSlotBeforeGrant_StartsCountdown_AndExpires" methodname="SettledSlotBeforeGrant_StartsCountdown_AndExpires" classname="AirlineCEO.Tests.EditMode.SlotPreHoldEditModeTests" runstate="Runnable" seed="527272552" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:13Z" duration="0.015820" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1177" name="SlotSequenceEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:14Z" duration="0.054509" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1178" name="ApplicationSequenceKeepsApprovalsHoldingsAndCash" fullname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests.ApplicationSequenceKeepsApprovalsHoldingsAndCash" methodname="ApplicationSequenceKeepsApprovalsHoldingsAndCash" classname="AirlineCEO.Tests.EditMode.SlotSequenceEditModeTests" runstate="Runnable" seed="95395874" result="Passed" start-time="2026-11-09 12:12:13Z" end-time="2026-11-09 12:12:14Z" duration="0.053424" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[SLOTSEQ] 申请序列回归
+SLOTSEQ|setup.apt=PEK
+SLOTSEQ|setup.tier=0
+SLOTSEQ|setup.runways=3
+SLOTSEQ|setup.dayCapacity=204
+SLOTSEQ|setup.cash=6000.0
+SLOTSEQ|setup.clock=09:00
+SLOTSEQ|setup.holdings=0
+SLOTSEQ|prop1.ok=true
+SLOTSEQ|prop1.note=已提交收件箱：09:00 已被他航占满，运营部改报 PEK 09:45；请批准购入该刻时刻槽，批准后即刻过户并扣款。
+SLOTSEQ|prop1.inbox=1
+SLOTSEQ|prop1.status=pending
+SLOTSEQ|prop1.clock=09:45
+SLOTSEQ|prop1.avail=1
+SLOTSEQ|prop1.price=546.0
+SLOTSEQ|approve1.ok=true
+SLOTSEQ|approve1.msg=已批准通过二级市场购入取得 PEK 09:45 时刻槽。3月2日交割。
+SLOTSEQ|approve1.status=approved
+SLOTSEQ|approve1.cashDelta=0.0
+SLOTSEQ|approve1.holdDelta=0
+SLOTSEQ|settle1.status=approved
+SLOTSEQ|settle1.cashDelta=-546.0
+SLOTSEQ|settle1.holdDelta=1
+SLOTSEQ|settle1.hold.count=1
+SLOTSEQ|settle1.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+SLOTSEQ|settle1.mail.count=1
+SLOTSEQ|settle1.mail[0]=m_seq_buy|buy_slot|approved|提案|建议购入 PEK 09:45 时刻槽|body=<b><color=#8FB6E8>▎提案要点</color></b> · 机场　PEK（枢纽） · 时刻　09:45（机场当地离港时刻）—— **时刻槽精确到时刻**，06:30 与 08:00 是两条槽，不能互相顶替 · 渠道　二级市场购入（向持槽航司买，需付款） · 估价　约 546 万美元 · 现金　现有 6000 万；按当前净烧钱 81 万/月，交割扣款后约剩 5454 万 ≈ **67.7 个月**跑道 · 池况　PEK 09:45 · 离港池 该刻容量 3 · …
+SLOTSEQ|check1.holding=PEK|09:45|DEP|cost=546.00
+SLOTSEQ|full.clock=11:00
+SLOTSEQ|full.ok=false
+SLOTSEQ|full.msg=PEK 11:00 该刻已被占满（PEK 11:00 · 离港池 该刻容量 3 · 该刻余 0（已持 3 条）；所在中班池 52/60（我司 0 · 他航 52 · 余 8）· 协调 24h）。可改申请同波内其他时刻，或走二级市场。
+SLOTSEQ|full.cashDelta=0.0
+SLOTSEQ|full.holdDelta=0
+SLOTSEQ|curfew.ok=false
+SLOTSEQ|curfew.msg=PEK 02:00 落在宵禁时段（23:00–06:00 宵禁），机场不开放，无法取得时刻槽。
+SLOTSEQ|curfew.cashDelta=0.0
+SLOTSEQ|short.clock=06:00
+SLOTSEQ|short.ok=false
+SLOTSEQ|short.msg=现金不足，PEK 06:00 时刻槽 1 条需 462 万（枢纽价，单价 462 万）。若走协调池申请则不收费，该提案由运营部按需另递。
+SLOTSEQ|short.cash=1.0
+SLOTSEQ|short.holdDelta=0
+SLOTSEQ|arr.clock=06:00
+SLOTSEQ|arr.ok=true
+SLOTSEQ|arr.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+SLOTSEQ|arr.assigned=06:00
+SLOTSEQ|arr.cashDelta=0.0
+SLOTSEQ|arr.holdDelta=1
+SLOTSEQ|pair.clock=06:00
+SLOTSEQ|pair.arrClock=06:15
+SLOTSEQ|pair.ok=true
+SLOTSEQ|pair.msg=协调池已分配 PEK 06:00 时刻槽（不收费）。
+SLOTSEQ|pair.holdDelta=1
+SLOTSEQ|pair.holding=06:00|arr=06:15
+SLOTSEQ|pool.ok=false
+SLOTSEQ|pool.msg=该机场该时段时刻池余量不足（要 999 条，PEK 06:00–09:45（早班池） · 池 45/48（我司 2 · 他航 43 · 余 3） · 日容量 204 · 协调 24h · 23:00–06:00 宵禁）。
+SLOTSEQ|pool.cashDelta=0.0
+SLOTSEQ|pool.holdDelta=0
+SLOTSEQ|dup.ok=false
+SLOTSEQ|dup.note=该时刻槽提案已提交过。
+SLOTSEQ|occ.poolCapDep=60
+SLOTSEQ|occ.poolCapArr=60
+SLOTSEQ|occ.dep.band=1
+SLOTSEQ|occ.dep.poolCap=60
+SLOTSEQ|occ.dep.ourUse=0
+SLOTSEQ|occ.dep.industry=52
+SLOTSEQ|occ.dep.available=8
+SLOTSEQ|occ.dep.sumOpenByClock=8
+SLOTSEQ|occ.arr.band=1
+SLOTSEQ|occ.arr.poolCap=60
+SLOTSEQ|occ.arr.ourUse=0
+SLOTSEQ|occ.arr.industry=53
+SLOTSEQ|occ.arr.available=7
+SLOTSEQ|occ.arr.sumOpenByClock=7
+SLOTSEQ|occ.clocks09dep=0
+SLOTSEQ|occ.clocks09arr=0
+SLOTSEQ|final.hold.count=3
+SLOTSEQ|final.hold[0]=PEK|09:45|DEP|arr=-|cost=546.00|inUse=False|expQ=3
+SLOTSEQ|final.hold[1]=PEK|06:00|ARR|arr=-|cost=0.00|inUse=False|expQ=3
+SLOTSEQ|final.hold[2]=PEK|06:00|DEP|arr=06:15|cost=0.00|inUse=False|expQ=3
+SLOTSEQ|final.cash=5454.0
+SLOTSEQ|final.inbox=1
+SLOTSEQ|check.00=PASS ; ①批准只排期：不动现金
+SLOTSEQ|check.01=PASS ; ①批准只排期：不落持仓
+SLOTSEQ|check.02=PASS ; ①提案被受理（收件箱有待批单）
+SLOTSEQ|check.03=PASS ; ①有剩量时交割落 1 条持仓
+SLOTSEQ|check.04=PASS ; ①持仓时刻与提案时刻一致（09:45 → 09:45）
+SLOTSEQ|check.05=PASS ; ①持仓单价与该刻报价一致（546.00 → 546.00）
+SLOTSEQ|check.06=PASS ; ①扣款等于该刻报价（前 6000.00 → 后 5454.00）
+SLOTSEQ|check.07=PASS ; ②满刻被驳回（11:00）
+SLOTSEQ|check.08=PASS ; ②满刻驳回不动钱
+SLOTSEQ|check.09=PASS ; ②满刻驳回不动持仓
+SLOTSEQ|check.10=PASS ; ③宵禁刻（02:00）被驳回
+SLOTSEQ|check.11=PASS ; ③宵禁驳回不动钱
+SLOTSEQ|check.12=PASS ; ③宵禁驳回不动持仓
+SLOTSEQ|check.13=PASS ; ④现金不足被驳回
+SLOTSEQ|check.14=PASS ; ④现金不足不扣款
+SLOTSEQ|check.15=PASS ; ④现金不足不落持仓
+SLOTSEQ|check.16=PASS ; ⑤免费渠道（协调池）不收费
+SLOTSEQ|check.17=PASS ; ⑤到港方向入账（kind=ARR）
+SLOTSEQ|check.18=PASS ; ⑤只到港持仓没有配对离港
+SLOTSEQ|check.19=PASS ; ⑥配对到港时刻入账（06:15 → 06:15）
+SLOTSEQ|check.20=PASS ; ⑥离港持仓 kind 为空串
+SLOTSEQ|check.21=PASS ; ⑦超余量（999 条）被驳回
+SLOTSEQ|check.22=PASS ; ⑦超余量不落持仓
+SLOTSEQ|check.23=PASS ; ⑧同一 id 重复提案被挡
+SLOTSEQ|check.24=PASS ; ⑨ C0 两方向池容量同值
+SLOTSEQ|check.25=PASS ; ⑨ 逐刻容量不分方向（DEP=ARR）
+SLOTSEQ|check.26=PASS ; ⑨ 离港段余 = 逐刻余量之和
+SLOTSEQ|check.27=PASS ; ⑨ 到港段余 = 逐刻余量之和
+SLOTSEQ|check.28=PASS ; ⑨ 09:00 离港余量 = 容量 − 我司 − 他航
+SLOTSEQ|check.29=PASS ; ⑨ 09:00 到港余量 = 容量 − 我司 − 他航
+SLOTSEQ|check.30=PASS ; 场景 ① 已实际执行
+SLOTSEQ|check.31=PASS ; 场景 ② 已实际执行
+SLOTSEQ|check.32=PASS ; 场景 ③ 已实际执行
+SLOTSEQ|check.33=PASS ; 场景 ④ 已实际执行
+SLOTSEQ|check.34=PASS ; 场景 ⑤ 已实际执行
+SLOTSEQ|check.35=PASS ; 场景 ⑥ 已实际执行
+SLOTSEQ|check.36=PASS ; 场景 ⑦ 已实际执行
+SLOTSEQ|check.37=PASS ; 场景 ⑧ 已实际执行
+SLOTSEQ|check.38=PASS ; 场景 ⑨ 已实际执行
+SLOTSEQ|check.summary=pass=39 fail=0 covered=9/9
+SLOTSEQ|check.all=true
+
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1179" name="TakeoverCostLedgerEditModeTests" fullname="AirlineCEO.Tests.EditMode.TakeoverCostLedgerEditModeTests" classname="AirlineCEO.Tests.EditMode.TakeoverCostLedgerEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.089820" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1180" name="TakeoverCostInheritsPerDepartment" fullname="AirlineCEO.Tests.EditMode.TakeoverCostLedgerEditModeTests.TakeoverCostInheritsPerDepartment" methodname="TakeoverCostInheritsPerDepartment" classname="AirlineCEO.Tests.EditMode.TakeoverCostLedgerEditModeTests" runstate="Runnable" seed="1613358242" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.089123" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K17 接管成本继承粒度 → 预设跑道 8.00/6.01/4.00/3.00（期望 8.00/6.01/4.00/3.00，K10 不漂移）
+　全池账本：缺账本 0 家 / 不同账 0 家
+　落盘：部门 8 个 · 预算合计 1549 万（董事会规则 1549 万）· 部门比例同源=True
+　问责：季度支出 900 万 → Σ已执行 900 万（总额一致=True，比例同源=True）
+　旧档迁移：7/7（空档迁=True 旧指纹迁=True 手改不迁=True 有执行数不迁=True 非接管不迁=True 零现金保总额=True 空账不写0=True 退化可重建=True 有执行数不被覆盖=True 真预算不被覆盖=True）
+　部门月成本：运营部 131.1(18%) 机务工程部 231.8(32%) 市场销售部 10.4(1%) 人力资源部 105.4(15%) 战略发展部 10.4(1%) 安全质量部 79.3(11%) 财务部 134.4(19%) 董事会 15.6(2%)
+　结论 全部符合期望 ✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1181" name="TransitionInquiryBodyFreezeTests" fullname="AirlineCEO.Tests.EditMode.TransitionInquiryBodyFreezeTests" classname="AirlineCEO.Tests.EditMode.TransitionInquiryBodyFreezeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.033348" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1182" name="ClosedInquiry_StopsClaimingAircraftAreStillAvailable" fullname="AirlineCEO.Tests.EditMode.TransitionInquiryBodyFreezeTests.ClosedInquiry_StopsClaimingAircraftAreStillAvailable" methodname="ClosedInquiry_StopsClaimingAircraftAreStillAvailable" classname="AirlineCEO.Tests.EditMode.TransitionInquiryBodyFreezeTests" runstate="Runnable" seed="2041059885" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.003668" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[询价函办结口径：名单冻结 + 底部提示替换 + 幂等，3 组口径全部通过
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1183" name="TransitionUnlockCadenceEditModeTests" fullname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests" classname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.004116" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1186" name="InquiryCadence_IsStrictlyLaterThanProgress" fullname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests.InquiryCadence_IsStrictlyLaterThanProgress" methodname="InquiryCadence_IsStrictlyLaterThanProgress" classname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests" runstate="Runnable" seed="1705106936" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.000836" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1184" name="UnlockDay_AnnouncementIsAReport_AndInquiryComesHoursLater" fullname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests.UnlockDay_AnnouncementIsAReport_AndInquiryComesHoursLater" methodname="UnlockDay_AnnouncementIsAReport_AndInquiryComesHoursLater" classname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests" runstate="Runnable" seed="1714129221" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.002230" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1185" name="UnlockDay_HasExactlyOnePendingInquiry" fullname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests.UnlockDay_HasExactlyOnePendingInquiry" methodname="UnlockDay_HasExactlyOnePendingInquiry" classname="AirlineCEO.Tests.EditMode.TransitionUnlockCadenceEditModeTests" runstate="Runnable" seed="587161168" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.000357" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1187" name="TutorialCopyTests" fullname="AirlineCEO.Tests.EditMode.TutorialCopyTests" classname="AirlineCEO.Tests.EditMode.TutorialCopyTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.002924" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1188" name="TutorialCopy_MatchesRoutingAndConstants" fullname="AirlineCEO.Tests.EditMode.TutorialCopyTests.TutorialCopy_MatchesRoutingAndConstants" methodname="TutorialCopy_MatchesRoutingAndConstants" classname="AirlineCEO.Tests.EditMode.TutorialCopyTests" runstate="Runnable" seed="721292734" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.002596" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[教程/引导文案 → 启动资金=常量=True（300 万美元）　首航结算常量=True　S6教命令台=True　按页提示=True　文案句子可路由=True（开线 CTU—SHA · 购机 A320neo×2 · 招聘 飞行员×10 · 融资 kind=1）　✓
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1189" name="UIFactorySpriteCacheTests" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.111897" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1192" name="AllProceduralIcons_SurviveDestroyAndRebuild" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests.AllProceduralIcons_SurviveDestroyAndRebuild" methodname="AllProceduralIcons_SurviveDestroyAndRebuild" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" seed="1653228190" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.100921" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1190" name="DestroyedCachedSprite_IsRebuilt" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests.DestroyedCachedSprite_IsRebuilt" methodname="DestroyedCachedSprite_IsRebuilt" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" seed="344885606" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.003817" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1191" name="DestroyedFastForwardSprite_IsRebuilt" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests.DestroyedFastForwardSprite_IsRebuilt" methodname="DestroyedFastForwardSprite_IsRebuilt" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" seed="738881565" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.001754" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1194" name="Rehydrate_FillsOnlySlicedImagesWithoutSprite" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests.Rehydrate_FillsOnlySlicedImagesWithoutSprite" methodname="Rehydrate_FillsOnlySlicedImagesWithoutSprite" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" seed="2142179992" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.001097" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1193" name="SessionReset_ClearsEveryCache" fullname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests.SessionReset_ClearsEveryCache" methodname="SessionReset_ClearsEveryCache" classname="AirlineCEO.Tests.EditMode.UIFactorySpriteCacheTests" runstate="Runnable" seed="727928570" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.003653" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1195" name="WriteCommandTests" fullname="AirlineCEO.Tests.EditMode.WriteCommandTests" classname="AirlineCEO.Tests.EditMode.WriteCommandTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.021873" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1196" name="WriteCommands_RouteToExistingProposalPipelines" fullname="AirlineCEO.Tests.EditMode.WriteCommandTests.WriteCommands_RouteToExistingProposalPipelines" methodname="WriteCommands_RouteToExistingProposalPipelines" classname="AirlineCEO.Tests.EditMode.WriteCommandTests" runstate="Runnable" seed="54826448" result="Passed" start-time="2026-11-09 12:12:14Z" end-time="2026-11-09 12:12:14Z" duration="0.021241" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[命令台写指令 → 开线=True（PEK—JFK）　缺机场退回引导=True　分析件不被抢=True　购机=True（A320neo×2·自有资金买断）　最长机型=True（B737-800×2·融资租赁）　经营租赁=True　缺架数退回引导=True　招聘=True（飞行员×10·渠道0·急2）　口语人数/渠道=True（5·渠道1）　紧迫度=True　缺人数退回引导=True　融资=贷款True/过桥True/增资True　读类不写成类=融资汇报True/余额True/招聘进度True/机队规模True/为什么True　投递=购机True/去重True/招聘True/融资True/开线True　航班环重编走命令台=True/方案进收件箱=True/问句不被当调令=True　✓
+Saving results to: D:\Project\_snap_r2c_post\Unity Project\Logs\Tasks20261017_Batch1R2cPostFull.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

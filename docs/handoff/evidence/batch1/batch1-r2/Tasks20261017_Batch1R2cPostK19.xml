@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.1184752">
+  <test-suite type="TestSuite" id="1000" name="IsolatedBaseline__snap_r2c_post" fullname="IsolatedBaseline__snap_r2c_post" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.118475" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1197" name="AirlineCEO.EditModeTests.dll" fullname="D:/Project/_snap_r2c_post/Unity Project/Library/ScriptAssemblies/AirlineCEO.EditModeTests.dll" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.111220" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="39652" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1198" name="AirlineCEO" fullname="AirlineCEO" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.110276" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1199" name="Tests" fullname="AirlineCEO.Tests" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.107826" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1200" name="EditMode" fullname="AirlineCEO.Tests.EditMode" runstate="Runnable" testcasecount="147" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.106958" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1156" name="SlotCashHintEditModeTests" fullname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" classname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.104296" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1157" name="SlotProposalShowsCashRunway" fullname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests.SlotProposalShowsCashRunway" methodname="SlotProposalShowsCashRunway" classname="AirlineCEO.Tests.EditMode.SlotCashHintEditModeTests" runstate="Runnable" seed="1230784933" result="Passed" start-time="2026-11-09 12:11:05Z" end-time="2026-11-09 12:11:05Z" duration="0.095283" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[K19 时刻槽提案现金跑道 → 紧口径=True 紧文案=True 足额=True 差额=True 前提成立=True 信件正文=True 风险行=True 风险行渲染后仍可见=True 风险行不滥发=True　✓
+　烧钱=40.52 万/月　纯函数 326−300 剩 0.64 月（期望 0.64）
+　真实信件：请求=10:15 最终时刻=10:15 报价=177.0 万 正例现金=258.0（跑道 2.00 月） 反例现金=582.2（跑道 10.00 月）
+Saving results to: D:\Project\_snap_r2c_post\Unity Project\Logs\Tasks20261017_Batch1R2cPostK19.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

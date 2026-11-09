@@ -105,6 +105,8 @@ namespace AirlineCEO.UI
         static Sprite _pauseSprite;
         static Sprite _helpSprite;
         static Sprite _playSprite;
+        static Sprite _takeoffSprite;
+        static Sprite _landingSprite;
 
         /// <summary>齿轮（设置）。</summary>
         public static Sprite GearSprite
@@ -198,6 +200,30 @@ namespace AirlineCEO.UI
         }
 
         /// <summary>
+        /// 飞机起飞（★2026-11-08）。按「机场时刻」UI 原型里的 SVG 路径 1:1 光栅化，
+        /// 不是另画一个近似图标 —— 原型给的是一段封闭多边形（M/L/Z）+ 一条跑道线。
+        /// 白色填充，调用方用 <see cref="Image.color"/> 上色。
+        /// </summary>
+        public static Sprite TakeoffSprite
+        {
+            get
+            {
+                if (_takeoffSprite == null) _takeoffSprite = BuildPlaneSprite(true, 96);
+                return _takeoffSprite;
+            }
+        }
+
+        /// <summary>飞机降落（同上，取自原型另一条路径）。</summary>
+        public static Sprite LandingSprite
+        {
+            get
+            {
+                if (_landingSprite == null) _landingSprite = BuildPlaneSprite(false, 96);
+                return _landingSprite;
+            }
+        }
+
+        /// <summary>
         /// 关闭域重载后，这些程序化精灵是**运行时**创建的贴图，退出 Play 时会被 Unity 销毁，
         /// 而静态字段仍指向那个「已销毁对象」——它不是 C# null，`??=` 会把它当成有效缓存返回，
         /// Image 拿到它就画成一块纯色实心方块（齿轮 / 倍速 / 顾问气泡 / 航线图标消失的根因）。
@@ -219,6 +245,8 @@ namespace AirlineCEO.UI
             _pauseSprite = null;
             _helpSprite = null;
             _playSprite = null;
+            _takeoffSprite = null;
+            _landingSprite = null;
             for (int i = 0; i < _ffSprites.Length; i++) _ffSprites[i] = null;
         }
 
@@ -688,9 +716,10 @@ namespace AirlineCEO.UI
         // ———— 线性图标光栅化：以 2×2 超采样画到 RGBA32 白色形状，得到抗锯齿 alpha ————
 
         /// <summary>创建画布 + 像素填充器。fill(px,py) 返回覆盖度 0~1（白色 + alpha）。</summary>
-        static Sprite Rasterize(int size, System.Func<float, float, float> fill)
+        /// <param name="ss">每像素超采样倍数（2 = 2×2）。细边多边形（飞机图标）用 3 更干净。</param>
+        static Sprite Rasterize(int size, System.Func<float, float, float> fill, int ss = 2)
         {
-            const int SS = 2; // 每像素 2×2 超采样
+            int SS = Mathf.Clamp(ss, 1, 4);
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Bilinear;
@@ -753,6 +782,82 @@ namespace AirlineCEO.UI
             bool pos = s1 > 0 || s2 > 0 || s3 > 0;
             return !(neg && pos) ? 1f : 0f;
         }
+
+        // ———— 飞机起飞 / 降落：原型 SVG 路径（viewBox 0 0 64 64）————
+        //
+        // 原型给的两条路径都只用了 M / L / Z 三个命令，也就是**一个封闭多边形**；
+        // 另一条 `M6 56 L58 56` 是 stroke-width 4.4 的跑道线。所以不需要引 SVG 库，
+        // 也不必做三角剖分：按「点在多边形内」逐像素判定 + 超采样即可，几何与原型逐点相同。
+        // 之所以不做成 PNG 资源：这些是运行时生成的白色遮罩，Image.color 负责上色，
+        // 与齿轮 / 搜索 / 航线那批程序化图标同一条路径（可随画布缩放不失真）。
+
+        const string PlaneTakeoffPath =
+            "M 59.0,18.3 L 58.1,16.6 L 56.7,15.7 L 47.2,15.0 L 44.9,15.9 L 35.6,21.7 " +
+            "L 21.4,15.5 L 19.5,15.2 L 16.6,17.1 L 16.1,18.6 L 24.9,27.8 L 25.2,28.6 " +
+            "L 16.9,34.0 L 8.4,30.9 L 5.4,32.9 L 5.0,34.3 L 10.0,39.5 L 9.2,41.7 " +
+            "L 10.1,43.6 L 14.3,43.8 L 20.5,42.8 L 53.8,26.6 L 57.5,23.3 L 58.9,20.3 Z";
+
+        const string PlaneLandingPath =
+            "M 5.7,8.7 L 7.1,16.7 L 5.1,18.0 L 5.0,19.6 L 7.3,22.3 L 13.4,27.2 " +
+            "L 50.6,43.3 L 55.4,43.8 L 57.3,43.2 L 58.9,41.5 L 59.0,39.4 L 58.2,37.7 " +
+            "L 51.4,30.1 L 48.4,28.3 L 38.0,25.2 L 27.9,7.3 L 24.1,6.0 L 23.0,6.6 " +
+            "L 25.6,21.3 L 15.8,18.4 L 10.5,9.4 L 6.9,8.3 Z";
+
+        static Sprite BuildPlaneSprite(bool takeoff, int size)
+        {
+            var pts = ParseSvgPolygon(takeoff ? PlaneTakeoffPath : PlaneLandingPath);
+            return Rasterize(size, (px, py) =>
+            {
+                // 纹理坐标 y 向上，SVG 坐标 y 向下 —— 不翻转的话飞机是倒着的。
+                float x = px * 64f;
+                float y = (1f - py) * 64f;
+                float body = PointInPolygon(x, y, pts) ? 1f : 0f;
+                float runway = SegDist(x, y, 6f, 56f, 58f, 56f) <= 2.2f ? 1f : 0f;
+                return body > runway ? body : runway;
+            }, 3);
+        }
+
+        /// <summary>
+        /// 只解析 SVG 路径里的数字序列（本工程仅用 M/L/Z 的单一闭合轮廓）。
+        /// 命令字母与逗号一律跳过，数字按顺序两两成对 —— 对这批路径是精确等价，
+        /// 不是「够用的近似」；换成带曲线/多子路径的 SVG 就得换真正的解析器。
+        /// </summary>
+        static float[] ParseSvgPolygon(string path)
+        {
+            var nums = new System.Collections.Generic.List<float>(64);
+            int i = 0;
+            while (i < path.Length)
+            {
+                char c = path[i];
+                bool startsNumber = (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.';
+                if (!startsNumber) { i++; continue; }
+                int start = i;
+                if (c == '-' || c == '+') i++;
+                while (i < path.Length && ((path[i] >= '0' && path[i] <= '9') || path[i] == '.')) i++;
+                if (float.TryParse(path.Substring(start, i - start),
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out float v))
+                    nums.Add(v);
+            }
+            return nums.ToArray();
+        }
+
+        /// <summary>射线法判定点是否落在多边形内（pts 为 x,y 交错数组）。</summary>
+        static bool PointInPolygon(float x, float y, float[] pts)
+        {
+            int n = pts.Length / 2;
+            if (n < 3) return false;
+            bool inside = false;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                float xi = pts[i * 2], yi = pts[i * 2 + 1];
+                float xj = pts[j * 2], yj = pts[j * 2 + 1];
+                if (((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi))
+                    inside = !inside;
+            }
+            return inside;
+        }
+
 
         static Sprite BuildGearSprite(int size)
         {

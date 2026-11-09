@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>时刻容量改为跑道数 · 2026-11-09</title>
+<style>
+:root{--bg:#0d1b2f;--panel:#142943;--line:#22364f;--fg:#dbe6f4;--mute:#8aa3bf;--green:#4ce39e;--blue:#4a86e8;--warn:#e4a0a7}
+*{box-sizing:border-box}
+body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:15px/1.75 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif}
+main{max-width:1080px;margin:0 auto;padding:34px 32px 90px}
+h1{font-size:26px;line-height:1.35;margin:0 0 18px;letter-spacing:.3px;color:#eef5ff}
+h2{font-size:19px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:#cfe4fb}
+h3{font-size:16px;margin:30px 0 10px;color:#bcd8f5}
+h4{font-size:15px;margin:22px 0 8px;color:#a8c8ea}
+p{margin:12px 0}
+strong{color:#eff6ff;font-weight:600}
+code{background:#1b3350;padding:1.5px 6px;border-radius:4px;font-size:13px;color:#9ec9f0;
+  font-family:'Cascadia Mono',Consolas,monospace}
+pre{background:#0f2035;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;margin:14px 0}
+pre code{background:none;padding:0;font-size:12.5px;line-height:1.65;color:#b9d4ee}
+blockquote{background:#122238;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;
+  margin:16px 0;padding:12px 18px;color:#b7c9dd}
+blockquote p{margin:6px 0}
+blockquote ul{margin:8px 0;padding-left:22px}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+.tw{overflow:auto;margin:16px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;
+  font-variant-numeric:tabular-nums}
+thead th{background:#192f50;color:#cddff4;font-weight:600;font-size:13px;padding:9px 12px;
+  border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+tbody td{padding:8px 12px;border-bottom:1px solid #1a2c44;vertical-align:top}
+tbody tr:nth-child(even) td{background:#111f33}
+tbody tr:hover td{background:#1a3049}
+tbody tr:last-child td{border-bottom:0}
+@media (max-width:700px){main{padding:20px 16px 70px}body{font-size:14px}}
+</style></head>
+<body><main>
+<h1>时刻容量改为「跑道数平铺」· 2026-11-09</h1>
+<h2>一、两条用户裁决</h2>
+<p>1. <strong>确认现实容量</strong>：<code>CAN 110 / CKG 78 / KMG 70 / WUH 36 / URC 44</code>（架次·起降合计/小时） 予以确认，保留在对照表里作参考。 2. <strong>取消峰谷曲线</strong>：</p>
+<blockquote><p>「为什么时刻槽要设置峰刻容量？机场有多少条跑道就释放多少条时刻容量，不要设置峰刻。」</p></blockquote>
+<p>第 2 条直接推翻了 11-07 建立的整套「逐场现实小时曲线 × 1/3.5 → 拆到四个刻」管线。 <strong>第 1 条因此只对文档有效</strong> —— 容量不再由「现实容量」推导，那两个数现在只作阅读参考。</p>
+<h2>二、新规则（唯一一条）</h2>
+<blockquote><p><strong>协调时段内、且不在宵禁中的每一个 15 分钟刻，放出「跑道数」条离港槽；到港池同数。</strong></p></blockquote>
+<ul><li>全天同一个数，<strong>没有峰刻、没有谷刻</strong>。CAN 5 条跑道 → 每一刻都是 5。</li><li>保留两层限制（都不是「峰刻」）：</li><li><strong>协调时段</strong>：辅协调机场只在窗口内需要槽（ZUH 07:00–23:00、KWE 06:00–次日 02:00 等）。</li><li><strong>宵禁</strong>：物理禁飞，容量记 0（PEK 23:00–06:00；EEA 全境；NRT / HND / SYD / TPE）。</li></ul>
+<p>界面因此仍会显示「不开放」，与「有槽也不能飞」一致。</p>
+<ul><li>折损：一条跑道现实小时容量约 30–40 架次（起降合计），折单向每刻 4–5 条；本作取 1，</li></ul>
+<p>即对跑道吞吐做约 4 倍压缩 —— 与旧版 1/3.5 同量级，但<strong>不再随机场、随时段漂移</strong>。</p>
+<p>常量在 <code>AirportCatalog.SlotsPerRunwayPerQuarter = 1</code>。 注意它<strong>不能</strong>用来压缩池子（1 → 0 会让全表归零）；真要收紧应改成「每 N 条跑道 1 条槽」。</p>
+<h2>三、代码改动</h2>
+<div class="tw"><table><thead><tr><th style="text-align:left">文件</th><th style="text-align:left">改动</th></tr></thead><tbody>
+<tr><td style="text-align:left"><code>Assets/Scripts/Data/AirportRunways.cs</code></td><td style="text-align:left"><strong>新增</strong>。88 场跑道数，运行时副本（Unity 构建读不到 <code>tools/</code> 下的 tsv）。由 <code>out/tmp/gen-runways.mjs</code> 从 <code>runways.tsv</code> 生成，带 <code>.meta</code>。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Data/AirportCatalog.cs</code></td><td style="text-align:left">删除 <code>AirportHourRates</code> / <code>HubHourRate</code> / <code>MainHourRate</code> / <code>LegacyScale</code> / <code>HourRateOf</code> / <code>QuarterSplit</code>（约 200 行）。新增 <code>RunwayCountOf</code> / <code>RunwayCount</code> / <code>HasRunwayData</code> / <code>InWindowText</code> / <code>InCoordWindowText</code> / <code>InCurfewWindow</code>。<code>QuarterCapacityRaw</code> 改为「窗口内 &amp;&amp; 非宵禁 → 跑道数」。</td></tr>
+<tr><td style="text-align:left">同上 · <code>HourCapacity</code></td><td style="text-align:left">由「查小时表」改为「该小时四个刻求和」，两条读数永不互相打脸。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Editor/AirportCatalogRegression.cs</code></td><td style="text-align:left">⑨ 容量断言重写：新增「刻内必须均匀」「容量 == 跑道数」「协调机场必须有显式跑道数（不得落回等级默认值）」三条硬判据 + 11 条逐场用例（含 CDG 验证宵禁）。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Editor/IndustryAtlasRegression.cs</code></td><td style="text-align:left">R48 的「23:00 容量为 0」反例从 KWE 换成 PEK —— 平铺后干线 23:00 不再天然为 0，宵禁成了唯一还压容量的机制。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Editor/LogicSelfTests.cs</code></td><td style="text-align:left">时刻池期望文案 <code>12/12/14/8</code> → <code>120/60/60/48</code>（SZX 3 跑道 × 40/20/20/16 刻），并补 SYX 单跑道期望。</td></tr>
+<tr><td style="text-align:left"><code>tools/slotreport/Program.cs</code></td><td style="text-align:left">跑道数改取 <code>AirportCatalog.RunwayCount</code>（tsv 只供配置文本），两处不一致时告警；口径说明同步改写。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Logic/IndustryAirlineLogic.cs</code></td><td style="text-align:left">他航落位权重从「小时容量 ÷ 峰值容量」改为 <code>StrategyEconomics.HourDemandCoef</code>（与槽价同一张表）。容量平铺后前者恒为 1，落位会退化成「每波从第一刻往后填满」，出现「00:00 排满、09:00 空着」的假象；<strong>容量不设峰谷，需求仍按旺淡</strong>。</td></tr>
+<tr><td style="text-align:left"><code>Assets/Scripts/Systems/StrategyManager.cs</code></td><td style="text-align:left">「该刻拿不到槽」的驳回文案：小时容量为 0 只剩宵禁一种原因，改为直接写「落在宵禁时段（23:00–06:00）」。</td></tr>
+</tbody></table></div>
+<h2>四、数值后果（81 个协调机场）</h2>
+<div class="tw"><table><thead><tr><th style="text-align:left">指标</th><th style="text-align:right">旧（11-08 曲线口径）</th><th style="text-align:right">新（跑道平铺）</th><th style="text-align:right">变化</th></tr></thead><tbody>
+<tr><td style="text-align:left">单池日容量（离港）</td><td style="text-align:right">12,126</td><td style="text-align:right"><strong>22,260</strong></td><td style="text-align:right">+83.6%</td></tr>
+<tr><td style="text-align:left">已公布时刻槽</td><td style="text-align:right">5,892</td><td style="text-align:right"><strong>7,252</strong></td><td style="text-align:right">+23.1%</td></tr>
+<tr><td style="text-align:left">他航已占</td><td style="text-align:right">10,627</td><td style="text-align:right">19,621</td><td style="text-align:right">利用率 88.1%</td></tr>
+<tr><td style="text-align:left">玩家可申请</td><td style="text-align:right">1,499</td><td style="text-align:right"><strong>2,639</strong></td><td style="text-align:right">+76%</td></tr>
+<tr><td style="text-align:left">96 刻全公布的机场</td><td style="text-align:right">—</td><td style="text-align:right">62 场</td><td style="text-align:right">其余 19 场受宵禁/窗口约束</td></tr>
+</tbody></table></div>
+<h3>4.1 增幅最大</h3>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">跑道</th><th style="text-align:right">日容量</th><th style="text-align:right">倍数</th></tr></thead><tbody>
+<tr><td style="text-align:left">ORD</td><td style="text-align:right">8</td><td style="text-align:right">304 → <strong>768</strong></td><td style="text-align:right">2.5×</td></tr>
+<tr><td style="text-align:left">BOS</td><td style="text-align:right">6</td><td style="text-align:right">192 → <strong>576</strong></td><td style="text-align:right">3.0×</td></tr>
+<tr><td style="text-align:left">DFW</td><td style="text-align:right">7</td><td style="text-align:right">294 → <strong>672</strong></td><td style="text-align:right">2.3×</td></tr>
+<tr><td style="text-align:left">DTW</td><td style="text-align:right">6</td><td style="text-align:right">225 → <strong>576</strong></td><td style="text-align:right">2.6×</td></tr>
+<tr><td style="text-align:left">YYZ</td><td style="text-align:right">5</td><td style="text-align:right">159 → <strong>480</strong></td><td style="text-align:right">3.0×</td></tr>
+<tr><td style="text-align:left">PKX</td><td style="text-align:right">4</td><td style="text-align:right">127 → <strong>384</strong></td><td style="text-align:right">3.0×</td></tr>
+</tbody></table></div>
+<h3>4.2 被削弱的机场（重要）</h3>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">跑道</th><th style="text-align:right">日容量</th><th style="text-align:right">变化</th><th style="text-align:left">原因</th></tr></thead><tbody>
+<tr><td style="text-align:left">DXB</td><td style="text-align:right">2</td><td style="text-align:right">252 → <strong>192</strong></td><td style="text-align:right">−24%</td><td style="text-align:left">旧曲线给了它整夜高容量（夜航枢纽），平铺后没有夜航加成</td></tr>
+<tr><td style="text-align:left">LHR</td><td style="text-align:right">2</td><td style="text-align:right">187 → <strong>136</strong></td><td style="text-align:right">−27%</td><td style="text-align:left">同上；LHR 靠混跑把两条跑道压到极限，平铺只看条数</td></tr>
+<tr><td style="text-align:left">DOH</td><td style="text-align:right">2</td><td style="text-align:right">235 → <strong>192</strong></td><td style="text-align:right">−18%</td><td style="text-align:left">同上</td></tr>
+<tr><td style="text-align:left">ZUH</td><td style="text-align:right">1</td><td style="text-align:right">93 → <strong>64</strong></td><td style="text-align:right">−31%</td><td style="text-align:left">协调窗口只有 07:00–23:00（64 刻 × 1）</td></tr>
+</tbody></table></div>
+<blockquote><p>这是「跑道数 = 容量」的固有偏差：<strong>跑道条数不等于吞吐能力</strong>。</p><p>LHR 用 2 条跑道做到了 4 跑道机场的八成吞吐，DXB / DOH 用 2 条跑道做 24 小时转机波。</p><p>若日后要让这几场回到现实位次，最省事的补法是给个别机场加「每刻 N 条」的覆盖</p><p>（例如 LHR 3、DXB 3、DOH 3），而不是恢复整条曲线。</p></blockquote>
+<h3>4.3 「同刻几家」</h3>
+<p>平铺后每刻能站几家 = 该场跑道数，全表分布：</p>
+<div class="tw"><table><thead><tr><th style="text-align:left">每刻容量</th><th style="text-align:right">1</th><th style="text-align:right">2</th><th style="text-align:right">3</th><th style="text-align:right">4</th><th style="text-align:right">5</th><th style="text-align:right">6</th><th style="text-align:right">7</th><th style="text-align:right">8</th></tr></thead><tbody>
+<tr><td style="text-align:left">机场数</td><td style="text-align:right">6</td><td style="text-align:right">35</td><td style="text-align:right">20</td><td style="text-align:right">17</td><td style="text-align:right">4</td><td style="text-align:right">4</td><td style="text-align:right">1</td><td style="text-align:right">1</td></tr>
+</tbody></table></div>
+<p>单跑道机场（SYX / XMN / DLC / SAN / ZUH / TNA）每刻恒 1 条 —— 「同刻两家」在这些场不可能出现。 这不是 bug，是「一条跑道一刻放一条槽」的直接推论；玩家想抢就只能排队。</p>
+<h2>五、他航占用怎么摆（容易踩的连带问题）</h2>
+<p>容量平铺后，<code>DemandWeight</code> 若仍按「小时容量 ÷ 峰值容量」算，权重会恒为 1， <code>FillWave</code> 就退化成「每一波从第一刻往后填满」—— 结果是 <strong>00:00 排满、09:00 空着</strong>，看着像 bug。</p>
+<p>故把落位权重换成与槽价同一张 <code>StrategyEconomics.HourDemandCoef</code> （08:00 = 1.05 最挤、00–05 时 = 0.27 最淡），并说明口径： <strong>容量不设峰谷，需求仍有峰谷</strong>。占用总量仍由 <code>IndustryHeld</code>（85–92%）决定， 变的只是「这 429 条落在哪几刻」。</p>
+<h2>六、等效跑道：为什么有的机场「槽 &gt; 跑道」</h2>
+<p>★2026-11-09 用户提出的模型，<strong>确认采用</strong>：</p>
+<blockquote><p>「原本所有机场的跑道数 = 时刻容量，但 LHR 和 DXB 通过混合起降做到了时刻容量 &gt; 跑道数量。」</p></blockquote>
+<p>这正好对上现实里航班时刻协调的算法：<strong>容量是机场申报值</strong>（《航班时刻管理办法》 「机场特定 1 小时或 15 分钟内可提供的时刻数量」），不是由跑道条数算出来的。 跑道条数只是<strong>默认基线</strong>；靠运行方式把同一组跑道的吞吐抬上去，申报值就会超过基线。</p>
+<h3>6.1 它是连续谱，不是「两家例外」</h3>
+<p>用旧口径的峰刻反推每场「现实架次 / 跑道·小时」（旧峰刻 × 28 ÷ 跑道数）：</p>
+<div class="tw"><table><thead><tr><th style="text-align:left">机场</th><th style="text-align:right">物理跑道</th><th style="text-align:right">现实架次/时（量级）</th><th style="text-align:right">每跑道</th><th style="text-align:left">归类</th></tr></thead><tbody>
+<tr><td style="text-align:left">CKG</td><td style="text-align:right">4</td><td style="text-align:right">78</td><td style="text-align:right">19.5</td><td style="text-align:left">低端：含交叉跑道，同时可用的平行跑道少于 4 条</td></tr>
+<tr><td style="text-align:left">CAN</td><td style="text-align:right">5</td><td style="text-align:right">110</td><td style="text-align:right">22</td><td style="text-align:left">同上（01/19 为交叉跑道）</td></tr>
+<tr><td style="text-align:left">ORD</td><td style="text-align:right">8</td><td style="text-align:right">~190</td><td style="text-align:right">24</td><td style="text-align:left">基线附近（多跑道但互相牵制）</td></tr>
+<tr><td style="text-align:left">KMG</td><td style="text-align:right">3</td><td style="text-align:right">70</td><td style="text-align:right">23</td><td style="text-align:left">基线附近</td></tr>
+<tr><td style="text-align:left">WUH</td><td style="text-align:right">3</td><td style="text-align:right">36</td><td style="text-align:right">12</td><td style="text-align:left">报告值偏低（可能只算了一条跑道的高峰）</td></tr>
+<tr><td style="text-align:left">DOH</td><td style="text-align:right">2</td><td style="text-align:right">~66</td><td style="text-align:right">33</td><td style="text-align:left">高端，但未到「必须开例外」</td></tr>
+<tr><td style="text-align:left"><strong>LHR</strong></td><td style="text-align:right">2</td><td style="text-align:right">~88</td><td style="text-align:right"><strong>44</strong></td><td style="text-align:left"><strong>长尾</strong>：混合起降（一条起、一条降，可按需反转）</td></tr>
+<tr><td style="text-align:left"><strong>DXB</strong></td><td style="text-align:right">2</td><td style="text-align:right">~90</td><td style="text-align:right"><strong>45</strong></td><td style="text-align:left"><strong>长尾</strong>：两条宽间距平行跑道混合运行</td></tr>
+</tbody></table></div>
+<p>所以「开例外」的判据不是「它是不是枢纽」，而是<strong>每跑道现实吞吐是否明显高于基线</strong>。 按这条判据，真正站在长尾末端的只有 LHR 与 DXB。</p>
+<h3>6.2 代码里的机制（已就位，当前为空表 = 行为不变）</h3>
+<p><code>AirportCatalog.Overrides</code> 是 <code>代码 → { 等效值, 理由 }</code> 的表，配三条硬约束， 由 <code>AirportCatalogRegression ⑩</code> 逐条校验：</p>
+<p>1. <strong>理由必须非空</strong> —— 玩家问「凭什么它比跑道多」时要有答案； 2. <strong>等效值 ≥ 物理跑道数</strong> —— 想比跑道少请改跑道表，不许在这里做减法； 3. <strong>等效值 ≤ 物理跑道数 × 2</strong> —— 超过两倍不是混合运行，是数据填错。</p>
+<p>另把两个读法拆开，避免对账时互相打脸：</p>
+<div class="tw"><table><thead><tr><th style="text-align:left">接口</th><th style="text-align:left">含义</th><th style="text-align:left">谁在用</th></tr></thead><tbody>
+<tr><td style="text-align:left"><code>PhysicalRunwayCount</code></td><td style="text-align:left">建成投运了几条</td><td style="text-align:left">与 <code>runways.tsv</code> 对账、报表「跑道」列</td></tr>
+<tr><td style="text-align:left"><code>RunwayCount</code></td><td style="text-align:left">每刻放几条槽用的数（有超额取等效）</td><td style="text-align:left"><code>QuarterCapacity</code>、<code>HourCapacity</code>、界面</td></tr>
+</tbody></table></div>
+<h3>6.3 数值怎么定（两种压缩口径给出两组答案）</h3>
+<p>设统一压缩比 R（现实架次 ÷ 游戏架次），则 <code>等效跑道 = 现实架次 ÷ (8 × R)</code>：</p>
+<div class="tw"><table><thead><tr><th style="text-align:left">R</th><th style="text-align:right">LHR（88）</th><th style="text-align:right">DXB（90）</th><th style="text-align:right">DOH（66）</th><th style="text-align:left">等价于</th></tr></thead><tbody>
+<tr><td style="text-align:left"><strong>2.75</strong>（= CAN 当前压缩比）</td><td style="text-align:right"><strong>4</strong></td><td style="text-align:right"><strong>4</strong></td><td style="text-align:right"><strong>3</strong></td><td style="text-align:left">与五跑道的 CAN 同档，最均衡</td></tr>
+<tr><td style="text-align:left">3.5（= 旧口径压缩比）</td><td style="text-align:right">3</td><td style="text-align:right">3</td><td style="text-align:right">2（不动）</td><td style="text-align:left">更保守，LHR 仍未回到旧值</td></tr>
+</tbody></table></div>
+<p>两组都在硬约束内（≤ 物理 × 2）。<strong>待裁决后再填表</strong>，本文件不预设数值。</p>
+<h2>七、自测记录（开发自测，不构成验收）</h2>
+<p>1. <code>dotnet build tools/semcheck/semcheck.csproj</code> → 0 错误（1 条既有 warning，与本次无关）。 2. <code>dotnet run --project tools/slotreport</code> → 无跑道数不一致告警（tsv 与 <code>AirportRunways.cs</code> 88 场逐条相符）。 3. <strong>不变量扫描</strong>（7,252 行逐刻数据）：<code>离港_容量 ≠ 跑道数</code> 的行数 <strong>0</strong>；<code>离港 ≠ 到港</code> 的行数 <strong>0</strong>。 4. 四段容量无一为 0（回归「协调机场四段都 &gt; 0」的前置条件仍成立）。 5. 未跑 Unity：<code>AirportCatalogRegression</code> / <code>IndustryAtlasRegression</code> / <code>LogicSelfTests</code> 的改动只经过编译，<strong>未在 Unity 内执行</strong>（用户编辑器占用中，按约定不杀进程）。 下次统一检测时需补跑这三个。</p>
+<h2>八、产物</h2>
+<div class="tw"><table><thead><tr><th style="text-align:left">文件</th><th style="text-align:left">说明</th></tr></thead><tbody>
+<tr><td style="text-align:left"><code>out/reports/机场时刻容量与占用_总览_2026-11-09.csv</code></td><td style="text-align:left">81 行</td></tr>
+<tr><td style="text-align:left"><code>out/reports/机场时刻容量与占用_逐刻_2026-11-09.csv</code></td><td style="text-align:left">7,252 行</td></tr>
+<tr><td style="text-align:left"><code>out/reports/机场时刻容量与占用_2026-11-09.html</code></td><td style="text-align:left">两份表合一</td></tr>
+<tr><td style="text-align:left"><code>~/Downloads/</code> 同名三份</td><td style="text-align:left">同上</td></tr>
+</tbody></table></div>
+<p>旧口径的 <code>*_2026-11-08.csv/html</code> 保留在原处，便于对照，不再更新。</p>
+</main></body></html>

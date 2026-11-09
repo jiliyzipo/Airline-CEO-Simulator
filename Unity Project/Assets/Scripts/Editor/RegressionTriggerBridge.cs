@@ -75,6 +75,13 @@ namespace AirlineCEO.EditorTools
                 { "add-flight-command", AddFlightCommandRegression.Run },
                 { "airline-tier", AirlineTierRegression.Run },
                 { "airport-catalog", AirportCatalogRegression.Run },
+                // ★2026-11-09 批次一：容量服务抽取（C0）与机场索引。单跑入口的意义：
+                //   改容量口径 / 跑道数 / 宵禁 / 协调时段时，这条能立刻指出「抽取改变了数字」，
+                //   比整包 EditMode 更快定位到具体机场与刻。
+                { "capacity-service", CapacityServiceRegression.Run },
+                // ★2026-11-09 批次一：完整申请序列（提案 → 批准 → 到期交割 → 四条驳回分支）。
+                //   与 capacity-service 分工：那条锁数字，这条锁「批准/拒绝、持仓、资金」。
+                { "slot-sequence", SlotSequenceRegression.Run },
                 { "command-log", CommandLogRegression.Run },
                 // ★2026-11-04：REV-20261104042149-25327e 的 1 号失败（运力调令「已下达」False）
                 //   就藏在命令台这一套里，却因为没有白名单入口、只能靠整包 EditMode 才发现。

@@ -1,0 +1,106 @@
+diff --git "a/pre/D:\\Project\\_snap_r2c_pre\\Unity Project\\Assets\\Scripts\\Data\\AirportCatalog.cs" "b/current/D:\\Project\\Airline-CEO-Simulator\\Unity Project\\Assets\\Scripts\\Data\\AirportCatalog.cs"
+index bf9b049..a34e314 100644
+--- "a/pre/D:\\Project\\_snap_r2c_pre\\Unity Project\\Assets\\Scripts\\Data\\AirportCatalog.cs"	
++++ "b/current/D:\\Project\\Airline-CEO-Simulator\\Unity Project\\Assets\\Scripts\\Data\\AirportCatalog.cs"	
+@@ -182,7 +182,10 @@ namespace AirlineCEO.Data
+         // —— P1：等级 / 协调 / 槽池容量 / 宵禁 全部由底表推导，不手工录入 ——
+         static AirportCatalog()
+         {
+-            // [PRE-BATCH1 重建] 抽取前没有代码索引：FindByCode 走线性扫描，故此处不建表。
++            // ★2026-11-09 批次一（M1）：先建代码索引再逐个推导。
++            // 顺序有讲究 —— 索引只依赖 `code`，而 `code` 在字段初始化器里就已全部写入；
++            // 等级 / 协调时段则要等循环逐行推导，所以索引可以早建、属性必须晚用。
++            for (int i = 0; i < All.Length; i++) _indexByCode[All[i].code] = i;
+ 
+             for (int i = 0; i < All.Length; i++)
+             {
+@@ -194,8 +197,8 @@ namespace AirlineCEO.Data
+                 a.tier = TierWithPromotion(a.code, TierOf(pax, cargo));
+                 a.coordinated = a.tier <= 1;
+                 a.coordWindow = CoordWindowFor(a.code, a.tier);
+-                // [PRE-BATCH1 重建] 池容量在本地内联求和，不经 CapacityService。
+-                a.slotCapacity = PoolsRaw(a.code, a.tier, a.coordWindow);
++                // 池容量是**派生缓存**，唯一算法在 CapacityService（C0：跑道数平铺）。
++                a.slotCapacity = CapacityService.Pools(a.code, a.tier, a.coordWindow);
+                 a.curfew = CurfewWindowOf(a.code);
+                 All[i] = a;
+             }
+@@ -364,34 +367,7 @@ namespace AirlineCEO.Data
+         /// ★2026-11-09 批次一：算法本体迁到 <see cref="CapacityService.Quarter(string,int)"/>。
+         /// </summary>
+         public static int QuarterCapacity(string code, int minutes)
+-            => QuarterCapacityRaw(code, TierOfCode(code), CoordWindowOf(code), minutes);
+-
+-        // ———— [PRE-BATCH1 重建] 抽取前内联在 AirportCatalog 里的容量算法 ————
+-        // 与 CapacityService 是同一套 C0 口径（跑道数平铺 / 宵禁 0 / 协调时段外 0），
+-        // 签名与结构沿用 2026-11-07 交付快照里的真实形状，差别只在「算法放在哪里」。
+-        static int QuarterCapacityRaw(string code, int tier, string coordWindow, int minutes)
+-        {
+-            if (string.IsNullOrEmpty(coordWindow)) return 0;
+-            int m = ((minutes % 1440) + 1440) % 1440;
+-            if (!InCoordWindowText(coordWindow, m)) return 0;
+-            if (InCurfewWindow(code, m)) return 0;
+-            return RunwayCountOf(code, tier);
+-        }
+-
+-        static int[] PoolsRaw(string code, int tier, string coordWindow)
+-        {
+-            if (string.IsNullOrEmpty(coordWindow)) return new[] { 0, 0, 0, 0 };
+-            var r = new int[4];
+-            for (int band = 0; band < 4; band++)
+-            {
+-                int total = 0;
+-                var grid = ScheduleSlots.BandGrid(band);
+-                for (int i = 0; i < grid.Count; i++)
+-                    total += QuarterCapacityRaw(code, tier, coordWindow, grid[i]);
+-                r[band] = total;
+-            }
+-            return r;
+-        }
++            => CapacityService.Quarter(code, minutes);
+ 
+         /// <summary>
+         /// 某时刻是否需要时刻槽：协调机场 **且** 该时刻落在协调时段内。
+@@ -473,12 +449,7 @@ namespace AirlineCEO.Data
+ 
+         /// <summary>该机场一天可分配的时刻总数（逐场小时容量之和；非协调机场 0）。</summary>
+         public static int DayCapacity(string code)
+-        {
+-            // [PRE-BATCH1 重建] 抽取前逐小时累加。
+-            int n = 0;
+-            for (int h = 0; h < 24; h++) n += HourCapacity(code, h);
+-            return n;
+-        }
++            => CapacityService.Day(code);
+ 
+         /// <summary>某机场某小时的容量（支线 = 0）。</summary>
+         /// <summary>
+@@ -487,14 +458,7 @@ namespace AirlineCEO.Data
+         /// ★2026-11-09 批次一：算法迁到 <see cref="CapacityService.Hour"/>。
+         /// </summary>
+         public static int HourCapacity(string code, int hour)
+-        {
+-            // [PRE-BATCH1 重建] 抽取前把该小时四个 15 分钟刻相加。
+-            if (hour < 0 || hour > 23) return 0;
+-            int step = ScheduleSlots.SlotGridStepMinutes;
+-            int n = 0;
+-            for (int q = 0; q < 60; q += step) n += QuarterCapacity(code, hour * 60 + q);
+-            return n;
+-        }
++            => CapacityService.Hour(code, hour);
+ 
+         /// <summary>是否协调机场（需时刻槽）。</summary>
+         public static bool IsCoordinated(string code)
+@@ -815,11 +779,7 @@ namespace AirlineCEO.Data
+         public static AirportInfo FindByCode(string code)
+         {
+             if (string.IsNullOrEmpty(code)) return default;
+-            // [PRE-BATCH1 重建] 抽取前是线性扫描（StringComparison.OrdinalIgnoreCase 语义）。
+-            for (int i = 0; i < All.Length; i++)
+-                if (string.Equals(All[i].code, code, StringComparison.OrdinalIgnoreCase))
+-                    return All[i];
+-            return default;
++            return _indexByCode.TryGetValue(code, out int i) ? All[i] : default;
+         }
+ 
+         /// <summary>

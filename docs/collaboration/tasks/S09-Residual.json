@@ -6,7 +6,7 @@
   "revision": 1,
   "devStatus": "ready_for_review",
   "reviewStatus": "passed",
-  "freshness": "archived",
+  "freshness": "stale",
   "holder": null,
   "scope": [
     "本阶段改动范围：Editor、Assets-Tests、Balance、Logic、Systems、Data",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-10-23T07:58:05.076Z",
-  "updatedAt": "2026-11-08T04:53:30.013Z",
+  "updatedAt": "2026-11-09T12:18:39.937Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
@@ -45,8 +45,8 @@
     "tools/collab/tests",
     "tools/collab/config.example.json"
   ],
-  "freshnessNote": "Historic verdict REV-20261024021702-057abf covered 30 changed files; 12 were edited later and are now owned by passed deliveries DEL-20261107143823-54ca1d, DEL-20261028002145-55518e, DEL-20261031045140-2cd3d8 等 6 个.",
-  "staleForReviewId": null,
+  "freshnessNote": "Historic verdict REV-20261024021702-057abf covered 30 changed files; 9 taken over by later passed deliveries, 3 still uncovered (Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs, Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs, Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs).",
+  "staleForReviewId": "REV-20261024021702-057abf",
   "scopePolicy": "changed-files",
   "rescope": {
     "at": "2026-10-27T01:33:25.670Z",
@@ -66,8 +66,12 @@
   "scopeDrift": {
     "basis": 30,
     "intact": 18,
-    "covered": 12,
-    "uncovered": [],
-    "uncoveredCount": 0
+    "covered": 9,
+    "uncovered": [
+      "Unity Project/Assets/Scripts/Editor/AirportCatalogRegression.cs",
+      "Unity Project/Assets/Scripts/Editor/LogicSelfTests.cs",
+      "Unity Project/Assets/Scripts/Editor/SlotCashHintRegression.cs"
+    ],
+    "uncoveredCount": 3
   }
 }
