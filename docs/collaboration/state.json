@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "projectId": "Airline-CEO-Simulator",
-  "revision": 1021,
-  "updatedAt": "2026-11-09T12:28:59.641Z",
+  "revision": 1022,
+  "updatedAt": "2026-11-09T12:48:42.007Z",
   "tasksIndex": {
     "C-DEMO": {
       "title": "协作工具演示任务（专用验收，不改真实游戏任务结论）",
@@ -555,15 +555,15 @@
     },
     "S50-Batch1SlotCapacity": {
       "title": "阶段 S50-Batch1SlotCapacity：Editor/UI/Data",
-      "devStatus": "todo",
-      "reviewStatus": "not_run",
+      "devStatus": "ready_for_review",
+      "reviewStatus": "queued",
       "holder": null,
-      "freshness": "unknown",
+      "freshness": "current",
       "taskBookStatus": null,
       "updatedAt": "2026-11-09T12:28:36.362Z"
     }
   },
-  "lastDeliveryId": "DEL-20261107143823-54ca1d",
+  "lastDeliveryId": "DEL-20261109124840-48ff78",
   "issueStatus": {
     "ISSUE-20261018034627-c975cb": {
       "status": "closed",

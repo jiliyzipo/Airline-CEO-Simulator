@@ -4,9 +4,9 @@
   "taskId": "S50-Batch1SlotCapacity",
   "title": "阶段 S50-Batch1SlotCapacity：Editor/UI/Data",
   "revision": 1,
-  "devStatus": "todo",
-  "reviewStatus": "not_run",
-  "freshness": "unknown",
+  "devStatus": "ready_for_review",
+  "reviewStatus": "queued",
+  "freshness": "current",
   "holder": null,
   "scope": [
     "本阶段改动范围：Editor、UI、Data、Assets-Tests、Regression、Logic",
@@ -31,7 +31,7 @@
   "blockers": [],
   "sourceTaskBook": "stage:auto",
   "createdAt": "2026-11-09T12:28:36.362Z",
-  "updatedAt": "2026-11-09T12:28:59.589Z",
+  "updatedAt": "2026-11-09T12:48:42.004Z",
   "snapshotRoots": [
     "Unity Project/Assets",
     "Unity Project/Packages",
